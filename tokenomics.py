@@ -85,15 +85,48 @@ with st.sidebar:
 
     st.subheader("Parallelism & Optimization")
     tp = rp["n_gpu"]
-    gqa_kv_heads = st.number_input("GQA KV heads", value=8, step=1)
-    batch_size = st.number_input("Batch Size", value=64, step=1)
-    spec_window = st.number_input("Speculation window N", value=8, step=1)
-    acceptance_rate = st.number_input("Acceptance rate a", value=0.70, step=0.05, format="%.2f")
-    expected_tokens_accepted = (1 - acceptance_rate**(spec_window + 1)) / (1 - acceptance_rate) if acceptance_rate != 1 else spec_window + 1
-    nvlink_sharp_reduction = st.number_input("NVLink SHARP reduction", value=0.5, step=0.1, format="%.1f")
-    nvlink_time_override = st.number_input("NVLink time/tok with SHARP (s)", value=0.0005, step=0.0001, format="%.4f")
-    overlap_efficiency = st.number_input("Compute-Comm Overlap efficiency", value=0.5, step=0.1, format="%.1f")
-    new_tp_degree = st.number_input("New TP degree (for PP)", value=36, step=1)
+
+    use_gqa = st.checkbox("GQA (Grouped Query Attention)", value=True)
+    if use_gqa:
+        gqa_kv_heads = st.number_input("GQA KV heads", value=8, step=1)
+    else:
+        gqa_kv_heads = n_heads  # baseline: full attention (no KV head reduction)
+
+    use_batching = st.checkbox("Batch Size Optimization", value=True)
+    if use_batching:
+        batch_size = st.number_input("Batch Size", value=64, step=1)
+    else:
+        batch_size = 1  # baseline: single request
+
+    use_spec_decode = st.checkbox("Speculative Decoding", value=True)
+    if use_spec_decode:
+        spec_window = st.number_input("Speculation window N", value=8, step=1)
+        acceptance_rate = st.number_input("Acceptance rate a", value=0.70, step=0.05, format="%.2f")
+        expected_tokens_accepted = (1 - acceptance_rate**(spec_window + 1)) / (1 - acceptance_rate) if acceptance_rate != 1 else spec_window + 1
+    else:
+        spec_window = 0
+        acceptance_rate = 1.0
+        expected_tokens_accepted = 1  # baseline: one token per step
+
+    use_nvlink_sharp = st.checkbox("NVLink SHARP", value=True)
+    if use_nvlink_sharp:
+        nvlink_sharp_reduction = st.number_input("NVLink SHARP reduction", value=0.5, step=0.1, format="%.1f")
+        nvlink_time_override = st.number_input("NVLink time/tok with SHARP (s)", value=0.0005, step=0.0001, format="%.4f")
+    else:
+        nvlink_sharp_reduction = 1.0  # baseline: no SHARP reduction
+        nvlink_time_override = None   # will use raw NVLink time
+
+    use_overlap = st.checkbox("Compute-Comm Overlap", value=True)
+    if use_overlap:
+        overlap_efficiency = st.number_input("Compute-Comm Overlap efficiency", value=0.5, step=0.1, format="%.1f")
+    else:
+        overlap_efficiency = 0.0  # baseline: no overlap
+
+    use_pp = st.checkbox("Pipeline Parallelism (PP)", value=True)
+    if use_pp:
+        new_tp_degree = st.number_input("New TP degree (for PP)", value=36, step=1)
+    else:
+        new_tp_degree = rp["n_gpu"]  # baseline: full TP, no PP
     pp_stages = rp["n_gpu"] / new_tp_degree if new_tp_degree > 0 else 1
 
     st.subheader("Revenue Parameters")
@@ -154,7 +187,7 @@ pf_nvl_per_layer = pf_nvl_per_allreduce * 2  # 2 all-reduces per layer
 pf_nvl_total = pf_nvl_per_layer * n_layers
 per_gpu_nvlink_bw = nvlink_bw / n_gpu  # TB/s per GPU
 pf_nvl_time = pf_nvl_total / (per_gpu_nvlink_bw * 1e12) if per_gpu_nvlink_bw > 0 else 0
-pf_nvl_time_sharp = pf_nvl_time * 0.5
+pf_nvl_time_sharp = pf_nvl_time * 0.5 if use_nvlink_sharp else pf_nvl_time
 
 total_prefill_time = pf_compute_mfu + pf_hbm_time + pf_nvl_time_sharp
 
@@ -190,7 +223,7 @@ dc_nvl_allreduces_all = dc_nvl_allreduces_per_layer * n_layers
 dc_nvl_per_allreduce = 2 * dc_nvl_msg * (n_gpu - 1) / n_gpu
 dc_nvl_traffic = dc_nvl_allreduces_all * dc_nvl_per_allreduce
 dc_nvl_time_raw = dc_nvl_traffic / (per_gpu_nvlink_bw * 1e12) if per_gpu_nvlink_bw > 0 else 0
-dc_nvl_time_sharp = nvlink_time_override  # Config override
+dc_nvl_time_sharp = nvlink_time_override if use_nvlink_sharp else dc_nvl_time_raw  # Config override
 
 dc_data_time_per_tok = dc_hbm_time + dc_nvl_time_sharp
 dc_total_time_per_tok = dc_compute_per_tok + dc_hbm_time + dc_nvl_time_sharp
@@ -216,7 +249,7 @@ new_ring_factor = (new_tp_degree - 1) / new_tp_degree if new_tp_degree > 0 else 
 nvl_data_new_tp = 2 * dc_nvl_msg * new_ring_factor
 nvl_traffic_new_tp = nvl_data_new_tp * dc_nvl_allreduces_all
 nvl_time_raw_new = nvl_traffic_new_tp / (per_gpu_nvlink_bw * 1e12) if per_gpu_nvlink_bw > 0 else 0
-nvl_time_sharp_new = nvl_time_raw_new * 0.5
+nvl_time_sharp_new = nvl_time_raw_new * 0.5 if use_nvlink_sharp else nvl_time_raw_new
 nvl_time_optimized = nvl_time_sharp_new * (1 - overlap_efficiency)
 nvl_time_all_tokens_opt = nvl_time_optimized * output_tokens
 
@@ -238,7 +271,7 @@ def compute_timeline_for_rack(rack_name):
     r_pf_hbm_time = pf_hbm_total / (r_mem_bw * 1e12) if r_mem_bw > 0 else 0
     # Prefill NVLink
     r_pf_nvl_time = pf_nvl_total / (r_per_gpu_nvl * 1e12) if r_per_gpu_nvl > 0 else 0
-    r_pf_nvl_sharp = r_pf_nvl_time * 0.5
+    r_pf_nvl_sharp = r_pf_nvl_time * 0.5 if use_nvlink_sharp else r_pf_nvl_time
 
     # Decode HBM (GQA)
     r_gqa_hbm_traffic = gqa_kv_all_layers_per_tok + weight_memory
@@ -250,7 +283,7 @@ def compute_timeline_for_rack(rack_name):
 
     # Decode NVLink optimized
     r_nvl_time_raw_new = nvl_traffic_new_tp / (r_per_gpu_nvl * 1e12) if r_per_gpu_nvl > 0 else 0
-    r_nvl_time_sharp_new = r_nvl_time_raw_new * 0.5
+    r_nvl_time_sharp_new = r_nvl_time_raw_new * 0.5 if use_nvlink_sharp else r_nvl_time_raw_new
     r_nvl_time_optimized = r_nvl_time_sharp_new * (1 - overlap_efficiency)
 
     # Timeline steps (fully optimized)
@@ -320,7 +353,7 @@ def compute_tl_exact(rack_name):
     r_pf_hbm_time = pf_hbm_total / (r_mem_bw * 1e12) if r_mem_bw > 0 else 0
     g3 = r_pf_hbm_time * batch_size
     r_pf_nvl_time = pf_nvl_total / (r_per_gpu_nvl * 1e12) if r_per_gpu_nvl > 0 else 0
-    r_pf_nvl_sharp = r_pf_nvl_time * 0.5
+    r_pf_nvl_sharp = r_pf_nvl_time * 0.5 if use_nvlink_sharp else r_pf_nvl_time
     h3 = r_pf_nvl_sharp * batch_size
     d3 = f3 + h3
 
@@ -338,7 +371,7 @@ def compute_tl_exact(rack_name):
     r_nvl_data_new_tp = 2 * dc_nvl_msg * (new_tp_degree - 1) / new_tp_degree if new_tp_degree > 0 else 0
     r_nvl_traffic_new_tp = r_nvl_data_new_tp * dc_nvl_allreduces_all
     r_nvl_time_raw_new = r_nvl_traffic_new_tp / (r_per_gpu_nvl * 1e12) if r_per_gpu_nvl > 0 else 0
-    r_nvl_time_sharp_new = r_nvl_time_raw_new * 0.5
+    r_nvl_time_sharp_new = r_nvl_time_raw_new * 0.5 if use_nvlink_sharp else r_nvl_time_raw_new
     r_nvl_time_optimized = r_nvl_time_sharp_new * (1 - overlap_efficiency)
     h5 = r_nvl_time_optimized * output_tokens
     d5 = g5 + h5

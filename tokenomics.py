@@ -1239,7 +1239,18 @@ setSpeed(1);
 components.html(flowchart_html, height=720, scrolling=False)
 
 # ─── TL_Param Timeline ──────────────────────────────────────────────────────
-st.header("TL_Param — Latency Timeline (Fully Optimized)")
+_active_opts = [
+    label for label, flag in [
+        ("GQA", use_gqa),
+        ("Batching", use_batching),
+        ("SpecDecode", use_spec_decode),
+        ("SHARP", use_nvlink_sharp),
+        ("Overlap", use_overlap),
+        ("PP", use_pp),
+    ] if flag
+]
+_opt_label = ", ".join(_active_opts) if _active_opts else "No Optimizations"
+st.header(f"TL_Param — Latency Timeline ({_opt_label})")
 
 tl_data = []
 for i, name in enumerate(vr_tl["step_names"]):

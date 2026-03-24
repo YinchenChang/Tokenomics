@@ -1332,7 +1332,7 @@ with st.expander("💸 Revenue Model", expanded=False):
             st.write(f"Blended Rate: ${rev['blended_rate']:.2f}/M tokens")
             st.write(f"Input Revenue: **${rev['input_revenue']:,.1f}M**")
             st.write(f"Output Revenue: **${rev['output_revenue']:,.1f}M**")
-            st.success(f"**TOTAL ANNUAL REVENUE: ${rev['total_revenue']:,.1f}M**")
+            st.success(f"**TOTAL ANNUAL REVENUE(Theoretical): ${rev['total_revenue']:,.1f}M**")
             st.write(f"Revenue/rack/yr: ${rev['rev_per_rack']:,.0f}")
             st.write(f"Revenue/OpEx: {rev['rev_to_opex']:.1f}x")
             st.write(f"Cost/Mtok: ${rev['cost_per_mtok']:.2f}")

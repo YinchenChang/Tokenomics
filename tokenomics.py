@@ -9,8 +9,8 @@ import math
 import json
 import pandas as pd
 
-st.set_page_config(page_title="FTGP Token Generation Calculator", layout="wide")
-st.title("Tokenomics")
+st.set_page_config(page_title="FTGP Token Generation Calculator (Beta)", layout="wide")
+st.title("Tokenomics (Beta)")
 st.subheader("From Token Generation to Profitability (FTGP)")
 st.caption("Computation chain: Config → WP_Param → TL_Param → Revenue_Model")
 

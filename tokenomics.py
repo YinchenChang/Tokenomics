@@ -483,17 +483,25 @@ def compute_tl_for_rack_excel(target_rack):
     if selected == "Vera Rubin NVL72":
         if target_rack == "Vera Rubin NVL72":
             n3 = d29
+            n3_compute, n3_hbm, n3_nvlink = f29, g29, h29
         else:
             sel_pflops = {"FP4": vr["fp4_inf"], "FP8": vr["fp8"], "FP16": vr["fp16"]}[precision]
             tgt_pflops = {"FP4": gb["fp4_inf"], "FP8": gb["fp8"], "FP16": gb["fp16"]}[precision]
-            n3 = f29 * (sel_pflops / tgt_pflops) + h29 * (vr["nvlink_bw"] / gb["nvlink_bw"])
+            n3_compute = f29 * (sel_pflops / tgt_pflops)
+            n3_hbm = g29 * (vr["mem_bw"] / gb["mem_bw"])
+            n3_nvlink = h29 * (vr["nvlink_bw"] / gb["nvlink_bw"])
+            n3 = n3_compute + n3_nvlink
     else:
         if target_rack == "GB200 NVL72":
             n3 = d29
+            n3_compute, n3_hbm, n3_nvlink = f29, g29, h29
         else:
             sel_pflops = {"FP4": gb["fp4_inf"], "FP8": gb["fp8"], "FP16": gb["fp16"]}[precision]
             tgt_pflops = {"FP4": vr["fp4_inf"], "FP8": vr["fp8"], "FP16": vr["fp16"]}[precision]
-            n3 = f29 * (sel_pflops / tgt_pflops) + h29 * (gb["nvlink_bw"] / vr["nvlink_bw"])
+            n3_compute = f29 * (sel_pflops / tgt_pflops)
+            n3_hbm = g29 * (gb["mem_bw"] / vr["mem_bw"])
+            n3_nvlink = h29 * (gb["nvlink_bw"] / vr["nvlink_bw"])
+            n3 = n3_compute + n3_nvlink
 
     # Step 4: Decode-First Token (GQA HBM time)
     # G30 = WP_Param!B164 = gqa_hbm_time (uses selected rack's mem_bw)
@@ -509,6 +517,7 @@ def compute_tl_for_rack_excel(target_rack):
             n4 = d30
         else:
             n4 = d30 * (gb["mem_bw"] / vr["mem_bw"])
+    n4_hbm = n4  # step 4 is purely HBM-bound
 
     # Step 5: Decode-All Tokens
     # G31 = WP_Param!B172 * WP_Param!B23 * batch = batch_hbm_time_per_tok * output_tokens * batch_size
@@ -521,13 +530,19 @@ def compute_tl_for_rack_excel(target_rack):
     if selected == "Vera Rubin NVL72":
         if target_rack == "Vera Rubin NVL72":
             n5 = d31
+            n5_hbm, n5_nvlink = g31, h31
         else:
-            n5 = g31 * (vr["mem_bw"] / gb["mem_bw"]) + h31 * (vr["nvlink_bw"] / gb["nvlink_bw"])
+            n5_hbm = g31 * (vr["mem_bw"] / gb["mem_bw"])
+            n5_nvlink = h31 * (vr["nvlink_bw"] / gb["nvlink_bw"])
+            n5 = n5_hbm + n5_nvlink
     else:
         if target_rack == "GB200 NVL72":
             n5 = d31
+            n5_hbm, n5_nvlink = g31, h31
         else:
-            n5 = g31 * (gb["mem_bw"] / vr["mem_bw"]) + h31 * (gb["nvlink_bw"] / vr["nvlink_bw"])
+            n5_hbm = g31 * (gb["mem_bw"] / vr["mem_bw"])
+            n5_nvlink = h31 * (gb["nvlink_bw"] / vr["nvlink_bw"])
+            n5 = n5_hbm + n5_nvlink
 
     # Step 6: De-tokenization
     n6 = 0.05
@@ -543,6 +558,10 @@ def compute_tl_for_rack_excel(target_rack):
                      "Decode-First Token", "Decode-All Tokens", "De-tokenization"],
         e2e=e2e, e2e_through_decode=e2e_through_decode,
         avg_time_per_tok=avg_tok, tok_per_sec=tps,
+        # Sub-components for steps 3–5
+        n3_compute=n3_compute, n3_hbm=n3_hbm, n3_nvlink=n3_nvlink,
+        n4_hbm=n4_hbm,
+        n5_hbm=n5_hbm, n5_nvlink=n5_nvlink,
     )
 
 
@@ -1259,6 +1278,27 @@ for i, name in enumerate(vr_tl["step_names"]):
         "VR Duration (s)": vr_tl["steps"][i],
         "GB200 Duration (s)": gb_tl["steps"][i],
     })
+    if i == 2:  # Step 3: Prefill+KV Write
+        tl_data.append({"Step": "   ↳ Compute",
+                         "VR Duration (s)": vr_tl["n3_compute"],
+                         "GB200 Duration (s)": gb_tl["n3_compute"]})
+        tl_data.append({"Step": "   ↳ HBM",
+                         "VR Duration (s)": vr_tl["n3_hbm"],
+                         "GB200 Duration (s)": gb_tl["n3_hbm"]})
+        tl_data.append({"Step": "   ↳ NVLink",
+                         "VR Duration (s)": vr_tl["n3_nvlink"],
+                         "GB200 Duration (s)": gb_tl["n3_nvlink"]})
+    elif i == 3:  # Step 4: Decode-First Token
+        tl_data.append({"Step": "   ↳ HBM",
+                         "VR Duration (s)": vr_tl["n4_hbm"],
+                         "GB200 Duration (s)": gb_tl["n4_hbm"]})
+    elif i == 4:  # Step 5: Decode-All Tokens
+        tl_data.append({"Step": "   ↳ HBM",
+                         "VR Duration (s)": vr_tl["n5_hbm"],
+                         "GB200 Duration (s)": gb_tl["n5_hbm"]})
+        tl_data.append({"Step": "   ↳ NVLink",
+                         "VR Duration (s)": vr_tl["n5_nvlink"],
+                         "GB200 Duration (s)": gb_tl["n5_nvlink"]})
 tl_data.append({"Step": "E2E (through Decode-All)",
                  "VR Duration (s)": vr_tl["e2e_through_decode"],
                  "GB200 Duration (s)": gb_tl["e2e_through_decode"]})

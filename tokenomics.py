@@ -1403,19 +1403,3 @@ with st.expander("🔧 WP_Param — Workload Parameters (selected rack)", expand
         st.write(f"Weight Memory: {weight_memory/1e12:.2f} TB")
         st.write(f"GPU Memory Headroom: {(float(rp['gpu_mem'])/n_gpu*1e12 - (parameters*bytes_per_param/n_gpu + 2*d_model*(input_tokens+output_tokens)*n_layers/n_gpu))/1e9:.1f} GB")
 
-# ─── Calibration Check ──────────────────────────────────────────────────────
-st.divider()
-st.header("Calibration Check")
-st.caption("Target: 1T model, 4000/1000 I/O, VR NVL72")
-
-cal = {
-    "Metric": ["E2E Latency (s)", "Output tok/s", "Annual Revenue ($M)"],
-    "Target": [1.928302, 32351.0, 76735.4],
-    "Computed (VR)": [
-        round(vr_tl["e2e"], 6),
-        round(vr_tl["tok_per_sec"], 1),
-        round(vr_rev["total_revenue"], 1),
-    ],
-}
-cal["Delta"] = [f"{((c - t) / t * 100):.4f}%" for t, c in zip(cal["Target"], cal["Computed (VR)"])]
-st.dataframe(pd.DataFrame(cal), use_container_width=True, hide_index=True)

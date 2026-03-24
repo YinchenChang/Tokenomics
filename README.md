@@ -1,4 +1,4 @@
-# FTGP Token Generation Calculator
+# Tokenomics
 
 An interactive calculator for estimating **AI inference throughput and revenue** for large-scale AI data centers, built with [Streamlit](https://streamlit.io).
 

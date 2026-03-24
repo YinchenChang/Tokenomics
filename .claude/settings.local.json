@@ -8,7 +8,9 @@
       "Bash(\"/c/Program Files/Python314/python.exe\" -m pip install openpyxl pandas streamlit --quiet)",
       "Bash(curl -s http://localhost:8501)",
       "Bash(curl -s \"http://localhost:8501/_stcore/health\")",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''tokenomics.py''\\).read\\(\\)\\); print\\(''syntax OK''\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''tokenomics.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''syntax OK''\\)\")"
     ]
   }
 }

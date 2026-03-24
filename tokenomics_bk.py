@@ -57,35 +57,8 @@ with st.sidebar:
         total_power_gw = st.number_input("Total Power (GW)", value=1.0, step=0.1, format="%.1f")
         total_power = total_power_gw * 1e9
         pue = st.number_input("PUE", value=1.2, step=0.05, format="%.2f")
-        rack_type = st.selectbox("Rack Type", list(RACK_PRESETS.keys()) + ["Customized Rack"])
-        base_rp = RACK_PRESETS.get(rack_type, RACK_PRESETS["Vera Rubin NVL72"])
-
-    with st.expander("Rack Spec", expanded=True):
-        is_custom = rack_type == "Customized Rack"
-        c_gpu_type = st.text_input("GPU Type", value=base_rp["gpu_type"], disabled=not is_custom)
-        c_n_gpu = st.number_input("No. of GPU", value=int(base_rp["n_gpu"]), disabled=not is_custom)
-        c_nvlink_bw = st.number_input("NVLink BW (TB/s)", value=float(base_rp["nvlink_bw"]), disabled=not is_custom)
-        c_nvlink_c2c = st.number_input("NVLink-C2C BW (TB/s)", value=float(base_rp["nvlink_c2c_bw"]), disabled=not is_custom)
-        c_gpu_mem = st.number_input("GPU Memory (TB)", value=float(base_rp["gpu_mem"]), disabled=not is_custom)
-        c_mem_bw = st.number_input("Memory BW (TB/s)", value=float(base_rp["mem_bw"]), disabled=not is_custom)
-        st.markdown("**(PFLOPS)**")
-        c_fp4_inf = st.number_input("FP4 Dense Inference", value=float(base_rp["fp4_inf"]), disabled=not is_custom)
-        c_fp4_train = st.number_input("FP4 Dense Training", value=float(base_rp["fp4_train"]), disabled=not is_custom)
-        c_fp8 = st.number_input("FP8 Dense", value=float(base_rp["fp8"]), disabled=not is_custom)
-        c_fp16 = st.number_input("FP16/BF16 Dense", value=float(base_rp["fp16"]), disabled=not is_custom)
-        c_power = st.number_input("Power per Rack (kW)", value=float(base_rp["power_per_rack"]), disabled=not is_custom)
-
-        rp = {
-            "gpu_type": c_gpu_type, "n_gpu": c_n_gpu,
-            "nvlink_bw": c_nvlink_bw, "nvlink_c2c_bw": c_nvlink_c2c,
-            "gpu_mem": c_gpu_mem, "mem_bw": c_mem_bw,
-            "fp4_inf": c_fp4_inf, "fp4_train": c_fp4_train,
-            "fp8": c_fp8, "fp16": c_fp16,
-            "power_per_rack": c_power,
-            "n_cpu": base_rp["n_cpu"], "cpu_type": base_rp["cpu_type"], "rack_price": base_rp["rack_price"]
-        }
-        if is_custom:
-            RACK_PRESETS["Customized Rack"] = rp
+        rack_type = st.selectbox("Rack Type", list(RACK_PRESETS.keys()))
+        rp = RACK_PRESETS[rack_type]
 
     with st.expander("Input & Output Tokens", expanded=True):
         input_tokens = st.number_input("Input Tokens", value=4000, step=100)
@@ -475,49 +448,120 @@ def compute_tl_for_rack_excel(target_rack):
 
     if target_rack == selected:
         n2 = d28
-    else:
-        n2 = g28 * (sel_rp["mem_bw"] / tgt_rp["mem_bw"]) + h28 * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"])
+    elif target_rack == "Vera Rubin NVL72":
+        # Scale from selected (GB200) to VR
+        n2 = g28 * (RACK_PRESETS["Vera Rubin NVL72"]["mem_bw"] / sel_rp["mem_bw"]) + \
+             h28 * (RACK_PRESETS["Vera Rubin NVL72"]["nvlink_bw"] / sel_rp["nvlink_bw"])
+        # Wait, the Excel formula is: G28*(Config!G18/Config!F18) + H28*(Config!G15/Config!F15)
+        # When selected is VR (F columns), for GB200 (O column):
+        # O28 = G28*(F18/G18) + H28*(F15/G15) - this scales FROM VR TO GB200
+        # Actually let me re-read:
+        # N28: IF(Config!B7="Vera Rubin NVL72", D28, G28*(Config!G18/Config!F18) + H28*(Config!G15/Config!F15))
+        # O28: IF(Config!B7="Vera Rubin NVL72", G28*(Config!F18/Config!G18) + H28*(Config!F15/Config!G15), D28)
+        #
+        # Config!F18 = VR mem_bw = 1580, Config!G18 = GB200 mem_bw = 576
+        # Config!F15 = VR nvlink_bw = 260, Config!G15 = GB200 nvlink_bw = 130
+        #
+        # So when selected=VR: N28 = D28 (VR), O28 = G28*(1580/576) + H28*(260/130)
+        # G28 uses selected rack's mem_bw, H28 uses selected rack's nvlink_bw
+        # For O28 (GB200): scale HBM time by VR_bw/GB_bw ratio (higher time for GB200 since lower BW)
+        # Wait: G28*(F18/G18) = G28 * (VR_memBW / GB_memBW) -- this would INCREASE time, which is wrong
+        # Actually G28 = time, and if VR has higher BW, the time with VR BW is shorter.
+        # The ratio F18/G18 = 1580/576 ≈ 2.74 which increases time -- meaning GB200 is slower.
+        # That's correct: GB200 has lower mem_bw so things take longer.
+        #
+        # But wait - G28 was computed with selected rack's mem_bw. If selected=VR, G28 uses VR BW.
+        # To get GB200 time: time_GB = data / BW_GB = (data / BW_VR) * (BW_VR / BW_GB) = G28 * (BW_VR / BW_GB)
+        # Yes that's correct.
+        pass
+
+    vr = RACK_PRESETS["Vera Rubin NVL72"]
+    gb = RACK_PRESETS["GB200 NVL72"]
+
+    if selected == "Vera Rubin NVL72":
+        if target_rack == "Vera Rubin NVL72":
+            n2 = d28
+        else:  # GB200
+            n2 = g28 * (vr["mem_bw"] / gb["mem_bw"]) + h28 * (vr["nvlink_bw"] / gb["nvlink_bw"])
+    else:  # selected == GB200
+        if target_rack == "GB200 NVL72":
+            n2 = d28
+        else:  # VR
+            n2 = g28 * (gb["mem_bw"] / vr["mem_bw"]) + h28 * (gb["nvlink_bw"] / vr["nvlink_bw"])
 
     # Step 3: Prefill
+    # F29 = WP_Param!B70 * WP_Param!B169 = pf_compute_mfu * batch_size
     f29 = pf_compute_mfu * batch_size
     g29 = pf_hbm_time * batch_size
     h29 = pf_nvl_time_sharp * batch_size
     d29 = f29 + h29
 
-    if target_rack == selected:
-        n3 = d29
-        n3_compute, n3_hbm, n3_nvlink = f29, g29, h29
+    # N29: scales compute by PFLOPS ratio and NVLink by BW ratio
+    if selected == "Vera Rubin NVL72":
+        if target_rack == "Vera Rubin NVL72":
+            n3 = d29
+            n3_compute, n3_hbm, n3_nvlink = f29, g29, h29
+        else:
+            sel_pflops = {"FP4": vr["fp4_inf"], "FP8": vr["fp8"], "FP16": vr["fp16"]}[precision]
+            tgt_pflops = {"FP4": gb["fp4_inf"], "FP8": gb["fp8"], "FP16": gb["fp16"]}[precision]
+            n3_compute = f29 * (sel_pflops / tgt_pflops)
+            n3_hbm = g29 * (vr["mem_bw"] / gb["mem_bw"])
+            n3_nvlink = h29 * (vr["nvlink_bw"] / gb["nvlink_bw"])
+            n3 = n3_compute + n3_nvlink
     else:
-        sel_pflops = {"FP4": sel_rp["fp4_inf"], "FP8": sel_rp["fp8"], "FP16": sel_rp["fp16"]}[precision]
-        tgt_pflops = {"FP4": tgt_rp["fp4_inf"], "FP8": tgt_rp["fp8"], "FP16": tgt_rp["fp16"]}[precision]
-        n3_compute = f29 * (sel_pflops / tgt_pflops) if tgt_pflops > 0 else 0
-        n3_hbm = g29 * (sel_rp["mem_bw"] / tgt_rp["mem_bw"]) if tgt_rp["mem_bw"] > 0 else 0
-        n3_nvlink = h29 * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"]) if tgt_rp["nvlink_bw"] > 0 else 0
-        n3 = n3_compute + n3_nvlink
+        if target_rack == "GB200 NVL72":
+            n3 = d29
+            n3_compute, n3_hbm, n3_nvlink = f29, g29, h29
+        else:
+            sel_pflops = {"FP4": gb["fp4_inf"], "FP8": gb["fp8"], "FP16": gb["fp16"]}[precision]
+            tgt_pflops = {"FP4": vr["fp4_inf"], "FP8": vr["fp8"], "FP16": vr["fp16"]}[precision]
+            n3_compute = f29 * (sel_pflops / tgt_pflops)
+            n3_hbm = g29 * (gb["mem_bw"] / vr["mem_bw"])
+            n3_nvlink = h29 * (gb["nvlink_bw"] / vr["nvlink_bw"])
+            n3 = n3_compute + n3_nvlink
 
     # Step 4: Decode-First Token (GQA HBM time)
+    # G30 = WP_Param!B164 = gqa_hbm_time (uses selected rack's mem_bw)
     d30 = gqa_hbm_time
 
-    if target_rack == selected:
-        n4 = d30
+    if selected == "Vera Rubin NVL72":
+        if target_rack == "Vera Rubin NVL72":
+            n4 = d30
+        else:
+            n4 = d30 * (vr["mem_bw"] / gb["mem_bw"])
     else:
-        n4 = d30 * (sel_rp["mem_bw"] / tgt_rp["mem_bw"]) if tgt_rp["mem_bw"] > 0 else 0
-    n4_hbm = n4
+        if target_rack == "GB200 NVL72":
+            n4 = d30
+        else:
+            n4 = d30 * (gb["mem_bw"] / vr["mem_bw"])
+    n4_hbm = n4  # step 4 is purely HBM-bound
 
     # Step 5: Decode-All Tokens
+    # G31 = WP_Param!B172 * WP_Param!B23 * batch = batch_hbm_time_per_tok * output_tokens * batch_size
+    # Wall-clock HBM time: weights read once per output token step for entire batch
     g31 = batch_hbm_time_per_tok * eff_decode_steps * batch_size
-    h31_bw = nvl_bw_all_tokens_opt
-    h31_lat = nvl_latency_all_tokens
+    # H31 = BW component + hop latency component (latency does not scale with BW ratio)
+    h31_bw = nvl_bw_all_tokens_opt   # scales with NVLink BW when cross-rack
+    h31_lat = nvl_latency_all_tokens  # same for both racks (same NVL72 fabric topology)
     h31 = h31_bw + h31_lat
     d31 = g31 + h31
 
-    if target_rack == selected:
-        n5 = d31
-        n5_hbm, n5_nvlink = g31, h31
+    if selected == "Vera Rubin NVL72":
+        if target_rack == "Vera Rubin NVL72":
+            n5 = d31
+            n5_hbm, n5_nvlink = g31, h31
+        else:
+            n5_hbm = g31 * (vr["mem_bw"] / gb["mem_bw"])
+            n5_nvlink = h31_bw * (vr["nvlink_bw"] / gb["nvlink_bw"]) + h31_lat
+            n5 = n5_hbm + n5_nvlink
     else:
-        n5_hbm = g31 * (sel_rp["mem_bw"] / tgt_rp["mem_bw"]) if tgt_rp["mem_bw"] > 0 else 0
-        n5_nvlink = h31_bw * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"]) + h31_lat if tgt_rp["nvlink_bw"] > 0 else 0
-        n5 = n5_hbm + n5_nvlink
+        if target_rack == "GB200 NVL72":
+            n5 = d31
+            n5_hbm, n5_nvlink = g31, h31
+        else:
+            n5_hbm = g31 * (gb["mem_bw"] / vr["mem_bw"])
+            n5_nvlink = h31_bw * (gb["nvlink_bw"] / vr["nvlink_bw"]) + h31_lat
+            n5 = n5_hbm + n5_nvlink
 
     # Step 6: De-tokenization
     n6 = 0.05
@@ -542,8 +586,6 @@ def compute_tl_for_rack_excel(target_rack):
 
 vr_tl = compute_tl_for_rack_excel("Vera Rubin NVL72")
 gb_tl = compute_tl_for_rack_excel("GB200 NVL72")
-if rack_type == "Customized Rack":
-    cust_tl = compute_tl_for_rack_excel("Customized Rack")
 
 
 # ─── DC_COST_MODEL ──────────────────────────────────────────────────────────
@@ -619,8 +661,6 @@ def compute_dc_cost(rack_name):
 
 vr_dc = compute_dc_cost("Vera Rubin NVL72")
 gb_dc = compute_dc_cost("GB200 NVL72")
-if rack_type == "Customized Rack":
-    cust_dc = compute_dc_cost("Customized Rack")
 
 
 # ─── REVENUE MODEL ──────────────────────────────────────────────────────────
@@ -667,8 +707,6 @@ def compute_revenue(tl, dc, rack_name):
 
 vr_rev = compute_revenue(vr_tl, vr_dc, "Vera Rubin NVL72")
 gb_rev = compute_revenue(gb_tl, gb_dc, "GB200 NVL72")
-if rack_type == "Customized Rack":
-    cust_rev = compute_revenue(cust_tl, cust_dc, "Customized Rack")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -719,17 +757,6 @@ with m7:
 with m8:
     st.metric("GB200 Rev/OpEx Ratio", f"{gb_rev['rev_to_opex']:.1f}x")
 
-if rack_type == "Customized Rack":
-    m9, m10, m11, m12 = st.columns(4)
-    with m9:
-        st.metric("Custom E2E Latency (s)", f"{cust_tl['e2e']:.6f}")
-    with m10:
-        st.metric("Custom Output tok/s", f"{cust_tl['tok_per_sec']:,.1f}")
-    with m11:
-        st.metric("Custom Annual Revenue ($M)", f"{cust_rev['total_revenue']:,.1f}")
-    with m12:
-        st.metric("Custom Rev/OpEx Ratio", f"{cust_rev['rev_to_opex']:.1f}x")
-
 # ─── ANIMATED FLOWCHART ──────────────────────────────────────────────────────
 st.header("Token Generation Pipeline — Animated Flowchart")
 
@@ -779,12 +806,7 @@ dc_all_hbm_bytes_total = dc_all_hbm_bytes_per_tok * eff_decode_steps
 dc_all_nvl_bytes_total = nvl_bw_all_tokens_opt * per_gpu_nvlink_bw * 1e12  # back-derive bytes from BW component only
 
 # Use selected rack timeline
-if rack_type == "Customized Rack":
-    sel_tl = cust_tl
-elif rack_type == "Vera Rubin NVL72":
-    sel_tl = vr_tl
-else:
-    sel_tl = gb_tl
+sel_tl = vr_tl if rack_type == "Vera Rubin NVL72" else gb_tl
 
 flowchart_steps = [
     {
@@ -1266,91 +1288,89 @@ _active_opts = [
     ] if flag
 ]
 _opt_label = ", ".join(_active_opts) if _active_opts else "No Optimizations"
-st.header(f"Latency Timeline ({_opt_label})")
-
-def make_tl_row(step_lbl, vr_val, gb_val, cust_val=None):
-    row = {"Step": step_lbl, "VR Duration (s)": vr_val, "GB200 Duration (s)": gb_val}
-    if rack_type == "Customized Rack":
-        row["Custom Duration (s)"] = cust_val
-    return row
+st.header(f"TL_Param — Latency Timeline ({_opt_label})")
 
 tl_data = []
 for i, name in enumerate(vr_tl["step_names"]):
-    c_val = cust_tl["steps"][i] if rack_type == "Customized Rack" else None
-    tl_data.append(make_tl_row(f"{i+1}. {name}", vr_tl["steps"][i], gb_tl["steps"][i], c_val))
-    if i == 2:
-        c1 = cust_tl["n3_compute"] if rack_type == "Customized Rack" else None
-        tl_data.append(make_tl_row("   ↳ Compute", vr_tl["n3_compute"], gb_tl["n3_compute"], c1))
-        c2 = cust_tl["n3_hbm"] if rack_type == "Customized Rack" else None
-        tl_data.append(make_tl_row("   ↳ HBM", vr_tl["n3_hbm"], gb_tl["n3_hbm"], c2))
-        c3 = cust_tl["n3_nvlink"] if rack_type == "Customized Rack" else None
-        tl_data.append(make_tl_row("   ↳ NVLink", vr_tl["n3_nvlink"], gb_tl["n3_nvlink"], c3))
-    elif i == 3:
-        c1 = cust_tl["n4_hbm"] if rack_type == "Customized Rack" else None
-        tl_data.append(make_tl_row("   ↳ HBM", vr_tl["n4_hbm"], gb_tl["n4_hbm"], c1))
-    elif i == 4:
-        c1 = cust_tl["n5_hbm"] if rack_type == "Customized Rack" else None
-        tl_data.append(make_tl_row("   ↳ HBM", vr_tl["n5_hbm"], gb_tl["n5_hbm"], c1))
-        c2 = cust_tl["n5_nvlink"] if rack_type == "Customized Rack" else None
-        tl_data.append(make_tl_row("   ↳ NVLink", vr_tl["n5_nvlink"], gb_tl["n5_nvlink"], c2))
-
-c_e2e = cust_tl["e2e"] if rack_type == "Customized Rack" else None
-tl_data.append(make_tl_row("E2E", vr_tl["e2e"], gb_tl["e2e"], c_e2e))
-
-c_avg = cust_tl["avg_time_per_tok"] if rack_type == "Customized Rack" else None
-tl_data.append(make_tl_row("Avg Time/Output Token (s)", vr_tl["avg_time_per_tok"], gb_tl["avg_time_per_tok"], c_avg))
-
-c_tps = cust_tl["tok_per_sec"] if rack_type == "Customized Rack" else None
-tl_data.append(make_tl_row("Output tok/s", vr_tl["tok_per_sec"], gb_tl["tok_per_sec"], c_tps))
+    tl_data.append({
+        "Step": f"{i+1}. {name}",
+        "VR Duration (s)": vr_tl["steps"][i],
+        "GB200 Duration (s)": gb_tl["steps"][i],
+    })
+    if i == 2:  # Step 3: Prefill+KV Write
+        tl_data.append({"Step": "   ↳ Compute",
+                         "VR Duration (s)": vr_tl["n3_compute"],
+                         "GB200 Duration (s)": gb_tl["n3_compute"]})
+        tl_data.append({"Step": "   ↳ HBM",
+                         "VR Duration (s)": vr_tl["n3_hbm"],
+                         "GB200 Duration (s)": gb_tl["n3_hbm"]})
+        tl_data.append({"Step": "   ↳ NVLink",
+                         "VR Duration (s)": vr_tl["n3_nvlink"],
+                         "GB200 Duration (s)": gb_tl["n3_nvlink"]})
+    elif i == 3:  # Step 4: Decode-First Token
+        tl_data.append({"Step": "   ↳ HBM",
+                         "VR Duration (s)": vr_tl["n4_hbm"],
+                         "GB200 Duration (s)": gb_tl["n4_hbm"]})
+    elif i == 4:  # Step 5: Decode-All Tokens
+        tl_data.append({"Step": "   ↳ HBM",
+                         "VR Duration (s)": vr_tl["n5_hbm"],
+                         "GB200 Duration (s)": gb_tl["n5_hbm"]})
+        tl_data.append({"Step": "   ↳ NVLink",
+                         "VR Duration (s)": vr_tl["n5_nvlink"],
+                         "GB200 Duration (s)": gb_tl["n5_nvlink"]})
+tl_data.append({"Step": "E2E",
+                 "VR Duration (s)": vr_tl["e2e"],
+                 "GB200 Duration (s)": gb_tl["e2e"]})
+tl_data.append({"Step": "Avg Time/Output Token (s)",
+                 "VR Duration (s)": vr_tl["avg_time_per_tok"],
+                 "GB200 Duration (s)": gb_tl["avg_time_per_tok"]})
+tl_data.append({"Step": "Output tok/s",
+                 "VR Duration (s)": vr_tl["tok_per_sec"],
+                 "GB200 Duration (s)": gb_tl["tok_per_sec"]})
 
 st.dataframe(pd.DataFrame(tl_data), use_container_width=True, hide_index=True)
 
 # ─── Revenue Model ───────────────────────────────────────────────────────────
-with st.expander("💸 Revenue Model", expanded=False):
-    active_racks = ["Vera Rubin", "GB200", "Custom"] if rack_type == "Customized Rack" else ["Vera Rubin", "GB200"]
-    rev_cols = st.columns(len(active_racks))
+st.header("Revenue Model")
 
-    def show_revenue(col, title, rev, dc, tl_data_dict):
-        with col:
-            st.subheader(title)
-            st.markdown("**Section 1: Inference Configuration**")
-            st.write(f"E2E Latency: {tl_data_dict['e2e']:.6f}s")
-            st.write(f"Racks: {dc['n_racks']:,} | GPUs: {dc['total_gpus']:,}")
-            st.write(f"Utilization: {gpu_utilization:.0%} | Uptime: {uptime:.1%}")
-            st.write(f"Eff. Annual Seconds: {rev['eff_annual_sec']:,.0f}")
-            st.write(f"Requests/rack/yr: {rev['requests_per_rack_yr']:,.0f}")
+rev_col1, rev_col2 = st.columns(2)
 
-            st.markdown("**Section 2: Annual Throughput**")
-            st.write(f"Total Requests/yr: {rev['total_requests_yr']:,.0f}")
-            st.write(f"Input Tokens (M): {rev['annual_input_m']:,.0f}")
-            st.write(f"Output Tokens (M): {rev['annual_output_m']:,.0f}")
-            st.write(f"Tokens/sec (DC-wide): {rev['tokens_per_sec']:,.0f}")
-            st.write(f"Requests/sec: {rev['requests_per_sec']:,.0f}")
+def show_revenue(col, title, rev, dc, tl_data_dict):
+    with col:
+        st.subheader(title)
+        st.markdown("**Section 1: Inference Configuration**")
+        st.write(f"E2E Latency: {tl_data_dict['e2e']:.6f}s")
+        st.write(f"Racks: {dc['n_racks']:,} | GPUs: {dc['total_gpus']:,}")
+        st.write(f"Utilization: {gpu_utilization:.0%} | Uptime: {uptime:.1%}")
+        st.write(f"Eff. Annual Seconds: {rev['eff_annual_sec']:,.0f}")
+        st.write(f"Requests/rack/yr: {rev['requests_per_rack_yr']:,.0f}")
 
-            st.markdown("**Section 3: Revenue**")
-            st.write(f"Input Price: \\${input_price}/M | Output Price: \\${output_price}/M")
-            st.write(f"Blended Rate: ${rev['blended_rate']:.2f}/M tokens")
-            st.write(f"Input Revenue: **${rev['input_revenue']:,.1f}M**")
-            st.write(f"Output Revenue: **${rev['output_revenue']:,.1f}M**")
-            st.success(f"**TOTAL ANNUAL REVENUE: ${rev['total_revenue']:,.1f}M**")
-            st.write(f"Revenue/rack/yr: ${rev['rev_per_rack']:,.0f}")
-            st.write(f"Revenue/OpEx: {rev['rev_to_opex']:.1f}x")
-            st.write(f"Cost/Mtok: ${rev['cost_per_mtok']:.2f}")
+        st.markdown("**Section 2: Annual Throughput**")
+        st.write(f"Total Requests/yr: {rev['total_requests_yr']:,.0f}")
+        st.write(f"Input Tokens (M): {rev['annual_input_m']:,.0f}")
+        st.write(f"Output Tokens (M): {rev['annual_output_m']:,.0f}")
+        st.write(f"Tokens/sec (DC-wide): {rev['tokens_per_sec']:,.0f}")
+        st.write(f"Requests/sec: {rev['requests_per_sec']:,.0f}")
 
-    show_revenue(rev_cols[0], "Vera Rubin NVL72", vr_rev, vr_dc, vr_tl)
-    show_revenue(rev_cols[1], "GB200 NVL72", gb_rev, gb_dc, gb_tl)
-    if rack_type == "Customized Rack":
-        show_revenue(rev_cols[2], "Customized Rack", cust_rev, cust_dc, cust_tl)
+        st.markdown("**Section 3: Revenue**")
+        st.write(f"Input Price: \\${input_price}/M | Output Price: \\${output_price}/M")
+        st.write(f"Blended Rate: ${rev['blended_rate']:.2f}/M tokens")
+        st.write(f"Input Revenue: **${rev['input_revenue']:,.1f}M**")
+        st.write(f"Output Revenue: **${rev['output_revenue']:,.1f}M**")
+        st.write(f"**TOTAL ANNUAL REVENUE: ${rev['total_revenue']:,.1f}M**")
+        st.write(f"Revenue/rack/yr: ${rev['rev_per_rack']:,.0f}")
+        st.write(f"Revenue/OpEx: {rev['rev_to_opex']:.1f}x")
+        st.write(f"Cost/Mtok: ${rev['cost_per_mtok']:.2f}")
+
+
+show_revenue(rev_col1, "Vera Rubin NVL72", vr_rev, vr_dc, vr_tl)
+show_revenue(rev_col2, "GB200 NVL72", gb_rev, gb_dc, gb_tl)
 
 # ─── DC Cost Model ───────────────────────────────────────────────────────────
 with st.expander("🏗️ DC Cost Model", expanded=False):
-    active_dcs = [(0, "Vera Rubin NVL72", vr_dc), (1, "GB200 NVL72", gb_dc)]
-    if rack_type == "Customized Rack":
-        active_dcs.append((2, "Customized Rack", cust_dc))
-    
-    dc_cols = st.columns(len(active_dcs))
-    for idx, title, dc in active_dcs:
-        with dc_cols[idx]:
+    dc1, dc2 = st.columns(2)
+    for col, title, dc in [(dc1, "Vera Rubin NVL72", vr_dc), (dc2, "GB200 NVL72", gb_dc)]:
+        with col:
             st.subheader(title)
             st.write(f"IT Power: {dc['it_power_mw']:,.0f} MW | Facility: {dc['facility_power_mw']:,.0f} MW")
             st.write(f"Racks: {dc['n_racks']:,} | GPUs: {dc['total_gpus']:,}")
@@ -1362,7 +1382,7 @@ with st.expander("🏗️ DC Cost Model", expanded=False):
             st.write(f"  Maint & Ops: ${dc['maint_ops']:,.0f}M")
 
 # ─── WP_Param Details ────────────────────────────────────────────────────────
-with st.expander("🔧 Workload Parameters (selected rack)", expanded=False):
+with st.expander("🔧 WP_Param — Workload Parameters (selected rack)", expanded=False):
     w1, w2 = st.columns(2)
     with w1:
         st.markdown("**Prefill Phase**")
@@ -1382,12 +1402,4 @@ with st.expander("🔧 Workload Parameters (selected rack)", expanded=False):
         st.write(f"NVLink Time/tok (optimized): {nvl_time_optimized:.3e}s")
         st.write(f"Weight Memory: {weight_memory/1e12:.2f} TB")
         st.write(f"GPU Memory Headroom: {(float(rp['gpu_mem'])/n_gpu*1e12 - (parameters*bytes_per_param/n_gpu + 2*d_model*(input_tokens+output_tokens)*n_layers/n_gpu))/1e9:.1f} GB")
-
-        st.markdown(f"**Rack Specs ({rack_type})**")
-        st.write(f"GPU: {rp['gpu_type']} | {rp['n_gpu']} units")
-        st.write(f"NVLink: {rp['nvlink_bw']} TB/s | C2C: {rp['nvlink_c2c_bw']} TB/s")
-        st.write(f"Memory: {rp['gpu_mem']} TB | BW: {rp['mem_bw']} TB/s")
-        st.write(f"FP4 Inf: {rp['fp4_inf']} PFLOPS | Train: {rp['fp4_train']} PFLOPS")
-        st.write(f"FP8: {rp['fp8']} PFLOPS | FP16/BF16: {rp['fp16']} PFLOPS")
-        st.write(f"Power: {rp['power_per_rack']} kW/rack")
 

@@ -23,13 +23,22 @@ RACK_PRESETS = {
         nvlink_bw=260, nvlink_c2c_bw=65, gpu_mem=20.7, mem_bw=1580,
         fp4_inf=3600, fp4_train=2520, fp8=1260, fp16=288,
         power_per_rack=190, rack_price=6_000_000,
+        nic_bw_gbps=800,
     ),
     "GB200 NVL72": dict(
         cpu_type="Grace CPU", n_cpu=36, gpu_type="Blackwell B200", n_gpu=72,
         nvlink_bw=130, nvlink_c2c_bw=32.4, gpu_mem=13.5, mem_bw=576,
         fp4_inf=648, fp4_train=648, fp8=324, fp16=162,
         power_per_rack=139, rack_price=3_000_000,
+        nic_bw_gbps=800,
     ),
+}
+
+# ─── NETWORK FABRIC PRESETS ────────────────────────────────────────────────
+NETWORK_FABRIC_PRESETS = {
+    "InfiniBand XDR": dict(switch_latency_us=0.1, default_hops=3, label="Quantum-X800 Q3400"),
+    "Spectrum-X800": dict(switch_latency_us=0.5, default_hops=3, label="Spectrum-X800 switch"),
+    "Standard Ethernet": dict(switch_latency_us=5.0, default_hops=3, label="100/400G Ethernet"),
 }
 
 # ─── PRICING TIERS ──────────────────────────────────────────────────────────
@@ -85,7 +94,8 @@ with st.sidebar:
             "fp4_inf": c_fp4_inf, "fp4_train": c_fp4_train,
             "fp8": c_fp8, "fp16": c_fp16,
             "power_per_rack": c_power,
-            "n_cpu": base_rp["n_cpu"], "cpu_type": base_rp["cpu_type"], "rack_price": c_rack_price
+            "n_cpu": base_rp["n_cpu"], "cpu_type": base_rp["cpu_type"], "rack_price": c_rack_price,
+            "nic_bw_gbps": base_rp["nic_bw_gbps"],
         }
         if is_custom:
             RACK_PRESETS["Customized Rack"] = rp
@@ -96,8 +106,8 @@ with st.sidebar:
 
     with st.expander("Model Spec", expanded=True):
         model_presets = {
-            "Customized Model": {"params": 1e12, "vocab": 128000, "n_layers": 128, "n_heads": 160},
-            "1.5T (Generic)": {"params": 1.5e12, "vocab": 128000, "n_layers": 128, "n_heads": 160},
+            "Customized Model": {"params": 1e12, "vocab": 128000},
+            "1.5T (Generic)": {"params": 1.5e12, "vocab": 128000},
             "Llama 3 (8B)": {"params": 8e9, "vocab": 128256, "n_layers": 32, "n_heads": 32},
             "Llama 3 (70B)": {"params": 70e9, "vocab": 128256, "n_layers": 80, "n_heads": 64},
             "Llama 3.1 (405B)": {"params": 405e9, "vocab": 128256, "n_layers": 126, "n_heads": 128},
@@ -106,17 +116,30 @@ with st.sidebar:
         }
         preset_name = st.selectbox("Model Preset", list(model_presets.keys()), index=0)
         preset = model_presets[preset_name]
-        
+
         parameters = st.number_input("Parameters", value=int(preset["params"]), step=int(1e9), format="%d")
         vocab_size = st.number_input("Vocab Size (V)", value=int(preset["vocab"]), step=1000)
-        if parameters < 100_000_000:
-            d_model = parameters ** 0.25
+
+        # Auto-scale architecture from parameters using aspect-ratio method (Excel formula)
+        _ASPECT_RATIO = 160  # d_model / n_layers ratio
+        _D_HEAD = 128        # fixed head dimension
+        _auto_n_layers = max(round((parameters / (12 * _ASPECT_RATIO**2)) ** (1/3)), 1)
+        _auto_d_model = round(_ASPECT_RATIO * _auto_n_layers / _D_HEAD) * _D_HEAD
+        _auto_n_heads = _auto_d_model // _D_HEAD
+
+        has_arch = "n_layers" in preset  # named presets have fixed architecture
+        if has_arch:
+            n_layers = st.number_input("n_layers", value=int(preset["n_layers"]), step=1)
+            n_heads = st.number_input("n_heads", value=int(preset["n_heads"]), step=1)
         else:
-            d_model = 2**11 * 10 ** math.log10(parameters / 1e11)
-        d_model = round(d_model)
-        n_layers = st.number_input("n_layers", value=int(preset["n_layers"]), step=1)
-        n_heads = st.number_input("n_heads", value=int(preset["n_heads"]), step=1)
-        d_head = d_model / n_heads if n_heads > 0 else 0
+            # Customized / generic: auto-scale from parameters
+            n_layers = st.number_input("n_layers (auto-scaled)", value=_auto_n_layers, step=1)
+            n_heads = st.number_input("n_heads (auto-scaled)", value=_auto_n_heads, step=1)
+
+        d_model = n_heads * _D_HEAD if n_heads > 0 else 1
+        d_head = _D_HEAD
+        st.caption(f"d_model={d_model:,} (n_heads × d_head={_D_HEAD}), aspect ratio={_ASPECT_RATIO}")
+
         d_ff = (parameters / n_layers - 4 * d_model**2) / (3 * d_model) if n_layers > 0 and d_model > 0 else 0
         if d_ff < 0:
             st.warning(f"Derived d_ff is negative ({d_ff:,.0f}). Model parameters may be too small for the given n_layers/n_heads. Results may be unreliable.")
@@ -183,6 +206,20 @@ with st.sidebar:
     with st.expander("Revenue Parameters", expanded=True):
         gpu_utilization = st.number_input("GPU Utilization Rate", value=0.70, step=0.05, format="%.2f")
         uptime = st.number_input("Uptime (scheduled)", value=0.995, step=0.001, format="%.3f")
+
+    with st.expander("Inter-Rack Network", expanded=True):
+        ir_fabric_type = st.selectbox("Network Fabric", list(NETWORK_FABRIC_PRESETS.keys()))
+        ir_fab = NETWORK_FABRIC_PRESETS[ir_fabric_type]
+        c_nic_bw_gbps = st.number_input("NIC BW per GPU (Gb/s)", value=float(base_rp["nic_bw_gbps"]), step=100.0, format="%.0f")
+        ir_switch_latency_us = st.number_input("Switch Latency (μs/hop)", value=float(ir_fab["switch_latency_us"]), step=0.1, format="%.1f")
+        ir_net_hops = st.number_input("Network Hops (leaf-spine-leaf)", value=int(ir_fab["default_hops"]), step=1)
+        ir_oversub = st.number_input("Oversubscription Ratio", value=2, step=1, min_value=1)
+        ir_sharp_v4 = st.number_input("SHARP v4 Reduction", value=0.5, step=0.1, format="%.1f")
+        ir_disaggregated = st.checkbox("Disaggregated Prefill-Decode", value=False)
+        ir_comm_overlap = st.number_input("Inter-Rack Comm Overlap", value=0.80, step=0.05, format="%.2f")
+
+    # Update rp with sidebar NIC BW (defined after Inter-Rack Network expander)
+    rp["nic_bw_gbps"] = c_nic_bw_gbps
 
 # ─── Effective decode steps (speculative decoding speedup) ──────────────────
 eff_decode_steps = output_tokens / expected_tokens_accepted if expected_tokens_accepted > 0 else output_tokens
@@ -311,6 +348,48 @@ nvl_latency_per_tok = nvlink_latency_us * 1e-6 * nvlink_hops * dc_nvl_allreduces
 nvl_latency_all_tokens = nvl_latency_per_tok * eff_decode_steps
 nvl_time_all_tokens_opt = nvl_bw_all_tokens_opt + nvl_latency_all_tokens
 
+# ─── INTER-RACK NETWORK ──────────────────────────────────────────────────────
+nic_bw_tbs = c_nic_bw_gbps / 8 / 1000  # Gb/s → TB/s
+total_ir_bw_per_rack = nic_bw_tbs * n_gpu  # TB/s
+eff_ir_bw_per_gpu = nic_bw_tbs / ir_oversub if ir_oversub > 0 else 0  # TB/s
+ir_latency_per_hop = ir_switch_latency_us * 1e-6  # seconds
+ir_one_way_latency = ir_latency_per_hop * ir_net_hops  # seconds
+
+# KV Cache Transfer (for disaggregated prefill-decode)
+kv_cache_transfer_bytes = 2 * d_model * n_layers * bytes_per_param * (input_tokens + output_tokens)
+kv_cache_transfer_time = kv_cache_transfer_bytes / (eff_ir_bw_per_gpu * 1e12) if eff_ir_bw_per_gpu > 0 else 0
+ir_disagg_overhead = (kv_cache_transfer_time + ir_one_way_latency) if ir_disaggregated else 0
+
+# Multi-Rack TP check — does the model fit in one rack's GPU memory?
+gpu_mem_per_rack_bytes = float(rp["gpu_mem"]) * 1e12  # TB → bytes
+total_mem_needed = weight_memory + kv_cache_transfer_bytes / 2 * batch_size  # KV at end × batch
+ir_racks_for_tp = math.ceil(total_mem_needed / gpu_mem_per_rack_bytes) if gpu_mem_per_rack_bytes > 0 else 1
+ir_racks_for_tp = max(ir_racks_for_tp, 1)
+
+# Cross-rack activation transfer (only when model spans multiple racks)
+ir_activation_bytes = d_model * 2  # FP16 activations regardless of weight precision
+ir_cross_rack_bw = total_ir_bw_per_rack / ir_racks_for_tp if ir_racks_for_tp > 0 else 0  # TB/s shared
+if ir_racks_for_tp > 1 and ir_cross_rack_bw > 0:
+    # 2× for bidirectional all-reduce across rack boundaries
+    ir_xrack_decode_per_layer = 2 * ir_activation_bytes / (ir_cross_rack_bw * 1e12)
+    ir_xrack_prefill_per_layer = 2 * ir_activation_bytes * input_tokens / (ir_cross_rack_bw * 1e12)
+else:
+    ir_xrack_decode_per_layer = 0
+    ir_xrack_prefill_per_layer = 0
+
+ir_xrack_prefill_total = ir_xrack_prefill_per_layer * n_layers
+ir_xrack_decode_per_tok = ir_xrack_decode_per_layer * n_layers
+ir_xrack_decode_all = ir_xrack_decode_per_tok * eff_decode_steps
+
+# Token streaming overhead (decode-all tokens)
+ir_token_streaming_raw = output_tokens * 2 * ir_one_way_latency
+ir_token_streaming = ir_token_streaming_raw * (1 - ir_comm_overlap)
+
+# Inter-rack time per TL step
+ir_step2_time = ir_one_way_latency   # routing / load-balancer latency
+ir_step3_time = ir_disagg_overhead + ir_xrack_prefill_total  # KV transfer + cross-rack TP prefill
+ir_step5_time = ir_token_streaming + ir_xrack_decode_all     # streaming + cross-rack TP decode
+
 # ─── TL_PARAM: TIMELINE ─────────────────────────────────────────────────────
 
 # The Excel TL_Param uses cross-rack scaling for the N/O columns.
@@ -398,8 +477,39 @@ def compute_tl_for_rack_excel(target_rack):
     # Step 6: De-tokenization
     n6 = 0.05
 
+    # Inter-rack overhead per step (rack-specific via NIC BW and GPU mem)
+    tgt_nic_bw_tbs = tgt_rp["nic_bw_gbps"] / 8 / 1000
+    tgt_eff_ir_bw = tgt_nic_bw_tbs / ir_oversub if ir_oversub > 0 else 0
+    tgt_kv_transfer_time = kv_cache_transfer_bytes / (tgt_eff_ir_bw * 1e12) if tgt_eff_ir_bw > 0 else 0
+    tgt_ir_disagg = (tgt_kv_transfer_time + ir_one_way_latency) if ir_disaggregated else 0
+
+    # Multi-rack TP for target rack
+    tgt_gpu_mem_bytes = float(tgt_rp["gpu_mem"]) * 1e12
+    tgt_total_ir_bw = tgt_nic_bw_tbs * tgt_rp["n_gpu"]
+    tgt_racks_for_tp = math.ceil(total_mem_needed / tgt_gpu_mem_bytes) if tgt_gpu_mem_bytes > 0 else 1
+    tgt_racks_for_tp = max(tgt_racks_for_tp, 1)
+    tgt_xrack_bw = tgt_total_ir_bw / tgt_racks_for_tp if tgt_racks_for_tp > 0 else 0
+    if tgt_racks_for_tp > 1 and tgt_xrack_bw > 0:
+        tgt_xrack_decode_per_layer = 2 * ir_activation_bytes / (tgt_xrack_bw * 1e12)
+        tgt_xrack_prefill_per_layer = 2 * ir_activation_bytes * input_tokens / (tgt_xrack_bw * 1e12)
+    else:
+        tgt_xrack_decode_per_layer = 0
+        tgt_xrack_prefill_per_layer = 0
+    tgt_xrack_prefill = tgt_xrack_prefill_per_layer * n_layers
+    tgt_xrack_decode = tgt_xrack_decode_per_layer * n_layers * eff_decode_steps
+
+    ir_n2 = ir_one_way_latency
+    ir_n3 = tgt_ir_disagg + tgt_xrack_prefill
+    ir_n5 = ir_token_streaming + tgt_xrack_decode
+
+    # Add inter-rack overhead to steps
+    n2 += ir_n2
+    n3 += ir_n3
+    n5 += ir_n5
+
     e2e_through_decode = n1 + n2 + n3 + n4 + n5
     e2e = e2e_through_decode + n6
+    ir_total = ir_n2 + ir_n3 + ir_n5
     avg_tok = e2e / (batch_size * output_tokens) if batch_size > 0 and output_tokens > 0 else 0
     tps = 1 / avg_tok if avg_tok > 0 else 0
 
@@ -413,6 +523,10 @@ def compute_tl_for_rack_excel(target_rack):
         n3_compute=n3_compute, n3_hbm=n3_hbm, n3_nvlink=n3_nvlink,
         n4_hbm=n4_hbm,
         n5_hbm=n5_hbm, n5_nvlink=n5_nvlink,
+        # Inter-rack sub-components
+        ir_n2=ir_n2, ir_n3=ir_n3, ir_n5=ir_n5, ir_total=ir_total,
+        ir_pct=ir_total / e2e if e2e > 0 else 0,
+        ir_racks_for_tp=tgt_racks_for_tp,
     )
 
 
@@ -662,6 +776,7 @@ flowchart_steps = [
         "hbm_time": embed_hbm_time_val,
         "nvl_bytes": embed_nvl_bytes,
         "nvl_time": embed_nvl_time_val,
+        "ir_time": sel_tl["ir_n2"],
         "bottleneck": "NVLink",
         "color": "#8b5cf6",
         "per_tok_time": 0,
@@ -676,6 +791,7 @@ flowchart_steps = [
         "hbm_time": pf_hbm_time * batch_size,
         "nvl_bytes": pf_nvl_bytes_total * batch_size,
         "nvl_time": pf_nvl_time_sharp * batch_size,
+        "ir_time": sel_tl["ir_n3"],
         "bottleneck": "Compute",
         "color": "#ec4899",
         "per_tok_time": pf_compute_mfu,
@@ -704,6 +820,7 @@ flowchart_steps = [
         "hbm_time": batch_hbm_time_per_tok * eff_decode_steps * batch_size,
         "nvl_bytes": dc_all_nvl_bytes_total,
         "nvl_time": nvl_time_all_tokens_opt,
+        "ir_time": sel_tl["ir_n5"],
         "bottleneck": "HBM BW",
         "color": "#ef4444",
         "per_tok_time": batch_hbm_time_per_tok + nvl_time_optimized,
@@ -731,6 +848,7 @@ for s in flowchart_steps:
     s["hbm_time_fmt"] = _fmt_time(s["hbm_time"])
     s["nvl_bytes_fmt"] = _fmt_bytes(s["nvl_bytes"])
     s["nvl_time_fmt"] = _fmt_time(s["nvl_time"])
+    s["ir_time_fmt"] = _fmt_time(s.get("ir_time", 0))
     s["per_tok_fmt"] = _fmt_time(s["per_tok_time"])
     s["all_tok_fmt"] = _fmt_time(s["all_tok_time"])
 
@@ -783,21 +901,111 @@ def make_tl_row(step_lbl, key_or_vals):
 tl_data = []
 for i, name in enumerate(vr_tl["step_names"]):
     tl_data.append(make_tl_row(f"{i+1}. {name}", {rn: tl_results[rn]["steps"][i] for rn in rack_names}))
-    if i == 2:
+    if i == 1:
+        tl_data.append(make_tl_row("   ↳ Inter-Rack (routing)", {rn: tl_results[rn]["ir_n2"] for rn in rack_names}))
+    elif i == 2:
         tl_data.append(make_tl_row("   ↳ Compute", {rn: tl_results[rn]["n3_compute"] for rn in rack_names}))
         tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n3_hbm"] for rn in rack_names}))
         tl_data.append(make_tl_row("   ↳ NVLink", {rn: tl_results[rn]["n3_nvlink"] for rn in rack_names}))
+        if ir_disaggregated or any(tl_results[rn]["ir_racks_for_tp"] > 1 for rn in rack_names):
+            tl_data.append(make_tl_row("   ↳ Inter-Rack (KV xfer + TP)", {rn: tl_results[rn]["ir_n3"] for rn in rack_names}))
     elif i == 3:
         tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n4_hbm"] for rn in rack_names}))
     elif i == 4:
         tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n5_hbm"] for rn in rack_names}))
         tl_data.append(make_tl_row("   ↳ NVLink", {rn: tl_results[rn]["n5_nvlink"] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ Inter-Rack (streaming)", {rn: tl_results[rn]["ir_n5"] for rn in rack_names}))
 
 tl_data.append(make_tl_row("E2E", {rn: tl_results[rn]["e2e"] for rn in rack_names}))
+tl_data.append(make_tl_row("Inter-Rack Overhead", {rn: tl_results[rn]["ir_total"] for rn in rack_names}))
+tl_data.append(make_tl_row("Inter-Rack Overhead %", {rn: tl_results[rn]["ir_pct"] for rn in rack_names}))
 tl_data.append(make_tl_row("Avg Time/Output Token (s)", {rn: tl_results[rn]["avg_time_per_tok"] for rn in rack_names}))
 tl_data.append(make_tl_row("Output tok/s", {rn: tl_results[rn]["tok_per_sec"] for rn in rack_names}))
 
 st.dataframe(pd.DataFrame(tl_data), use_container_width=True, hide_index=True)
+
+# ─── Inter-Rack Network Summary ──────────────────────────────────────────────
+with st.expander("🌐 Inter-Rack Network Details", expanded=False):
+    nc1, nc2 = st.columns(2)
+    with nc1:
+        st.markdown("**Network Fabric**")
+        st.write(f"Fabric: {ir_fabric_type} ({ir_fab['label']})")
+        st.write(f"NIC BW/GPU: {c_nic_bw_gbps:.0f} Gb/s ({nic_bw_tbs:.3f} TB/s)")
+        st.write(f"Total Inter-Rack BW/Rack: {total_ir_bw_per_rack:.1f} TB/s")
+        st.write(f"Oversubscription: {ir_oversub}:1")
+        st.write(f"Eff. Inter-Rack BW/GPU: {eff_ir_bw_per_gpu:.4f} TB/s")
+        st.write(f"Switch Latency: {ir_switch_latency_us} μs/hop × {ir_net_hops} hops")
+        st.write(f"One-Way Latency: {ir_one_way_latency*1e6:.1f} μs ({ir_one_way_latency:.2e} s)")
+        st.write(f"SHARP v4 Reduction: {ir_sharp_v4}")
+    with nc2:
+        st.markdown("**Multi-Rack Parallelism**")
+        if ir_racks_for_tp > 1:
+            st.warning(f"Model requires **{ir_racks_for_tp} racks** for TP (memory: {total_mem_needed/1e12:.1f} TB > {gpu_mem_per_rack_bytes/1e12:.1f} TB/rack)")
+            st.write(f"Cross-rack BW: {ir_cross_rack_bw:.2f} TB/s")
+            st.write(f"Cross-rack prefill overhead: {ir_xrack_prefill_total:.6f} s")
+            st.write(f"Cross-rack decode overhead: {ir_xrack_decode_all:.6f} s")
+            st.write(f"DP Replicas: {n_racks // ir_racks_for_tp:,} groups of {ir_racks_for_tp} racks")
+        else:
+            st.write(f"Model fits in 1 rack (memory: {total_mem_needed/1e12:.1f} TB / {gpu_mem_per_rack_bytes/1e12:.1f} TB)")
+            st.write(f"DP Replicas: {n_racks:,} racks")
+        st.write(f"Disaggregated Prefill-Decode: {'Yes' if ir_disaggregated else 'No'}")
+        st.write(f"Inter-Rack Comm Overlap: {ir_comm_overlap:.0%}")
+        st.write(f"KV Cache per Request: {kv_cache_transfer_bytes/1e9:.2f} GB")
+        st.write(f"KV Cache Transfer Time: {kv_cache_transfer_time:.6f} s")
+        if ir_disaggregated:
+            st.write(f"Disagg Overhead: {ir_disagg_overhead:.6f} s")
+        st.write(f"Token Streaming (raw): {ir_token_streaming_raw:.6e} s")
+        st.write(f"Token Streaming (w/ overlap): {ir_token_streaming:.6e} s")
+
+    # ─── Stress Test Comparison ──────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("**Inter-Rack Stress Test — Scenario Comparison**")
+    stress_scenarios = {
+        "Current": dict(fabric="IB XDR", lat_us=0.1, hops=3, oversub=2,
+                        disagg=False, overlap=0.8, eff_bw=eff_ir_bw_per_gpu),
+        "Std Ethernet": dict(fabric="Std Ethernet", lat_us=5.0, hops=3, oversub=2,
+                             disagg=False, overlap=0.8, eff_bw=eff_ir_bw_per_gpu),
+        "Disaggregated": dict(fabric="IB XDR", lat_us=0.1, hops=3, oversub=2,
+                              disagg=True, overlap=0.8, eff_bw=eff_ir_bw_per_gpu),
+        "16:1 Oversub": dict(fabric="IB XDR", lat_us=0.1, hops=3, oversub=16,
+                             disagg=False, overlap=0.8, eff_bw=nic_bw_tbs / 16),
+        "Eth + Disagg": dict(fabric="Std Ethernet", lat_us=5.0, hops=3, oversub=2,
+                             disagg=True, overlap=0.5, eff_bw=eff_ir_bw_per_gpu),
+        "All Worst": dict(fabric="Std Ethernet", lat_us=5.0, hops=5, oversub=16,
+                          disagg=True, overlap=0.3, eff_bw=nic_bw_tbs / 16),
+    }
+    # Use VR rack as baseline
+    sel_tl_intra = tl_results[rack_type]["e2e"] - tl_results[rack_type]["ir_total"]
+    sel_tps_base = tl_results[rack_type]["tok_per_sec"]
+
+    stress_rows = []
+    for sname, sc in stress_scenarios.items():
+        s_lat = sc["lat_us"] * 1e-6 * sc["hops"]
+        s_kv_time = kv_cache_transfer_bytes / (sc["eff_bw"] * 1e12) if sc["eff_bw"] > 0 else 0
+        s_disagg = (s_kv_time + s_lat) if sc["disagg"] else 0
+        s_streaming = output_tokens * 2 * s_lat * (1 - sc["overlap"])
+        s_ir_total = s_lat + s_disagg + s_streaming
+        s_e2e = sel_tl_intra + s_ir_total
+        s_tps = batch_size * output_tokens / s_e2e if s_e2e > 0 else 0
+        s_loss = 1 - s_tps / sel_tps_base if sel_tps_base > 0 else 0
+        # Revenue impact (annual $ lost vs current)
+        sel_rev = rev_results[rack_type]["total_revenue"] if rack_type in rev_results else 0
+        s_rev_loss = sel_rev * s_loss
+
+        stress_rows.append({
+            "Scenario": sname,
+            "Fabric": sc["fabric"],
+            "One-Way Lat (μs)": f"{sc['lat_us'] * sc['hops']:.1f}",
+            "Oversub": f"{sc['oversub']}:1",
+            "Disagg?": "Yes" if sc["disagg"] else "No",
+            "Overlap": f"{sc['overlap']:.0%}",
+            "IR Overhead (s)": f"{s_ir_total:.6f}",
+            "Adj. E2E (s)": f"{s_e2e:.4f}",
+            "tok/s": f"{s_tps:,.0f}",
+            "Throughput Loss": f"{s_loss:.2%}",
+            "Rev Impact ($M)": f"{s_rev_loss:,.0f}" if s_loss > 0 else "—",
+        })
+    st.dataframe(pd.DataFrame(stress_rows), use_container_width=True, hide_index=True)
 
 # ─── Revenue Model ───────────────────────────────────────────────────────────
 with st.expander("💸 Revenue Model", expanded=False):
@@ -878,4 +1086,17 @@ with st.expander("🔧 Workload Parameters (selected rack)", expanded=False):
         st.write(f"FP4 Inf: {rp['fp4_inf']} PFLOPS | Train: {rp['fp4_train']} PFLOPS")
         st.write(f"FP8: {rp['fp8']} PFLOPS | FP16/BF16: {rp['fp16']} PFLOPS")
         st.write(f"Power: {rp['power_per_rack']} kW/rack")
+
+        st.markdown("**Inter-Rack Network**")
+        st.write(f"Fabric: {ir_fabric_type} | NIC: {c_nic_bw_gbps:.0f} Gb/s/GPU")
+        st.write(f"Eff. BW/GPU: {eff_ir_bw_per_gpu:.4f} TB/s ({ir_oversub}:1 oversub)")
+        st.write(f"One-Way Latency: {ir_one_way_latency*1e6:.1f} μs")
+        st.write(f"KV Cache/Request: {kv_cache_transfer_bytes/1e9:.2f} GB")
+        if ir_racks_for_tp > 1:
+            st.write(f"Multi-Rack TP: {ir_racks_for_tp} racks needed")
+            st.write(f"Cross-Rack Prefill OH: {ir_xrack_prefill_total:.6f}s")
+            st.write(f"Cross-Rack Decode OH: {ir_xrack_decode_all:.6f}s")
+        st.write(f"IR Step 2 (routing): {ir_step2_time:.2e}s")
+        st.write(f"IR Step 3 (KV+TP): {ir_step3_time:.6f}s")
+        st.write(f"IR Step 5 (stream+TP): {ir_step5_time:.6e}s")
 

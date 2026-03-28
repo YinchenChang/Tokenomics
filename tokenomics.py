@@ -1049,7 +1049,9 @@ tl_data.append(make_tl_row("Idle Energy %",
                             {rn: f"{tl_results[rn]['energy_idle_pct']:.2%}" for rn in rack_names},
                             fmt_time=False, fmt_energy=False))
 
-st.dataframe(pd.DataFrame(tl_data), use_container_width=True, hide_index=True)
+_tl_df = pd.DataFrame(tl_data)
+_tl_col_cfg = {col: st.column_config.TextColumn(col) for col in _tl_df.columns}
+st.dataframe(_tl_df, use_container_width=True, hide_index=True, column_config=_tl_col_cfg)
 
 # ─── Inter-Rack Network Summary ──────────────────────────────────────────────
 with st.expander("🌐 Inter-Rack Network Details", expanded=False):

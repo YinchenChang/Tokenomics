@@ -56,8 +56,22 @@ When model memory > single rack GPU memory, computes racks needed for TP and add
 ### Model Auto-Scaling Fix
 Fixed d_model/n_layers/n_heads auto-scaling for large models (e.g., 10T). Previous formula (`2^11 * 10^log10(P/1e11)`) produced oversized d_model causing negative d_ff. Now uses Excel's aspect-ratio method.
 
+### Energy-per-Step Model (2026-03-28)
+Added rack-level energy (Joules) breakdown per pipeline step, mirroring the existing latency timeline.
+
+**New rack preset parameters (sidebar):**
+- GPU TDP (W), GPU idle power fraction, HBM power/GPU (W), HBM idle fraction, NVLink power/GPU (W), NIC TDP/GPU (W)
+
+**Energy computation per step:**
+- Idle baseline: `(GPU_idle_W + HBM_idle_W) × n_gpu × step_time` — always present
+- Active compute: `(GPU_TDP - GPU_idle) × n_gpu × compute_time` — Step 3 only
+- Active HBM: `(HBM_W - HBM_idle) × n_gpu × hbm_time` — Steps 2-5
+- Active NVLink: `NVLink_W × n_gpu × nvlink_time` — Steps 2, 3, 5
+- Active NIC: `NIC_TDP × n_gpu × ir_time` — Steps 2, 3, 5
+
+**New TL_Param table columns:** Energy (J) per rack type alongside Duration (s), plus summary rows for Energy/Token (mJ) and Idle Energy %.
+
 ## Next Steps
-- **Energy modeling expansion** — build directly in Python (not Excel-first)
 - Potential areas: power curves, cooling efficiency (PUE dynamics), renewable integration, carbon intensity, time-of-use electricity pricing, battery storage
 
 ## Dev Notes

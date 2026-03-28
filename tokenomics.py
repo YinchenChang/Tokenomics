@@ -24,6 +24,9 @@ RACK_PRESETS = {
         fp4_inf=3600, fp4_train=2520, fp8=1260, fp16=288,
         power_per_rack=190, rack_price=6_000_000,
         nic_bw_gbps=800,
+        gpu_tdp=1000, gpu_idle_frac=0.30,
+        hbm_power_per_gpu=30, hbm_idle_frac=0.40,
+        nvlink_power_per_gpu=40, nic_tdp=25,
     ),
     "GB200 NVL72": dict(
         cpu_type="Grace CPU", n_cpu=36, gpu_type="Blackwell B200", n_gpu=72,
@@ -31,6 +34,9 @@ RACK_PRESETS = {
         fp4_inf=648, fp4_train=648, fp8=324, fp16=162,
         power_per_rack=139, rack_price=3_000_000,
         nic_bw_gbps=800,
+        gpu_tdp=1000, gpu_idle_frac=0.30,
+        hbm_power_per_gpu=20, hbm_idle_frac=0.40,
+        nvlink_power_per_gpu=30, nic_tdp=25,
     ),
 }
 
@@ -86,6 +92,13 @@ with st.sidebar:
         c_fp16 = st.number_input("FP16/BF16 Dense", value=float(base_rp["fp16"]), disabled=not is_custom)
         c_power = st.number_input("Power per Rack (kW)", value=float(base_rp["power_per_rack"]), disabled=not is_custom)
         c_rack_price = st.number_input("Rack Price ($)", value=int(base_rp["rack_price"]), step=100_000, format="%d", disabled=not is_custom)
+        st.markdown("**(Energy Model)**")
+        c_gpu_tdp = st.number_input("GPU TDP (W)", value=float(base_rp["gpu_tdp"]), step=50.0, format="%.0f", disabled=not is_custom)
+        c_gpu_idle_frac = st.number_input("GPU Idle Power Fraction", value=float(base_rp["gpu_idle_frac"]), step=0.05, format="%.2f", disabled=not is_custom)
+        c_hbm_power = st.number_input("HBM Power/GPU (W)", value=float(base_rp["hbm_power_per_gpu"]), step=5.0, format="%.0f", disabled=not is_custom)
+        c_hbm_idle_frac = st.number_input("HBM Idle Power Fraction", value=float(base_rp["hbm_idle_frac"]), step=0.05, format="%.2f", disabled=not is_custom)
+        c_nvlink_power = st.number_input("NVLink Power/GPU (W)", value=float(base_rp["nvlink_power_per_gpu"]), step=5.0, format="%.0f", disabled=not is_custom)
+        c_nic_tdp = st.number_input("NIC TDP/GPU (W)", value=float(base_rp["nic_tdp"]), step=5.0, format="%.0f", disabled=not is_custom)
 
         rp = {
             "gpu_type": c_gpu_type, "n_gpu": c_n_gpu,
@@ -96,6 +109,9 @@ with st.sidebar:
             "power_per_rack": c_power,
             "n_cpu": base_rp["n_cpu"], "cpu_type": base_rp["cpu_type"], "rack_price": c_rack_price,
             "nic_bw_gbps": base_rp["nic_bw_gbps"],
+            "gpu_tdp": c_gpu_tdp, "gpu_idle_frac": c_gpu_idle_frac,
+            "hbm_power_per_gpu": c_hbm_power, "hbm_idle_frac": c_hbm_idle_frac,
+            "nvlink_power_per_gpu": c_nvlink_power, "nic_tdp": c_nic_tdp,
         }
         if is_custom:
             RACK_PRESETS["Customized Rack"] = rp
@@ -430,8 +446,11 @@ def compute_tl_for_rack_excel(target_rack):
 
     if target_rack == selected:
         n2 = d28
+        n2_hbm, n2_nvlink = g28, h28
     else:
-        n2 = g28 * (sel_rp["mem_bw"] / tgt_rp["mem_bw"]) + h28 * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"])
+        n2_hbm = g28 * (sel_rp["mem_bw"] / tgt_rp["mem_bw"])
+        n2_nvlink = h28 * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"])
+        n2 = n2_hbm + n2_nvlink
 
     # Step 3: Prefill
     f29 = pf_compute_mfu * batch_size
@@ -513,6 +532,56 @@ def compute_tl_for_rack_excel(target_rack):
     avg_tok = e2e / (batch_size * output_tokens) if batch_size > 0 and output_tokens > 0 else 0
     tps = 1 / avg_tok if avg_tok > 0 else 0
 
+    # ─── Energy per step (Joules) at rack level ───
+    _ngpu = tgt_rp["n_gpu"]
+    _gpu_tdp = tgt_rp["gpu_tdp"]               # W per GPU
+    _gpu_idle_w = _gpu_tdp * tgt_rp["gpu_idle_frac"]  # W per GPU idle
+    _hbm_w = tgt_rp["hbm_power_per_gpu"]       # W per GPU (active)
+    _hbm_idle_w = _hbm_w * tgt_rp["hbm_idle_frac"]    # W per GPU idle
+    _nvl_w = tgt_rp["nvlink_power_per_gpu"]     # W per GPU (active)
+    _nic_w = tgt_rp["nic_tdp"]                  # W per GPU (active)
+
+    steps_time = [n1, n2, n3, n4, n5, n6]
+
+    # Sub-component active times per step [compute, hbm, nvlink, ir]
+    _sub = [
+        (0, 0, 0, 0),                                    # Step 1: CPU-only
+        (0, n2_hbm, n2_nvlink, ir_n2),                   # Step 2: Embedding
+        (n3_compute, n3_hbm, n3_nvlink, ir_n3),          # Step 3: Prefill
+        (0, n4_hbm, 0, 0),                               # Step 4: Decode-1st
+        (0, n5_hbm, n5_nvlink, ir_n5),                   # Step 5: Decode-All
+        (0, 0, 0, 0),                                    # Step 6: CPU-only
+    ]
+
+    energy_steps = []         # total energy per step (J)
+    energy_idle_steps = []    # idle component per step (J)
+    energy_compute_steps = [] # compute component per step (J)
+    energy_hbm_steps = []     # HBM component per step (J)
+    energy_nvlink_steps = []  # NVLink component per step (J)
+    energy_ir_steps = []      # inter-rack component per step (J)
+
+    for i, (t_compute, t_hbm, t_nvl, t_ir) in enumerate(_sub):
+        step_t = steps_time[i]
+        # Idle baseline: GPU idle + HBM idle for full step duration
+        e_idle = (_gpu_idle_w + _hbm_idle_w) * _ngpu * step_t
+        # Active incremental energy (above idle)
+        e_compute = (_gpu_tdp - _gpu_idle_w) * _ngpu * t_compute  # full TDP minus idle during compute
+        e_hbm = (_hbm_w - _hbm_idle_w) * _ngpu * t_hbm           # active HBM above idle
+        e_nvl = _nvl_w * _ngpu * t_nvl
+        e_ir = _nic_w * _ngpu * t_ir
+        e_total = e_idle + e_compute + e_hbm + e_nvl + e_ir
+
+        energy_idle_steps.append(e_idle)
+        energy_compute_steps.append(e_compute)
+        energy_hbm_steps.append(e_hbm)
+        energy_nvlink_steps.append(e_nvl)
+        energy_ir_steps.append(e_ir)
+        energy_steps.append(e_total)
+
+    energy_total = sum(energy_steps)
+    energy_idle_total = sum(energy_idle_steps)
+    energy_per_token = (energy_total / (batch_size * output_tokens) * 1000) if batch_size > 0 and output_tokens > 0 else 0  # mJ
+
     return dict(
         steps=[n1, n2, n3, n4, n5, n6],
         step_names=["Tokenization", "Embedding+Broadcast", "Prefill+KV Write",
@@ -520,6 +589,7 @@ def compute_tl_for_rack_excel(target_rack):
         e2e=e2e, e2e_through_decode=e2e_through_decode,
         avg_time_per_tok=avg_tok, tok_per_sec=tps,
         # Sub-components for steps 3–5
+        n2_hbm=n2_hbm, n2_nvlink=n2_nvlink,
         n3_compute=n3_compute, n3_hbm=n3_hbm, n3_nvlink=n3_nvlink,
         n4_hbm=n4_hbm,
         n5_hbm=n5_hbm, n5_nvlink=n5_nvlink,
@@ -527,6 +597,15 @@ def compute_tl_for_rack_excel(target_rack):
         ir_n2=ir_n2, ir_n3=ir_n3, ir_n5=ir_n5, ir_total=ir_total,
         ir_pct=ir_total / e2e if e2e > 0 else 0,
         ir_racks_for_tp=tgt_racks_for_tp,
+        # Energy per step (Joules)
+        energy_steps=energy_steps, energy_total=energy_total,
+        energy_idle_steps=energy_idle_steps, energy_idle_total=energy_idle_total,
+        energy_compute_steps=energy_compute_steps,
+        energy_hbm_steps=energy_hbm_steps,
+        energy_nvlink_steps=energy_nvlink_steps,
+        energy_ir_steps=energy_ir_steps,
+        energy_per_token_mj=energy_per_token,
+        energy_idle_pct=energy_idle_total / energy_total if energy_total > 0 else 0,
     )
 
 
@@ -731,6 +810,15 @@ def _fmt_time(t):
     if t >= 1e-6: return f"{t*1e6:.4f}us"
     return f"{t:.3e}s"
 
+def _fmt_energy(j):
+    if j == 0: return "0"
+    if j >= 1e6: return f"{j/1e6:.2f} MJ"
+    if j >= 1e3: return f"{j/1e3:.2f} kJ"
+    if j >= 1: return f"{j:.2f} J"
+    if j >= 1e-3: return f"{j*1e3:.2f} mJ"
+    if j >= 1e-6: return f"{j*1e6:.2f} uJ"
+    return f"{j:.3e} J"
+
 # Build per-step data for the selected rack
 # Step 2 sub-components
 embed_hbm_bytes = bytes_per_param * (vocab_size * d_model + input_tokens * d_model)  # embedding table + broadcast
@@ -887,40 +975,72 @@ _active_opts = [
 _opt_label = ", ".join(_active_opts) if _active_opts else "No Optimizations"
 st.header(f"Latency Timeline ({_opt_label})")
 
-_col_labels = {"Vera Rubin NVL72": "VR Duration (s)", "GB200 NVL72": "GB200 Duration (s)", "Customized Rack": "Custom Duration (s)"}
+_dur_labels = {"Vera Rubin NVL72": "VR Duration (s)", "GB200 NVL72": "GB200 Duration (s)", "Customized Rack": "Custom Duration (s)"}
+_nrg_labels = {"Vera Rubin NVL72": "VR Energy (J)", "GB200 NVL72": "GB200 Energy (J)", "Customized Rack": "Custom Energy (J)"}
 
-def make_tl_row(step_lbl, key_or_vals):
+def make_tl_row(step_lbl, time_vals, energy_vals=None):
     row = {"Step": step_lbl}
     for rname in rack_names:
-        if callable(key_or_vals):
-            row[_col_labels[rname]] = key_or_vals(tl_results[rname])
+        if callable(time_vals):
+            row[_dur_labels[rname]] = time_vals(tl_results[rname])
         else:
-            row[_col_labels[rname]] = key_or_vals[rname]
+            row[_dur_labels[rname]] = time_vals[rname]
+        if energy_vals is not None:
+            if callable(energy_vals):
+                row[_nrg_labels[rname]] = energy_vals(tl_results[rname])
+            else:
+                row[_nrg_labels[rname]] = energy_vals[rname]
+        else:
+            row[_nrg_labels[rname]] = ""
     return row
 
 tl_data = []
 for i, name in enumerate(vr_tl["step_names"]):
-    tl_data.append(make_tl_row(f"{i+1}. {name}", {rn: tl_results[rn]["steps"][i] for rn in rack_names}))
+    tl_data.append(make_tl_row(
+        f"{i+1}. {name}",
+        {rn: tl_results[rn]["steps"][i] for rn in rack_names},
+        {rn: tl_results[rn]["energy_steps"][i] for rn in rack_names},
+    ))
     if i == 1:
-        tl_data.append(make_tl_row("   ↳ Inter-Rack (routing)", {rn: tl_results[rn]["ir_n2"] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n2_hbm"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_hbm_steps"][1] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ NVLink", {rn: tl_results[rn]["n2_nvlink"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_nvlink_steps"][1] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ Inter-Rack (routing)", {rn: tl_results[rn]["ir_n2"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_ir_steps"][1] for rn in rack_names}))
     elif i == 2:
-        tl_data.append(make_tl_row("   ↳ Compute", {rn: tl_results[rn]["n3_compute"] for rn in rack_names}))
-        tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n3_hbm"] for rn in rack_names}))
-        tl_data.append(make_tl_row("   ↳ NVLink", {rn: tl_results[rn]["n3_nvlink"] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ Compute", {rn: tl_results[rn]["n3_compute"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_compute_steps"][2] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n3_hbm"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_hbm_steps"][2] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ NVLink", {rn: tl_results[rn]["n3_nvlink"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_nvlink_steps"][2] for rn in rack_names}))
         if ir_disaggregated or any(tl_results[rn]["ir_racks_for_tp"] > 1 for rn in rack_names):
-            tl_data.append(make_tl_row("   ↳ Inter-Rack (KV xfer + TP)", {rn: tl_results[rn]["ir_n3"] for rn in rack_names}))
+            tl_data.append(make_tl_row("   ↳ Inter-Rack (KV xfer + TP)", {rn: tl_results[rn]["ir_n3"] for rn in rack_names},
+                                       {rn: tl_results[rn]["energy_ir_steps"][2] for rn in rack_names}))
     elif i == 3:
-        tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n4_hbm"] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n4_hbm"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_hbm_steps"][3] for rn in rack_names}))
     elif i == 4:
-        tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n5_hbm"] for rn in rack_names}))
-        tl_data.append(make_tl_row("   ↳ NVLink", {rn: tl_results[rn]["n5_nvlink"] for rn in rack_names}))
-        tl_data.append(make_tl_row("   ↳ Inter-Rack (streaming)", {rn: tl_results[rn]["ir_n5"] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ HBM", {rn: tl_results[rn]["n5_hbm"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_hbm_steps"][4] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ NVLink", {rn: tl_results[rn]["n5_nvlink"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_nvlink_steps"][4] for rn in rack_names}))
+        tl_data.append(make_tl_row("   ↳ Inter-Rack (streaming)", {rn: tl_results[rn]["ir_n5"] for rn in rack_names},
+                                   {rn: tl_results[rn]["energy_ir_steps"][4] for rn in rack_names}))
 
-tl_data.append(make_tl_row("E2E", {rn: tl_results[rn]["e2e"] for rn in rack_names}))
+tl_data.append(make_tl_row("E2E", {rn: tl_results[rn]["e2e"] for rn in rack_names},
+                            {rn: tl_results[rn]["energy_total"] for rn in rack_names}))
 tl_data.append(make_tl_row("Inter-Rack Overhead", {rn: tl_results[rn]["ir_total"] for rn in rack_names}))
 tl_data.append(make_tl_row("Inter-Rack Overhead %", {rn: tl_results[rn]["ir_pct"] for rn in rack_names}))
 tl_data.append(make_tl_row("Avg Time/Output Token (s)", {rn: tl_results[rn]["avg_time_per_tok"] for rn in rack_names}))
 tl_data.append(make_tl_row("Output tok/s", {rn: tl_results[rn]["tok_per_sec"] for rn in rack_names}))
+tl_data.append(make_tl_row("Energy/Token (mJ)",
+                            {rn: "" for rn in rack_names},
+                            {rn: tl_results[rn]["energy_per_token_mj"] for rn in rack_names}))
+tl_data.append(make_tl_row("Idle Energy %",
+                            {rn: "" for rn in rack_names},
+                            {rn: tl_results[rn]["energy_idle_pct"] for rn in rack_names}))
 
 st.dataframe(pd.DataFrame(tl_data), use_container_width=True, hide_index=True)
 

@@ -722,6 +722,39 @@ def compute_revenue(tl, dc, rack_name):
     rev_to_opex = total_revenue / dc["total_opex"] if dc["total_opex"] > 0 else 0
     cost_per_mtok = blended_rate / rev_to_opex if rev_to_opex > 0 else 0
 
+    # ─── Energy Economics (Tier 1) ───
+    elec_rate = 0.06  # $/kWh (same as DC cost model)
+
+    # 1. Energy Cost per Token
+    #    energy_per_token_mj from TL → convert to kWh → multiply by PUE and rate
+    energy_per_token_j = tl["energy_per_token_mj"] / 1000  # mJ → J
+    energy_per_token_kwh = energy_per_token_j / 3_600_000   # J → kWh
+    elec_cost_per_token = energy_per_token_kwh * pue * elec_rate  # $ per token
+    elec_cost_per_mtok = elec_cost_per_token * 1e6             # $ per M tokens
+    # Energy margin: what % of token revenue goes to electricity
+    energy_margin_pct = elec_cost_per_mtok / blended_rate if blended_rate > 0 else 0
+
+    # 2. DC-Level Energy Efficiency (GPU Utilization Gap)
+    #    Active inference energy vs total rack energy budget
+    energy_active_per_req_j = tl["energy_total"] - tl["energy_idle_total"]  # active-only energy per request (J)
+    #    Annual useful energy = active energy × annual requests (for one rack)
+    annual_active_energy_kwh = energy_active_per_req_j * requests_per_rack_yr / 3_600_000 if requests_per_rack_yr > 0 else 0
+    #    Annual total rack energy (at utilization rate)
+    rack_power_kw = rr["power_per_rack"]
+    annual_rack_energy_kwh = rack_power_kw * 8760  # kWh per rack per year
+    #    Inference Power Usage Effectiveness (iPUE) = total rack energy / useful compute energy
+    ipue = annual_rack_energy_kwh / annual_active_energy_kwh if annual_active_energy_kwh > 0 else float('inf')
+    #    Useful energy fraction
+    useful_energy_pct = annual_active_energy_kwh / annual_rack_energy_kwh if annual_rack_energy_kwh > 0 else 0
+
+    # 3. Energy per Dollar Revenue
+    #    Annual DC electricity (from DC cost model, already in $M)
+    annual_dc_energy_cost_m = dc["elec_cost"]  # $M
+    energy_per_rev_dollar = annual_dc_energy_cost_m / total_revenue if total_revenue > 0 else 0  # $ electricity per $ revenue
+    joules_per_rev_dollar = (annual_dc_energy_cost_m * 1e6 / elec_rate) * 3_600_000 / (total_revenue * 1e6) if total_revenue > 0 else 0  # J per $ revenue... simplify:
+    # kWh per $1 revenue
+    kwh_per_rev_dollar = (annual_dc_energy_cost_m * 1e6 / elec_rate) / (total_revenue * 1e6) if total_revenue > 0 else 0
+
     return dict(
         eff_annual_sec=eff_annual_sec,
         requests_per_rack_yr=requests_per_rack_yr,
@@ -733,6 +766,12 @@ def compute_revenue(tl, dc, rack_name):
         total_revenue=total_revenue, blended_rate=blended_rate,
         rev_per_rack=rev_per_rack, rev_to_opex=rev_to_opex,
         cost_per_mtok=cost_per_mtok,
+        # Energy Economics
+        elec_cost_per_mtok=elec_cost_per_mtok,
+        energy_margin_pct=energy_margin_pct,
+        ipue=ipue, useful_energy_pct=useful_energy_pct,
+        energy_per_rev_dollar=energy_per_rev_dollar,
+        kwh_per_rev_dollar=kwh_per_rev_dollar,
     )
 
 
@@ -1169,6 +1208,37 @@ with st.expander("💸 Revenue Model", expanded=False):
 
     for i, rname in enumerate(rack_names):
         show_revenue(rev_cols[i], rname, rev_results[rname], dc_results[rname], tl_results[rname])
+
+# ─── Energy Economics ─────────────────────────────────────────────────────────
+with st.expander("⚡ Energy Economics", expanded=True):
+    ee_cols = st.columns(len(rack_names))
+    for idx, rname in enumerate(rack_names):
+        rev = rev_results[rname]
+        tl = tl_results[rname]
+        dc = dc_results[rname]
+        with ee_cols[idx]:
+            st.subheader(rname)
+
+            st.markdown("**Energy Cost per Token**")
+            st.write(f"Energy/Token: {tl['energy_per_token_mj']:.2f} mJ")
+            st.write(f"Electricity Cost/Mtok: **${rev['elec_cost_per_mtok']:.4f}**")
+            st.write(f"Blended Token Rate: ${rev['blended_rate']:.2f}/Mtok")
+            st.write(f"Energy Margin: **{rev['energy_margin_pct']:.2%}** of revenue → electricity")
+
+            st.markdown("**Inference Efficiency (iPUE)**")
+            st.write(f"Useful Energy Fraction: {rev['useful_energy_pct']:.1%}")
+            if rev['ipue'] != float('inf'):
+                st.write(f"iPUE (rack-level): {rev['ipue']:.2f}x")
+            else:
+                st.write("iPUE: N/A (no active energy)")
+            st.write(f"Idle Energy: {tl['energy_idle_pct']:.1%} of per-request energy")
+            st.caption("iPUE = total rack energy / active inference energy. Lower = more efficient.")
+
+            st.markdown("**Energy per Revenue Dollar**")
+            st.write(f"Electricity Cost / Revenue: **{rev['energy_per_rev_dollar']:.2%}**")
+            st.write(f"kWh per $1 Revenue: {rev['kwh_per_rev_dollar']:.2f}")
+            st.write(f"Annual Electricity: ${dc['elec_cost']:,.0f}M")
+            st.write(f"Annual Revenue: ${rev['total_revenue']:,.1f}M")
 
 # ─── DC Cost Model ───────────────────────────────────────────────────────────
 with st.expander("🏗️ DC Cost Model", expanded=False):

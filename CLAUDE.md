@@ -71,6 +71,22 @@ Added rack-level energy (Joules) breakdown per pipeline step, mirroring the exis
 
 **New TL_Param table columns:** Energy (J) per rack type alongside Duration (s), plus summary rows for Energy/Token (mJ) and Idle Energy %.
 
+### Energy Economics (2026-03-28)
+Added "⚡ Energy Economics" expander connecting energy model to revenue model with three analyses:
+
+**1. Energy Cost per Token:**
+- `elec_cost_per_token = energy_per_token × PUE × electricity_rate`
+- Energy margin: % of token revenue that goes to electricity
+
+**2. Inference Power Usage Effectiveness (iPUE):**
+- `iPUE = total_rack_energy / active_inference_energy` (rack-level, not facility)
+- Useful energy fraction: what % of rack energy does active inference work
+- Distinct from facility PUE — measures GPU utilization efficiency
+
+**3. Energy per Revenue Dollar:**
+- `energy_per_rev_dollar = annual_electricity_cost / annual_revenue`
+- kWh per $1 revenue — cross-rack comparison of energy efficiency per dollar earned
+
 ## Next Steps
 - Potential areas: power curves, cooling efficiency (PUE dynamics), renewable integration, carbon intensity, time-of-use electricity pricing, battery storage
 

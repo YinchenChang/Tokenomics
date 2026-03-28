@@ -978,18 +978,21 @@ st.header(f"Latency Timeline ({_opt_label})")
 _dur_labels = {"Vera Rubin NVL72": "VR Duration (s)", "GB200 NVL72": "GB200 Duration (s)", "Customized Rack": "Custom Duration (s)"}
 _nrg_labels = {"Vera Rubin NVL72": "VR Energy (J)", "GB200 NVL72": "GB200 Energy (J)", "Customized Rack": "Custom Energy (J)"}
 
-def make_tl_row(step_lbl, time_vals, energy_vals=None):
+def make_tl_row(step_lbl, time_vals, energy_vals=None, fmt_time=True, fmt_energy=True):
+    """Build one row for the TL_Param table with formatted values."""
     row = {"Step": step_lbl}
     for rname in rack_names:
-        if callable(time_vals):
-            row[_dur_labels[rname]] = time_vals(tl_results[rname])
+        tv = time_vals(tl_results[rname]) if callable(time_vals) else time_vals[rname]
+        if fmt_time and isinstance(tv, (int, float)):
+            row[_dur_labels[rname]] = _fmt_time(tv)
         else:
-            row[_dur_labels[rname]] = time_vals[rname]
+            row[_dur_labels[rname]] = tv
         if energy_vals is not None:
-            if callable(energy_vals):
-                row[_nrg_labels[rname]] = energy_vals(tl_results[rname])
+            ev = energy_vals(tl_results[rname]) if callable(energy_vals) else energy_vals[rname]
+            if fmt_energy and isinstance(ev, (int, float)):
+                row[_nrg_labels[rname]] = _fmt_energy(ev)
             else:
-                row[_nrg_labels[rname]] = energy_vals[rname]
+                row[_nrg_labels[rname]] = ev
         else:
             row[_nrg_labels[rname]] = ""
     return row
@@ -1032,15 +1035,19 @@ for i, name in enumerate(vr_tl["step_names"]):
 tl_data.append(make_tl_row("E2E", {rn: tl_results[rn]["e2e"] for rn in rack_names},
                             {rn: tl_results[rn]["energy_total"] for rn in rack_names}))
 tl_data.append(make_tl_row("Inter-Rack Overhead", {rn: tl_results[rn]["ir_total"] for rn in rack_names}))
-tl_data.append(make_tl_row("Inter-Rack Overhead %", {rn: tl_results[rn]["ir_pct"] for rn in rack_names}))
+tl_data.append(make_tl_row("Inter-Rack Overhead %",
+                            {rn: f"{tl_results[rn]['ir_pct']:.2%}" for rn in rack_names}, fmt_time=False))
 tl_data.append(make_tl_row("Avg Time/Output Token (s)", {rn: tl_results[rn]["avg_time_per_tok"] for rn in rack_names}))
-tl_data.append(make_tl_row("Output tok/s", {rn: tl_results[rn]["tok_per_sec"] for rn in rack_names}))
+tl_data.append(make_tl_row("Output tok/s",
+                            {rn: f"{tl_results[rn]['tok_per_sec']:,.1f}" for rn in rack_names}, fmt_time=False))
 tl_data.append(make_tl_row("Energy/Token (mJ)",
                             {rn: "" for rn in rack_names},
-                            {rn: tl_results[rn]["energy_per_token_mj"] for rn in rack_names}))
+                            {rn: f"{tl_results[rn]['energy_per_token_mj']:,.2f}" for rn in rack_names},
+                            fmt_time=False, fmt_energy=False))
 tl_data.append(make_tl_row("Idle Energy %",
                             {rn: "" for rn in rack_names},
-                            {rn: tl_results[rn]["energy_idle_pct"] for rn in rack_names}))
+                            {rn: f"{tl_results[rn]['energy_idle_pct']:.2%}" for rn in rack_names},
+                            fmt_time=False, fmt_energy=False))
 
 st.dataframe(pd.DataFrame(tl_data), use_container_width=True, hide_index=True)
 

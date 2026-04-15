@@ -383,12 +383,15 @@ ir_racks_for_tp = math.ceil(total_mem_needed / gpu_mem_per_rack_bytes) if gpu_me
 ir_racks_for_tp = max(ir_racks_for_tp, 1)
 
 # Cross-rack activation transfer (only when model spans multiple racks)
-ir_activation_bytes = d_model * 2  # FP16 activations regardless of weight precision
+ir_activation_bytes = d_model * 2  # FP16 activations per element (2 bytes/elem) × d_model
 ir_cross_rack_bw = total_ir_bw_per_rack / ir_racks_for_tp if ir_racks_for_tp > 0 else 0  # TB/s shared
 if ir_racks_for_tp > 1 and ir_cross_rack_bw > 0:
-    # 2× for bidirectional all-reduce across rack boundaries
-    ir_xrack_decode_per_layer = 2 * ir_activation_bytes / (ir_cross_rack_bw * 1e12)
-    ir_xrack_prefill_per_layer = 2 * ir_activation_bytes * input_tokens / (ir_cross_rack_bw * 1e12)
+    # Activation all-reduce across rack boundaries.
+    # Traffic per layer = 2× (bidirectional) × batch_size × seq_len × d_model × bpp_act
+    # Decode: seq_len = 1 token per step, per batch element
+    # Prefill: seq_len = input_tokens, per batch element
+    ir_xrack_decode_per_layer = 2 * batch_size * ir_activation_bytes / (ir_cross_rack_bw * 1e12)
+    ir_xrack_prefill_per_layer = 2 * batch_size * input_tokens * ir_activation_bytes / (ir_cross_rack_bw * 1e12)
 else:
     ir_xrack_decode_per_layer = 0
     ir_xrack_prefill_per_layer = 0
@@ -509,8 +512,10 @@ def compute_tl_for_rack_excel(target_rack):
     tgt_racks_for_tp = max(tgt_racks_for_tp, 1)
     tgt_xrack_bw = tgt_total_ir_bw / tgt_racks_for_tp if tgt_racks_for_tp > 0 else 0
     if tgt_racks_for_tp > 1 and tgt_xrack_bw > 0:
-        tgt_xrack_decode_per_layer = 2 * ir_activation_bytes / (tgt_xrack_bw * 1e12)
-        tgt_xrack_prefill_per_layer = 2 * ir_activation_bytes * input_tokens / (tgt_xrack_bw * 1e12)
+        # Activation all-reduce across rack boundaries (see global-scope formula above).
+        # Traffic per layer = 2× (bidirectional) × batch_size × seq_len × d_model × bpp_act
+        tgt_xrack_decode_per_layer = 2 * batch_size * ir_activation_bytes / (tgt_xrack_bw * 1e12)
+        tgt_xrack_prefill_per_layer = 2 * batch_size * input_tokens * ir_activation_bytes / (tgt_xrack_bw * 1e12)
     else:
         tgt_xrack_decode_per_layer = 0
         tgt_xrack_prefill_per_layer = 0

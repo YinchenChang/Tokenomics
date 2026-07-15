@@ -1,7 +1,9 @@
 """
 FTGP Token Generation Calculator
 Computation chain: Config → WP_Param → TL_Param → Revenue_Model
-Faithfully reproduced from 20260319_FTGP_FIXED.xlsx
+Faithfully reproduced from 20260715_Tokenomics_inter-rack_energy_v2.xlsx (post-audit corrected workbook)
+Key audit fixes reflected: GQA-sized KV cache transfer (M1), total-revenue stress impact base (M2),
+per-rack-pinned DC cost model (M4), dynamic all-reduce count = 2 x n_layers, VR FP8 = 1152 PFLOPS
 """
 import streamlit as st
 import streamlit.components.v1 as components
@@ -21,9 +23,9 @@ RACK_PRESETS = {
     "Vera Rubin NVL72": dict(
         cpu_type="Vera CPU", n_cpu=36, gpu_type="Rubin GPU", n_gpu=72,
         nvlink_bw=260, nvlink_c2c_bw=65, gpu_mem=20.7, mem_bw=1580,
-        fp4_inf=3600, fp4_train=2520, fp8=1260, fp16=288,
+        fp4_inf=3600, fp4_train=2520, fp8=1152, fp16=288,  # FP8 = 16 PFLOPS/GPU x 72 (Excel F21, corrected from 17.5/GPU)
         power_per_rack=190, rack_price=6_000_000,
-        nic_bw_gbps=800,
+        nic_bw_gbps=1600,  # ConnectX-9 SuperNIC (Excel Config B72)
         gpu_tdp=1000, gpu_idle_frac=0.30,
         hbm_power_per_gpu=30, hbm_idle_frac=0.40,
         nvlink_power_per_gpu=40, nic_tdp=25,
@@ -33,7 +35,7 @@ RACK_PRESETS = {
         nvlink_bw=130, nvlink_c2c_bw=32.4, gpu_mem=13.5, mem_bw=576,
         fp4_inf=648, fp4_train=648, fp8=324, fp16=162,
         power_per_rack=139, rack_price=3_000_000,
-        nic_bw_gbps=800,
+        nic_bw_gbps=1600,  # ConnectX-9 SuperNIC (Excel Config B72)
         gpu_tdp=1000, gpu_idle_frac=0.30,
         hbm_power_per_gpu=20, hbm_idle_frac=0.40,
         nvlink_power_per_gpu=30, nic_tdp=25,
@@ -176,7 +178,7 @@ with st.sidebar:
 
         use_batching = st.checkbox("Batch Size Optimization", value=True)
         if use_batching:
-            batch_size = st.number_input("Batch Size", value=64, step=1)
+            batch_size = st.number_input("Batch Size", value=16, step=1)  # Excel Config B56
         else:
             batch_size = 1  # baseline: single request
 
@@ -372,13 +374,16 @@ ir_latency_per_hop = ir_switch_latency_us * 1e-6  # seconds
 ir_one_way_latency = ir_latency_per_hop * ir_net_hops  # seconds
 
 # KV Cache Transfer (for disaggregated prefill-decode)
-kv_cache_transfer_bytes = 2 * d_model * n_layers * bytes_per_param * (input_tokens + output_tokens)
+# GQA-compressed KV is what prefill->decode transfer moves (Excel Config!B87, WP!B227 post-audit fix).
+# When GQA is off, gqa_kv_heads == n_heads and this reduces to full-MHA KV.
+kv_cache_transfer_bytes = 2 * d_head * gqa_kv_heads * n_layers * bytes_per_param * (input_tokens + output_tokens)
 kv_cache_transfer_time = kv_cache_transfer_bytes / (eff_ir_bw_per_gpu * 1e12) if eff_ir_bw_per_gpu > 0 else 0
 ir_disagg_overhead = (kv_cache_transfer_time + ir_one_way_latency) if ir_disaggregated else 0
 
 # Multi-Rack TP check — does the model fit in one rack's GPU memory?
 gpu_mem_per_rack_bytes = float(rp["gpu_mem"]) * 1e12  # TB → bytes
-total_mem_needed = weight_memory + kv_cache_transfer_bytes / 2 * batch_size  # KV at end × batch
+excel_kv_end_bytes = 2 * d_model * (input_tokens + output_tokens) * n_layers  # Excel WP!B40 (MHA-sized memory check)
+total_mem_needed = weight_memory + excel_kv_end_bytes * batch_size  # Excel WP!B42 x n_gpu (KV at end x batch + weights)
 ir_racks_for_tp = math.ceil(total_mem_needed / gpu_mem_per_rack_bytes) if gpu_mem_per_rack_bytes > 0 else 1
 ir_racks_for_tp = max(ir_racks_for_tp, 1)
 
@@ -459,7 +464,7 @@ def compute_tl_for_rack_excel(target_rack):
     f29 = pf_compute_mfu * batch_size
     g29 = pf_hbm_time * batch_size
     h29 = pf_nvl_time_sharp * batch_size
-    d29 = f29 + h29
+    d29 = max(f29, g29) + h29  # Excel TL D18 = MAX(F18,G18)+H18(+I18)
 
     n3_compute, n3_hbm, n3_nvlink = f29, g29, h29
     if target_rack == selected:
@@ -473,7 +478,7 @@ def compute_tl_for_rack_excel(target_rack):
         n3 = n3_compute + n3_nvlink
 
     # Step 4: Decode-First Token (GQA HBM time)
-    d30 = gqa_hbm_time
+    d30 = max(dc_compute_per_tok, gqa_hbm_time)  # Excel TL D19 = MAX(F19,G19)
 
     if target_rack == selected:
         n4 = d30
@@ -486,14 +491,15 @@ def compute_tl_for_rack_excel(target_rack):
     h31_bw = nvl_bw_all_tokens_opt
     h31_lat = nvl_latency_all_tokens
     h31 = h31_bw + h31_lat
-    d31 = g31 + h31
+    f31 = dc_compute_per_tok * eff_decode_steps  # Excel WP!B122
+    d31 = max(f31, g31) + h31  # Excel TL D20 = MAX(F20,G20)+H20(+I20)
 
     if target_rack == selected:
         n5 = d31
         n5_hbm, n5_nvlink = g31, h31
     else:
         n5_hbm = g31 * (sel_rp["mem_bw"] / tgt_rp["mem_bw"]) if tgt_rp["mem_bw"] > 0 else 0
-        n5_nvlink = h31_bw * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"]) + h31_lat if tgt_rp["nvlink_bw"] > 0 else 0
+        n5_nvlink = (h31_bw + h31_lat) * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"]) if tgt_rp["nvlink_bw"] > 0 else 0  # Excel TL D34: H20 x (F15/G15)
         n5 = n5_hbm + n5_nvlink
 
     # Step 6: De-tokenization
@@ -668,7 +674,7 @@ def compute_dc_cost(rack_name):
 
     # OpEx
     depr_it = it_hw / 5
-    depr_bldg = land_building / 30
+    depr_bldg = (land_building - land) / 30  # Excel DC D67: land is not depreciated
     depr_elec = electrical / 20
     depr_cool = cooling / 15
     depr_fiber = fiber_security / 10
@@ -813,18 +819,25 @@ with st.expander("📋 Config Summary", expanded=False):
 
 # ─── Key Metrics ─────────────────────────────────────────────────────────────
 st.header("Key Metrics")
+st.caption("Units — **per rack**: single-rack pipeline metric · **per AI DC**: whole data center "
+           f"(all racks × utilization; VR = {dc_results['Vera Rubin NVL72']['n_racks']:,} racks, "
+           f"GB200 = {dc_results['GB200 NVL72']['n_racks']:,} racks at {total_power/1e9:.1f} GW)")
 _metric_labels = {"Vera Rubin NVL72": "VR", "GB200 NVL72": "GB200", "Customized Rack": "Custom"}
 for rname in rack_names:
     lbl = _metric_labels[rname]
     mc1, mc2, mc3, mc4 = st.columns(4)
     with mc1:
-        st.metric(f"{lbl} E2E Latency (s)", f"{tl_results[rname]['e2e']:.6f}")
+        st.metric(f"{lbl} E2E Latency (s) — per rack, per batch", f"{tl_results[rname]['e2e']:.6f}",
+                  help="One batch of requests through the 6-step pipeline on a single rack (Excel TL_Param C38/D38).")
     with mc2:
-        st.metric(f"{lbl} Output tok/s", f"{tl_results[rname]['tok_per_sec']:,.1f}")
+        st.metric(f"{lbl} Output tok/s — per rack", f"{tl_results[rname]['tok_per_sec']:,.1f}",
+                  help="Output tokens per second for ONE rack = (batch × output tokens) / E2E (Excel TL_Param C37/D37). Multiply by rack count for DC-wide.")
     with mc3:
-        st.metric(f"{lbl} Annual Revenue ($M)", f"{rev_results[rname]['total_revenue']:,.1f}")
+        st.metric(f"{lbl} Annual Revenue ($M) — per AI DC", f"{rev_results[rname]['total_revenue']:,.1f}",
+                  help="Entire data center: all racks × 70% utilization × 99.5% uptime × market token prices (Excel Revenue_Model B39/B87).")
     with mc4:
-        st.metric(f"{lbl} Rev/OpEx Ratio", f"{rev_results[rname]['rev_to_opex']:.1f}x")
+        st.metric(f"{lbl} Rev/OpEx — per AI DC", f"{rev_results[rname]['rev_to_opex']:.1f}x",
+                  help="DC-wide annual revenue ÷ DC-wide annual OpEx (Excel Revenue_Model B46).")
 
 # ─── ANIMATED FLOWCHART ──────────────────────────────────────────────────────
 st.header("Token Generation Pipeline — Animated Flowchart")
@@ -1134,8 +1147,9 @@ with st.expander("🌐 Inter-Rack Network Details", expanded=False):
     st.markdown("---")
     st.markdown("**Inter-Rack Stress Test — Scenario Comparison**")
     stress_scenarios = {
-        "Current": dict(fabric="IB XDR", lat_us=0.1, hops=3, oversub=2,
-                        disagg=False, overlap=0.8, eff_bw=eff_ir_bw_per_gpu),
+        "Current": dict(fabric=ir_fabric_type, lat_us=ir_switch_latency_us, hops=ir_net_hops,
+                        oversub=ir_oversub, disagg=False, overlap=ir_comm_overlap,
+                        eff_bw=eff_ir_bw_per_gpu),  # Excel TL C-column links Config (colocated)
         "Std Ethernet": dict(fabric="Std Ethernet", lat_us=5.0, hops=3, oversub=2,
                              disagg=False, overlap=0.8, eff_bw=eff_ir_bw_per_gpu),
         "Disaggregated": dict(fabric="IB XDR", lat_us=0.1, hops=3, oversub=2,
@@ -1281,7 +1295,7 @@ with st.expander("🔧 Workload Parameters (selected rack)", expanded=False):
         st.write(f"Decode HBM Time/tok (GQA+Batch): {batch_hbm_time_per_tok:.6e}s")
         st.write(f"NVLink Time/tok (optimized): {nvl_time_optimized:.3e}s")
         st.write(f"Weight Memory: {weight_memory/1e12:.2f} TB")
-        st.write(f"GPU Memory Headroom: {(float(rp['gpu_mem'])/n_gpu*1e12 - (parameters*bytes_per_param/n_gpu + 2*d_model*(input_tokens+output_tokens)*n_layers/n_gpu))/1e9:.1f} GB")
+        st.write(f"GPU Memory Headroom: {(float(rp['gpu_mem'])/n_gpu*1e12 - (weight_memory/n_gpu + excel_kv_end_bytes*batch_size/n_gpu))/1e9:.1f} GB")  # Excel WP!B43
 
         st.markdown(f"**Rack Specs ({rack_type})**")
         st.write(f"GPU: {rp['gpu_type']} | {rp['n_gpu']} units")

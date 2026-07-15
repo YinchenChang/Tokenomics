@@ -14,7 +14,7 @@ RACK_PRESETS = {
     "Vera Rubin NVL72": dict(
         cpu_type="Vera CPU", n_cpu=36, gpu_type="Rubin GPU", n_gpu=72,
         nvlink_bw=260, nvlink_c2c_bw=65, gpu_mem=20.7, mem_bw=1580,
-        fp4_inf=3600, fp4_train=2520, fp8=1260, fp16=288,
+        fp4_inf=3600, fp4_train=2520, fp8=1152, fp16=288,  # FP8 = 16 PFLOPS/GPU x 72 (Excel F21)
         power_per_rack=190, rack_price=6_000_000,
     ),
     "GB200 NVL72": dict(
@@ -86,7 +86,7 @@ def compute_dc_cost(rack_name, total_power, pue):
     total_capex = it_hw + non_it + soft_costs
 
     depr_it = it_hw / 5
-    depr_bldg = land_building / 30
+    depr_bldg = (land_building - land) / 30  # Excel DC D67: land not depreciated
     depr_elec = electrical / 20
     depr_cool = cooling / 15
     depr_fiber = fiber_security / 10
@@ -143,10 +143,15 @@ def compute_revenue(tl, dc, input_tokens, output_tokens, batch_size,
 
 
 # ─── WP_Param helpers ────────────────────────────────────────────────────────
+def compute_auto_arch(parameters, aspect_ratio=160, d_head=128):
+    """Aspect-ratio auto-scaling, mirrors tokenomics.py / Excel Config B38-B39."""
+    n_layers = max(round((parameters / (12 * aspect_ratio**2)) ** (1 / 3)), 1)
+    d_model = round(aspect_ratio * n_layers / d_head) * d_head
+    return n_layers, d_model
+
+
 def compute_d_model(parameters):
-    if parameters < 100_000_000:
-        return round(parameters ** 0.25)
-    return round(2**11 * 10 ** math.log10(parameters / 1e11))
+    return compute_auto_arch(parameters)[1]
 
 
 def compute_d_ff(parameters, n_layers, d_model):
@@ -249,20 +254,23 @@ class TestRevenue:
 
 class TestWPParam:
     def test_d_model_1t(self):
-        """d_model for 1T params: 2^11 * 10^(log10(1e12/1e11)) = 2048*10 = 20480."""
-        d = compute_d_model(1e12)
-        assert d == 20480
+        """1T params: n_layers = round((1e12/(12*160^2))^(1/3)) = 148; d_model = MROUND(160*148,128) = 23680.
+        Matches Excel Config B38/B39 in 20260715_Tokenomics_inter-rack_energy_v2.xlsx."""
+        n_layers, d = compute_auto_arch(1e12)
+        assert n_layers == 148
+        assert d == 23680
 
     def test_d_model_small(self):
-        """For very small params (<100M), uses params^0.25."""
-        d = compute_d_model(1e6)
-        assert d == round(1e6 ** 0.25)
+        """Very small params clamp to n_layers=1, d_model=128 under the aspect-ratio method."""
+        n_layers, d = compute_auto_arch(1e6)
+        assert n_layers == 1
+        assert d == 128
 
     def test_d_ff_positive(self):
-        """d_ff should be positive for reasonable model configs."""
-        d_model = compute_d_model(1e12)
-        d_ff = compute_d_ff(1e12, 128, d_model)
-        assert d_ff > 0
+        """d_ff should be positive for reasonable model configs (Excel B42 = 63,538.67)."""
+        n_layers, d_model = compute_auto_arch(1e12)
+        d_ff = compute_d_ff(1e12, n_layers, d_model)
+        assert d_ff == pytest.approx(63538.6705624544, rel=1e-9)
 
     def test_d_ff_negative_guard(self):
         """d_ff goes negative when params are too small for architecture."""
@@ -303,6 +311,37 @@ class TestNVLinkScaling:
                 assert factor == pytest.approx(71 / 72)
             else:
                 assert factor != pytest.approx(71 / 72)
+
+
+class TestExcelGoldenValues:
+    """Regression anchors from 20260715_Tokenomics_inter-rack_energy_v2.xlsx (post-audit)."""
+
+    def test_gqa_kv_cache_transfer(self):
+        """Excel Config!B87 / WP!B227 (M1 fix): 2*d_head*kv_heads*n_layers*bytes*(in+out) = 1.51552 GB."""
+        d_head, kv_heads, n_layers, bytes_pp = 128, 8, 148, 1
+        kv = 2 * d_head * kv_heads * n_layers * bytes_pp * (4000 + 1000)
+        assert kv == 1_515_520_000
+
+    def test_vr_dc_costs(self):
+        """Excel DC_Cost_Model D54/D88 (VR pinned section)."""
+        dc = compute_dc_cost("Vera Rubin NVL72", total_power=1e9, pue=1.2)
+        assert dc["total_capex"] == pytest.approx(43234.1672, rel=1e-9)
+        assert dc["total_opex"] == pytest.approx(9298.17682933333, rel=1e-9)
+
+    def test_gb200_dc_costs(self):
+        """Excel DC_Cost_Model D150/D190 (GB200 pinned section)."""
+        dc = compute_dc_cost("GB200 NVL72", total_power=1e9, pue=1.2)
+        assert dc["total_capex"] == pytest.approx(33768.0336, rel=1e-9)
+        assert dc["total_opex"] == pytest.approx(7054.405248, rel=1e-9)
+
+    def test_vr_annual_revenue(self):
+        """Excel Revenue_Model B16/B39 with post-fix E2E = 0.751141958900828 s, batch 16."""
+        dcv = compute_dc_cost("Vera Rubin NVL72", total_power=1e9, pue=1.2)
+        rev = compute_revenue({"e2e": 0.751141958900828}, dcv,
+                              4000, 1000, 16, 0.70, 0.995, 2.50, 10.00)
+        assert rev["total_requests_yr"] == 467_870_512 * 5263
+        assert rev["total_revenue"] == pytest.approx(49248.05009312, rel=1e-9)
+        assert rev["blended_rate"] == pytest.approx(4.0, rel=1e-12)
 
 
 if __name__ == "__main__":

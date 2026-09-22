@@ -1,9 +1,10 @@
 """
-FTGP Token Generation Calculator
-Computation chain: Config → WP_Param → TL_Param → Revenue_Model
-Faithfully reproduced from 20260715_Tokenomics_inter-rack_energy_v2.xlsx (post-audit corrected workbook)
-Key audit fixes reflected: GQA-sized KV cache transfer (M1), total-revenue stress impact base (M2),
-per-rack-pinned DC cost model (M4), dynamic all-reduce count = 2 x n_layers, VR FP8 = 1152 PFLOPS
+FTGP Token Generation Calculator — v4 (frontier MoE presets, Sep 2026)
+Computation chain: Config → WP_Param → TL_Param → DC_Cost_Model → Revenue_Model
+Faithfully reproduced from 20260922_Tokenomics_v4.xlsx
+v4 changes: frontier MoE presets (DeepSeek V4-Pro, Kimi K3, V4-Flash, closed-frontier proxy),
+architecture-aware KV (MLA/CSA/GQA), mixed-precision weight bytes, Sep-2026 pricing tiers,
+MoE-aware FFN compute ratio, decode compute fix (batch × draft ÷ MFU).
 """
 import streamlit as st
 import streamlit.components.v1 as components
@@ -35,7 +36,7 @@ RACK_PRESETS = {
         nvlink_bw=130, nvlink_c2c_bw=32.4, gpu_mem=13.5, mem_bw=576,
         fp4_inf=648, fp4_train=648, fp8=324, fp16=162,
         power_per_rack=139, rack_price=3_000_000,
-        nic_bw_gbps=1600,  # ConnectX-9 SuperNIC (Excel Config B72)
+        nic_bw_gbps=800,  # ConnectX-8 800 Gb/s (Excel Config G72)
         gpu_tdp=1000, gpu_idle_frac=0.30,
         hbm_power_per_gpu=20, hbm_idle_frac=0.40,
         nvlink_power_per_gpu=30, nic_tdp=25,
@@ -49,23 +50,67 @@ NETWORK_FABRIC_PRESETS = {
     "Standard Ethernet": dict(switch_latency_us=5.0, default_hops=3, label="100/400G Ethernet"),
 }
 
-# ─── PRICING TIERS ──────────────────────────────────────────────────────────
-PRICING_TIERS = [
-    ("Nano (<50B)", 0, 0.10, 0.40),
-    ("Small (50B–200B)", 50e9, 0.25, 2.00),
-    ("Mid (200B–500B)", 200e9, 1.25, 10.00),
-    ("Frontier (500B–1.5T)", 500e9, 2.50, 10.00),
-    ("Premium (>1.5T)", 1500e9, 5.00, 25.00),
-]
+# ─── PRICING TIERS (Sep 2026 market) ────────────────────────────────────────
+PRICING_TIERS = {
+    "Nano": (0.035, 0.14),
+    "Small / Flash": (0.44, 1.32),
+    "Open-weight frontier": (1.36, 4.18),
+    "Mid": (3.00, 15.00),
+    "Frontier (closed)": (5.00, 25.00),
+    "Premium": (10.00, 50.00),
+}
 
-
-def match_pricing_tier(params):
-    matched_idx = 0
-    for i, (_, threshold, _, _) in enumerate(PRICING_TIERS):
-        if params >= threshold:
-            matched_idx = i
-    tier = PRICING_TIERS[matched_idx]
-    return tier[0], tier[2], tier[3]
+# ─── FRONTIER MODEL PRESETS (Sep 2026) ──────────────────────────────────────
+MODEL_PRESETS = {
+    "DeepSeek V4-Pro": dict(
+        params=1.6e12, active_params=49e9, model_type="MoE",
+        total_experts=384, active_experts=6, shared_experts=1,
+        vocab=129280, n_layers=61, d_model=7168, n_heads=128, d_head=512,
+        kv_elements=65, kv_bytes=1, full_attn_frac=0.5, full_attn_cap=4224,
+        compressed_tokens=256, eff_weight_bytes=0.507, precision="FP4",
+        default_tier="Frontier (closed)",
+    ),
+    "Kimi K3": dict(
+        params=2.8e12, active_params=104e9, model_type="MoE",
+        total_experts=896, active_experts=16, shared_experts=2,
+        vocab=163840, n_layers=93, d_model=7168, n_heads=96, d_head=128,
+        kv_elements=149, kv_bytes=1, full_attn_frac=0.258, full_attn_cap=0,
+        compressed_tokens=128, eff_weight_bytes=0.53, precision="FP4",
+        default_tier="Mid",
+    ),
+    "DeepSeek V4-Flash": dict(
+        params=284e9, active_params=13e9, model_type="MoE",
+        total_experts=256, active_experts=6, shared_experts=1,
+        vocab=129280, n_layers=43, d_model=4096, n_heads=64, d_head=512,
+        kv_elements=65, kv_bytes=1, full_attn_frac=0.5, full_attn_cap=4224,
+        compressed_tokens=256, eff_weight_bytes=0.51, precision="FP4",
+        default_tier="Small / Flash",
+    ),
+    "Closed-frontier proxy": dict(
+        params=4e12, active_params=180e9, model_type="MoE",
+        total_experts=512, active_experts=16, shared_experts=1,
+        vocab=200000, n_layers=100, d_model=12288, n_heads=96, d_head=128,
+        kv_elements=2048, kv_bytes=1, full_attn_frac=1.0, full_attn_cap=0,
+        compressed_tokens=0, eff_weight_bytes=0.53, precision="FP4",
+        default_tier="Frontier (closed)",
+    ),
+    "Legacy 1T Dense": dict(
+        params=1e12, active_params=1e12, model_type="Dense",
+        total_experts=0, active_experts=0, shared_experts=0,
+        vocab=128000, n_layers=None, d_model=None, n_heads=None, d_head=128,
+        kv_elements=2048, kv_bytes=1, full_attn_frac=1.0, full_attn_cap=0,
+        compressed_tokens=0, eff_weight_bytes=None, precision="FP8",
+        default_tier="Frontier (closed)",
+    ),
+    "Customized Model": dict(
+        params=1.6e12, active_params=49e9, model_type="MoE",
+        total_experts=384, active_experts=6, shared_experts=1,
+        vocab=129280, n_layers=None, d_model=None, n_heads=None, d_head=512,
+        kv_elements=65, kv_bytes=1, full_attn_frac=0.5, full_attn_cap=4224,
+        compressed_tokens=256, eff_weight_bytes=None, precision="FP4",
+        default_tier="Frontier (closed)",
+    ),
+}
 
 
 # ─── SIDEBAR: CONFIG INPUTS ─────────────────────────────────────────────────
@@ -119,72 +164,123 @@ with st.sidebar:
             RACK_PRESETS["Customized Rack"] = rp
 
     with st.expander("Input & Output Tokens", expanded=True):
-        input_tokens = st.number_input("Input Tokens", value=4000, step=100)
+        input_tokens = st.number_input("Input Tokens", value=16000, step=100)
         output_tokens = st.number_input("Output Tokens", value=1000, step=100)
 
     with st.expander("Model Spec", expanded=True):
-        model_presets = {
-            "Customized Model": {"params": 1e12, "vocab": 128000},
-            "1.5T (Generic)": {"params": 1.5e12, "vocab": 128000},
-            "Llama 3 (8B)": {"params": 8e9, "vocab": 128256, "n_layers": 32, "n_heads": 32},
-            "Llama 3 (70B)": {"params": 70e9, "vocab": 128256, "n_layers": 80, "n_heads": 64},
-            "Llama 3.1 (405B)": {"params": 405e9, "vocab": 128256, "n_layers": 126, "n_heads": 128},
-            "Mistral (7B)": {"params": 7e9, "vocab": 32000, "n_layers": 32, "n_heads": 32},
-            "Mixtral 8x7B": {"params": 47e9, "vocab": 32000, "n_layers": 32, "n_heads": 32},
-        }
-        preset_name = st.selectbox("Model Preset", list(model_presets.keys()), index=0)
-        preset = model_presets[preset_name]
+        preset_name = st.selectbox("Model Preset", list(MODEL_PRESETS.keys()), index=0)
+        preset = MODEL_PRESETS[preset_name]
 
-        parameters = st.number_input("Parameters", value=int(preset["params"]), step=int(1e9), format="%d")
+        parameters = st.number_input("Parameters (total)", value=int(preset["params"]), step=int(1e9), format="%d")
         vocab_size = st.number_input("Vocab Size (V)", value=int(preset["vocab"]), step=1000)
 
-        # Auto-scale architecture from parameters using aspect-ratio method (Excel formula)
-        _ASPECT_RATIO = 160  # d_model / n_layers ratio
-        _D_HEAD = 128        # fixed head dimension
-        _auto_n_layers = max(round((parameters / (12 * _ASPECT_RATIO**2)) ** (1/3)), 1)
-        _auto_d_model = round(_ASPECT_RATIO * _auto_n_layers / _D_HEAD) * _D_HEAD
-        _auto_n_heads = _auto_d_model // _D_HEAD
+        model_type = st.selectbox("Type", ["MoE", "Dense"], index=0 if preset["model_type"] == "MoE" else 1)
+        if model_type == "MoE":
+            total_experts = st.number_input("Total (routed) Experts", value=int(preset["total_experts"]), step=1)
+            active_experts = st.number_input("Active Experts / token", value=int(preset["active_experts"]), step=1)
+            shared_experts = st.number_input("Shared Experts", value=int(preset["shared_experts"]), step=1)
+            ffn_compute_ratio = (active_experts + shared_experts) / (total_experts + shared_experts) if (total_experts + shared_experts) > 0 else 1.0
+            st.caption(f"FFN Compute Ratio: {ffn_compute_ratio:.4f}")
+        else:
+            total_experts = 0
+            active_experts = 0
+            shared_experts = 0
+            ffn_compute_ratio = 1.0
 
-        has_arch = "n_layers" in preset  # named presets have fixed architecture
+        # Auto-scale architecture from parameters using aspect-ratio method
+        _ASPECT_RATIO = 160
+        _preset_d_head = preset["d_head"]
+        _auto_n_layers = max(round((parameters / (12 * _ASPECT_RATIO**2)) ** (1/3)), 1)
+        _auto_d_model = round(_ASPECT_RATIO * _auto_n_layers / _preset_d_head) * _preset_d_head
+        _auto_n_heads = _auto_d_model // _preset_d_head
+
+        has_arch = preset["n_layers"] is not None
         if has_arch:
             n_layers = st.number_input("n_layers", value=int(preset["n_layers"]), step=1)
             n_heads = st.number_input("n_heads", value=int(preset["n_heads"]), step=1)
+            d_model = int(preset["d_model"])
+            d_head = int(preset["d_head"])
         else:
-            # Customized / generic: auto-scale from parameters
             n_layers = st.number_input("n_layers (auto-scaled)", value=_auto_n_layers, step=1)
             n_heads = st.number_input("n_heads (auto-scaled)", value=_auto_n_heads, step=1)
+            d_head = int(preset["d_head"])
+            d_model = n_heads * d_head if n_heads > 0 else 1
 
-        d_model = n_heads * _D_HEAD if n_heads > 0 else 1
-        d_head = _D_HEAD
-        st.caption(f"d_model={d_model:,} (n_heads × d_head={_D_HEAD}), aspect ratio={_ASPECT_RATIO}")
+        st.caption(f"d_model={d_model:,}, d_head={d_head}")
 
-        d_ff = (parameters / n_layers - 4 * d_model**2) / (3 * d_model) if n_layers > 0 and d_model > 0 else 0
+        # MoE active parameters
+        if model_type == "MoE" and n_layers > 0:
+            _embed_params = vocab_size * d_model * 2
+            _expert_params_each = (parameters - _embed_params) / n_layers / (total_experts + shared_experts) if (total_experts + shared_experts) > 0 else 0
+            _non_expert_per_layer = ((preset["active_params"] if preset["active_params"] else parameters) - _embed_params) / n_layers - (active_experts + shared_experts) * _expert_params_each if n_layers > 0 else 0
+            if _non_expert_per_layer < 0:
+                _non_expert_per_layer = 4 * d_model**2
+            active_parameters = preset["active_params"] if preset["active_params"] else parameters
+        else:
+            active_parameters = parameters
+            _expert_params_each = 0
+            _non_expert_per_layer = 4 * d_model**2
+
+        active_parameters = st.number_input("Active Parameters / token", value=int(active_parameters), step=int(1e9), format="%d")
+
+        # d_ff: effective FFN intermediate dimension (all experts, in d_model units)
+        if model_type == "MoE" and n_layers > 0 and d_model > 0 and (total_experts + shared_experts) > 0:
+            d_ff = (total_experts + shared_experts) * _expert_params_each / (3 * d_model)
+        else:
+            d_ff = (parameters / n_layers - 4 * d_model**2) / (3 * d_model) if n_layers > 0 and d_model > 0 else 0
         if d_ff < 0:
-            st.warning(f"Derived d_ff is negative ({d_ff:,.0f}). Model parameters may be too small for the given n_layers/n_heads. Results may be unreliable.")
+            st.warning(f"Derived d_ff is negative ({d_ff:,.0f}). Results may be unreliable.")
             d_ff = max(d_ff, 0)
-        mfu = st.number_input("MFU", value=0.50, step=0.05, format="%.2f")
-        precision = st.selectbox("Precision", ["FP4", "FP8", "FP16"], index=1)
-        bytes_per_param: float = {"FP4": 0.5, "FP8": 1, "FP16": 2}[precision]
+
+        # Attention params per layer (non-expert component for MoE)
+        if model_type == "MoE":
+            params_per_layer_att = _non_expert_per_layer
+        else:
+            params_per_layer_att = 4 * d_model**2
+
+        # Architecture-aware KV
+        st.markdown("**KV Cache Architecture**")
+        kv_elements = st.number_input("KV elements / token / layer", value=float(preset["kv_elements"]), step=1.0, format="%.1f")
+        kv_bytes_per_elem = st.number_input("KV bytes / element", value=int(preset["kv_bytes"]), step=1)
+        full_attn_frac = st.number_input("Full-attention layer fraction", value=float(preset["full_attn_frac"]), step=0.05, format="%.3f")
+        full_attn_cap = st.number_input("Full-attention span cap (0=none)", value=int(preset["full_attn_cap"]), step=128)
+        compressed_tokens = st.number_input("Compressed-layer tokens attended", value=int(preset["compressed_tokens"]), step=64)
+
+        # GQA-equivalent KV heads (derived)
+        gqa_kv_heads = kv_elements / (2 * d_head) if d_head > 0 else 0
+        st.caption(f"GQA-equivalent KV heads: {gqa_kv_heads:.4f}")
+
+        mfu = st.number_input("MFU", value=0.35, step=0.05, format="%.2f")
+        precision = st.selectbox("Precision", ["FP4", "FP8", "FP16"], index=["FP4", "FP8", "FP16"].index(preset["precision"]))
+
+        # Effective bytes per parameter (mixed precision for MoE)
+        if preset["eff_weight_bytes"] is not None:
+            bytes_per_param = st.number_input("Effective bytes/param", value=float(preset["eff_weight_bytes"]), step=0.01, format="%.3f")
+        else:
+            bytes_per_param: float = {"FP4": 0.5, "FP8": 1, "FP16": 2}[precision]
+            bytes_per_param = st.number_input("Effective bytes/param", value=bytes_per_param, step=0.01, format="%.3f")
+
         inference_pflops = {"FP4": rp["fp4_inf"], "FP8": rp["fp8"], "FP16": rp["fp16"]}[precision]
+
+    with st.expander("Pricing", expanded=True):
+        pricing_tier_name = st.selectbox("Pricing Tier", list(PRICING_TIERS.keys()),
+                                         index=list(PRICING_TIERS.keys()).index(preset.get("default_tier", "Frontier (closed)")))
+        _tier_prices = PRICING_TIERS[pricing_tier_name]
+        input_price = st.number_input("Input Price ($/M tokens)", value=float(_tier_prices[0]), step=0.1, format="%.2f")
+        output_price = st.number_input("Output Price ($/M tokens)", value=float(_tier_prices[1]), step=0.1, format="%.2f")
 
     with st.expander("Parallelism & Optimization", expanded=True):
         tp = rp["n_gpu"]
 
-        use_gqa = st.checkbox("GQA (Grouped Query Attention)", value=True)
-        if use_gqa:
-            gqa_kv_heads = st.number_input("GQA KV heads", value=8, step=1)
-        else:
-            gqa_kv_heads = n_heads  # baseline: full attention (no KV head reduction)
-
         use_batching = st.checkbox("Batch Size Optimization", value=True)
         if use_batching:
-            batch_size = st.number_input("Batch Size", value=16, step=1)  # Excel Config B56
+            batch_size = st.number_input("Batch Size", value=64, step=1)
         else:
-            batch_size = 1  # baseline: single request
+            batch_size = 1
 
         use_spec_decode = st.checkbox("Speculative Decoding", value=True)
         if use_spec_decode:
-            spec_window = st.number_input("Speculation window N", value=8, step=1)
+            spec_window = st.number_input("Speculation window N", value=5, step=1)
             acceptance_rate = st.number_input("Acceptance rate a", value=0.70, step=0.05, format="%.2f")
             expected_tokens_accepted = (1 - acceptance_rate**(spec_window + 1)) / (1 - acceptance_rate) if acceptance_rate != 1 else spec_window + 1
         else:
@@ -254,22 +350,28 @@ orp = RACK_PRESETS[other_type]
 other_n_racks = math.floor(total_power / 1000 / orp["power_per_rack"])
 other_inference_pflops = {"FP4": orp["fp4_inf"], "FP8": orp["fp8"], "FP16": orp["fp16"]}[precision]
 
-# ─── PRICING ─────────────────────────────────────────────────────────────────
-tier_name, input_price, output_price = match_pricing_tier(parameters)
+# ─── PRICING (already set from sidebar) ─────────────────────────────────────
+tier_name = pricing_tier_name
 
-# ─── WP_PARAM CALCULATIONS ──────────────────────────────────────────────────
+# ─── WP_PARAM CALCULATIONS (v4: MoE-aware, architecture KV) ─────────────────
 
 # --- Prefill Phase ---
-params_per_layer_att = 4 * d_model**2
+# params_per_layer_att already set in sidebar (non-expert for MoE, 4d² for Dense)
 params_per_layer_ffn = 3 * d_model * d_ff
 total_params_per_layer = params_per_layer_att + params_per_layer_ffn
 weight_memory = parameters * bytes_per_param
 
-# Prefill FLOP per layer
-pf_qkv = 2 * input_tokens * d_model**2 * 3
-pf_qkt = 2 * input_tokens**2 * d_model
-pf_atv = 2 * input_tokens**2 * d_model
-pf_out = 2 * input_tokens * d_model**2
+# Attended tokens per layer (architecture-aware)
+# Full-attention layers: attend min(context, cap) tokens (cap=0 means full context)
+_full_attn_span = min(input_tokens, full_attn_cap) if full_attn_cap > 0 else input_tokens
+# Weighted average attended tokens across layer types
+_attended_tokens = full_attn_frac * _full_attn_span + (1 - full_attn_frac) * compressed_tokens if full_attn_frac < 1.0 else input_tokens
+
+# Prefill FLOP per layer (generalized for different head_dim and attention architecture)
+pf_qkv = 2 * input_tokens * params_per_layer_att * 0.75  # QKV = ¾ of attention params
+pf_qkt = 2 * input_tokens * _attended_tokens * (n_heads * d_head)
+pf_atv = 2 * input_tokens * _attended_tokens * (n_heads * d_head)
+pf_out = 2 * input_tokens * params_per_layer_att * 0.25  # Output proj = ¼ of attention params
 pf_ffn = 2 * input_tokens * d_model * d_ff * 3
 pf_norms = 5 * input_tokens * d_model
 pf_flop_per_layer = pf_qkv + pf_qkt + pf_atv + pf_out + pf_ffn + pf_norms
@@ -282,9 +384,9 @@ pf_compute_theoretical = pf_flop_total / (inference_pflops * 1e15) if inference_
 pf_compute_mfu = pf_compute_theoretical / mfu if mfu > 0 else 0
 
 # Prefill HBM traffic per layer
-pf_hbm_weights = bytes_per_param * (4 * d_model**2 + 3 * d_model * d_ff)
+pf_hbm_weights = bytes_per_param * (params_per_layer_att + params_per_layer_ffn)
 pf_hbm_activation = bytes_per_param * 4 * input_tokens * d_model
-pf_hbm_kv_write = bytes_per_param * 2 * input_tokens * n_heads * d_head
+pf_hbm_kv_write = kv_bytes_per_elem * input_tokens * kv_elements  # architecture KV
 pf_hbm_flash = bytes_per_param * 2 * input_tokens * d_model
 pf_hbm_per_layer = pf_hbm_weights + pf_hbm_activation + pf_hbm_kv_write + pf_hbm_flash
 pf_hbm_total = pf_hbm_per_layer * n_layers
@@ -302,12 +404,13 @@ total_prefill_time = pf_compute_mfu + pf_hbm_time + pf_nvl_time_sharp
 
 # --- Decode Phase ---
 avg_context = input_tokens + 0.5 * output_tokens
+_dc_attended = full_attn_frac * (min(avg_context, full_attn_cap) if full_attn_cap > 0 else avg_context) + (1 - full_attn_frac) * compressed_tokens if full_attn_frac < 1.0 else avg_context
 
-# Decode FLOP per layer per token
-dc_qkv = 2 * 1 * d_model**2 * 3
-dc_qkt = 2 * d_model * avg_context
-dc_atv = 2 * d_model * avg_context
-dc_out = 2 * 1 * d_model**2
+# Decode FLOP per layer per token (generalized)
+dc_qkv = 2 * 1 * params_per_layer_att * 0.75
+dc_qkt = 2 * (n_heads * d_head) * _dc_attended
+dc_atv = 2 * (n_heads * d_head) * _dc_attended
+dc_out = 2 * 1 * params_per_layer_att * 0.25
 dc_ffn = 2 * d_model * d_ff * 3
 dc_flop_per_layer = dc_qkv + dc_qkt + dc_atv + dc_out + dc_ffn
 dc_flop_all_layers = dc_flop_per_layer * n_layers
@@ -317,10 +420,10 @@ dc_flop_all_tokens = dc_flop_all_layers * eff_decode_steps
 dc_compute_per_tok = dc_flop_all_layers / (inference_pflops * 1e15) if inference_pflops > 0 else 0
 dc_compute_all = dc_compute_per_tok * eff_decode_steps
 
-# Decode HBM per layer per token
-dc_hbm_weights = total_params_per_layer * bytes_per_param
-dc_hbm_kv_read = bytes_per_param * 2 * avg_context * n_heads * d_head
-dc_hbm_kv_write = bytes_per_param * 2 * 1 * n_heads * d_head
+# Decode HBM per layer per token (MoE-aware weight loading)
+dc_hbm_weights = (params_per_layer_att + params_per_layer_ffn * ffn_compute_ratio) * bytes_per_param
+dc_hbm_kv_read = kv_bytes_per_elem * avg_context * kv_elements
+dc_hbm_kv_write = kv_bytes_per_elem * 1 * kv_elements
 dc_hbm_per_layer = dc_hbm_weights + dc_hbm_kv_read + dc_hbm_kv_write
 dc_hbm_all = dc_hbm_per_layer * n_layers
 dc_hbm_time = dc_hbm_all / (mem_bw * 1e12) if mem_bw > 0 else 0
@@ -337,14 +440,14 @@ dc_nvl_time_sharp = float(nvlink_time_override) if (use_nvlink_sharp and nvlink_
 dc_data_time_per_tok = dc_hbm_time + dc_nvl_time_sharp
 dc_total_time_per_tok = dc_compute_per_tok + dc_hbm_time + dc_nvl_time_sharp
 
-# --- GQA Optimization ---
-gqa_kv_per_tok_per_layer = bytes_per_param * 2 * d_head * gqa_kv_heads
-gqa_kv_all_layers_per_tok = gqa_kv_per_tok_per_layer * avg_context * n_layers
-gqa_hbm_traffic = gqa_kv_all_layers_per_tok + weight_memory
+# --- Architecture KV Optimization (replaces GQA-only) ---
+arch_kv_per_tok_per_layer = kv_bytes_per_elem * kv_elements  # architecture KV bytes per token per layer
+arch_kv_all_layers_per_tok = arch_kv_per_tok_per_layer * avg_context * n_layers
+gqa_hbm_traffic = arch_kv_all_layers_per_tok + weight_memory
 gqa_hbm_time = gqa_hbm_traffic / (mem_bw * 1e12) if mem_bw > 0 else 0
 
 # --- Batch Size Optimization ---
-batch_gqa_kv_total = gqa_kv_all_layers_per_tok * batch_size
+batch_gqa_kv_total = arch_kv_all_layers_per_tok * batch_size
 batch_hbm_traffic = weight_memory + batch_gqa_kv_total
 batch_hbm_time_per_tok = batch_hbm_traffic / (mem_bw * 1e12) / batch_size if mem_bw > 0 and batch_size > 0 else 0
 
@@ -374,16 +477,15 @@ ir_latency_per_hop = ir_switch_latency_us * 1e-6  # seconds
 ir_one_way_latency = ir_latency_per_hop * ir_net_hops  # seconds
 
 # KV Cache Transfer (for disaggregated prefill-decode)
-# GQA-compressed KV is what prefill->decode transfer moves (Excel Config!B87, WP!B227 post-audit fix).
-# When GQA is off, gqa_kv_heads == n_heads and this reduces to full-MHA KV.
-kv_cache_transfer_bytes = 2 * d_head * gqa_kv_heads * n_layers * bytes_per_param * (input_tokens + output_tokens)
+# Architecture KV: uses kv_elements (MLA/CSA/GQA-aware) × kv_bytes per token per layer
+kv_cache_transfer_bytes = kv_elements * n_layers * kv_bytes_per_elem * (input_tokens + output_tokens)
 kv_cache_transfer_time = kv_cache_transfer_bytes / (eff_ir_bw_per_gpu * 1e12) if eff_ir_bw_per_gpu > 0 else 0
 ir_disagg_overhead = (kv_cache_transfer_time + ir_one_way_latency) if ir_disaggregated else 0
 
 # Multi-Rack TP check — does the model fit in one rack's GPU memory?
 gpu_mem_per_rack_bytes = float(rp["gpu_mem"]) * 1e12  # TB → bytes
-excel_kv_end_bytes = 2 * d_model * (input_tokens + output_tokens) * n_layers  # Excel WP!B40 (MHA-sized memory check)
-total_mem_needed = weight_memory + excel_kv_end_bytes * batch_size  # Excel WP!B42 x n_gpu (KV at end x batch + weights)
+excel_kv_end_bytes = kv_elements * kv_bytes_per_elem * (input_tokens + output_tokens) * n_layers  # Architecture KV at end
+total_mem_needed = weight_memory + excel_kv_end_bytes * batch_size  # KV at end × batch + weights
 ir_racks_for_tp = math.ceil(total_mem_needed / gpu_mem_per_rack_bytes) if gpu_mem_per_rack_bytes > 0 else 1
 ir_racks_for_tp = max(ir_racks_for_tp, 1)
 
@@ -477,7 +579,7 @@ def compute_tl_for_rack_excel(target_rack):
         n3_nvlink = h29 * (sel_rp["nvlink_bw"] / tgt_rp["nvlink_bw"]) if tgt_rp["nvlink_bw"] > 0 else 0
         n3 = n3_compute + n3_nvlink
 
-    # Step 4: Decode-First Token (GQA HBM time)
+    # Step 4: Decode-First Token (Architecture KV HBM time)
     d30 = max(dc_compute_per_tok, gqa_hbm_time)  # Excel TL D19 = MAX(F19,G19)
 
     if target_rack == selected:
@@ -491,7 +593,7 @@ def compute_tl_for_rack_excel(target_rack):
     h31_bw = nvl_bw_all_tokens_opt
     h31_lat = nvl_latency_all_tokens
     h31 = h31_bw + h31_lat
-    f31 = dc_compute_per_tok * eff_decode_steps  # Excel WP!B122
+    f31 = dc_compute_per_tok * batch_size * (spec_window + 1) * eff_decode_steps / mfu if mfu > 0 else 0
     d31 = max(f31, g31) + h31  # Excel TL D20 = MAX(F20,G20)+H20(+I20)
 
     if target_rack == selected:
@@ -807,12 +909,15 @@ with st.expander("📋 Config Summary", expanded=False):
     with c2:
         st.markdown("**Model**")
         st.write(f"Params: {parameters/1e9:.0f}B ({parameters/1e12:.1f}T)")
+        if model_type == "MoE":
+            st.write(f"Active: {active_parameters/1e9:.0f}B, Experts: {active_experts}/{total_experts}+{shared_experts}s")
+            st.write(f"FFN compute ratio: {ffn_compute_ratio:.3f}")
         st.write(f"d_model={d_model:,}, n_layers={n_layers}, n_heads={n_heads}")
         st.write(f"d_head={d_head:.0f}, d_ff={d_ff:,.0f}")
-        st.write(f"Precision: {precision}, MFU: {mfu}")
+        st.write(f"Precision: {precision}, Weight bytes: {bytes_per_param:.3f}, MFU: {mfu}")
     with c3:
         st.markdown("**Optimization**")
-        st.write(f"GQA KV heads: {gqa_kv_heads}, Batch: {batch_size}")
+        st.write(f"KV: {kv_elements} elem × {kv_bytes_per_elem}B, full_attn={full_attn_frac}, Batch: {batch_size}")
         st.write(f"Spec decode: N={spec_window}, a={acceptance_rate}, E[tok]={expected_tokens_accepted:.2f}")
         st.write(f"TP={new_tp_degree}, PP={pp_stages:.0f}")
         st.write(f"Pricing: {tier_name} (${input_price}/M in, ${output_price}/M out)")
@@ -888,10 +993,10 @@ pf_hbm_bytes_total = pf_hbm_total  # all layers
 pf_nvl_bytes_total = pf_nvl_total  # all layers
 
 # Step 4: decode first token
-dc1_hbm_bytes = gqa_hbm_traffic  # weight_memory + GQA KV cache
+dc1_hbm_bytes = gqa_hbm_traffic  # weight_memory + architecture KV cache
 
 # Step 5: decode all tokens
-dc_all_hbm_bytes_per_tok = batch_hbm_traffic  # weight + batch GQA KV
+dc_all_hbm_bytes_per_tok = batch_hbm_traffic  # weight + batch architecture KV
 dc_all_nvl_bytes_per_tok = nvl_traffic_new_tp  # optimized NVLink per tok (before SHARP/overlap)
 dc_all_hbm_bytes_total = dc_all_hbm_bytes_per_tok * eff_decode_steps
 dc_all_nvl_bytes_total = nvl_bw_all_tokens_opt * per_gpu_nvlink_bw * 1e12  # back-derive bytes from BW component only
@@ -944,7 +1049,7 @@ flowchart_steps = [
     },
     {
         "id": 4, "name": "Decode",
-        "subtitle": "First Token (GQA)",
+        "subtitle": "First Token (Arch KV)",
         "duration": sel_tl["steps"][3],
         "compute_flops": dc_flop_all_layers,
         "hbm_bytes": dc1_hbm_bytes,
@@ -1021,7 +1126,7 @@ components.html(flowchart_html, height=720, scrolling=False)
 # ─── TL_Param Timeline ──────────────────────────────────────────────────────
 _active_opts = [
     label for label, flag in [
-        ("GQA", use_gqa),
+        ("ArchKV", True),
         ("Batching", use_batching),
         ("SpecDecode", use_spec_decode),
         ("SHARP", use_nvlink_sharp),
@@ -1291,8 +1396,8 @@ with st.expander("🔧 Workload Parameters (selected rack)", expanded=False):
         st.write(f"Decode FLOPs/tok (all layers): {dc_flop_all_layers:.3e}")
         st.write(f"Decode Compute/tok: {dc_compute_per_tok:.3e}s")
         st.write(f"Decode HBM Time/tok (baseline): {dc_hbm_time:.6f}s")
-        st.write(f"Decode HBM Time/tok (GQA): {gqa_hbm_time:.6f}s")
-        st.write(f"Decode HBM Time/tok (GQA+Batch): {batch_hbm_time_per_tok:.6e}s")
+        st.write(f"Decode HBM Time/tok (Arch KV): {gqa_hbm_time:.6f}s")
+        st.write(f"Decode HBM Time/tok (Arch KV+Batch): {batch_hbm_time_per_tok:.6e}s")
         st.write(f"NVLink Time/tok (optimized): {nvl_time_optimized:.3e}s")
         st.write(f"Weight Memory: {weight_memory/1e12:.2f} TB")
         st.write(f"GPU Memory Headroom: {(float(rp['gpu_mem'])/n_gpu*1e12 - (weight_memory/n_gpu + excel_kv_end_bytes*batch_size/n_gpu))/1e9:.1f} GB")  # Excel WP!B43

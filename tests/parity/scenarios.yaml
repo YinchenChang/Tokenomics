@@ -1,0 +1,27 @@
+# Parity 情境檔（CLAUDE.md 第 3 節）。
+# 每個情境：改寫下列輸入格 → LibreOffice 重算作基準 → 與引擎比對全部公式格。
+# 世代 × 層級：Interface 一次算出 5 世代 × 3 成本情境 × 3 層級，每個情境都已涵蓋，不另列組合。
+workbook_expectations:            # 版本升級時必須有意識地更新（CLAUDE.md 第 4 節）
+  formula_cells: 8427
+  defined_names: 40
+  block2_names: 28                # IF_{TokRack,TokRackD,TokGW,VReq,CostPre,CostCache,CostDec,CostDecAcct,TokPerJ}_{Luna,Sol,Astra} 與 IF_Util
+
+scenarios:
+  - id: base
+    description: 基準（不改任何輸入）
+    inputs: {}
+  - id: a_vr_peak_high
+    description: VR 峰值高情境（Serving!C16＝2）
+    inputs: {"Serving!C16": 2}
+  - id: b_prod_derate
+    description: 生產折減（Serving!C18＝0.7）
+    inputs: {"Serving!C18": 0.7}
+  - id: c_astra_kv_gqa8
+    description: Astra KV GQA-8（Arch!E20＝3）
+    inputs: {"Arch!E20": 3}
+  - id: d_low_power
+    description: 低功率情境（Inputs!E6＝1）
+    inputs: {"Inputs!E6": 1}
+  - id: e_util_08
+    description: 利用率 0.8（Serving!C17＝0.8）
+    inputs: {"Serving!C17": 0.8}

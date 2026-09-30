@@ -22,7 +22,8 @@ from engine import Engine  # noqa: E402
 
 # 欄位映射：Interface 具名範圍前綴（Block 2；依網站顯示順序）
 BLOCK2_METRICS = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
-# 推導鏈顯示順序（由物理量到成本；DRV_Gen、DRV_Tier 為欄名）
+# 推導鏈顯示順序（由物理量到成本；DRV_Gen、DRV_Tier 為欄名）。
+# "CostDec" 不讀 DRV_CostDec（只有基準成本），改讀 IF_CostDec_<層級>，跟隨成本情境選擇器。
 DRV_CHAIN = ("FlopDec", "FlopPre", "WeightGB", "TfixMs", "SeqMs", "SeqBind", "Batch", "Bind",
              "DecTokGPU", "PreTokGPU", "PreShare", "RackTok", "GWTok", "CostDec", "Close")
 _BLOCK2_NAME = re.compile(r"^IF_(?P<metric>%s)_(?P<tier>\w+)$" % "|".join(BLOCK2_METRICS))
@@ -106,12 +107,19 @@ def block2_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
-def drv_table(eng: Engine, tier: str) -> pd.DataFrame:
-    """推導鏈：列＝DRV_ 中間量（依 DRV_CHAIN 順序），欄＝世代；只取所選層級的欄（欄名取 DRV_Gen、DRV_Tier）。"""
+def drv_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
+    """推導鏈：列＝中間量（依 DRV_CHAIN 順序），欄＝世代；只取所選層級的欄（欄名取 DRV_Gen、DRV_Tier）。
+    物理量列讀 DRV_*；decode $/M 列讀 IF_CostDec_<層級>，取所選成本情境（依世代名稱對齊）。"""
     gens, tier_of = _by_col(eng, "DRV_Gen"), _by_col(eng, "DRV_Tier")
     keep = [c for c in gens if str(tier_of[c]).split("（")[0] == tier]
     rows = {}
     for key in DRV_CHAIN:
+        if key == "CostDec":
+            s = interface_series(eng, f"IF_CostDec_{tier}")
+            by_gen = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+            label = f"{tier}｜{s['label']}（{s['unit']}）｜{case}"
+            rows[label] = {gens[c]: fmt_unit(by_gen[gens[c]], s["unit"]) for c in keep}
+            continue
         s = series(eng, f"DRV_{key}")
         by = dict(zip(s["cols"], s["values"]))
         unit = f"（{s['unit']}）" if s["unit"] not in (None, "") else ""
@@ -128,13 +136,28 @@ def calib_scalars(eng: Engine) -> list[tuple[str, str]]:
     return out
 
 
-def calib_validation(eng: Engine) -> pd.DataFrame:
-    """驗證表：F 節（模型 ÷ 實測）與 H 節（模型 ÷ MLPerf）；每列都有「量測平台」。"""
-    rows = []
-    for sec in ("F", "H"):
-        lab, plat, ratio = (series(eng, f"CAL_{sec}_{k}") for k in ("Label", "Platform", "Ratio"))
-        assert len(lab["values"]) == len(plat["values"]) == len(ratio["values"])
-        for i, (a, b, r) in enumerate(zip(lab["values"], plat["values"], ratio["values"]), start=1):
-            rows.append({"節": sec, "驗證點": f"{sec}{i}", "點位": a, "點位欄（Excel 列標籤）": lab["label"],
-                         "量測平台": b, "比值定義": ratio["label"], "比值（x）": r})
-    return pd.DataFrame(rows)
+# 驗證表欄位映射：顯示欄 → CAL_<節>_<名稱>（H 節沒有「軟體／日期」）
+_CALIB_COLS = {
+    "F": (("點位", "Label"), ("世代", "Gen"), ("軟體／日期", "Eng"), ("每用戶速度", "Speed"), ("實測", "Meas"),
+          ("模型", "Model"), ("比值", "Ratio"), ("口徑", "Basis"), ("量測平台", "Platform")),
+    "H": (("點位", "Label"), ("世代", "Gen"), ("每用戶速度", "Speed"), ("實測", "Meas"),
+          ("模型", "Model"), ("比值", "Ratio"), ("口徑", "Basis"), ("量測平台", "Platform")),
+}
+
+
+def calib_validation(eng: Engine, sec: str) -> tuple[pd.DataFrame, dict]:
+    """驗證表（sec＝'F'：模型 ÷ 實測／InferenceX；'H'：模型 ÷ MLPerf）。
+    回傳 (表, 欄說明)；欄說明含各欄 Excel 列標籤與單位（表頭註明用）。每列都有「量測平台」與「口徑」。"""
+    cols, meta = {}, {}
+    for shown, key in _CALIB_COLS[sec]:
+        s = series(eng, f"CAL_{sec}_{key}")
+        cols[shown] = s["values"]
+        meta[shown] = (s["label"], s["unit"])
+    n = {len(v) for v in cols.values()}
+    assert len(n) == 1, f"CAL_{sec}_* 長度不一致：{n}"
+    return pd.DataFrame(cols), meta
+
+
+def basis_note(df: pd.DataFrame) -> str:
+    """該表口徑（取自 CAL_*_Basis 的不重複值）。"""
+    return "、".join(dict.fromkeys(str(x) for x in df["口徑"]))

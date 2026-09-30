@@ -2,11 +2,13 @@
 # 每個情境：改寫下列輸入格 → LibreOffice 重算作基準 → 與引擎比對全部公式格。
 # 世代 × 層級：Interface 一次算出 5 世代 × 3 成本情境 × 3 層級，每個情境都已涵蓋，不另列組合。
 workbook_expectations:            # 版本升級時必須有意識地更新（CLAUDE.md 第 4 節）
-  formula_cells: 8427
-  defined_names: 67
+  formula_cells: 8438
+  defined_names: 78
   block2_names: 28                # IF_{TokRack,TokRackD,TokGW,VReq,CostPre,CostCache,CostDec,CostDecAcct,TokPerJ}_{Luna,Sol,Astra} 與 IF_Util
-  display_only_names: 27          # v5.3 新增：IF_HdrGen／IF_HdrCost（2）、DRV_*（17）、CAL_*（8）；僅供網站顯示，下游不得連結
+  display_only_names: 38          # IF_HdrGen／IF_HdrCost（2）、DRV_*（17）、CAL_*（19；v5.4 新增 11）；僅供網站顯示，下游不得連結
   downstream_names: 38            # IF_ 開頭且非 IF_Hdr：下游模型可連結（v5.2 起不變）
+  cal_f_points: 7                 # CAL_F_* 每個名稱的格數
+  cal_h_points: 4                 # CAL_H_* 每個名稱的格數
   drv_columns: 15                 # Perf 推導鏈：5 世代 × 3 層級
 
 scenarios:

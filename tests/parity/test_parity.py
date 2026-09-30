@@ -31,7 +31,7 @@ def test_workbook_expectations(model):
 
 
 def test_named_ranges(model):
-    """67 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
+    """78 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
     eng = Engine(model)
     xml_names = read_defined_names_xml(model)
     assert set(eng.names) == set(xml_names)
@@ -42,7 +42,7 @@ def test_named_ranges(model):
     assert block2 <= set(eng.names), f"缺少：{sorted(block2 - set(eng.names))}"
     display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_"))}
     assert len(display) == EXPECT["display_only_names"]
-    assert sum(n.startswith("DRV_") for n in eng.names) == 17 and sum(n.startswith("CAL_") for n in eng.names) == 8
+    assert sum(n.startswith("DRV_") for n in eng.names) == 17 and sum(n.startswith("CAL_") for n in eng.names) == 19
     assert {"IF_HdrGen", "IF_HdrCost"} <= set(eng.names)
     downstream = {n for n in eng.names if n.startswith("IF_") and not n.startswith("IF_Hdr")}
     assert len(downstream) == EXPECT["downstream_names"]
@@ -62,8 +62,13 @@ def test_display_names_alignment(model):
             assert isinstance(v, list) and len(v) == n, f"{name} 欄數 {len(v)}"
     assert len(eng.get_name("IF_HdrGen")) == len(eng.get_name("IF_HdrCost")) == len(eng.get_name("IF_TokGW_Luna"))
     assert eng.get_name("DRV_Gen") == eng.get_name("IF_HdrGen")            # 世代欄順序一致
-    for prefix in ("F", "H"):                                            # 驗證表三個名稱等長
-        assert len({len(eng.get_name(f"CAL_{prefix}_{k}")) for k in ("Label", "Platform", "Ratio")}) == 1
+    for prefix, keys, n_pts in (("F", ("Label", "Gen", "Eng", "Speed", "Meas", "Model", "Basis", "Platform", "Ratio"), EXPECT["cal_f_points"]),
+                                ("H", ("Label", "Gen", "Speed", "Meas", "Model", "Basis", "Platform", "Ratio"), EXPECT["cal_h_points"])):
+        for k in keys:                                                   # 驗證表各欄名稱同為 7（F）／4（H）格
+            v = eng.get_name(f"CAL_{prefix}_{k}")
+            assert isinstance(v, list) and len(v) == n_pts, f"CAL_{prefix}_{k}: {len(v) if isinstance(v, list) else 1} 格，應為 {n_pts}"
+            assert all(x != "" for x in v), f"CAL_{prefix}_{k} 含空格"
+    assert set(eng.get_name("CAL_F_Gen")) <= set(eng.get_name("IF_HdrGen"))   # 驗證點的世代名稱都是 Interface 世代
 
 
 def test_named_ranges_vs_libreoffice(model, tmp_path):

@@ -1,97 +1,78 @@
-# FTGP Tokenomics — AI Data Center Economics Model
+# Tokenomics — Claude Code 工作規範（2026-09-30 起生效，取代舊版 CLAUDE.md）
 
-## Project Overview
-Streamlit app that models the full token generation pipeline for AI data centers, from GPU-level inference latency through to DC-wide annual revenue. Originally prototyped in Excel (`20260325_Tokenomics_DC_Claude.xlsx`), now maintained directly in Python.
+## 1. 角色與事實來源
 
-**Computation chain:** Config → WP_Param → TL_Param → DC_Cost_Model → Revenue_Model
+- **Excel 活頁簿是唯一事實來源**：`model/YYYYMMDD_Tokenomics_vN.xlsx`。所有計算機制與數值以 Excel 為準。
+- 本 repo 的 Python 與網站只能**執行**或**呈現** Excel。不得自行新增、修改或省略任何計算機制與參數。
+  - 本條取代舊版的「Build new features directly in Python (skip Excel prototyping)」。
+- 需要新機制或新數據時，流程如下：
+  1. 在 Project 端（Andy 與 Claude chat）修改 Excel 並升版。
+  2. 依第 4 節同步到本 repo。
+- 可以有更底層的資料庫（`DB_*` 工作表，或 `data/db/*.csv`），但必須由 Excel 讀入，且在 Excel 中看得到。
+- Tokenomics 是本研究體系的第 0 層。下游 OpenAI、CRWV、Nebius 等模型只連結 Excel 的 `Interface` 頁。
 
-## Architecture
+## 2. 目標目錄結構
 
-### Files
-- `tokenomics.py` — Main Streamlit app (~900 lines). All computation + display in one file.
-- `flowchart.html` — Animated HTML/JS flowchart template (injected via `string.Template`)
-- `test_tokenomics.py` — Tests
-- `data/` — Historical Excel reference files
+```
+model/            現行 xlsx（唯一一份）；model/archive/ 放舊版
+engine/           以公式引擎直接計算 xlsx，不手抄公式
+app/              Streamlit 介面：讀輸入頁與 Interface 頁的具名範圍
+tests/parity/     Excel 與 engine 的一致性測試與情境檔
+CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
+```
 
-### Key Data Flow
-1. **Config** (sidebar): Rack type, model params, tokens, precision, optimization toggles, inter-rack network
-2. **WP_Param**: Prefill/decode FLOP, HBM traffic, NVLink comm, GQA, batching, speculative decode
-3. **TL_Param**: 6-step E2E latency timeline (tokenize → embed → prefill → decode1 → decodeN → detokenize)
-4. **DC_Cost_Model**: CapEx (IT HW, facility, electrical, cooling) + OpEx (depreciation, electricity, maintenance)
-5. **Revenue_Model**: Annual throughput × token pricing → revenue, Rev/OpEx ratio
+### engine 規則
 
-### Rack Presets
-- **Vera Rubin NVL72**: Next-gen (Rubin GPU, 72/rack, 260 TB/s NVLink, 20.7 TB HBM, 190 kW)
-- **GB200 NVL72**: Current-gen (B200, 72/rack, 130 TB/s NVLink, 13.5 TB HBM, 139 kW)
-- **Customized Rack**: User-editable
+- 以公式引擎（首選 `formulas`，備選 `pycel`）載入 xlsx 並重算。
+- 選型標準：parity 測試全數通過，且單次全簿重算少於 2 秒。
+- 遇到引擎不支援的 Excel 函數時：
+  - 回報給 Andy，由 Project 端改寫 Excel。
+  - 不得在 Python 另寫旁路計算。
+- 輸入與輸出一律透過 Excel 具名範圍存取，不寫死儲存格位址。
 
-### Model Auto-Scaling (aspect ratio method)
-For "Customized Model" and "1.5T (Generic)", architecture is auto-scaled from parameters:
-- `n_layers = round((P / (12 * r^2))^(1/3))` where r=160 (aspect ratio)
-- `d_model = round(r * n_layers / d_head) * d_head` where d_head=128
-- `n_heads = d_model / d_head`
-- Named presets (Llama, Mistral) use known architecture values instead
+## 3. 一致性測試（必須通過才可合併）
 
-## Recent Changes (2026-03-26)
+1. 以 LibreOffice headless 重算 xlsx，取得期望值。
+2. 以 engine 計算同一組情境（`tests/parity/scenarios.yaml`：基準、低、高，另加每個世代與層級的組合）。
+3. 比對範圍與容差：
+   - `Interface` 頁全部儲存格，以及標為 `key` 的中間格。
+   - 相對誤差不超過 1e-9；字串必須完全一致。
+4. GitHub Actions 在每次 push 與 PR 執行。未通過即阻擋合併。
 
-### Inter-Rack Network Expansion
-Added full inter-rack network modeling based on `20260325_Tokenomics_DC_Claude.xlsx`:
+## 4. 同步流程（每個 Excel 新版本）
 
-**New sidebar section — "Inter-Rack Network":**
-- Network fabric selector (InfiniBand XDR / Spectrum-X800 / Std Ethernet)
-- NIC BW per GPU, switch latency, hops, oversubscription, SHARP v4
-- Disaggregated prefill-decode toggle
-- Inter-rack comm overlap
+1. 新版 xlsx 放入 `model/`，舊版移到 `model/archive/`。
+2. 執行 parity 測試。
+3. 如果具名範圍有增減，依 Excel 更新 `app/` 的欄位映射。
+4. 在 `CHANGELOG.md` 記錄 Excel 版本、commit 與變動摘要。
+5. 發現 Excel 本身的錯誤（`#REF!`、`#DIV/0!`、循環參照、單位不一致）時：
+   - 在 PR 描述中列出。
+   - 不得在 Python 端修補。
 
-**Inter-rack overhead added to E2E latency (3 steps):**
-- Step 2 (Embedding): routing latency = one-way network latency
-- Step 3 (Prefill): KV cache transfer (disaggregated) + cross-rack TP activation transfer (large models)
-- Step 5 (Decode-All): token streaming + cross-rack TP decode overhead
+## 5. Block 0 遷移任務（v4 → v5 過渡）
 
-**Multi-rack Tensor Parallelism:**
-When model memory > single rack GPU memory, computes racks needed for TP and adds cross-rack activation transfer overhead. Formula: `racks_for_tp = ceil(total_mem_needed / gpu_mem_per_rack)`
+- `tokenomics.py`（單檔約 1,425 行）是 v4 的手抄公式。v5 起停用手抄路徑，改由 engine 計算。
+- 刪除 `tokenomics_bk.py`。
+- **逐步能量模型**（energy per step、Energy Economics）目前只存在 Python，未經 Excel 驗證。
+  - UI 暫時保留，並標示「未經 Excel 驗證」。
+  - 不得連動任何輸出。
+  - 是否移入 Excel，於 v5 推論區塊決定。
+- `test_tokenomics.py` 自行重寫公式、沒有匯入 app，因此無法偵測 app 與 Excel 的漂移。
+  - 以第 3 節的 parity 測試取代。
+  - 舊測試移到 `tests/legacy/`，不列入 CI。
+- `data/` 內的舊 FTGP xlsx 移到 `model/archive/`。
 
-**Stress test table:** 6 scenarios (Current IB XDR, Std Ethernet, Disaggregated, 16:1 Oversub, Eth+Disagg, All Worst-Case) with throughput loss and revenue impact.
+## 6. 禁止事項
 
-### Model Auto-Scaling Fix
-Fixed d_model/n_layers/n_heads auto-scaling for large models (e.g., 10T). Previous formula (`2^11 * 10^log10(P/1e11)`) produced oversized d_model causing negative d_ff. Now uses Excel's aspect-ratio method.
+- 不得在 Python 硬編碼任何價格、規格、效率或比例參數。
+- 不得刪除或改寫 Excel 的來源、標記、查核狀態欄。
+- 不得把網站的計算結果回寫 Excel。
+- 不得自行更新任何外部數據。數據更新一律經由 Excel。
 
-### Energy-per-Step Model (2026-03-28)
-Added rack-level energy (Joules) breakdown per pipeline step, mirroring the existing latency timeline.
+## 7. 慣例
 
-**New rack preset parameters (sidebar):**
-- GPU TDP (W), GPU idle power fraction, HBM power/GPU (W), HBM idle fraction, NVLink power/GPU (W), NIC TDP/GPU (W)
-
-**Energy computation per step:**
-- Idle baseline: `(GPU_idle_W + HBM_idle_W) × n_gpu × step_time` — always present
-- Active compute: `(GPU_TDP - GPU_idle) × n_gpu × compute_time` — Step 3 only
-- Active HBM: `(HBM_W - HBM_idle) × n_gpu × hbm_time` — Steps 2-5
-- Active NVLink: `NVLink_W × n_gpu × nvlink_time` — Steps 2, 3, 5
-- Active NIC: `NIC_TDP × n_gpu × ir_time` — Steps 2, 3, 5
-
-**New TL_Param table columns:** Energy (J) per rack type alongside Duration (s), plus summary rows for Energy/Token (mJ) and Idle Energy %.
-
-### Energy Economics (2026-03-28)
-Added "⚡ Energy Economics" expander connecting energy model to revenue model with three analyses:
-
-**1. Energy Cost per Token:**
-- `elec_cost_per_token = energy_per_token × PUE × electricity_rate`
-- Energy margin: % of token revenue that goes to electricity
-
-**2. Inference Power Usage Effectiveness (iPUE):**
-- `iPUE = total_rack_energy / active_inference_energy` (rack-level, not facility)
-- Useful energy fraction: what % of rack energy does active inference work
-- Distinct from facility PUE — measures GPU utilization efficiency
-
-**3. Energy per Revenue Dollar:**
-- `energy_per_rev_dollar = annual_electricity_cost / annual_revenue`
-- kWh per $1 revenue — cross-rack comparison of energy efficiency per dollar earned
-
-## Next Steps
-- Potential areas: power curves, cooling efficiency (PUE dynamics), renewable integration, carbon intensity, time-of-use electricity pricing, battery storage
-
-## Dev Notes
-- Run: `streamlit run tokenomics.py`
-- Project lives on Google Drive, syncs across laptop/desktop
-- No git repo currently — files sync via Google Drive
-- Build new features directly in Python with Claude (skip Excel prototyping)
+- **電力口徑**：`GW` 以 IT 關鍵電力為基準（待 Andy 確認）。設施電力＝IT × PUE。Interface 頁同時列出兩者。
+- **來源標記**：Verified／Interested-party／Analogy／Assumed／Derived。
+  - Analogy 與 Assumed 一律以區間（低／基準／高）呈現。
+- **版本命名**：`YYYYMMDD_Tokenomics_vN.xlsx`。repo 與 Project 使用同一檔名。
+- **Excel 語言**：工作表名稱與具名範圍用英文（程式存取）；標籤與註解用繁體中文。

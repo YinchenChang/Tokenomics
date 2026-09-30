@@ -53,7 +53,7 @@ def _is_num(x) -> bool:
 
 def compare(engine_vals: dict, excel_vals: dict) -> dict:
     """比對；數值：相對誤差 ≤1e-9 或絕對誤差 ≤1e-12；其他型別必須完全相等。"""
-    mismatches, max_rel, max_abs, n_num, n_err = [], 0.0, 0.0, 0, 0
+    mismatches, max_rel, max_rel_all, max_abs, n_num, n_err = [], 0.0, 0.0, 0.0, 0, 0
     for key, e in engine_vals.items():
         x = excel_vals[key]
         if isinstance(e, str) and e.startswith("#") or isinstance(x, str) and x.startswith("#"):
@@ -63,7 +63,8 @@ def compare(engine_vals: dict, excel_vals: dict) -> dict:
             d = abs(e - x)
             scale = max(abs(e), abs(x))
             rel = d / scale if scale else 0.0
-            if d > ABS_TOL:  # 絕對誤差已在容差內者不計入最大相對誤差
+            max_rel_all = max(max_rel_all, rel)  # 全部數值格（含絕對誤差極小者）
+            if d > ABS_TOL:  # 絕對誤差已在容差內者不計入 max_rel_err
                 max_rel = max(max_rel, rel)
             max_abs = max(max_abs, d)
             ok = d <= ABS_TOL or rel <= REL_TOL
@@ -73,7 +74,7 @@ def compare(engine_vals: dict, excel_vals: dict) -> dict:
             mismatches.append((key[0], key[1], e, x))
     return {
         "cells": len(engine_vals), "numeric_cells": n_num, "mismatches": mismatches,
-        "max_rel_err": max_rel, "max_abs_err": max_abs, "error_value_cells": n_err,
+        "max_rel_err": max_rel, "max_rel_err_all_cells": max_rel_all, "max_abs_err": max_abs, "error_value_cells": n_err,
     }
 
 

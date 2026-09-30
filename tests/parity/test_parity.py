@@ -73,7 +73,7 @@ def test_scenario_parity(sc, model, tmp_path, results_store):
 
     res = compare(got, ref)
     results_store[sc["id"]] = {k: v for k, v in res.items() if k != "mismatches"} | {
-        "n_mismatch": len(res["mismatches"]), "eval_all_seconds_cold": round(elapsed, 2)}
+        "n_mismatch": len(res["mismatches"]), "eval_all_seconds_after_change": round(elapsed, 2)}
     assert not res["mismatches"], f"[{sc['id']}] " + format_mismatches(res["mismatches"])
 
 
@@ -94,6 +94,10 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
     """同一實例連續改輸入再還原：結果須與全新實例相同；單次全簿重算 < 2 秒。"""
     eng = Engine(model)
     base = eng.evaluate_all()
+    t0 = time.perf_counter()
+    eng._xl.recalculate()                      # 強制全簿（全部公式格）重算
+    full = time.perf_counter() - t0
+    assert full < 2.0, f"全簿強制重算 {full:.2f}s ≥ 2s"
     for sc in SCENARIOS[1:]:
         (addr, v), = sc["inputs"].items()
         sheet, coord = addr.split("!")
@@ -104,4 +108,5 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
         dt = time.perf_counter() - t0
         assert dt < 2.0, f"{sc['id']} 全簿重算 {dt:.2f}s ≥ 2s"
         eng.set_input(sheet, coord, orig)
-    assert eng.evaluate_all() == base
+    res = compare(eng.evaluate_all(), base)   # 還原後與基準相同（容差內；pycel 部分格以 15 位快取值回填）
+    assert not res["mismatches"], format_mismatches(res["mismatches"])

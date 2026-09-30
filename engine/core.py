@@ -69,7 +69,7 @@ class Engine:
 
     def __init__(self, path: str | Path | None = None):
         self.path = Path(path) if path else current_model_path()
-        self._xl = ExcelCompiler(filename=str(self.path))
+        self._xl = ExcelCompiler(filename=str(self.path), plugins=["engine.excel_semantics"])
         wb = openpyxl.load_workbook(self.path)  # 公式模式：取得公式格清單與具名範圍
         self.sheetnames = list(wb.sheetnames)
         self.names = {k: v.attr_text for k, v in wb.defined_names.items()}
@@ -82,6 +82,18 @@ class Engine:
         ]
         self._max_row = {ws.title: ws.max_row for ws in wb}
         self._max_col = {ws.title: ws.max_column for ws in wb}
+        self._warm_up()
+
+    def _warm_up(self) -> None:
+        """建立全簿計算圖，並強制全部公式格重算。
+
+        pycel 冷啟動時，公式格會直接回傳檔內的快取值而不計算（實測：recalculate() 後
+        3,729 格的浮點位元改變）。若不強制重算，parity 的基準情境只是在比對快取值。
+        本引擎因此一律在建構時重算，之後所有取值都是引擎自行計算的結果。
+        """
+        addrs = [self._addr(s, c) for s, c in self._formula_cells]
+        self._xl.evaluate(addrs)      # 建圖；同時滿足 set_value 要求該格已在 cell map
+        self._xl.recalculate()        # 清除快取值並重算
 
     # ── 基本存取 ────────────────────────────────────────────────
     @staticmethod
@@ -100,7 +112,8 @@ class Engine:
     def set_input(self, sheet: str, coord: str, value) -> None:
         """改寫輸入格；相依格於下次取值時重算。"""
         addr = self._addr(sheet, coord)
-        self._xl.evaluate(addr)  # pycel 要求該格已在其 cell map 內
+        # pycel 限制：依賴格尚未建圖就設值，後建圖時會讀回檔內原值（F35 實測重現）；
+        # 建構時已建全簿計算圖，故此處可直接設值。
         self._xl.set_value(addr, value)
 
     # ── 具名範圍 ────────────────────────────────────────────────

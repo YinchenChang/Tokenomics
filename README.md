@@ -16,6 +16,13 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 | `docs/reports/` | 每輪報告（繁體中文） |
 | `CHANGELOG.md` | 每次同步的 Excel 版本、commit、變動摘要 |
 
+## 具名範圍與下游連結
+
+Excel 的具名範圍分為兩類（見 Excel README 頁）：
+
+- **`IF_` 開頭且非 `IF_Hdr`**（38 個）：Interface 輸出，**下游模型（OpenAI、CRWV、Nebius 等）只連結這一類**。
+- **`IF_Hdr*`、`DRV_*`、`CAL_*`、`CTL_*`**：僅供本網站顯示（表頭、推導鏈、Calib 驗證表）或輸入控制，下游不得連結。
+
 ## 執行
 
 ```bash

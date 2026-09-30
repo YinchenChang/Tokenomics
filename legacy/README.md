@@ -6,4 +6,5 @@ v5 起依 CLAUDE.md 第 1、5 節停用：不再由 CI 執行、不再被任何�
 
 停用範圍：v4 的 Config／TL_Param／WP_Param／Revenue_Model 已由 v5.2 的
 Arch、Serving、Workload、Calib、Perf、Sens_Perf、Unit_Cost 取代。
-其中「逐步能量模型（Energy Economics）」只存在於此檔、未經 Excel 驗證，待 Andy 決定去向（見 docs/reports）。
+其中「逐步能量模型（Energy Economics）」只存在於此檔、未經 Excel 驗證。Andy 已決定（第 2 輪）不恢復，
+由 Excel Perf J 節（能量閉合、tokens／焦耳）取代；本檔僅供對照。

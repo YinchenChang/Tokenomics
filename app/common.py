@@ -1,8 +1,11 @@
-"""網站共用：載入引擎、以具名範圍取 Interface 資料、以標籤定位 Calib 驗證表。
+"""網站共用：載入引擎，並只經由具名範圍取 Excel 的資料。
 
-規則（CLAUDE.md 第 1、6 節）：不含任何數值、價格或參數；標籤、單位、世代名稱全部來自 Excel。
-Interface 資料只走具名範圍。世代與成本情境的表頭、Calib 驗證表沒有具名範圍，
-以「欄 A 標籤」定位（不寫死位址）；建議 Excel 端補具名範圍（見每輪報告）。
+規則（CLAUDE.md 第 1、6 節）：不含任何數值、價格或參數；標籤、單位、世代與層級名稱全部來自 Excel。
+- IF_（非 IF_Hdr）：Interface 輸出，下游模型連結用。
+- IF_HdrGen／IF_HdrCost：Interface 表頭（世代、成本情境）——僅供顯示。
+- DRV_：Perf 推導鏈——僅供顯示。
+- CAL_：Calib 校準值與驗證表——僅供顯示。
+列標籤與單位取具名範圍所在列的欄 A、欄 B（由名稱解析出列號，不搜尋標籤、不寫死位址）。
 """
 from __future__ import annotations
 
@@ -12,14 +15,22 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-from openpyxl.utils import get_column_letter, range_boundaries
+from openpyxl.utils import range_boundaries
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from engine import Engine  # noqa: E402
 
-# 欄位映射：Interface 具名範圍前綴 → 網站顯示順序（Block 2；標籤與單位取自 Excel）
+# 欄位映射：Interface 具名範圍前綴（Block 2；依網站顯示順序）
 BLOCK2_METRICS = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
-_TIER_NAME = re.compile(r"^IF_(?P<metric>%s)_(?P<tier>\w+)$" % "|".join(BLOCK2_METRICS))
+# 推導鏈顯示順序（由物理量到成本；DRV_Gen、DRV_Tier 為欄名）
+DRV_CHAIN = ("FlopDec", "FlopPre", "WeightGB", "TfixMs", "SeqMs", "SeqBind", "Batch", "Bind",
+             "DecTokGPU", "PreTokGPU", "PreShare", "RackTok", "GWTok", "CostDec", "Close")
+_BLOCK2_NAME = re.compile(r"^IF_(?P<metric>%s)_(?P<tier>\w+)$" % "|".join(BLOCK2_METRICS))
+
+
+def is_downstream_name(name: str) -> bool:
+    """下游模型只可連結 IF_ 開頭且非 IF_Hdr 的名稱。"""
+    return name.startswith("IF_") and not name.startswith("IF_Hdr")
 
 
 @st.cache_resource(show_spinner="首次載入：以公式引擎建立並重算整份 Excel（約 10–15 秒）…")
@@ -32,41 +43,57 @@ def _label(text: str) -> str:
     return re.sub(r"\s*\[IF_\w+\]\s*$", "", text).strip("　 ")
 
 
-def _header_rows(eng: Engine, sheet: str) -> tuple[int, int]:
-    labels = dict((v, r) for r, v in eng.column_labels(sheet, "A"))
-    return labels["指標"], labels["成本情境"]
-
-
-def interface_series(eng: Engine, name: str) -> dict:
-    """單一 Interface 具名範圍 → {label, unit, values, gens, cases}（列向範圍；純量則 gens/cases 為空）。"""
+def series(eng: Engine, name: str) -> dict:
+    """具名範圍 → {label, unit, values, cols}；cols＝各值所在欄（0 起，相對工作表 A 欄），供對齊表頭。"""
     sheet, ref = eng.name_ref(name)
     c1, r1, c2, _ = range_boundaries(ref)
     label = _label(str(eng.get(sheet, f"A{r1}")))
     unit = eng.get(sheet, f"B{r1}")
     values = eng.get_name(name)
-    if not isinstance(values, list):
-        return {"label": label, "unit": unit, "values": [values], "gens": [""], "cases": [""]}
-    hg, hc = _header_rows(eng, sheet)
-    span = lambda r: eng.get(sheet, f"{get_column_letter(c1)}{r}:{get_column_letter(c2)}{r}")[0]  # noqa: E731
-    return {"label": label, "unit": unit, "values": values, "gens": span(hg), "cases": span(hc)}
+    values = values if isinstance(values, list) else [values]
+    return {"label": label, "unit": unit, "values": values, "cols": list(range(c1, c1 + len(values)))}
+
+
+def _by_col(eng: Engine, name: str) -> dict[int, object]:
+    s = series(eng, name)
+    return dict(zip(s["cols"], s["values"]))
+
+
+def interface_series(eng: Engine, name: str) -> dict:
+    """Interface 具名範圍，加上世代與成本情境（取自 IF_HdrGen、IF_HdrCost，依欄對齊）。"""
+    s = series(eng, name)
+    gens, cases = _by_col(eng, "IF_HdrGen"), _by_col(eng, "IF_HdrCost")
+    if len(s["values"]) == 1 and s["cols"][0] not in gens:   # 純量（例：IF_Util）
+        s["gens"], s["cases"] = [""], [""]
+    else:
+        s["gens"] = [gens[c] for c in s["cols"]]
+        s["cases"] = [cases[c] for c in s["cols"]]
+    return s
 
 
 def tiers(eng: Engine) -> dict[str, str]:
-    """層級 → 顯示標題（如 'Luna（低層）'；由 Interface 欄 A 的分區標題取得）。順序＝Excel 列順序。"""
-    found = {}
-    for n in eng.names:
-        m = _TIER_NAME.match(n)
-        if m and m["metric"] == "TokGW":
-            found[m["tier"]] = eng.name_ref(n)[1]
-    order = sorted(found, key=lambda t: int(re.search(r"\d+", found[t]).group()))
-    heads = {v: r for r, v in eng.column_labels("Interface", "A")}
-    return {t: next((h for h in heads if h.startswith(t)), t) for t in order}
+    """層級 → 顯示標題（如 'Luna' → 'Luna（低層）'）；取自 DRV_Tier，順序＝Excel 欄順序。"""
+    out = {}
+    for title in eng.get_name("DRV_Tier"):
+        out.setdefault(str(title).split("（")[0], str(title))
+    return out
+
+
+def cost_cases(eng: Engine) -> list[str]:
+    return list(dict.fromkeys(eng.get_name("IF_HdrCost")))
 
 
 def fmt(v) -> str:
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         return str(v)
     return f"{v:,.0f}" if abs(v) >= 1000 else f"{v:.4g}"
+
+
+def fmt_unit(v, unit) -> str:
+    """單位為 % 的格，Excel 存小數（0.6 ＝ 60%）；其餘沿用 fmt。"""
+    if unit == "%" and isinstance(v, (int, float)) and not isinstance(v, bool):
+        return f"{v * 100:.4g}%"
+    return fmt(v)
 
 
 def block2_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
@@ -79,77 +106,35 @@ def block2_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
-def cost_cases(eng: Engine) -> list[str]:
-    s = interface_series(eng, "IF_TokGW_" + next(iter(tiers(eng))))
-    return list(dict.fromkeys(s["cases"]))
+def drv_table(eng: Engine, tier: str) -> pd.DataFrame:
+    """推導鏈：列＝DRV_ 中間量（依 DRV_CHAIN 順序），欄＝世代；只取所選層級的欄（欄名取 DRV_Gen、DRV_Tier）。"""
+    gens, tier_of = _by_col(eng, "DRV_Gen"), _by_col(eng, "DRV_Tier")
+    keep = [c for c in gens if str(tier_of[c]).split("（")[0] == tier]
+    rows = {}
+    for key in DRV_CHAIN:
+        s = series(eng, f"DRV_{key}")
+        by = dict(zip(s["cols"], s["values"]))
+        unit = f"（{s['unit']}）" if s["unit"] not in (None, "") else ""
+        rows[f"{s['label']}{unit}"] = {gens[c]: fmt_unit(by[c], s["unit"]) for c in keep}
+    return pd.DataFrame(rows).T
 
 
-# ── Calib 驗證表（F 節：模型 ÷ 實測；H 節：模型 ÷ MLPerf）─────────────
-def _section_bounds(labels: list[tuple[int, str]]) -> dict[str, tuple[int, int]]:
-    starts = [(r, v[0]) for r, v in labels if re.match(r"^[A-Z]\. ", v)]
-    end = labels[-1][0] + 1
-    return {k: (r, (starts[i + 1][0] if i + 1 < len(starts) else end)) for i, (r, k) in enumerate(starts)}
-
-
-def _find(labels, lo, hi, text, exact=False):
-    for r, v in labels:
-        if lo <= r < hi and (v == text if exact else v.startswith(text)):
-            return r
-    raise KeyError(f"Calib 找不到列標籤：{text}")
+def calib_scalars(eng: Engine) -> list[tuple[str, str]]:
+    """校準值（CAL_EtaD、CAL_TlayerUs）：(標籤（單位）, 顯示值)。"""
+    out = []
+    for n in ("CAL_EtaD", "CAL_TlayerUs"):
+        s = series(eng, n)
+        out.append((f"{s['label']}（{s['unit']}）", fmt_unit(s["values"][0], s["unit"])))
+    return out
 
 
 def calib_validation(eng: Engine) -> pd.DataFrame:
-    sh = "Calib"
-    labels = eng.column_labels(sh, "A")
-    sec = _section_bounds(labels)
-
-    def row(sec_key, text, n, exact=False):
-        lo, hi = sec[sec_key]
-        r = _find(labels, lo, hi, text, exact)
-        return eng.row_values(sh, r, "C")[:n], str(eng.get(sh, f"A{r}"))
-
-    out = []
-    # F 節：錨點列在 B 節，模型值在 F 節
-    n = len([x for x in eng.row_values(sh, _find(labels, *sec["B"], "用途"), "C") if x != ""])
-    purpose, _ = row("B", "用途", n)
-    gen, _ = row("B", "世代", n, exact=True)
-    soft, _ = row("B", "軟體／日期", n)
-    speed, _ = row("B", "每用戶速度", n)
-    meas, meas_lbl = row("B", "實測 tok/s/GPU", n)
-    src, _ = row("B", "來源", n)
-    plat, _ = row("B", "量測平台", n)
-    model, model_lbl = row("F", "模型 tok/s/GPU", n)
-    ratio, _ = row("F", "模型 ÷ 實測", n)
-    note, _ = row("F", "判讀", n)
-    for i in range(n):
-        out.append({"節": "F", "驗證點": f"F{i + 1}", "用途": purpose[i], "世代": gen[i], "軟體／日期": soft[i],
-                    "量測平台": plat[i], "來源": src[i], "每用戶速度 tok/s": speed[i], "實測 tok/s/GPU": meas[i],
-                    "模型 tok/s/GPU": model[i], "模型 ÷ 實測": ratio[i], "口徑（Excel 列標籤）": f"{meas_lbl}／{model_lbl}",
-                    "判讀": note[i]})
-    # H 節：無逐點「量測平台」列 → 取節標題（Excel 端缺口，見報告）
-    h_title = str(eng.get(sh, f"A{sec['H'][0]}"))
-    h_platform = re.sub(r"^H\.\s*第二來源驗證：", "", h_title)
-    pts, _ = row("H", "驗證點", 12, exact=True)
-    m = len([x for x in pts if x != ""])
-    pts = pts[:m]
-    gidx, _ = row("H", "世代索引", m, exact=True)
-    gnames = eng.row_values(sh, _find(labels, *sec["E"], "世代", exact=True), "C")
-    speed, _ = row("H", "每用戶速度下限", m)
-    meas, meas_lbl = row("H", "MLPerf 實測輸出", m)
-    model, model_lbl = row("H", "模型輸出", m)
-    ratio, _ = row("H", "模型 ÷ MLPerf", m, exact=True)
-    for i in range(m):
-        g = gnames[int(gidx[i]) - 1] if isinstance(gidx[i], (int, float)) else ""
-        out.append({"節": "H", "驗證點": f"H{i + 1}", "用途": "第二來源驗證", "世代": g, "軟體／日期": pts[i],
-                    "量測平台": h_platform, "來源": "—", "每用戶速度 tok/s": speed[i], "實測 tok/s/GPU": meas[i],
-                    "模型 tok/s/GPU": model[i], "模型 ÷ 實測": ratio[i], "口徑（Excel 列標籤）": f"{meas_lbl}／{model_lbl}",
-                    "判讀": "—"})
-    return pd.DataFrame(out)
-
-
-def calib_platform_note(eng: Engine) -> str:
-    """Excel 在「量測平台」列尾端（超出資料欄）附的說明文字。"""
-    labels = eng.column_labels("Calib", "A")
-    r = _find(labels, *_section_bounds(labels)["B"], "量測平台")
-    vals = [x for x in eng.row_values("Calib", r, "C") if isinstance(x, str) and len(x) > 40]
-    return vals[-1] if vals else ""
+    """驗證表：F 節（模型 ÷ 實測）與 H 節（模型 ÷ MLPerf）；每列都有「量測平台」。"""
+    rows = []
+    for sec in ("F", "H"):
+        lab, plat, ratio = (series(eng, f"CAL_{sec}_{k}") for k in ("Label", "Platform", "Ratio"))
+        assert len(lab["values"]) == len(plat["values"]) == len(ratio["values"])
+        for i, (a, b, r) in enumerate(zip(lab["values"], plat["values"], ratio["values"]), start=1):
+            rows.append({"節": sec, "驗證點": f"{sec}{i}", "點位": a, "點位欄（Excel 列標籤）": lab["label"],
+                         "量測平台": b, "比值定義": ratio["label"], "比值（x）": r})
+    return pd.DataFrame(rows)

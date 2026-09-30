@@ -1,8 +1,9 @@
 """總覽：目前載入的活頁簿、控制輸入與 Interface Block 1（機架／資本支出／持有成本）。"""
 import pandas as pd
 import streamlit as st
+from openpyxl.utils import range_boundaries
 
-from app.common import BLOCK2_METRICS, fmt, get_engine, interface_series
+from app.common import BLOCK2_METRICS, fmt, fmt_unit, get_engine, interface_series, is_downstream_name
 
 
 def render():
@@ -15,13 +16,13 @@ def render():
     for c, n in zip(cols, ctl):
         c.metric(n, fmt(eng.get_name(n)))
     util = interface_series(eng, "IF_Util")
-    cols[-1].metric(f"IF_Util（{util['unit']}）", fmt(util["values"][0]))
+    cols[-1].metric("IF_Util", fmt_unit(util["values"][0], util["unit"]))
 
     st.subheader("Interface — Block 1（每 GW＝IT 關鍵電力）")
-    block1 = [n for n in eng.names if n.startswith("IF_") and n != "IF_Util"
+    block1 = [n for n in eng.names if is_downstream_name(n) and n != "IF_Util"
               and not any(n.startswith(f"IF_{m}_") for m in BLOCK2_METRICS)]
     rows = {}
-    for n in sorted(block1, key=lambda n: eng.name_ref(n)[1]):
+    for n in sorted(block1, key=lambda n: range_boundaries(eng.name_ref(n)[1])[1]):   # 依 Excel 列序
         s = interface_series(eng, n)
         rows[f"{s['label']}（{s['unit']}）"] = s["values"]
     idx = pd.MultiIndex.from_arrays([s["gens"], s["cases"]], names=["世代", "成本情境"])

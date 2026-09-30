@@ -31,7 +31,7 @@ def test_workbook_expectations(model):
 
 
 def test_named_ranges(model):
-    """40 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
+    """67 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
     eng = Engine(model)
     xml_names = read_defined_names_xml(model)
     assert set(eng.names) == set(xml_names)
@@ -40,10 +40,30 @@ def test_named_ranges(model):
     block2 = {f"IF_{p}_{t}" for p in BLOCK2_PREFIX for t in TIERS} | {"IF_Util"}
     assert len(block2) == EXPECT["block2_names"]
     assert block2 <= set(eng.names), f"缺少：{sorted(block2 - set(eng.names))}"
+    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_"))}
+    assert len(display) == EXPECT["display_only_names"]
+    assert sum(n.startswith("DRV_") for n in eng.names) == 17 and sum(n.startswith("CAL_") for n in eng.names) == 8
+    assert {"IF_HdrGen", "IF_HdrCost"} <= set(eng.names)
+    downstream = {n for n in eng.names if n.startswith("IF_") and not n.startswith("IF_Hdr")}
+    assert len(downstream) == EXPECT["downstream_names"]
     for n in eng.names:  # 每個名稱都能取值，且非錯誤值
         v = eng.get_name(n)
         flat = v if isinstance(v, list) else [v]
         assert all(not (isinstance(x, str) and x.startswith("#")) for x in flat), f"{n} 含錯誤值"
+
+
+def test_display_names_alignment(model):
+    """表頭與推導鏈名稱的形狀：DRV_ 皆 15 欄且與 DRV_Gen／DRV_Tier 對齊；IF_Hdr 與 IF_ 輸出欄數一致。"""
+    eng = Engine(model)
+    n = EXPECT["drv_columns"]
+    for name in eng.names:
+        if name.startswith("DRV_"):
+            v = eng.get_name(name)
+            assert isinstance(v, list) and len(v) == n, f"{name} 欄數 {len(v)}"
+    assert len(eng.get_name("IF_HdrGen")) == len(eng.get_name("IF_HdrCost")) == len(eng.get_name("IF_TokGW_Luna"))
+    assert eng.get_name("DRV_Gen") == eng.get_name("IF_HdrGen")            # 世代欄順序一致
+    for prefix in ("F", "H"):                                            # 驗證表三個名稱等長
+        assert len({len(eng.get_name(f"CAL_{prefix}_{k}")) for k in ("Label", "Platform", "Ratio")}) == 1
 
 
 def test_named_ranges_vs_libreoffice(model, tmp_path):

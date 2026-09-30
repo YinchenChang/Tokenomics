@@ -13,7 +13,6 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import openpyxl
-from openpyxl.utils import column_index_from_string, get_column_letter
 from pycel import ExcelCompiler
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -80,8 +79,6 @@ class Engine:
             for c in row
             if isinstance(c.value, str) and c.value.startswith("=")
         ]
-        self._max_row = {ws.title: ws.max_row for ws in wb}
-        self._max_col = {ws.title: ws.max_column for ws in wb}
         self._warm_up()
 
     def _warm_up(self) -> None:
@@ -145,26 +142,6 @@ class Engine:
         addrs = [self._addr(s, c) for s, c in self._formula_cells]
         vals = self._xl.evaluate(addrs)
         return {k: norm(v) for k, v in zip(self._formula_cells, vals)}
-
-    # ── 版面搜尋（以標籤定位，不寫死位址）─────────────────────
-    def column_labels(self, sheet: str, col: str = "A") -> list[tuple[int, str]]:
-        """回傳指定欄的 (列號, 文字) 清單。"""
-        out = []
-        for r in range(1, self._max_row[sheet] + 1):
-            v = self.get(sheet, f"{col}{r}")
-            if isinstance(v, str) and v:
-                out.append((r, v))
-        return out
-
-    def row_values(self, sheet: str, row: int, first_col: str = "C") -> list:
-        """自 first_col 起，讀到工作表最後一欄。"""
-        c1 = column_index_from_string(first_col)
-        c2 = self._max_col[sheet]
-        if c2 < c1:
-            return []
-        rng = f"{first_col}{row}:{get_column_letter(c2)}{row}"
-        v = self.get(sheet, rng)
-        return v[0] if isinstance(v, list) else [v]
 
 
 __all__ = ["Engine", "current_model_path", "parse_ref", "read_defined_names_xml", "norm"]

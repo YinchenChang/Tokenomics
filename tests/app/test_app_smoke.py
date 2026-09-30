@@ -24,6 +24,14 @@ def test_block2_selectors_and_calib_table():
             at.radio[1].set_value(case).run()
             assert not at.exception
             assert all(str(i).startswith(tier) for i in at.dataframe[0].value.index)
-    calib = at.dataframe[1].value
+    drv = at.dataframe[1].value
+    assert len(drv) == 15 and drv.shape[1] == 5          # 15 個推導鏈量 × 5 世代
+    calib = at.dataframe[2].value
     assert "量測平台" in calib.columns and (calib["量測平台"].astype(str).str.len() > 0).all()
     assert len(calib) == 11   # F 節 7 點＋H 節 4 點
+
+
+def test_no_label_lookup_in_app_and_engine():
+    """網站與引擎不再以欄 A 標籤定位（改讀 IF_Hdr／DRV_／CAL_ 具名範圍）。"""
+    for path in list((ROOT / "app").rglob("*.py")) + list((ROOT / "engine").rglob("*.py")):
+        assert "column_labels" not in path.read_text(encoding="utf-8"), path

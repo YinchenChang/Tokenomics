@@ -1,4 +1,4 @@
-# Tokenomics — Claude Code 工作規範（2026-09-30 修訂二，取代舊版 CLAUDE.md）
+# Tokenomics — Claude Code 工作規範（2026-09-30 修訂三，取代 repo 內現有 CLAUDE.md）
 
 ## 1. 角色與事實來源
 
@@ -72,6 +72,18 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
   - 以第 3 節的 parity 測試取代。
   - 舊測試移到 `tests/legacy/`，不列入 CI。
 - `data/` 內的舊 FTGP xlsx 移到 `model/archive/`。
+
+## 5a. 每輪報告（必須）
+
+Andy 不熟悉程式，所以每一輪工作結束都要交報告：
+
+- **寫入 repo**：`docs/reports/YYYYMMDD_<主題>.md`，用繁體中文、非工程語言撰寫，內容包括：
+  - 本輪做了什麼、為什麼這樣做。
+  - parity 測試結果（通過／未通過的格數與情境數）。
+  - 發現的 Excel 問題（只列出，不在 Python 端修補）。
+  - 下一步與需要 Andy 決定的事項。
+- **同一份內容也貼成 PR comment**，讓 Andy 可以從 GitHub 通知信讀取。
+- 合併前請 Andy 確認。
 
 ## 6. 禁止事項
 

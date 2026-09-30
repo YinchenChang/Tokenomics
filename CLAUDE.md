@@ -1,4 +1,4 @@
-# Tokenomics — Claude Code 工作規範（2026-09-30 起生效，取代舊版 CLAUDE.md）
+# Tokenomics — Claude Code 工作規範（2026-09-30 修訂二，取代舊版 CLAUDE.md）
 
 ## 1. 角色與事實來源
 
@@ -10,6 +10,17 @@
   2. 依第 4 節同步到本 repo。
 - 可以有更底層的資料庫（`DB_*` 工作表，或 `data/db/*.csv`），但必須由 Excel 讀入，且在 Excel 中看得到。
 - Tokenomics 是本研究體系的第 0 層。下游 OpenAI、CRWV、Nebius 等模型只連結 Excel 的 `Interface` 頁。
+- **為什麼以 Excel 為主**：本專案的最高優先是讓 Andy 能讀懂並掌握每一步的推導。開發效率排在其次。
+  - 因此，任何能提高效率、但會讓機制離開 Excel 的做法都不採用。
+
+## 1a. 建模精神（必須保留）
+
+- **由下而上的物理推導**：從 token、維度、層數、參數、bytes、FLOPs，經 MFU、roofline、延遲與批次，推到每架 M tok 與每 GW 的收入和成本。
+  - 推論、推理、訓練、harness 都用同一組物理量表達。
+  - 新技術一律以「作用在這些物理量上的倍數」寫入 `Tech_Registry`，不另開捷徑公式。
+- **實測數據的角色**：只用來校準效率係數（`Calibration` 頁），不取代 roofline 推導。
+- **介面必須露出推導鏈**：網站依序顯示各中間物理量，不能只顯示最終數字。
+- **層級標籤**：每一個每 token 成本、單價或營收的輸出，都必須帶上對應的模型層級與 token 類型（新鮮輸入、快取輸入、思考、可見輸出）。沒有層級的單一混合數字不得作為輸出。
 
 ## 2. 目標目錄結構
 
@@ -54,9 +65,9 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
 - `tokenomics.py`（單檔約 1,425 行）是 v4 的手抄公式。v5 起停用手抄路徑，改由 engine 計算。
 - 刪除 `tokenomics_bk.py`。
 - **逐步能量模型**（energy per step、Energy Economics）目前只存在 Python，未經 Excel 驗證。
-  - UI 暫時保留，並標示「未經 Excel 驗證」。
-  - 不得連動任何輸出。
-  - 是否移入 Excel，於 v5 推論區塊決定。
+  - 已決定在 Block 2（推論）移入 Excel，用途是能量閉合檢查與 tokens/J 指標。
+  - 移入前：UI 保留並標示「未經 Excel 驗證」，不得連動任何輸出。
+  - 移入後：改由 engine 計算，刪除 Python 版本。
 - `test_tokenomics.py` 自行重寫公式、沒有匯入 app，因此無法偵測 app 與 Excel 的漂移。
   - 以第 3 節的 parity 測試取代。
   - 舊測試移到 `tests/legacy/`，不列入 CI。
@@ -71,7 +82,9 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
 
 ## 7. 慣例
 
-- **電力口徑**：`GW` 以 IT 關鍵電力為基準（待 Andy 確認）。設施電力＝IT × PUE。Interface 頁同時列出兩者。
+- **電力口徑**（Andy 於 2026-09-30 確認）：`GW` 以 IT 關鍵電力為基準。
+  - 設施電力＝IT × PUE。Interface 頁同時列出兩者。
+  - 外部揭露的 GW 數字逐一標註口徑：IT、設施或未明。
 - **來源標記**：Verified／Interested-party／Analogy／Assumed／Derived。
   - Analogy 與 Assumed 一律以區間（低／基準／高）呈現。
 - **版本命名**：`YYYYMMDD_Tokenomics_vN.xlsx`。repo 與 Project 使用同一檔名。

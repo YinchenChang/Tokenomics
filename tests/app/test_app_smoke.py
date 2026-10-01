@@ -97,6 +97,16 @@ def test_block3_cost_follows_case_and_shares_match_chain():
         assert list(a) == list(b), (key, list(a), list(b))
 
 
+def test_evidence_page_readonly_table():
+    at = AppTest.from_string(HEAD + "from app.views import evidence; evidence.render()", default_timeout=180).run()
+    assert not at.exception
+    df = at.dataframe[0].value
+    assert df.shape == (9, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
+    assert df["ID"].tolist()[:2] == ["E001", "E002"] and df["ID"].is_unique
+    at.multiselect[0].set_value([df["判定"].iloc[0]]).run()                # 篩選可用且不拋例外
+    assert not at.exception and 0 < len(at.dataframe[0].value) <= 9
+
+
 def test_no_label_lookup_in_app_and_engine():
     """網站與引擎不再以欄 A 標籤定位（改讀 IF_Hdr／DRV_／CAL_ 具名範圍）。"""
     for path in list((ROOT / "app").rglob("*.py")) + list((ROOT / "engine").rglob("*.py")):

@@ -25,9 +25,10 @@ from engine import Engine  # noqa: E402
 BLOCK2_METRICS = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
 # 欄位映射：Interface 具名範圍前綴（Block 3；依網站顯示順序，與 Interface C 節列序一致）
 BLOCK3_METRICS = ("TrainGPUh", "TrainCost", "PostShareFLOP", "PostShareGPUh", "RLMFU", "ProgGPUh", "ProgCost", "ProgGWyr")
-# J13（Andy 決定）：下游預設訓練世代與並列世代，由 Interface 的具名範圍 IF_TrainGenDefault／IF_TrainGenAlt 給出（世代索引，
-# 對應 Spec_Rack 世代列的順序，亦即 IF_HdrGen 去重後的順序）。網站只用來把這兩個世代排在最前面。
+# J13（Andy 決定）：下游預設訓練世代與並列世代。IF_TrainGenDefault／IF_TrainGenAlt 是世代索引（對應 Spec_Rack 世代列順序），
+# IF_TrainGenDefaultName／IF_TrainGenAltName 是對應的世代名稱（v5.7）。網站讀名稱，只用來把這兩個世代排在最前面。
 TRAIN_GEN_NAMES = ("IF_TrainGenDefault", "IF_TrainGenAlt")
+TRAIN_GEN_LABEL_NAMES = ("IF_TrainGenDefaultName", "IF_TrainGenAltName")   # v5.7：世代名稱（Interface 世代名稱格）
 # 推導鏈顯示順序（由物理量到成本；DRV_Gen、DRV_Tier 為欄名）。
 # "CostDec" 不讀 DRV_CostDec（只有基準成本），改讀 IF_CostDec_<層級>，跟隨成本情境選擇器。
 DRV_CHAIN = ("FlopDec", "FlopPre", "WeightGB", "TfixMs", "SeqMs", "SeqBind", "Batch", "Bind",
@@ -174,14 +175,12 @@ def basis_note(df: pd.DataFrame) -> str:
 
 def is_block3_name(name: str) -> bool:
     """Block 3 的 Interface 名稱（IF_<指標>_<層級>）與純量 IF_RDMult、IF_TrainGen*。"""
-    return name in BLOCK3_SCALARS or name in TRAIN_GEN_NAMES or any(name.startswith(f"IF_{m}_") for m in BLOCK3_METRICS)
+    return name in BLOCK3_SCALARS or name in TRAIN_GEN_NAMES or name in TRAIN_GEN_LABEL_NAMES or any(name.startswith(f"IF_{m}_") for m in BLOCK3_METRICS)
 
 
 def train_gens(eng: Engine) -> list[str]:
-    """J13 的訓練世代名稱（預設、並列；依序）：讀 IF_TrainGenDefault／IF_TrainGenAlt 的世代索引，
-    對應 IF_HdrGen 去重後的世代順序（與 Spec_Rack 世代列相同）。"""
-    gens = list(dict.fromkeys(eng.get_name("IF_HdrGen")))
-    return [gens[int(eng.get_name(n)) - 1] for n in TRAIN_GEN_NAMES]
+    """J13 的訓練世代名稱（預設、並列；依序）：直接讀 IF_TrainGenDefaultName／IF_TrainGenAltName。"""
+    return [str(eng.get_name(n)) for n in TRAIN_GEN_LABEL_NAMES]
 
 
 def order_gens(gens: list[str], first: list[str] | None = None) -> list[str]:
@@ -254,3 +253,13 @@ def registry_tables(eng: Engine) -> tuple[pd.DataFrame, pd.DataFrame]:
     hooks = [n for n in eng.names if n.startswith("TR_Hook") and n != "TR_Hook"]   # TR_Hook＝技術的掛鉤代碼欄，屬登錄表
     reg = [n for n in eng.names if n.startswith("TR_") and n not in hooks]
     return _named_table(eng, "TR_", reg), _named_table(eng, "TR_Hook", hooks)
+
+
+def evidence_table(eng: Engine) -> pd.DataFrame:
+    """DB_Evidence（證據登錄表，純輸入、無公式）：唯讀。本頁沒有具名範圍，以工作表直接讀取：
+    欄 A 表頭「ID」所在列為表頭，其下連續非空列為資料；A:K 以外的欄不讀。已列入報告（建議補 EV_ 具名範圍）。"""
+    grid = eng.get("DB_Evidence", "A1:K500")
+    start = next(i for i, r in enumerate(grid) if r[0] == "ID")
+    header = [str(h) for h in grid[start]]
+    rows = [r for r in grid[start + 1:] if any(x != "" for x in r)]
+    return pd.DataFrame(rows, columns=header)

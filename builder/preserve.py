@@ -5,7 +5,8 @@
 BLUE = "FF0000FF"
 REBUILT = ["Spec_Rack", "Arch", "Serving", "Workload", "Calib", "Energy", "NonNV", "Tech_Registry", "Perf",
            "Sens_Perf", "Unit_Cost", "Train_In", "Perf_Batch", "Training", "Sens_Train",
-           "Cap_In", "Capability", "Price_Frontier", "Cache_Store", "Fleet_1GW", "Amortize", "Theory_Rev", "Sens_Rev"]
+           "Cap_In", "Capability", "Price_Frontier", "Cache_Store", "Fleet_1GW", "Amortize", "Theory_Rev", "Sens_Rev",
+           "Har_In", "Harness", "Sens_Har"]
 
 def _is_input(cell):
     v = cell.value

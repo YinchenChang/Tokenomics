@@ -15,7 +15,7 @@ HOOKS = [  # code, meaning, where it acts
     ("H_TOK", "達同等預訓練品質所需 token 倍數", "Training：htok 列"),
     ("H_ROLL", "rollout 效率倍數", "Training：hroll 列"),
     ("H_CAP", "能力增量（Block 4 占位，尚無作用）", "Block 4"),
-    ("H_HAR", "harness（Block 5 占位，尚無作用）", "Block 5"),
+    ("H_HAR", "harness（v5.9 起不作倍數；T12 的開關 × 採用比例＝Har_In 混合權重 w）", "Har_In → Workload B 節、Harness"),
 ]
 
 # id, tech, hook, acts-on, lo, base, hi, sel, status, labs, override, in-base, adopt, switch, tag, source/note, trigger
@@ -42,8 +42,10 @@ ENTRIES = [
   "旗艦模型公開採用：DeepSeek V4.1（幾乎全部 RL 與 OPD，S45）、Zhipu GLM-5（slime，S46）、Moonshot Kimi-Researcher（完全非同步 rollout，S47）、Meta Llama 3（LlamaRL，S48）。閉源四家未找到披露。v5.6 起併入基準：Train_In rollout 效率 0.85（Andy 2026-10-01 決定 (a)）", "閉源實驗室披露同步做法，或前沿規模對照實驗顯示 off-policy 偏差抵銷吞吐增益"),
  ("T11", "KV 快取壓縮（FP4 KV 等）", "H_KV", "KV bytes/token", 0.5, 0.5, 0.75, 2, "早期採用", 1, "", "否", 1, 0, "Assumed",
   "FP8 → FP4 KV：bytes × 0.5；準確率損失待查", "第二家實驗室在生產服務公開採用"),
- ("T12", "Harness（代理框架）", "H_HAR", "Block 5 占位", 1, 1, 1, 2, "追蹤中", 0, "", "否", 1, 0, "Assumed",
-  "ARC-AGI-3：GPT-6 Astra 標準 harness 62.7% → Provider Adapter 99.9%；Opus 5 30.2% → Strands 99.95%。Block 5 參數化", "Block 5"),
+ ("T12", "Harness（代理框架）", "H_HAR", "Har_In 選定檔案（混合權重 w＝開關 × 採用比例）", 1, 1, 1, 2, "追蹤中", 0, "", "否", 1, 0, "Assumed",
+  "v5.9：harness 以參數組表達（輪數、思考保留、思考量、歷史壓縮、快取命中、子代理、狀態保留）加成功率（L1、L2）；倍數欄不使用。基準不開（L3）。"
+  "ARC-AGI-3（ARC Prize 自測）：GPT-6 Astra 標準 harness 最高推理 62.7%、$26,098 → OpenAI Provider Adapter 同檔 98.6%、$17,332（S58）。主流判定（J14）尚未評估", 
+  "中立方（ARC Prize、METR、Artificial Analysis）在同條件下測得第二個 harness 對照"),
 ]
 
 def tech_registry(wb):

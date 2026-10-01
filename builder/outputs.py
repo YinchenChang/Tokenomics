@@ -122,9 +122,11 @@ def unit_cost(wb, PR):
     return U
 
 def workload(wb, U):
+    # v5.9：harness 參數組（L1）。列 5–14 為標準檔（中立 harness）輸入；B 節為有效參數＝標準＋w ×（選定檔案−標準），
+    # w＝Tech_Registry T12 開關 × 採用比例（B5_W）。w＝0 時與 v5.8 逐格一致
     ws = wb.create_sheet("Workload", 5)
     title(ws, "Workload — 任務制工作負載（每任務的 token 結構；思考 token 在物理上屬 decode）",
-          "任務組合權重不在第 0 層（J5）；本頁只定義標準任務。harness token 倍數預設 1.0，Block 5 接手")
+          "任務組合權重不在第 0 層（J5）；本頁只定義標準任務。列 5–14＝標準 harness；harness 檔案在 Har_In，依 Tech_Registry T12 混合（Block 5，L1）")
     for c, w in zip("ABCDEFGH", [40, 10, 14, 14, 16, 16, 18, 70]): ws.column_dimensions[c].width = w
     tasks = ["一般聊天", "推理聊天", "單代理（工具迴圈）", "多代理研究", "Coding agent（長程）"]
     put(ws, "A4", "參數", F_BOLD); put(ws, "B4", "單位", F_BOLD)
@@ -136,51 +138,68 @@ def workload(wb, U):
       (7, "每輪新輸入 u（使用者或工具結果）", "tok", [500, 500, 1200, 1200, 2000], "#,##0", "Assumed"),
       (8, "每輪思考 token h", "tok", [0, 3000, 400, 400, 600], "#,##0", "Assumed；服務端思考占比待查"),
       (9, "每輪可見輸出 o", "tok", [500, 700, 200, 200, 400], "#,##0", "Assumed"),
-      (10, "思考保留於上下文比例 ρ", "%", [0, 0, 0, 0, 0], "0%", "Assumed：多數 API 不保留前輪思考"),
+      (10, "思考保留於上下文比例 ρ", "%", [0, 0, 0, 0, 0], "0%", "Assumed：多數 API 不保留前輪思考（標準 harness）"),
       (11, "歷史快取命中率 χ", "%", [0.5, 0.5, 0.9, 0.9, 0.9], "0%", "Assumed；代理迴圈前綴重用高"),
       (12, "並行子代理數 m", "個", [0, 0, 0, 3, 0], "0", "Assumed：子代理沿用單代理參數"),
-      (13, "harness token 倍數", "x", [1, 1, 1, 1, 1], "0.00", "預設 1.0（Block 5）"),
+      (13, "harness token 倍數", "x", [1, 1, 1, 1, 1], "0.00", "v5.9 起為殘差倍數（預設 1.0）；harness 效果改由 Har_In 參數組表達（L1）"),
+      (14, "歷史保留比 c（壓縮後保留的歷史比例；1＝不壓縮）", "x", [1, 1, 1, 1, 1], "0.00", "標準 harness 不壓縮；v5.9 新增（L1）"),
     ]
     for r, lab, unit, vals, fmt, note in ins:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
         for c, v in zip("CDEFG", vals): put(ws, f"{c}{r}", v, fmt=fmt)
         put(ws, f"H{r}", note, F_NOTE)
-    section(ws, 15, "導出（每任務）", 8)
+    section(ws, 16, "有效參數（標準＋w ×（Har_In 選定檔案−標準）；w＝B5_W）", 8)
+    eff = [  # row, label, unit, formula, fmt
+      (17, "harness 混合權重 w（Tech_Registry T12 開關 × 採用比例）", "x", "=B5_W", "0.00"),
+      (18, "有效輪數 T", "輪", "={c}5*(1+B5_W*(INDEX(B5_SelT,1,{k})-1))", "#,##0.0"),
+      (19, "有效每輪思考 h", "tok", "={c}8*(1+B5_W*(INDEX(B5_SelH,1,{k})-1))", "#,##0"),
+      (20, "有效思考保留 ρ", "%", "={c}10+B5_W*(INDEX(B5_SelRho,1,{k})-{c}10)", "0%"),
+      (21, "有效快取命中 χ", "%", "=MIN(1,MAX(0,{c}11+B5_W*INDEX(B5_SelDChi,1,{k})))", "0%"),
+      (22, "有效子代理數 m", "個", "={c}12+B5_W*INDEX(B5_SelDM,1,{k})", "0.0"),
+      (23, "有效歷史保留比 c", "x", "={c}14+B5_W*(INDEX(B5_SelC,1,{k})-{c}14)", "0.00"),
+    ]
+    for r, lab, unit, f, fmt in eff:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for i, c in enumerate("CDEFG"):
+            put(ws, f"{c}{r}", f.format(c=c, k=i + 1), fmt=fmt)
+    section(ws, 25, "導出（每任務；用有效參數）", 8)
     der = [
-      (16, "每輪上下文增量 u＋o＋ρh", "tok", "={c}7+{c}9+{c}10*{c}8", "#,##0"),
-      (17, "單代理輸入總量", "tok", "={c}5*({c}6+{c}7)+{c}16*{c}5*({c}5-1)/2", "#,##0"),
-      (18, "其中可快取（前綴）", "tok", "={c}11*({c}5*{c}6+{c}16*{c}5*({c}5-1)/2)", "#,##0"),
-      (19, "其中新鮮", "tok", "={c}17-{c}18", "#,##0"),
-      (20, "單代理 decode（思考＋可見）", "tok", "={c}5*({c}8+{c}9)", "#,##0"),
-      (21, "系統倍數（1＋m）× harness", "x", "=(1+{c}12)*{c}13", "0.00"),
-      (22, "任務新鮮 prefill", "tok", "={c}19*{c}21", "#,##0"),
-      (23, "任務快取 prefill", "tok", "={c}18*{c}21", "#,##0"),
-      (24, "任務 decode", "tok", "={c}20*{c}21", "#,##0"),
-      (25, "任務總 token", "tok", "={c}22+{c}23+{c}24", "#,##0"),
-      (26, "decode 平均上下文", "tok", "={c}6+{c}7+({c}5-1)/2*{c}16+({c}8+{c}9)/2", "#,##0"),
-      (27, "思考占 decode", "%", "=IF({c}8+{c}9>0,{c}8/({c}8+{c}9),0)", "0%"),
-      (28, "總 token ÷ 一般聊天", "x", "={c}25/$C$25", "0.0"),
-      (29, "總 token ÷ 推理聊天", "x", "={c}25/$D$25", "0.0"),
+      (26, "每輪上下文增量 u＋o＋ρh", "tok", "={c}7+{c}9+{c}20*{c}19", "#,##0"),
+      (27, "單代理輸入總量", "tok", "={c}18*({c}6+{c}7)+{c}23*{c}26*{c}18*({c}18-1)/2", "#,##0"),
+      (28, "其中可快取（前綴）", "tok", "={c}21*({c}18*{c}6+{c}23*{c}26*{c}18*({c}18-1)/2)", "#,##0"),
+      (29, "其中新鮮", "tok", "={c}27-{c}28", "#,##0"),
+      (30, "單代理 decode（思考＋可見）", "tok", "={c}18*({c}19+{c}9)", "#,##0"),
+      (31, "系統倍數（1＋m）× harness 殘差倍數", "x", "=(1+{c}22)*{c}13", "0.00"),
+      (32, "任務新鮮 prefill", "tok", "={c}29*{c}31", "#,##0"),
+      (33, "任務快取 prefill", "tok", "={c}28*{c}31", "#,##0"),
+      (34, "任務 decode", "tok", "={c}30*{c}31", "#,##0"),
+      (35, "任務總 token", "tok", "={c}32+{c}33+{c}34", "#,##0"),
+      (36, "decode 平均上下文", "tok", "={c}6+{c}7+({c}18-1)/2*{c}23*{c}26+({c}19+{c}9)/2", "#,##0"),
+      (37, "思考占 decode", "%", "=IF({c}19+{c}9>0,{c}19/({c}19+{c}9),0)", "0%"),
+      (38, "總 token ÷ 一般聊天", "x", "={c}35/$C$35", "0.0"),
+      (39, "總 token ÷ 推理聊天", "x", "={c}35/$D$35", "0.0"),
     ]
     for r, lab, unit, f, fmt in der:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c in "CDEFG": put(ws, f"{c}{r}", f.format(c=c), fmt=fmt, fill=FILL_KEY if r in (25, 28) else None)
-    put(ws, "A30", "參照：Anthropic 揭露倍數（相對聊天）"); put(ws, "B30", "x")
-    put(ws, "C30", 1, fmt="0"); put(ws, "E30", 4, fmt="0"); put(ws, "F30", 15, fmt="0")
-    put(ws, "H30", "Interested-party：Anthropic 2025-06 多代理研究系統文章，agent 約 4 倍、多代理約 15 倍聊天 token（S25）。其『聊天』口徑未說明是否含思考，故兩個倍數並列", F_NOTE, wrap=True)
-    put(ws, "H26", "Unit_Cost 的 decode 成本取各層級參考上下文；本列顯示任務實際上下文，差距大時看 Sens_Perf 的 ISL 情境", F_NOTE, wrap=True)
-    section(ws, 32, "每任務成本（$／任務；經濟口徑、基準成本情境、基準利用率）", 8)
-    r = 33
+        for c in "CDEFG": put(ws, f"{c}{r}", f.format(c=c), fmt=fmt, fill=FILL_KEY if r in (35, 38) else None)
+    put(ws, "A40", "參照：Anthropic 揭露倍數（相對聊天）"); put(ws, "B40", "x")
+    put(ws, "C40", 1, fmt="0"); put(ws, "E40", 4, fmt="0"); put(ws, "F40", 15, fmt="0")
+    put(ws, "H40", "Interested-party：Anthropic 2025-06 多代理研究系統文章，agent 約 4 倍、多代理約 15 倍聊天 token（S25）。其『聊天』口徑未說明是否含思考，故兩個倍數並列。"
+                   "本頁列 38 的單代理、多代理倍數高於此參照約 2.3–2.5 倍（Block 2 既有假設，未調整）", F_NOTE, wrap=True)
+    put(ws, "H36", "Unit_Cost 的 decode 成本取各層級參考上下文；本列顯示任務實際上下文，差距大時看 Sens_Perf 的 ISL 情境", F_NOTE, wrap=True)
+    section(ws, 42, "每任務成本（$／任務；經濟口徑、基準成本情境、基準利用率；不含快取儲存，含儲存者見 Harness 頁）", 8)
+    r = 43
     for gname, col in (("VR200", "M"), ("GB300", "J")):
         for t, tn in zip((1, 2, 3), ("Luna", "Sol", "Astra")):
             put(ws, f"A{r}", f"{gname} × {tn}"); put(ws, f"B{r}", "$")
             cf, cc, cd = U[(t, "cfu")], U[(t, "ccu")], U[(t, "cdu")]
             for c in "CDEFG":
-                put(ws, f"{c}{r}", f"=IF(ISNUMBER(Unit_Cost!{col}{cd}),({c}22*Unit_Cost!{col}{cf}+{c}23*Unit_Cost!{col}{cc}+{c}24*Unit_Cost!{col}{cd})/1E6,\"SLO 不可達\")",
+                put(ws, f"{c}{r}", f"=IF(ISNUMBER(Unit_Cost!{col}{cd}),({c}32*Unit_Cost!{col}{cf}+{c}33*Unit_Cost!{col}{cc}+{c}34*Unit_Cost!{col}{cd})/1E6,\"SLO 不可達\")",
                     fmt="$#,##0.0000", fill=FILL_KEY if tn == "Sol" else None)
             r += 1
     ws.freeze_panes = "C5"
-    return ws
+    return {"fp": 32, "cp": 33, "dp": 34, "tot": 35, "cost0": 43, "S": 6, "u": 7, "h": 8, "o": 9, "rho": 10, "chi": 11, "m": 12,
+            "res": 13, "c": 14, "T": 5}
 
 def nonnv(wb):
     ws = wb.create_sheet("NonNV")

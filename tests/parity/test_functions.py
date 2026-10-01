@@ -44,6 +44,10 @@ FORMULAS = [
     "=CHOOSE(2,B1,B2)", "=CHOOSE(B7+2,B1,B2,B6)",
     "=EXP(Q1*LN(B1*B6))", "=EXP(Q2*LN(B1*B6))", "=EXP(Q1*LN(B3))",                          # ε＝0 時為 1
     "=FN_X*2", "=MIN(FN_R)", "=EXP(FN_E*LN(B6))", "=INDEX(FN_R,2,1)",                         # 公式內的具名範圍（單格與範圍）
+    # v5.9（Block 5）：AVERAGE（Checks）、OR（Fleet_1GW 起的 SLO 不可達保護）
+    "=AVERAGE(B1:B3)", "=AVERAGE(B1,B2,B6)", "=AVERAGE(B1:B8)", "=AVERAGE(M1:P1)",           # 文字與空白不計入
+    "=OR(B1>5,B6>5)", "=OR(B1>5,B6>50)", "=OR(B7=0,J1>0)", '=OR(B4="abc",B1<0)',
+    "=IF(AND(OR(B7=0,J1>0),OR(B6=0,J2>0)),B1,0)", "=IF(AND(OR(B7=0,J7>0),OR(B6=0,J2>0)),B1,0)",  # J7 空白＝不大於 0
     "=B1=B1", '=B4="abc"', "=B1<>B6", '=B8<>"x"', "=B5=0", '=B4=B8',
 ]
 

@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261001_Tokenomics_v5.9.xlsx（取代 v5.8；第 8 輪）
+
+- Commit：見本輪 PR 的合併提交（合併後補上雜湊）。v5.8 的合併提交為 `e59bf4f`（第 7 輪 PR #7）。
+- Excel：公式 18,596 → 20,686；具名範圍 228 → 294（新增 67、移除 1）：`IF_` 115 → 157（`IF_Hdr` 3；下游 113 → 154，新增 41）、`B4_` 38 → 39、新增 `B5_` 23；`B4_Chi` 改名 `B4_CacheHit`，新增 `B4_MktChina`；新增 3 個工作表 Har_In、Harness、Sens_Har（Block 5：harness、任務層成功率與每成功任務成本）；`DB_Evidence` 15 → 20 筆。
+- 名稱異動：v5.8 與 v5.9 共有的 227 個名稱，值（LibreOffice 重算後逐格）全部相同，只有 `TR_Acts`、`TR_HookName`、`TR_Source`、`TR_Trigger` 的 T12／H_HAR 文字不同（`Interface` 列序因新增列而移動，位址以具名範圍為準）；`Interface` D 節新增 K6 下游預設 (c)（`IF_AmortDefault_*`、`IF_FullCostDefault_*`）、(d)（`IF_AmortRev_*`）與機隊三層級貢獻（`IF_RevGWFleet_*`、`IF_RevGWFleetFront_*`）；新增 E 節（任務層 5 欄，表頭 `IF_HdrTask`）。
+- builder：依 `docs/builder/Tokenomics_builder_v5.md` 還原（新增 `block5.py`；`outputs.py`、`block4.py`、`training.py`、`finish.py`、`preserve.py`、`build.py` 有變動；`common.py`、`inputs.py`、`calib.py`、`perf.py` 與 md 逐字相同且未變）。以 v5.8、v5.9 為底稿重建，LibreOffice 重算後皆與 v5.9 逐格一致（27,190 格不符 0、錯誤 0）；`restore_log` 未對應 0（以 v5.9 為底稿：藍字輸入 1,151 全數對應）。
+- 測試：期望值改為 20,686 格、294 個具名範圍（顯示用 138、下游 154、`B4_` 39、`B5_` 23）；Interface D／E 形狀檢查（單格、15 欄、5 欄任務分開）；v5.9 新增的 41 個下游名稱逐一檢查；情境 11 → 13（新增 `harness_w1`、`harness_p3`）；函數語意新增 AVERAGE、OR；**parity 比對改回嚴格**（情境 b、f 的 SLO 不可達錯誤已於 Excel 端消除；任何情境出現錯誤值，或兩邊錯誤代碼不同，皆失敗）。
+- 網站：Block 4 頁 K6 改顯示下游預設 (c)，自下而上、由上而下、(d)、全成本（自下而上口徑）列為對照；機隊列改為三層級貢獻＋合計；中國廠商標記改讀 `B4_MktChina`（刪除 `CN_COUNTRY` 字串判斷）；新增 Block 5 頁（只讀 Interface E 節與 `IF_HdrTask`）；總覽排除 Block 5 名稱；README 補 `B5_`。
+
 ## 20261001_Tokenomics_v5.8.xlsx（取代 v5.7；第 7 輪）
 
 - Commit：見本輪 PR 的合併提交（合併後補上雜湊）。

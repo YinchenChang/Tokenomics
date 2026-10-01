@@ -1,6 +1,6 @@
 """Excel（LibreOffice 重算）與 engine 的一致性測試（CLAUDE.md 第 3 節）。
 
-比對範圍：全部公式格；具名範圍名稱與 attr_text；5 個情境各以獨立引擎實例重算。
+比對範圍：全部公式格；具名範圍名稱與 attr_text；7 個情境各以獨立引擎實例重算。
 """
 import time
 from pathlib import Path
@@ -16,6 +16,7 @@ CFG = yaml.safe_load((HERE / "scenarios.yaml").read_text(encoding="utf-8"))
 SCENARIOS = CFG["scenarios"]
 EXPECT = CFG["workbook_expectations"]
 TIERS = ("Luna", "Sol", "Astra")
+BLOCK3_PREFIX = ("TrainGPUh", "TrainCost", "PostShareFLOP", "PostShareGPUh", "RLMFU", "ProgGPUh", "ProgCost", "ProgGWyr")
 BLOCK2_PREFIX = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
 
 
@@ -31,7 +32,7 @@ def test_workbook_expectations(model):
 
 
 def test_named_ranges(model):
-    """78 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
+    """142 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
     eng = Engine(model)
     xml_names = read_defined_names_xml(model)
     assert set(eng.names) == set(xml_names)
@@ -40,9 +41,15 @@ def test_named_ranges(model):
     block2 = {f"IF_{p}_{t}" for p in BLOCK2_PREFIX for t in TIERS} | {"IF_Util"}
     assert len(block2) == EXPECT["block2_names"]
     assert block2 <= set(eng.names), f"缺少：{sorted(block2 - set(eng.names))}"
-    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_"))}
+    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_", "TRN_", "TR_"))}
     assert len(display) == EXPECT["display_only_names"]
-    assert sum(n.startswith("DRV_") for n in eng.names) == 17 and sum(n.startswith("CAL_") for n in eng.names) == 19
+    assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
+    assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
+    assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
+    assert sum(n.startswith("TR_") for n in eng.names) == EXPECT["tr_names"]
+    assert {"IF_TrainGenDefault", "IF_TrainGenAlt"} <= set(eng.names)      # v5.6：J13 預設與並列訓練世代（世代索引）
+    block3 = {f"IF_{p}_{t}" for p in BLOCK3_PREFIX for t in TIERS} | {"IF_RDMult"}
+    assert len(block3) == EXPECT["block3_names"] and block3 <= set(eng.names), f"缺少：{sorted(block3 - set(eng.names))}"
     assert {"IF_HdrGen", "IF_HdrCost"} <= set(eng.names)
     downstream = {n for n in eng.names if n.startswith("IF_") and not n.startswith("IF_Hdr")}
     assert len(downstream) == EXPECT["downstream_names"]
@@ -62,6 +69,22 @@ def test_display_names_alignment(model):
             assert isinstance(v, list) and len(v) == n, f"{name} 欄數 {len(v)}"
     assert len(eng.get_name("IF_HdrGen")) == len(eng.get_name("IF_HdrCost")) == len(eng.get_name("IF_TokGW_Luna"))
     assert eng.get_name("DRV_Gen") == eng.get_name("IF_HdrGen")            # 世代欄順序一致
+    for name in eng.names:                                                 # TRN_ 皆 15 欄，且與 TRN_Gen／TRN_Tier 及 DRV_ 的世代、層級順序一致
+        if name.startswith("TRN_"):
+            v = eng.get_name(name)
+            assert isinstance(v, list) and len(v) == n, f"{name} 欄數 {len(v)}"
+    assert eng.get_name("TRN_Gen") == eng.get_name("DRV_Gen") and eng.get_name("TRN_Tier") == eng.get_name("DRV_Tier")
+    for name in eng.names:                                                 # TR_：登錄表 12 格、掛鉤彙總 11 格，且無錯誤值
+        if name.startswith("TR_"):
+            v = eng.get_name(name)
+            want = EXPECT["tr_hook_rows"] if name.startswith(("TR_HookCode", "TR_HookName", "TR_HookVal")) else EXPECT["tr_rows"]
+            assert isinstance(v, list) and len(v) == want, f"{name}: {len(v) if isinstance(v, list) else 1} 格，應為 {want}"
+    for name in ("IF_TrainGenDefault", "IF_TrainGenAlt"):                  # 世代索引：1–5 的整數
+        v = eng.get_name(name)
+        assert isinstance(v, (int, float)) and v == int(v) and 1 <= v <= len(set(eng.get_name("IF_HdrGen"))), f"{name}={v!r}"
+    for p in BLOCK3_PREFIX:                                                # Block 3 的 Interface 輸出：每層級 15 欄，與 IF_HdrGen 同寬
+        for t in TIERS:
+            assert len(eng.get_name(f"IF_{p}_{t}")) == len(eng.get_name("IF_HdrGen")), f"IF_{p}_{t}"
     for prefix, keys, n_pts in (("F", ("Label", "Gen", "Eng", "Speed", "Meas", "Model", "Basis", "Platform", "Ratio"), EXPECT["cal_f_points"]),
                                 ("H", ("Label", "Gen", "Speed", "Meas", "Model", "Basis", "Platform", "Ratio"), EXPECT["cal_h_points"])):
         for k in keys:                                                   # 驗證表各欄名稱同為 7（F）／4（H）格
@@ -124,14 +147,14 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
     full = time.perf_counter() - t0
     assert full < 2.0, f"全簿強制重算 {full:.2f}s ≥ 2s"
     for sc in SCENARIOS[1:]:
-        (addr, v), = sc["inputs"].items()
-        sheet, coord = addr.split("!")
-        orig = Engine(model).get(sheet, coord)
+        origs = {a: Engine(model).get(*a.split("!")) for a in sc["inputs"]}
         t0 = time.perf_counter()
-        eng.set_input(sheet, coord, v)
+        for addr, v in sc["inputs"].items():
+            eng.set_input(*addr.split("!"), v)
         eng.evaluate_all()
         dt = time.perf_counter() - t0
         assert dt < 2.0, f"{sc['id']} 全簿重算 {dt:.2f}s ≥ 2s"
-        eng.set_input(sheet, coord, orig)
+        for addr, v in origs.items():
+            eng.set_input(*addr.split("!"), v)
     res = compare(eng.evaluate_all(), base)   # 還原後與基準相同（容差內；pycel 部分格以 15 位快取值回填）
     assert not res["mismatches"], format_mismatches(res["mismatches"])

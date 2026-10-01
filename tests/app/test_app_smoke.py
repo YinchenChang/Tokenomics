@@ -68,14 +68,14 @@ def test_block3_tables_selectors_and_registry_readonly():
             assert not at.exception
             out = at.dataframe[0].value
             assert len(out) == 8 and all(str(i).startswith(tier) for i in out.index)
-            assert [any(k in c for c in out.columns[:2]) for k in ("VR200", "GB300")] == [True, True]   # J13：兩個預設世代在最前
+            assert ["VR200" in out.columns[0], "GB300" in out.columns[1]] == [True, True]   # J13：IF_TrainGenDefault、IF_TrainGenAlt 在最前
             assert out.shape[1] == 5
     share, trn, reg, hook = (at.dataframe[i].value for i in (1, 2, 3, 4))
     assert share.shape == (3, 5) and any("FLOPs 口徑" in i for i in share.index) and any("GPU 小時口徑" in i for i in share.index)
     assert any("RL 有效 MFU" in i for i in share.index)
     assert trn.shape == (13, 5)                                            # TRN_ 13 個量（不含表頭 2 個）× 5 世代
-    assert len(reg) == 12 and {"ID", "開關（0／1）", "有效倍數"} <= set(reg.columns)
-    assert len(hook) == 11 and "倍數" in hook.columns
+    assert len(reg) == 12 and reg.shape[1] == 20 and {"ID", "開關（0／1）", "有效倍數", "證據標記"} <= set(reg.columns)   # 讀 TR_*，欄名取自 Excel 表頭
+    assert len(hook) == 11 and hook.shape[1] == 3 and "倍數" in hook.columns
 
 
 def test_block3_cost_follows_case_and_shares_match_chain():

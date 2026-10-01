@@ -2,6 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261001_Tokenomics_v5.6.xlsx（取代 v5.5；第 5 輪，併入第 4 輪 PR）
+
+- Commit：見 PR 的合併提交（合併後補上雜湊；v5.5、v5.6 同屬此 PR）。
+- Excel：公式 16,245 → 16,251（+6）；具名範圍 117 → 142（新增 25：`TR_` 23 個、`IF_TrainGenDefault`、`IF_TrainGenAlt`；無移除）。
+- 變動：非同步 RL 併入基準（rollout 效率 0.6 → 0.85、rollout token 重校）；Block 1、2 的具名範圍與 v5.5 逐格一致，變動只在 Block 3 的 `IF_`（24 個）與 `TRN_`（10 個）。
+- 迴歸門檻：Hopper 差異 0.0506% 經 Andy 確認接受（倍數取整所致），迴歸門檻改為 0.06%。
+- 測試：期望值改為 16,251 格、142 個具名範圍（顯示用 75、下游 65）；新增 `TR_` 形狀檢查（登錄表 12 格、掛鉤彙總 11 格）與 `IF_TrainGen*`（世代索引 1–5）檢查。
+- 網站：Tech_Registry 唯讀表改讀 `TR_` 具名範圍；預設與並列訓練世代改讀 `IF_TrainGenDefault`／`IF_TrainGenAlt`（不再以世代名稱字串或欄 A 定位）。
+- 檔案：v5.5 以 `git mv` 移入 `model/archive/`。
+
 ## 20260930_Tokenomics_v5.5.xlsx（取代 v5.4；第 4 輪）
 
 - Commit：見第 4 輪 PR 的合併提交（合併後補上雜湊）。

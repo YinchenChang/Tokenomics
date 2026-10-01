@@ -1,8 +1,8 @@
 """Block 3 — 訓練：依層級與世代的 GPU 小時、成本、後訓練占比與研發計畫。資料只來自 Excel 的具名範圍。"""
 import streamlit as st
 
-from app.common import (DEFAULT_GEN_KEYS, block3_table, cost_cases, fmt, fmt_unit, get_engine, interface_series,
-                        post_share_table, registry_tables, tier_titles_trn, trn_table)
+from app.common import (block3_table, cost_cases, fmt, fmt_unit, get_engine, interface_series, post_share_table,
+                        registry_tables, tier_titles_trn, train_gens, trn_table)
 
 
 def _h(df) -> int:
@@ -14,7 +14,8 @@ def render():
     eng = get_engine()
     st.title("Block 3 — 依層級的訓練 GPU 小時、成本與研發計畫")
     st.caption("每一列都帶層級（Luna／Sol／Astra）；GPU 小時不隨成本情境改變，\\$ 隨成本情境改變。"
-               f"下游預設訓練世代為 {'、'.join(DEFAULT_GEN_KEYS)} 並列（J13），已排在各表最前面。資料只來自 Excel 的具名範圍。")
+               f"下游預設訓練世代為 {'、'.join(train_gens(eng))} 並列（J13；讀 IF_TrainGenDefault／IF_TrainGenAlt），已排在各表最前面。"
+               "資料只來自 Excel 的具名範圍。")
 
     tier_map = tier_titles_trn(eng)
     c1, c2 = st.columns(2)

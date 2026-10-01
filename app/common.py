@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-from openpyxl.utils import range_boundaries
+from openpyxl.utils import get_column_letter, range_boundaries
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from engine import Engine  # noqa: E402
@@ -25,14 +25,14 @@ from engine import Engine  # noqa: E402
 BLOCK2_METRICS = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
 # 欄位映射：Interface 具名範圍前綴（Block 3；依網站顯示順序，與 Interface C 節列序一致）
 BLOCK3_METRICS = ("TrainGPUh", "TrainCost", "PostShareFLOP", "PostShareGPUh", "RLMFU", "ProgGPUh", "ProgCost", "ProgGWyr")
-# J13（Andy 2026-09-30 決定）：下游預設訓練世代 VR200、GB300 並列。Excel 內該決定只是文字（Train_In 的說明格），
-# 沒有具名範圍；網站只用來把這兩個世代排在最前面，以世代名稱子字串對 IF_HdrGen 配對（待 Excel 補具名範圍）。
-DEFAULT_GEN_KEYS = ("VR200", "GB300")
+# J13（Andy 決定）：下游預設訓練世代與並列世代，由 Interface 的具名範圍 IF_TrainGenDefault／IF_TrainGenAlt 給出（世代索引，
+# 對應 Spec_Rack 世代列的順序，亦即 IF_HdrGen 去重後的順序）。網站只用來把這兩個世代排在最前面。
+TRAIN_GEN_NAMES = ("IF_TrainGenDefault", "IF_TrainGenAlt")
 # 推導鏈顯示順序（由物理量到成本；DRV_Gen、DRV_Tier 為欄名）。
 # "CostDec" 不讀 DRV_CostDec（只有基準成本），改讀 IF_CostDec_<層級>，跟隨成本情境選擇器。
 DRV_CHAIN = ("FlopDec", "FlopPre", "WeightGB", "TfixMs", "SeqMs", "SeqBind", "Batch", "Bind",
              "DecTokGPU", "PreTokGPU", "PreShare", "RackTok", "GWTok", "CostDec", "Close")
-BLOCK3_SCALARS = ("IF_RDMult",)       # Block 3 的純量輸出（與 IF_Util 同為單格）
+BLOCK3_SCALARS = ("IF_RDMult",)       # Block 3 的純量輸出（與 IF_Util 同為單格）；IF_TrainGen* 為世代索引，另見 TRAIN_GEN_NAMES
 _BLOCK2_NAME = re.compile(r"^IF_(?P<metric>%s)_(?P<tier>\w+)$" % "|".join(BLOCK2_METRICS))
 
 
@@ -173,36 +173,43 @@ def basis_note(df: pd.DataFrame) -> str:
 # ── Block 3（Training）─────────────────────────────────────────────
 
 def is_block3_name(name: str) -> bool:
-    """Block 3 的 Interface 名稱（IF_<指標>_<層級>）與純量 IF_RDMult。"""
-    return name in BLOCK3_SCALARS or any(name.startswith(f"IF_{m}_") for m in BLOCK3_METRICS)
+    """Block 3 的 Interface 名稱（IF_<指標>_<層級>）與純量 IF_RDMult、IF_TrainGen*。"""
+    return name in BLOCK3_SCALARS or name in TRAIN_GEN_NAMES or any(name.startswith(f"IF_{m}_") for m in BLOCK3_METRICS)
 
 
-def order_gens(gens: list[str]) -> list[str]:
-    """世代顯示順序：J13 預設世代（DEFAULT_GEN_KEYS）依序排最前，其餘維持 Excel 順序。"""
+def train_gens(eng: Engine) -> list[str]:
+    """J13 的訓練世代名稱（預設、並列；依序）：讀 IF_TrainGenDefault／IF_TrainGenAlt 的世代索引，
+    對應 IF_HdrGen 去重後的世代順序（與 Spec_Rack 世代列相同）。"""
+    gens = list(dict.fromkeys(eng.get_name("IF_HdrGen")))
+    return [gens[int(eng.get_name(n)) - 1] for n in TRAIN_GEN_NAMES]
+
+
+def order_gens(gens: list[str], first: list[str] | None = None) -> list[str]:
+    """世代顯示順序：J13 的預設、並列世代排最前，其餘維持 Excel 順序。"""
     gens = list(dict.fromkeys(gens))
-    first = [g for k in DEFAULT_GEN_KEYS for g in gens if k in g]
-    return first + [g for g in gens if g not in first]
+    head = [g for g in (first or []) if g in gens]
+    return head + [g for g in gens if g not in head]
 
 
 def block3_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
     """Block 3 產出：列＝指標（Excel 標籤＋單位，前綴層級）；欄＝世代（J13 預設世代在前）；只取所選成本情境。
     值依列單位格式化為字串（% 列由小數轉百分比）。"""
-    rows = {}
+    first, rows = train_gens(eng), {}
     for metric in BLOCK3_METRICS:
         s = interface_series(eng, f"IF_{metric}_{tier}")
         picked = {g: fmt_unit(v, s["unit"]) for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
-        rows[f"{tier}｜{s['label']}（{s['unit']}）"] = {g: picked[g] for g in order_gens(list(picked))}
+        rows[f"{tier}｜{s['label']}（{s['unit']}）"] = {g: picked[g] for g in order_gens(list(picked), first)}
     return pd.DataFrame(rows).T
 
 
 def post_share_table(eng: Engine, tier: str) -> pd.DataFrame:
     """後訓練占比兩種口徑與 RL 有效 MFU（數值；列＝指標，欄＝世代）。三者皆不隨成本情境改變，取第一個成本情境。"""
-    first_case = cost_cases(eng)[0]
+    first_case, first = cost_cases(eng)[0], train_gens(eng)
     rows = {}
     for metric in ("PostShareFLOP", "PostShareGPUh", "RLMFU"):
         s = interface_series(eng, f"IF_{metric}_{tier}")
         picked = {g: v * 100 for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == first_case}   # 小數 → %
-        rows[f"{s['label']}（%）"] = {g: picked[g] for g in order_gens(list(picked))}
+        rows[f"{s['label']}（%）"] = {g: picked[g] for g in order_gens(list(picked), first)}
     return pd.DataFrame(rows).T
 
 
@@ -219,7 +226,7 @@ def trn_table(eng: Engine, tier: str) -> pd.DataFrame:
         unit = f"（{s['unit']}）" if s["unit"] not in (None, "") else ""
         rows[f"{s['label']}{unit}"] = {gens[c]: fmt_unit(by[c], s["unit"]) for c in keep}
     df = pd.DataFrame(rows).T
-    return df[order_gens(list(df.columns))]
+    return df[order_gens(list(df.columns), train_gens(eng))]
 
 
 def tier_titles_trn(eng: Engine) -> dict[str, str]:
@@ -230,20 +237,20 @@ def tier_titles_trn(eng: Engine) -> dict[str, str]:
     return out
 
 
-def registry_tables(eng: Engine) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Tech_Registry 唯讀表：(技術登錄表, 掛鉤彙總表)。
+def _named_table(eng: Engine, prefix: str, names: list[str] | None = None) -> pd.DataFrame:
+    """把 prefix 開頭的單欄具名範圍組成表：欄依其在工作表的欄序；欄名＝範圍正上方一格的表頭文字（讀自 Excel）。"""
+    names = names or [n for n in eng.names if n.startswith(prefix)]
+    cols = {}
+    for n in sorted(names, key=lambda n: range_boundaries(eng.name_ref(n)[1])[0]):
+        sheet, ref = eng.name_ref(n)
+        c1, r1, _, _ = range_boundaries(ref)
+        header = str(eng.get(sheet, f"{get_column_letter(c1)}{r1 - 1}"))
+        cols[header] = eng.get_name(n)
+    return pd.DataFrame(cols)
 
-    Tech_Registry 目前沒有具名範圍，因此由欄 A 的表頭列（「ID」、「代碼」）定位表的起點，遇空白列結束。
-    這是現行唯一以標籤定位的讀取；待 Excel 補具名範圍後改讀名稱（已列入報告）。不寫入、不提供開關。"""
-    grid = eng.get("Tech_Registry", "A1:P60")
-    def block(header_text: str, ncols: int) -> pd.DataFrame:
-        start = next(i for i, r in enumerate(grid) if r[0] == header_text)
-        rows = []
-        for r in grid[start + 1:]:
-            if r[0] == "":
-                break
-            rows.append(r[:ncols])
-        return pd.DataFrame(rows, columns=grid[start][:ncols])
-    reg = block("ID", 16)
-    hook = block("代碼", 5)
-    return reg, hook
+
+def registry_tables(eng: Engine) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Tech_Registry 唯讀表：(技術登錄表, 掛鉤彙總表)；分別讀 TR_（不含 TR_Hook*）與 TR_Hook* 具名範圍。不寫入、不提供開關。"""
+    hooks = [n for n in eng.names if n.startswith("TR_Hook") and n != "TR_Hook"]   # TR_Hook＝技術的掛鉤代碼欄，屬登錄表
+    reg = [n for n in eng.names if n.startswith("TR_") and n not in hooks]
+    return _named_table(eng, "TR_", reg), _named_table(eng, "TR_Hook", hooks)

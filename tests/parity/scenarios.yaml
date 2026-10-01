@@ -3,15 +3,18 @@
 # 世代 × 層級：Interface 一次算出 5 世代 × 3 成本情境 × 3 層級，每個情境都已涵蓋，不另列組合。
 # v5.5 起：Block 3（Training）的世代 × 層級同樣一次算出（TRN_／IF_Train*／IF_Prog*），情境 f、g 驗證其輸入連動。
 workbook_expectations:            # 版本升級時必須有意識地更新（CLAUDE.md 第 4 節）
-  formula_cells: 16245
-  defined_names: 117
+  formula_cells: 16251
+  defined_names: 142
   block2_names: 28                # IF_{TokRack,TokRackD,TokGW,VReq,CostPre,CostCache,CostDec,CostDecAcct,TokPerJ}_{Luna,Sol,Astra} 與 IF_Util
-  display_only_names: 52          # IF_HdrGen／IF_HdrCost（2）、DRV_*（16；v5.5 移除 DRV_CostDec）、CAL_*（19）、TRN_*（15；v5.5 新增）；僅供網站顯示，下游不得連結
+  display_only_names: 75          # IF_HdrGen／IF_HdrCost（2）、DRV_*（16；v5.5 移除 DRV_CostDec）、CAL_*（19）、TRN_*（15；v5.5 新增）、TR_*（23；v5.6 新增）；僅供網站顯示，下游不得連結
   drv_names: 16
   cal_names: 19
-  downstream_names: 63            # IF_ 開頭且非 IF_Hdr：下游模型可連結（v5.4 為 38；v5.5 加 25）
+  downstream_names: 65            # IF_ 開頭且非 IF_Hdr：下游模型可連結（v5.4 為 38；v5.5 加 25；v5.6 加 IF_TrainGenDefault／IF_TrainGenAlt）
   block3_names: 25                # IF_{TrainGPUh,TrainCost,PostShareFLOP,PostShareGPUh,RLMFU,ProgGPUh,ProgCost,ProgGWyr}_{Luna,Sol,Astra} 與 IF_RDMult
   trn_names: 15                   # TRN_*：Training 推導鏈（含表頭 TRN_Gen、TRN_Tier）；僅供網站顯示
+  tr_names: 23                    # TR_*：Tech_Registry 唯讀表（登錄表 20 個、各 12 格；掛鉤彙總 3 個、各 11 格）
+  tr_rows: 12
+  tr_hook_rows: 11
   trn_columns: 15                 # TRN_ 每個名稱的欄數：5 世代 × 3 層級
   cal_f_points: 7                 # CAL_F_* 每個名稱的格數
   cal_h_points: 4                 # CAL_H_* 每個名稱的格數

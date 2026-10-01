@@ -32,7 +32,7 @@ def test_workbook_expectations(model):
 
 
 def test_named_ranges(model):
-    """117 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
+    """142 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
     eng = Engine(model)
     xml_names = read_defined_names_xml(model)
     assert set(eng.names) == set(xml_names)
@@ -41,11 +41,13 @@ def test_named_ranges(model):
     block2 = {f"IF_{p}_{t}" for p in BLOCK2_PREFIX for t in TIERS} | {"IF_Util"}
     assert len(block2) == EXPECT["block2_names"]
     assert block2 <= set(eng.names), f"缺少：{sorted(block2 - set(eng.names))}"
-    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_", "TRN_"))}
+    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_", "TRN_", "TR_"))}
     assert len(display) == EXPECT["display_only_names"]
     assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
     assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
+    assert sum(n.startswith("TR_") for n in eng.names) == EXPECT["tr_names"]
+    assert {"IF_TrainGenDefault", "IF_TrainGenAlt"} <= set(eng.names)      # v5.6：J13 預設與並列訓練世代（世代索引）
     block3 = {f"IF_{p}_{t}" for p in BLOCK3_PREFIX for t in TIERS} | {"IF_RDMult"}
     assert len(block3) == EXPECT["block3_names"] and block3 <= set(eng.names), f"缺少：{sorted(block3 - set(eng.names))}"
     assert {"IF_HdrGen", "IF_HdrCost"} <= set(eng.names)
@@ -72,6 +74,14 @@ def test_display_names_alignment(model):
             v = eng.get_name(name)
             assert isinstance(v, list) and len(v) == n, f"{name} 欄數 {len(v)}"
     assert eng.get_name("TRN_Gen") == eng.get_name("DRV_Gen") and eng.get_name("TRN_Tier") == eng.get_name("DRV_Tier")
+    for name in eng.names:                                                 # TR_：登錄表 12 格、掛鉤彙總 11 格，且無錯誤值
+        if name.startswith("TR_"):
+            v = eng.get_name(name)
+            want = EXPECT["tr_hook_rows"] if name.startswith(("TR_HookCode", "TR_HookName", "TR_HookVal")) else EXPECT["tr_rows"]
+            assert isinstance(v, list) and len(v) == want, f"{name}: {len(v) if isinstance(v, list) else 1} 格，應為 {want}"
+    for name in ("IF_TrainGenDefault", "IF_TrainGenAlt"):                  # 世代索引：1–5 的整數
+        v = eng.get_name(name)
+        assert isinstance(v, (int, float)) and v == int(v) and 1 <= v <= len(set(eng.get_name("IF_HdrGen"))), f"{name}={v!r}"
     for p in BLOCK3_PREFIX:                                                # Block 3 的 Interface 輸出：每層級 15 欄，與 IF_HdrGen 同寬
         for t in TIERS:
             assert len(eng.get_name(f"IF_{p}_{t}")) == len(eng.get_name("IF_HdrGen")), f"IF_{p}_{t}"

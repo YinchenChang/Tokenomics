@@ -25,6 +25,11 @@ def model():
     return current_model_path()
 
 
+def test_model_current_pointer(model):
+    """CLAUDE.md 第 2、4 節：model/CURRENT 一行記錄現行檔名，且與 model/ 唯一一份 xlsx 相符。"""
+    assert (model.parent / "CURRENT").read_text(encoding="utf-8").strip() == model.name
+
+
 def test_workbook_expectations(model):
     eng = Engine(model)
     assert len(eng.formula_cells) == EXPECT["formula_cells"]

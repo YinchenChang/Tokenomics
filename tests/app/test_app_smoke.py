@@ -101,7 +101,7 @@ B4 = "from app.views import block4; block4.render()"
 
 
 def test_block4_tables_selectors_and_k6_both_bases():
-    """Block 4：價格表 3 列 × 7 欄；市場表 13 列且中國廠商有標記；營收標題含「理想上限」；兩種攤提並列、不選預設；推導鏈 8 步。"""
+    """Block 4：價格表 3 列 × 7 欄；市場表 13 列且中國廠商（B4_MktChina）有標記；營收標題含「理想上限」；K6 下游預設 (c) 與三種對照並列；推導鏈 8 步。"""
     at = AppTest.from_string(HEAD + B4, default_timeout=180).run()
     assert not at.exception
     assert len(at.radio) == 2 and len(at.selectbox) == 1 and not at.toggle and not at.checkbox   # 層級、成本情境、世代
@@ -111,6 +111,7 @@ def test_block4_tables_selectors_and_k6_both_bases():
     assert any("思考" in c for c in price.columns) and any("可見輸出" in c for c in price.columns)
     assert len(mkt) == 13 and mkt.shape[1] == 10 and {"模型", "廠商", "國別", "開放權重", "能力指數", "標記"} <= set(mkt.columns)
     assert set(mkt.loc[mkt["國別"] == "中國", "標記"]) == {"中國廠商"} and set(mkt.loc[mkt["國別"] != "中國", "標記"]) == {""}
+    assert "CN_COUNTRY" not in (ROOT / "app" / "common.py").read_text(encoding="utf-8")                 # v5.9：旗標改讀 B4_MktChina，不再比對國別字串
     assert any("理想上限" in sub.value for sub in at.subheader)
     for tier in ("Luna", "Sol", "Astra"):
         at.radio[0].set_value(tier).run()
@@ -118,12 +119,15 @@ def test_block4_tables_selectors_and_k6_both_bases():
             at.radio[1].set_value(case).run()
             assert not at.exception
             rev, cost, chain = at.dataframe[2].value, at.dataframe[3].value, at.dataframe[4].value
-            assert len(rev) == 4 and rev.shape[1] == 5 and sum(str(i).startswith(tier) for i in rev.index) == 2
-            assert len(cost) == 4 and all(str(i).startswith(tier) for i in cost.index)
+            assert len(rev) == 10 and rev.shape[1] == 5 and sum(str(i).startswith(tier) for i in rev.index) == 2   # 2 列層級＋機隊（3 層級貢獻＋合計）× 2 種單價
+            assert sum("合計" in str(i) and "層級組合" in str(i) for i in rev.index) == 2                      # 合計列標「層級組合」
+            assert len(cost) == 7 and all(str(i).startswith(tier) for i in cost.index)
             assert any("自下而上" in i for i in cost.index) and any("由上而下" in i for i in cost.index)
+            assert any("K6 預設 (c)" in i and "【對照】" not in i for i in cost.index) and any("(d)" in i and "【對照】" in i for i in cost.index)
             assert chain["層級"].eq(tier).all() and chain["步驟"].str[0].tolist() == sorted(chain["步驟"].str[0].tolist())
             assert set(chain["步驟"].str[0]) == set("12345678")
-    assert any("K6" in w.value for w in at.warning)                        # 下游預設待 Andy 決定；頁面不選定預設口徑
+    assert any("K6 下游預設為 (c)" in w.value for w in at.info)           # v5.9：顯示下游預設 (c)，其餘為對照
+    assert not any("待 Andy 決定" in str(e.value) for e in list(at.info) + list(at.warning) + list(at.caption) + list(at.markdown))
 
 
 def test_block4_matches_interface_and_follows_case():
@@ -147,6 +151,47 @@ def test_block4_matches_interface_and_follows_case():
     assert len({v[2] for v in seen.values()}) == 3                                                 # 全成本隨成本情境
 
 
+B5 = "from app.views import block5; block5.render()"
+
+
+def test_block5_tables_chain_and_overview_exclusion():
+    """Block 5：任務表（依層級欄前綴層級）、推導鏈 7 步、說明文字；總覽排除 Block 5 名稱。"""
+    from app.common import get_engine
+    at = AppTest.from_string(HEAD + B5, default_timeout=180).run()
+    assert not at.exception and len(at.radio) == 1 and len(at.selectbox) == 1 and not at.toggle and not at.checkbox   # 層級、任務
+    eng = get_engine()
+    tasks = [str(x) for x in eng.get_name("IF_HdrTask")]
+    for tier in ("Luna", "Sol", "Astra"):
+        at.radio[0].set_value(tier).run()
+        assert not at.exception
+        tbl = at.dataframe[0].value                                    # 列＝指標、欄＝任務
+        assert list(tbl.columns) == tasks and len(tbl) == 12
+        tier_rows = [i for i in tbl.index if str(i).startswith(f"{tier}｜")]
+        assert len(tier_rows) == 6 and all(any(k in i for k in ("成功率", "每成功任務成本", "每成功任務營收", "R＝")) for i in tier_rows)
+        assert any("新鮮輸入" in i for i in tbl.index) and any("快取輸入" in i for i in tbl.index) and any("decode" in i for i in tbl.index)
+        assert any("VR200" in i for i in tier_rows) and any("GB300" in i for i in tier_rows)
+        for t in tasks:
+            at.selectbox[0].set_value(t).run()
+            chain = at.dataframe[1].value
+            assert not at.exception and chain["層級"].eq(tier).all() and set(chain["步驟"].str[0]) == set("1234567")
+    texts = " ".join(str(e.value) for e in list(at.info) + list(at.caption) + list(at.markdown))
+    assert "基準 w＝0" in texts and "L4" in texts and "選定檔案為情境" in texts
+    ov = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()
+    idx = " ".join(map(str, ov.dataframe[0].value.index))
+    assert not ov.exception and "成功率" not in idx and "每成功任務" not in idx and "harness" not in idx
+
+
+def test_block5_values_equal_interface():
+    """任務表的值即 IF_ 具名範圍（列順序與 IF_HdrTask 一致）。"""
+    from app.common import fmt_unit, get_engine, series
+    at = AppTest.from_string(HEAD + B5, default_timeout=180).run()
+    at.radio[0].set_value("Sol").run()
+    eng = get_engine()
+    s = series(eng, "IF_CostSuccVR_Sol")
+    row = at.dataframe[0].value.loc[[i for i in at.dataframe[0].value.index if i.startswith("Sol｜") and "VR200" in i][0]]
+    assert list(row) == [fmt_unit(v, s["unit"]) for v in s["values"]]
+
+
 def test_overview_excludes_block4_names():
     at = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()
     assert not at.exception
@@ -158,10 +203,10 @@ def test_evidence_page_readonly_table():
     at = AppTest.from_string(HEAD + "from app.views import evidence; evidence.render()", default_timeout=180).run()
     assert not at.exception
     df = at.dataframe[0].value
-    assert df.shape == (15, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
+    assert df.shape == (20, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
     assert df["ID"].tolist()[:2] == ["E001", "E002"] and df["ID"].is_unique
     at.multiselect[0].set_value([df["判定"].iloc[0]]).run()                # 篩選可用且不拋例外
-    assert not at.exception and 0 < len(at.dataframe[0].value) <= 15
+    assert not at.exception and 0 < len(at.dataframe[0].value) <= 20
 
 
 def test_no_label_lookup_in_app_and_engine():

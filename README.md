@@ -9,7 +9,7 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 |---|---|
 | `model/` | 現行活頁簿（唯一一份）；舊版在 `model/archive/` |
 | `engine/` | 以公式引擎（pycel）直接計算 xlsx，不手抄公式 |
-| `app/` | Streamlit 網站：只讀 Interface 具名範圍（＋Calib 驗證表、Block 4 頁的 `B4_` 顯示名稱） |
+| `app/` | Streamlit 網站：只讀 Interface 具名範圍（＋Calib 驗證表、Block 4、5 頁的 `B4_`、`B5_` 顯示名稱） |
 | `tests/parity/` | Excel（LibreOffice 重算）與 engine 的一致性測試與情境檔 |
 | `tests/app/` | 網站煙霧測試 |
 | `legacy/`、`tests/legacy/` | 已停用的 v4 手抄公式與舊測試（不列入 CI） |
@@ -20,15 +20,15 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 
 Excel 的具名範圍分為兩類（見 Excel README 頁）：
 
-- **`IF_` 開頭且非 `IF_Hdr`**（113 個；v5.8）：Interface 輸出，**下游模型（OpenAI、CRWV、Nebius 等）只連結這一類**。
-- **`IF_Hdr*`、`DRV_*`、`CAL_*`、`TRN_*`、`TR_*`、`B4_*`、`CTL_*`**：僅供本網站顯示（表頭、推導鏈、Calib 驗證表、Tech_Registry 唯讀表）、內部用或輸入控制，下游不得連結。
-  `B4_*`（38 個；v5.8 新增）是 Block 4 的顯示或內部用名稱（Cap_In 輸入、市場候選表、有效單價列等），**下游一律不得連結**，應改連 `IF_` 的 Block 4 輸出（Interface D 節）。
+- **`IF_` 開頭且非 `IF_Hdr`**（154 個；v5.9）：Interface 輸出，**下游模型（OpenAI、CRWV、Nebius 等）只連結這一類**。
+- **`IF_Hdr*`（`IF_HdrGen`、`IF_HdrCost`、`IF_HdrTask`）、`DRV_*`、`CAL_*`、`TRN_*`、`TR_*`、`B4_*`、`B5_*`、`CTL_*`**：僅供本網站顯示（表頭、推導鏈、Calib 驗證表、Tech_Registry 唯讀表）、內部用或輸入控制，下游不得連結。
+  `B4_*`（39 個）與 `B5_*`（23 個；v5.9 新增）是 Block 4、Block 5 的顯示或內部用名稱（Cap_In／Har_In 輸入、市場候選表、有效單價列、選定 harness 檔案等），**下游一律不得連結**，應改連 `IF_` 的 Block 4、5 輸出（Interface D、E 節）。
 
 ## 執行
 
 ```bash
 pip install -r requirements.txt
-streamlit run app/main.py        # 首次載入約 1 分鐘（v5.8 實測 47 秒；引擎建圖並全簿重算）
+streamlit run app/main.py        # 首次載入約 1 分鐘（v5.9 實測約 44 秒；引擎建圖並全簿重算）
 ```
 
 ## 測試

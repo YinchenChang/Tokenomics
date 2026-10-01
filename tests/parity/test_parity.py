@@ -1,6 +1,6 @@
 """Excel（LibreOffice 重算）與 engine 的一致性測試（CLAUDE.md 第 3 節）。
 
-比對範圍：全部公式格；具名範圍名稱與 attr_text；11 個情境（7 舊＋4 個 Block 4）各以獨立引擎實例重算。
+比對範圍：全部公式格；具名範圍名稱與 attr_text；13 個情境（7 舊＋4 個 Block 4＋2 個 Block 5）各以獨立引擎實例重算。
 """
 import time
 from pathlib import Path
@@ -55,9 +55,11 @@ def test_named_ranges(model):
     block2 = {f"IF_{p}_{t}" for p in BLOCK2_PREFIX for t in TIERS} | {"IF_Util"}
     assert len(block2) == EXPECT["block2_names"]
     assert block2 <= set(eng.names), f"缺少：{sorted(block2 - set(eng.names))}"
-    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_", "TRN_", "TR_", "B4_"))}
+    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_", "TRN_", "TR_", "B4_", "B5_"))}
     assert len(display) == EXPECT["display_only_names"]
     assert sum(n.startswith("B4_") for n in eng.names) == EXPECT["b4_names"]      # B4_：顯示或內部用，下游不得連結
+    assert sum(n.startswith("B5_") for n in eng.names) == EXPECT["b5_names"]      # B5_：同上（v5.9 新增）
+    assert "B4_Chi" not in eng.names and {"B4_CacheHit", "B4_MktChina"} <= set(eng.names)   # v5.9：改名與新增
     assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
     assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
@@ -69,7 +71,7 @@ def test_named_ranges(model):
     downstream = {n for n in eng.names if n.startswith("IF_") and not n.startswith("IF_Hdr")}
     assert len(downstream) == EXPECT["downstream_names"]
     if_all = [n for n in eng.names if n.startswith("IF_")]
-    assert len(if_all) == EXPECT["downstream_names"] + 2 and sum(n.startswith("IF_Hdr") for n in eng.names) == 2   # 115＝113 下游＋IF_Hdr 2
+    assert len(if_all) == EXPECT["downstream_names"] + 3 and sum(n.startswith("IF_Hdr") for n in eng.names) == 3   # 157＝154 下游＋IF_Hdr 3（IF_HdrGen、IF_HdrCost、IF_HdrTask）
     for n in eng.names:  # 每個名稱都能取值，且非錯誤值
         v = eng.get_name(n)
         flat = v if isinstance(v, list) else [v]
@@ -114,28 +116,39 @@ def test_display_names_alignment(model):
     assert set(eng.get_name("CAL_F_Gen")) <= set(eng.get_name("IF_HdrGen"))   # 驗證點的世代名稱都是 Interface 世代
 
 
-def test_interface_d_shapes(model):
-    """Interface D 節（v5.8）兩種形狀分開檢查：單格（含文字）與 15 欄（5 世代 × 3 成本情境）。"""
+def test_interface_d_e_shapes(model):
+    """Interface D 節（v5.8）與 E 節（v5.9）的形狀，分開檢查：單格（數值或文字）、15 欄（5 世代 × 3 成本情境）、5 欄（任務）。"""
     eng = Engine(model)
-    ncol = len(eng.get_name("IF_HdrGen"))
-    single_num = [f"IF_{p}_{t}" for p in ("PriceFresh", "PriceCached", "PriceThink", "PriceOut", "PriceRef", "FrontRef", "Life") for t in TIERS]
-    single_txt = [f"IF_FrontModel_{t}" for t in TIERS]
-    wide = [f"IF_{p}_{t}" for p in ("CacheStore", "AmortBU", "AmortTD", "FullCost", "RevGW", "RevGWFront") for t in TIERS] + ["IF_RevGWFleet", "IF_RevGWFleetFront"]
+    ncol, ntask = len(eng.get_name("IF_HdrGen")), len(eng.get_name("IF_HdrTask"))
+    assert ncol == 15 and ntask == 5
+    single_num = [f"IF_{p}_{t}" for p in ("PriceFresh", "PriceCached", "PriceThink", "PriceOut", "PriceRef", "FrontRef", "Life") for t in TIERS] + ["IF_HarW"]
+    single_txt = [f"IF_FrontModel_{t}" for t in TIERS] + ["IF_HarProfile"]
+    wide = ([f"IF_{p}_{t}" for p in ("CacheStore", "AmortBU", "AmortTD", "FullCost", "RevGW", "RevGWFront",
+                                    "AmortDefault", "AmortRev", "FullCostDefault", "RevGWFleet", "RevGWFleetFront") for t in TIERS]
+            + ["IF_RevGWFleet", "IF_RevGWFleetFront"])
+    task = ([f"IF_{p}_{t}" for p in ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR") for t in TIERS]
+            + ["IF_TaskLen", "IF_TaskTokFresh", "IF_TaskTokCached", "IF_TaskTokDec", "IF_TaskTokSel", "IF_HarTokRatio"])
     for n in single_num + ["IF_ServeShare", "IF_FreeShare"]:
         v = eng.get_name(n)
         assert not isinstance(v, list) and isinstance(v, (int, float)) and not isinstance(v, bool), f"{n} 應為單格數值：{v!r}"
     for n in single_txt:
         v = eng.get_name(n)
         assert isinstance(v, str) and v and not v.startswith("#"), f"{n} 應為單格文字：{v!r}"
-    for n in wide:
-        v = eng.get_name(n)
-        assert isinstance(v, list) and len(v) == ncol == 15, f"{n} 欄數 {len(v) if isinstance(v, list) else 1}，應為 15"
-        assert all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n} 含非數值"
-    covered = set(single_num + single_txt + wide + ["IF_ServeShare", "IF_FreeShare"])
-    b4_if = {n for n in eng.names if n.startswith("IF_") and n in covered}
-    assert len(b4_if) == 46, f"v5.8 新增的 IF_ 應為 46 個，實際檢查 {len(b4_if)} 個"
-    for n in (n for n in eng.names if n.startswith("B4_")):                # B4_：每個名稱都能取值（形狀不另規定）
+    for names, width in ((wide, ncol), (task, ntask)):
+        for n in names:
+            v = eng.get_name(n)
+            assert isinstance(v, list) and len(v) == width, f"{n} 欄數 {len(v) if isinstance(v, list) else 1}，應為 {width}"
+            assert all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n} 含非數值"
+    assert all(isinstance(x, str) and x for x in eng.get_name("IF_HdrTask"))              # 任務名稱（文字）
+    v59_new = ({f"IF_{p}_{t}" for p in ("AmortDefault", "AmortRev", "FullCostDefault", "RevGWFleet", "RevGWFleetFront") for t in TIERS}
+               | {"IF_HarW", "IF_HarProfile", "IF_TaskLen", "IF_TaskTokFresh", "IF_TaskTokCached", "IF_TaskTokDec", "IF_TaskTokSel", "IF_HarTokRatio"}
+               | {f"IF_{p}_{t}" for p in ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR") for t in TIERS})
+    assert len(v59_new) == 41 and v59_new <= set(single_num + single_txt + wide + task), "v5.9 新增的 41 個下游名稱須全數涵蓋形狀檢查"
+    assert EXPECT["downstream_names"] - len(v59_new) == 113                                  # v5.8 的下游名稱數
+    for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
+    mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
+    assert len(mkt) == len(eng.get_name("B4_MktCountry")) and set(mkt) <= {0, 1} and 0 < sum(mkt) < len(mkt)
 
 
 def test_named_ranges_vs_libreoffice(model, tmp_path):
@@ -166,10 +179,10 @@ def test_scenario_parity(sc, model, base_engine, tmp_path, results_store):
     res = compare(got, ref)
     base = base_engine[1]                        # 防空轉：統計相對基準改變的格數（其中屬 Interface 者）
     changed = [k for k in base if base[k] != got[k]]
-    results_store[sc["id"]] = {k: v for k, v in res.items() if k not in ("mismatches", "error_code_diffs")} | {
-        "n_mismatch": len(res["mismatches"]), "n_error_code_diffs": len(res["error_code_diffs"]),
-        "error_code_diff_cells": [f"{a}!{b}（引擎 {c}／LibreOffice {d}）" for a, b, c, d in res["error_code_diffs"]], "eval_all_seconds_after_change": round(elapsed, 2),
+    results_store[sc["id"]] = {k: v for k, v in res.items() if k != "mismatches"} | {
+        "n_mismatch": len(res["mismatches"]), "eval_all_seconds_after_change": round(elapsed, 2),
         "changed_cells": len(changed), "changed_interface_cells": sum(1 for s_, _ in changed if s_ == "Interface")}
+    assert res["error_value_cells"] == 0, f"[{sc['id']}] 錯誤值 {res['error_value_cells']} 格（v5.9 起任何情境皆不得出現錯誤值；兩邊錯誤代碼不同亦視為不符）"
     if sc["id"] != "base":
         assert changed, f"[{sc['id']}] 未改變任何公式格（測試空轉）"
     assert not res["mismatches"], f"[{sc['id']}] " + format_mismatches(res["mismatches"])

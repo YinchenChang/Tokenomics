@@ -272,16 +272,18 @@ def evidence_table(eng: Engine) -> pd.DataFrame:
 B4_PRICE_TYPES = (   # (Interface 名稱前綴, 欄位簡稱)；每一列都帶層級，欄＝token 類型（CLAUDE.md 1a）
     "PriceFresh", "PriceCached", "PriceThink", "PriceOut", "PriceRef", "FrontRef", "FrontModel")
 B4_REV_TIER = ("RevGW", "RevGWFront")                 # 依層級：每 GW 理論營收（理想上限）
-B4_REV_FLEET = ("IF_RevGWFleet", "IF_RevGWFleetFront")  # 機隊（付費服務、層級組合）
-B4_COST_METRICS = ("CacheStore", "AmortBU", "AmortTD", "FullCost")
+B4_REV_FLEET = ("RevGWFleet", "RevGWFleetFront")      # 機隊（付費服務）：各層級貢獻 IF_<名稱>_<層級> ＋合計 IF_<名稱>（合計為層級組合）
+# 成本與攤提列序：快取儲存；K6 下游預設 (c)（IF_AmortDefault、IF_FullCostDefault）；其餘為對照（自下而上、由上而下、(d)、全成本＝自下而上口徑）
+B4_COST_DEFAULT = ("CacheStore", "AmortDefault", "FullCostDefault")
+B4_COST_COMPARE = ("AmortBU", "AmortTD", "AmortRev", "FullCost")
+B4_COST_METRICS = B4_COST_DEFAULT + B4_COST_COMPARE
 # 市場候選表：B4_Mkt* 欄序（依工作表欄序排列，欄名取範圍正上方一格的表頭文字）
 B4_MKT_NAMES = ("B4_MktModel", "B4_MktVendor", "B4_MktCountry", "B4_MktOpen", "B4_MktIn", "B4_MktCache",
-                "B4_MktOut", "B4_MktPeak", "B4_MktIndex")
-CN_COUNTRY = "中國"   # 顯示標記用：國別欄等於此值的列標為中國廠商（Excel 沒有專屬旗標欄；已列入報告）
+                "B4_MktOut", "B4_MktPeak", "B4_MktIndex")   # B4_MktChina（1＝中國廠商）另作標記欄
 
 
-B4_IF_TIER_METRICS = B4_PRICE_TYPES + ("Life", "CacheStore", "AmortBU", "AmortTD", "FullCost") + B4_REV_TIER
-B4_IF_SCALARS = B4_REV_FLEET + ("IF_ServeShare", "IF_FreeShare")
+B4_IF_TIER_METRICS = (B4_PRICE_TYPES + ("Life",) + B4_COST_METRICS + B4_REV_TIER + B4_REV_FLEET)
+B4_IF_SCALARS = tuple(f"IF_{n}" for n in B4_REV_FLEET) + ("IF_ServeShare", "IF_FreeShare")
 
 
 def is_block4_name(name: str) -> bool:
@@ -324,29 +326,35 @@ def market_table(eng: Engine) -> pd.DataFrame:
     """市場候選表（Cap_In F 節）：來源 B4_Mkt*；中國廠商以標記欄區分；空值顯示為「（空白）」。"""
     df = _named_table(eng, "B4_Mkt", list(B4_MKT_NAMES))
     df = df.map(lambda v: "（空白）" if v == "" else fmt(v))   # 全部轉字串（欄內數值與「（空白）」並存）
-    df.insert(0, "標記", ["中國廠商" if c == CN_COUNTRY else "" for c in eng.get_name("B4_MktCountry")])
+    df.insert(0, "標記", ["中國廠商" if f == 1 else "" for f in eng.get_name("B4_MktChina")])   # 旗標讀 B4_MktChina（1＝中國廠商）
     return df
 
 
-def rev_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
-    """理論營收（理想上限）：列＝IF_RevGW_<層級>、IF_RevGWFront_<層級>、機隊兩列；欄＝世代；只取所選成本情境。
-    機隊列是 Luna／Sol／Astra 依付費 token 組合（B4_MixPaid）加權的 1 GW 參考機隊，不是單一層級。"""
+def rev_table(eng: Engine, tier: str, case: str, tier_titles: list[str]) -> pd.DataFrame:
+    """理論營收（理想上限）：列＝IF_RevGW_<層級>、IF_RevGWFront_<層級>、機隊（三層級貢獻＋合計，各兩種單價）；欄＝世代；只取所選成本情境。
+    機隊「合計」是 Luna／Sol／Astra 依付費 token 組合（B4_MixPaid）加權的層級組合，列標籤取自 Excel。"""
     rows = {}
+
+    def row(name, label_prefix=""):
+        s = interface_series(eng, name)
+        rows[f"{label_prefix}{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+
     for key in B4_REV_TIER:
-        s = interface_series(eng, f"IF_{key}_{tier}")
-        rows[f"{tier}｜{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
-    for n in B4_REV_FLEET:
-        s = interface_series(eng, n)
-        rows[f"機隊（層級組合）｜{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+        row(f"IF_{key}_{tier}", f"{tier}｜")
+    for key in B4_REV_FLEET:
+        for t in tier_titles:
+            row(f"IF_{key}_{t}")
+        row(f"IF_{key}")
     return pd.DataFrame(rows).T
 
 
 def cost_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
-    """成本與攤提：列＝快取儲存、攤提（自下而上、由上而下）、全成本；欄＝世代；每列前綴層級；只取所選成本情境。"""
+    """成本與攤提：列＝快取儲存、K6 下游預設 (c)（攤提與全成本）、對照（自下而上、由上而下、(d)、全成本＝自下而上口徑）；欄＝世代；每列前綴層級；只取所選成本情境。"""
     rows = {}
     for key in B4_COST_METRICS:
         s = interface_series(eng, f"IF_{key}_{tier}")
-        rows[f"{tier}｜{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+        tag = "【對照】" if key in B4_COST_COMPARE else ""          # K6 下游預設 (c) 與快取儲存不加標記
+        rows[f"{tier}｜{tag}{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
     return pd.DataFrame(rows).T
 
 
@@ -375,8 +383,76 @@ def b4_chain(eng: Engine, tier: str, gen: str, case: str) -> pd.DataFrame:
     add_series("5 服務成本", f"IF_CostDec_{tier}", "思考＋可見輸出（decode）")
     add_series("6 快取儲存", f"IF_CacheStore_{tier}", "快取輸入")
     add_scalar("7 攤提", f"IF_Life_{tier}", "（商業壽命）")
-    add_series("7 攤提", f"IF_AmortBU_{tier}", "參考請求混合（自下而上）")
-    add_series("7 攤提", f"IF_AmortTD_{tier}", "參考請求混合（由上而下）")
-    add_series("8 全成本", f"IF_FullCost_{tier}", "參考請求混合（自下而上攤提）")
+    add_series("7 攤提", f"IF_AmortDefault_{tier}", "參考請求混合（K6 下游預設 (c)）")
+    add_series("7 攤提", f"IF_AmortBU_{tier}", "參考請求混合（自下而上，對照）")
+    add_series("7 攤提", f"IF_AmortTD_{tier}", "參考請求混合（由上而下，對照）")
+    add_series("7 攤提", f"IF_AmortRev_{tier}", "參考請求混合（(d) 營收權重，對照）")
+    add_series("8 全成本", f"IF_FullCostDefault_{tier}", "參考請求混合（K6 下游預設攤提）")
+    add_series("8 全成本", f"IF_FullCost_{tier}", "參考請求混合（自下而上攤提，對照）")
     return pd.DataFrame([(a, tier, b, c, d, e) for a, b, c, d, e in steps],
+                        columns=["步驟", "層級", "token 類型", "項目（Excel 標籤）", "單位", "值"])
+
+
+# ── Block 5（Harness：任務層成功率與每成功任務成本）──────────────────
+# 只讀 Interface E 節（IF_HdrTask 為任務表頭，欄 C:G＝Workload 任務）。基準 w＝0，現行＝標準 harness；選定檔案為情境。
+B5_TASK_SHARED = ("TaskLen", "TaskTokFresh", "TaskTokCached", "TaskTokDec", "TaskTokSel", "HarTokRatio")   # 不分層級
+B5_TASK_TIER = ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR")                   # 依層級
+B5_IF_PREFIXES = tuple(f"IF_{m}" for m in B5_TASK_SHARED + B5_TASK_TIER + ("HarW", "HarProfile"))
+
+
+def is_block5_name(name: str) -> bool:
+    """Block 5 的 Interface 名稱（Interface E 節）：任務層（5 欄）與 harness 單格。"""
+    return name.startswith(B5_IF_PREFIXES)
+
+
+def task_names(eng: Engine) -> list[str]:
+    return [str(x) for x in eng.get_name("IF_HdrTask")]
+
+
+def b5_task_series(eng: Engine, name: str) -> dict:
+    """任務層具名範圍（欄 C:G）→ {label, unit, values}；標籤與單位取自該列欄 A、欄 B。"""
+    s = series(eng, name)
+    assert len(s["values"]) == len(task_names(eng)), f"{name} 欄數與 IF_HdrTask 不一致"
+    return s
+
+
+def b5_table(eng: Engine, tier: str) -> pd.DataFrame:
+    """Block 5 任務表：列＝任務；欄＝每次嘗試 token（新鮮／快取／decode；總 token 與選定檔案比）、
+    成功率（現行、選定檔案）、每成功任務成本（VR200、GB300）、每成功任務營收、R。依層級的欄前綴層級；值依列單位格式化。"""
+    cols: dict[str, list] = {}
+    for key in B5_TASK_SHARED:
+        s = b5_task_series(eng, f"IF_{key}")
+        cols[f"{s['label']}（{s['unit']}）"] = [fmt_unit(v, s["unit"]) for v in s["values"]]
+    for key in B5_TASK_TIER:
+        s = b5_task_series(eng, f"IF_{key}_{tier}")
+        cols[f"{tier}｜{s['label']}（{s['unit']}）"] = [fmt_unit(v, s["unit"]) for v in s["values"]]
+    return pd.DataFrame(cols, index=task_names(eng))
+
+
+def b5_chain(eng: Engine, tier: str, tiers_order: list[str], task: str) -> pd.DataFrame:
+    """Block 5 推導鏈（單一層級、任務）：任務長度 → 50% 時間範圍 → 成功率 → 每次嘗試（token）→ 每成功任務成本（÷ p 後）→ 每成功任務營收。
+    只讀既有名稱（IF_、B5_ 顯示名稱）；『每次嘗試成本（$）』沒有顯示用名稱，不在此計算（已列入報告）。"""
+    k = task_names(eng).index(task)
+    steps = []
+
+    def add(step, tokens, label, unit, value):
+        steps.append((step, tier, tokens, label, unit, value))
+
+    def task_val(name, step, tokens):
+        s = b5_task_series(eng, name)
+        add(step, tokens, s["label"], s["unit"], s["values"][k])
+
+    task_val("IF_TaskLen", "1 任務長度", "（人類完成時間）")
+    h = series(eng, "B5_H50")
+    add("2 時間範圍", "（不分 token 類型）", h["label"], h["unit"], h["values"][tiers_order.index(tier)])
+    task_val(f"IF_TaskSucc_{tier}", "3 成功率", "（現行＝標準 harness）")
+    task_val(f"IF_TaskSuccSel_{tier}", "3 成功率", "（選定檔案全採用；情境）")
+    task_val("IF_TaskTokFresh", "4 每次嘗試", "新鮮輸入")
+    task_val("IF_TaskTokCached", "4 每次嘗試", "快取輸入")
+    task_val("IF_TaskTokDec", "4 每次嘗試", "思考＋可見輸出（decode）")
+    task_val(f"IF_CostSuccVR_{tier}", "5 ÷ p → 每成功任務成本", "全 token 類型（VR200）")
+    task_val(f"IF_CostSuccGB_{tier}", "5 ÷ p → 每成功任務成本", "全 token 類型（GB300）")
+    task_val(f"IF_RevSucc_{tier}", "6 每成功任務營收", "全 token 類型（OpenAI 有效單價）")
+    task_val(f"IF_HarR_{tier}", "7 R（選定 ÷ 標準）", "全 token 類型（VR200）")
+    return pd.DataFrame([(a, t, b, c, d, e) for a, t, b, c, d, e in steps],
                         columns=["步驟", "層級", "token 類型", "項目（Excel 標籤）", "單位", "值"])

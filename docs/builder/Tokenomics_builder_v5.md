@@ -1,4 +1,4 @@
-# Tokenomics v5 建檔程式（v5.9 產生器：Block 2＋Block 3＋Block 4＋Block 5；Excel 優先）
+# Tokenomics v5 建檔程式（v5.10 產生器：Block 2＋Block 3＋Block 4＋Block 5；Excel 優先）
 
 用途：Block 2、Block 3、Block 4、Block 5 的公式頁由程式產生，確保公式一致、可重建。**v5.7 起輸入值由 Excel 擁有**：要改輸入，直接改 Excel（藍字格）；builder 重建時會讀回所有藍字輸入。程式內的數值只是「新增輸入列時的預設值」。
 
@@ -22,6 +22,7 @@
 - v5.7（2026-10-01，以 v5.6 為底稿）：公式 16,251 格、零錯誤；具名範圍 144 個（＋IF_TrainGenDefaultName、IF_TrainGenAltName）。藍字輸入 770 格全數對應、Excel 與程式預設差異 0 格；除 README 與新頁 DB_Evidence 外，對 v5.6 逐格一致（20,391 格不符 0）。Excel 優先測試：在 Excel 改 Train_In rollout 效率 0.85→0.8、Arch!E20 2→3、DB_Evidence 新增一列，重建後三者皆保留。冪等：以 v5.7 重跑 20,539 格不符 0。
 - v5.8（2026-10-01，以 v5.7 為底稿）：新增 `block4.py`（Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；Interface D 節、Checks Block 4、Sources S50–S57、DB_Evidence E010–E015）。公式 18,596 格、LibreOffice 重算零錯誤；具名範圍 228 個（IF_ 115、B4_ 38）。Block 1–3 與 v5.7 逐格一致（20,501 格不符 0；唯一差異為 Interface C50 占位文字改為指向 D 節）。藍字輸入 770 格全數對應；新增輸入 220 格。冪等：以 v5.8 重建 24,093 格不符 0。新函數：MATCH（Price_Frontier 前緣模型查找）。DB_Evidence 為 Excel 擁有，E010–E015 由 `evidence_b4` 只在 ID 不存在時附加。
 - v5.9（2026-10-01，以 v5.8 為底稿）：新增 `block5.py`（Har_In、Harness、Sens_Har；Interface E 節、Checks Block 5、Sources S58–S61、DB_Evidence E016–E020）；`outputs.workload` 改為 harness 參數組（新增列 14 歷史保留比與有效參數 B 節，列號下移，回傳列號供 Theory_Rev C 節使用）；`block4.py` 補 SLO 不可達保護（Fleet_1GW、Amortize、Theory_Rev、Checks）、K6 (c)／(d) 與 IF_AmortDefault_*／IF_AmortRev_*／IF_FullCostDefault_*、機隊層級貢獻列 IF_RevGWFleet_*／IF_RevGWFleetFront_*、Cap_In F 節中國廠商旗標欄（B4_MktChina）、B4_Chi 改名 B4_CacheHit。公式 20,686 格、LibreOffice 重算零錯誤；具名範圍 294 個（IF_ 157，其中下游 154；B4_ 39；B5_ 23）。v5.8 的 228 個具名範圍中 227 個（B4_Chi 已改名）在 v5.9 逐格同值（2,285 格），唯一差異為 Tech_Registry T12 與 H_HAR 的說明文字；Block 1–3 各頁與 Block 4 的 Capability、Price_Frontier、Cache_Store、Sens_Rev 逐格一致；Workload 移位後逐格同值。藍字輸入 990 格全數對應；新增輸入 161 格。情境測試（LibreOffice）：生產折減 0.7、Tech_Registry O11:O13＝1、T12 開關＝1、T12 開關＝1 且檔案 3，皆零錯誤（v5.8 前兩者分別 145、339 格錯誤）。冪等：以 v5.9 重建 27,190 格不符 0。新函數：AVERAGE。
+- v5.10（2026-10-02，以 v5.9 為底稿）：只改 `block5.py`、`finish.py`（README）、`build.py`（註解）。M1 (b)：Har_In A 節第 8 列新增可靠度下限 p_min（B5_PFloor，基準 50%；占用原空白列，其後列號不變）；Harness H 節原兩組前緣改標為「對照（不設下限）」，其後新增 p ≥ p_min 的前緣（成本、組合、成功率；無合格回傳「無合格」）與 I 節有效 50% 時間範圍；Interface E 節末尾增列 IF_CostAttVR_*、IF_HzEff_*、IF_PFloor、IF_FrontSuccVR、IF_FrontSuccVRName、IF_FrontSuccVRP（既有列不動）；Checks Block 5 前緣列改讀 p ≥ p_min 版（外部參照欄為不設下限的對照），末尾加兩列。公式 20,780 格、LibreOffice 重算零錯誤；具名範圍 305 個（IF_ 167，其中下游 164；B5_ 24）。對 v5.9 逐格比較 27,334 格，差異 157 格全部在上述位置（Har_In 5、Harness 68、Interface 66、Checks 15、README 3），其餘逐格一致。藍字輸入 1,151 格全數對應，新增 1 格。情境：p_min＝0 時前緣與對照列逐格相同（等同 (a)）；p_min＝80% 時 Coding agent 為「無合格」；三種下限的前緣皆以 Python 由成本與 p 列獨立重算，一致。冪等：以 v5.10 重建 27,334 格不符 0。無新函數（OR、AND、COUNTIF 已在既有檔中使用）。
 
 ## common.py
 
@@ -1495,7 +1496,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261001_Tokenomics_v5.9（Block 1＋2＋3＋4＋5；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", "20261002_Tokenomics_v5.10（Block 1＋2＋3＋4＋5；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。"),
       ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Interface；Energy、NonNV、Sensitivity、Checks、Sources。"),
       ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
@@ -1513,14 +1514,14 @@ def readme(wb):
       ("Block 4 推導", "理論營收＝每 GW 產出 × 利用率 × 參考請求混合有效單價（OpenAI 牌價 ×（1−折扣）× 能力單價倍數）。單價前緣＝能力指數 ≥ OpenAI 層級模型者之中，參考請求混合單價最低者（含中國廠商）。快取儲存＝KV bytes × 儲存層 $/GB-hr × 保留時間 ÷ 命中次數。攤提：自下而上＝研發計畫成本 ÷ 商業壽命內服務 token（＝回本所需溢價）；由上而下＝機隊訓練占比 X ÷（1−X）× 服務成本。"),
       ("Block 4 決策", "K1 OpenAI 單價為基準；K2 (i) 前緣＝同能力最低價；K3 AA 指數為主、METR 檢查；K4 (c)＋(d) 能力→單價彈性基準 0＋回本溢價反解；K5 壽命 Luna／Sol 12、Astra 9 個月；K6 兩種攤提並列，v5.9 起下游預設 (c)＝由上而下總額 × 自下而上權重、(d) 營收權重並列；K7 機隊以 OpenAI 2025 校準；K8 只計 API 單價；K9 各世代共用 2026-09 單價快照；K10 快取儲存比照公開條款；K11 利用率 60%、折減 1.0 暫用；K12 尖峰離峰並列、前緣用時數加權；K13 中國廠商全納入並標示開放權重；K14 國際站美元價。"),
       ("Block 5 推導", "harness＝作用在標準任務上的參數組（輪數、思考保留 ρ、每輪思考、歷史壓縮、快取命中、子代理、狀態保留時間）加成功率。Workload 有效參數＝標準＋w ×（Har_In 選定檔案−標準），w＝Tech_Registry T12 開關 × 採用比例。成功率 p＝1 ÷（1＋（任務長度 ÷（層級 50% 時間範圍 × harness 倍數））^β）（METR 型）；每成功任務成本＝每次嘗試成本 ÷ p。每 GW 理論營收不受 harness 影響。"),
-      ("Block 5 決策", "L1 參數組取代單一 token 倍數；L2 METR 型成功率＋覆寫欄；L3 增強檔不入基準（w＝0）；L4 harness 不影響每 GW 營收；L5 每成功任務成本＝每次嘗試 ÷ p；L6 非 GPU 成本不入第 0 層；L7 情境值只採中立方同條件實測。"),
+      ("Block 5 決策", "L1 參數組取代單一 token 倍數；L2 METR 型成功率＋覆寫欄；L3 增強檔不入基準（w＝0）；L4 harness 不影響每 GW 營收；L5 每成功任務成本＝每次嘗試 ÷ p；L6 非 GPU 成本不入第 0 層；L7 情境值只採中立方同條件實測；M1 (b) 成功任務成本前緣只比較成功率 ≥ 可靠度下限 p_min（基準 50%）者，無合格時回傳「無合格」，不設下限的前緣列為對照。"),
       ("來源原則", "SemiAnalysis（含 InferenceX）資料一律須有第二來源佐證並標記 Interested-party；目前第二來源為 MLPerf（MLCommons 稽核，NVIDIA 提交）與 DeepSeek 自揭（待查）。"),
       ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取儲存成本已於 v5.8 Cache_Store 加入（儲存層與保留時間為 Assumed）。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。(11) v5.8：K6 下游攤提預設於 v5.9 定為 (c)；Claude Opus 5.5、Kimi K3、MiniMax M3 的能力指數未取得，不參與前緣；Anthropic、Moonshot、Alibaba、MiniMax 價格為二手；METR 檢查未入表；Google 未列入候選。(12) v5.9：METR 尚未發布 GPT-6 各層級時間範圍（以 GPT-5.6 Sol、Mythos Preview 類比）；任務長度為 Assumed；ARC 金額衝突與 Opus 5 harness 歸屬待核；harness 用於 RL rollout 與非 GPU 成本延後。"),
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics v5.9 — Block 1＋2＋3＋4＋5：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣、harness 與每成功任務成本", F_TITLE)
+    put(ws, "A1", "Tokenomics v5.10 — Block 1＋2＋3＋4＋5：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣、harness 與每成功任務成本", F_TITLE)
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -2318,6 +2319,10 @@ def evidence_b4(wb):
 # L3 enhanced profiles off in the base (Tech_Registry T12 switch 0) — scenarios only; L4 per-GW theoretical revenue unchanged
 # (harness acts on the per-task layer only); L5 cost per success = cost per attempt / p (independent retries, failure detectable);
 # L6 non-GPU harness cost excluded (to-do); L7 scenario values only from neutral parties measured under the same conditions.
+# v5.10 (Andy 2026-10-02): M1 (b) — the cost-per-success frontier compares only combinations with p >= a reliability floor
+# p_min (input, base 50%; 0 = no floor = option (a)); no qualifying combination returns "無合格". The unconstrained frontier
+# is kept as a comparison row. Also (CC round 8, section 6): Interface E adds per-attempt cost (existing Harness D rows) and the
+# effective 50% horizon (H50 x horizon multiplier, new Harness section I).
 # New formulas reference key quantities through named ranges (B5_ = Block 5 internal / display; IF_ = downstream).
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
@@ -2388,8 +2393,14 @@ def har_in(wb, TR):
     put(ws, f"A{r}", "選定檔案名稱"); put(ws, f"C{r}", f"=CHOOSE(C{H['prof']}-1,\"{PROFILES[2][0]}\",\"{PROFILES[3][0]}\")"); H["pname"] = r; r += 1
     put(ws, f"A{r}", "混合權重 w＝T12 開關 × 採用比例"); put(ws, f"B{r}", "x")
     put(ws, f"C{r}", f"=Tech_Registry!O{t12}*Tech_Registry!N{t12}", F_LINK, fmt="0.00", fill=FILL_KEY)
-    put(ws, f"I{r}", "w＝0：Workload 與標準檔相同，Block 1–4 與 v5.8 一致", F_NOTE); H["w"] = r; r += 2
+    put(ws, f"I{r}", "w＝0：Workload 與標準檔相同，Block 1–4 與 v5.8 一致", F_NOTE); H["w"] = r; r += 1
+    # v5.10 M1 (b): reliability floor for the cost-per-success frontier (Harness H section)
+    put(ws, f"A{r}", "可靠度下限 p_min（成功任務成本前緣只比較 p ≥ 此值者）"); put(ws, f"B{r}", "%"); put(ws, f"C{r}", 0.5, fmt="0%")
+    put(ws, f"H{r}", "Decision", F_NOTE)
+    put(ws, f"I{r}", "M1 (b)（Andy 2026-10-02）：低於此成功率的組合不列入前緣（不可靠的便宜組合不算前緣）；0＝不設下限（等同 (a)）。基準 50%＝METR 時間範圍的定義點", F_NOTE)
+    H["pmin"] = r; r += 1
     nm(wb, "B5_Profile", f"Har_In!$C${H['prof']}"); nm(wb, "B5_ProfileName", f"Har_In!$C${H['pname']}"); nm(wb, "B5_W", f"Har_In!$C${H['w']}")
+    nm(wb, "B5_PFloor", f"Har_In!$C${H['pmin']}")
     section(ws, r, "B. harness 檔案參數（欄＝Workload 任務；標準檔見 Workload 列 5–14，保留時間＝Cap_In 保留時間、時間範圍倍數＝1）", 9); r += 1
     for p in (2, 3):
         pname, rows = PROFILES[p]
@@ -2583,18 +2594,45 @@ def harness(wb, U, S, WL):
     for t, (tk, tn) in enumerate(TIERS):
         trow(ws, r, f"成功率比（選定 ÷ 標準）：{tn}", "x", f"={{c}}{R[f'p_sel{t}']}/{{c}}{R[f'p_std{t}']}", "0.00"); R[f"pr{t}"] = r; r += 1
     r += 1
-    section(ws, r, "H. 成功任務成本前緣（各世代：3 層級 × {標準、選定檔案} 中每成功任務成本最低者；層級替代）", 8); r += 1
+    section(ws, r, "H. 成功任務成本前緣（各世代：3 層級 × {標準、選定檔案} 中每成功任務成本最低者；層級替代；只比較 p ≥ 可靠度下限 p_min 者，M1 (b)）", 8); r += 1
     for gname, col in GENS:
         cells = [(f"{TIERS[t][0]}｜標準", R[f"cs_{gname}{t}std"]) for t in range(3)] + [(f"{TIERS[t][0]}｜選定", R[f"cs_{gname}{t}sel"]) for t in range(3)]
         R[f"fr_{gname}"] = r
-        trow(ws, r, f"{gname}：最低每成功任務成本", "$", lambda c, k, cells=cells: "=MIN(" + ",".join(f"{c}{rr}" for _, rr in cells) + ")", "$#,##0.0000", key=True); r += 1
+        trow(ws, r, f"對照（不設下限）：{gname} 最低每成功任務成本", "$", lambda c, k, cells=cells: "=MIN(" + ",".join(f"{c}{rr}" for _, rr in cells) + ")", "$#,##0.0000"); r += 1
         def lab(c, k, cells=cells, fr=r - 1):
             f = '"—"'
             for name, rr in reversed(cells):
                 f = f'IF({c}{rr}={c}{fr},"{name}",{f})'
             return "=" + f
-        R[f"frl_{gname}"] = r; trow(ws, r, f"{gname}：前緣組合（層級｜檔案）", "", lab, None); r += 1
-    put(ws, f"A{r}", "註：標準與現行在 w＝0 時相同。前緣只比較成本，不含延遲；選定檔案『供應商專屬』時，前緣組合綁定該供應商 API（Har_In 旗標）", F_NOTE)
+        R[f"frl_{gname}"] = r; trow(ws, r, f"對照（不設下限）：{gname} 前緣組合（層級｜檔案）", "", lab, None); r += 1
+    # v5.10 M1 (b): candidate qualifies when its cost is numeric and its p >= B5_PFloor; none qualifies -> "無合格"
+    for gname, col in GENS:
+        cand = [(f"{TIERS[t][0]}｜標準", R[f"cs_{gname}{t}std"], R[f"p_std{t}"]) for t in range(3)] + \
+               [(f"{TIERS[t][0]}｜選定", R[f"cs_{gname}{t}sel"], R[f"p_sel{t}"]) for t in range(3)]
+        ok = lambda c, cr, pr: f"AND(ISNUMBER({c}{cr}),{c}{pr}>=B5_PFloor)"
+        def fmin(c, k, cand=cand):
+            anyok = "OR(" + ",".join(ok(c, cr, pr) for _, cr, pr in cand) + ")"
+            mn = "MIN(" + ",".join(f"IF({ok(c, cr, pr)},{c}{cr},9E+99)" for _, cr, pr in cand) + ")"
+            return f'=IF({anyok},{mn},"無合格")'
+        R[f"frm_{gname}"] = r
+        trow(ws, r, f"{gname}：最低每成功任務成本（p ≥ p_min）", "$", fmin, "$#,##0.0000", key=True); r += 1
+        def pick(c, k, cand=cand, fr=r - 1, what="name"):
+            f = '"—"' if what == "name" else '"—"'
+            for name, cr, pr in reversed(cand):
+                v = f'"{name}"' if what == "name" else f"{c}{pr}"
+                f = f"IF(AND(ISNUMBER({c}{fr}),{c}{cr}={c}{fr},{ok(c, cr, pr)}),{v},{f})"
+            return f'=IF(ISNUMBER({c}{fr}),{f},"無合格")'
+        R[f"frml_{gname}"] = r; trow(ws, r, f"{gname}：前緣組合（層級｜檔案；p ≥ p_min）", "", pick, None, key=True); r += 1
+        R[f"frmp_{gname}"] = r
+        trow(ws, r, f"{gname}：前緣組合的成功率 p", "%", lambda c, k, cand=cand, fr=r - 2: pick(c, k, cand, fr, "p"), "0.0%"); r += 1
+    put(ws, f"A{r}", "註：標準與現行在 w＝0 時相同。前緣只比較成本，不含延遲；選定檔案『供應商專屬』時，前緣組合綁定該供應商 API（Har_In 旗標）。"
+                     "可靠度下限 p_min 在 Har_In A 節；『無合格』＝該任務沒有任何層級 × 檔案達到下限", F_NOTE)
+    r += 2
+    # v5.10 (CC round 8, section 6 item 2): effective 50% horizon = tier H50 x horizon multiplier (current mix)
+    section(ws, r, "I. 有效 50% 時間範圍（＝層級 50% 時間範圍 × 時間範圍倍數；現行）", 8); r += 1
+    for t, (tk, tn) in enumerate(TIERS):
+        R[f"hz_{t}"] = r
+        trow(ws, r, f"有效 50% 時間範圍：{tn}｜現行", "hr", f"=INDEX(B5_H50,1,{t+1})*{{c}}{R['cur_hz']}", "0.00"); r += 1
     ws.freeze_panes = "C5"
     for key, n in [("cur_tot", "B5_TaskTok"), ("sel_tot", "B5_TaskTokSel"), ("std_tot", "B5_TaskTokStd")]:
         nm(wb, n, f"Harness!$C${R[key]}:$G${R[key]}")
@@ -2699,6 +2737,17 @@ def interface_b5(wb, start, R):
         row5(f"IF_CostSuccGB_{tk}", "每成功任務成本 — GB300（現行）", "$", f"=Harness!{{c}}{R[f'cs_GB300{t}cur']}", "$#,##0.0000")
         row5(f"IF_RevSucc_{tk}", "每成功任務營收 — OpenAI 有效單價（現行）", "$", f"=Harness!{{c}}{R[f'rs_{t}cur']}", "$#,##0.0000")
         row5(f"IF_HarR_{tk}", "R＝每成功任務成本 選定 ÷ 標準（VR200）", "x", f"=Harness!{{c}}{R[f'R_VR200{t}']}", "0.00")
+    # ---- v5.10 additions (appended; rows above unchanged) ----
+    put(ws, f"A{r}", "v5.10：每次嘗試成本、有效時間範圍與可靠度下限前緣", F_BOLD); r += 1
+    for t, (tk, tn) in enumerate(TIERS):
+        row5(f"IF_CostAttVR_{tk}", f"{tn}｜每次嘗試成本 — VR200（現行；經濟、基準成本、基準利用率；÷ p＝每成功任務成本）", "$",
+             f"=Harness!{{c}}{R[f'c_VR200{t}cur']}", "$#,##0.0000")
+        row5(f"IF_HzEff_{tk}", f"{tn}｜有效 50% 時間範圍（層級基準 × 時間範圍倍數；現行）", "hr", f"=Harness!{{c}}{R[f'hz_{t}']}", "0.00")
+    put(ws, f"A{r}", "可靠度下限 p_min（M1 (b)）　[IF_PFloor]"); put(ws, f"B{r}", "%"); put(ws, f"C{r}", "=B5_PFloor", fmt="0%")
+    names.append(("IF_PFloor", f"Interface!$C${r}")); r += 1
+    row5("IF_FrontSuccVR", "成功任務成本前緣 — VR200（p ≥ p_min；3 層級 × 標準／選定檔案）", "$", f"=Harness!{{c}}{R['frm_VR200']}", "$#,##0.0000", key=True)
+    row5("IF_FrontSuccVRName", "成功任務成本前緣組合 — VR200（層級｜檔案；『無合格』＝無組合達下限）", "", f"=Harness!{{c}}{R['frml_VR200']}", None)
+    row5("IF_FrontSuccVRP", "成功任務成本前緣組合的成功率 p — VR200", "%", f"=Harness!{{c}}{R['frmp_VR200']}", "0.0%")
     for n, ref in names: nm(wb, n, ref)
     return names
 
@@ -2720,9 +2769,13 @@ def checks_b5(wb, R, H, SH):
        "遠大於區間：ARC 的提升無法用 METR 型曲線表達，故 ARC 只作方向檢查、不校準時間範圍倍數", "S58、S59"),
       ("METR 隱含 β（四個模型平均）", f"=AVERAGE(Har_In!F{H['metr0']}:F{H['metr1']})", "=B5_Beta", "x", "外部參照欄＝本模型採用值", "S59"),
       ("Astra 標準 harness：Coding agent 成功率", f"=Harness!G{R['p_std2']}", "—", "%", "任務長度 8 小時 ÷ 時間範圍 16 小時", "Har_In C 節"),
-      ("每成功任務：Coding agent 前緣組合（VR200）", f"=Harness!G{R['frl_VR200']}", "—", "", "層級替代：選定檔案全採用時較低層級能否勝出", "Harness H 節"),
+      ("每成功任務：Coding agent 前緣組合（VR200；p ≥ p_min）", f"=Harness!G{R['frml_VR200']}", f"=Harness!G{R['frl_VR200']}", "",
+       "外部參照欄＝不設下限的前緣（對照）；兩者不同＝下限排除了較便宜但不可靠的組合（M1 (b)）", "Harness H 節"),
       ("Sens_Har：Astra R 最小～最大（VR200、Coding agent）", f"=MIN(Sens_Har!C{SH['R2']}:Z{SH['R2']})", f"=MAX(Sens_Har!C{SH['R2']}:Z{SH['R2']})", "x",
        "最大值 > 1 即 harness 在區間內可能提高每成功任務成本", "Sens_Har"),
+      ("可靠度下限 p_min（M1 (b)）", "=B5_PFloor", "50%（基準）", "%", "基準 50%；0＝不設下限（等同 (a)）", "Har_In A 節"),
+      ("前緣『無合格』的任務數（VR200，5 任務）", f'=COUNTIF(Harness!C{R["frml_VR200"]}:G{R["frml_VR200"]},"無合格")', "0（基準）", "",
+       "> 0＝下限高於該任務所有組合的成功率", "Harness H 節"),
     ]
     for i, (a, b, c, d, e, f) in enumerate(rows):
         rr = r0 + 2 + i
@@ -2910,7 +2963,7 @@ K4["_capf"] = P4["capf"]
 sens_rev(wb, K4, T4, A4)
 interface_b4(wb, last_row(wb["Interface"]) + 2, P4, S4, A4, T4)
 checks_b4(wb, P4, F4, A4, T4, U)
-# ---- v5.9: Block 5 (harness) ----
+# ---- v5.9: Block 5 (harness); v5.10: M1 (b) reliability floor + Interface E additions (inside block5.py) ----
 from block5 import har_in, harness, sens_har, interface_b5, checks_b5, sources_b5, evidence_b5
 H5 = har_in(wb, TR)
 R5 = harness(wb, U, S4, WL)

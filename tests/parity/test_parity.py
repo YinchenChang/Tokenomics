@@ -29,10 +29,12 @@ def test_workbook_expectations(model):
     eng = Engine(model)
     assert len(eng.formula_cells) == EXPECT["formula_cells"]
     assert len(eng.names) == EXPECT["defined_names"]
+    assert eng.sheetnames == EXPECT["sheets"]                              # v5.7 起含 DB_Evidence（最後一頁）
+    assert not any(s == "DB_Evidence" for s, _ in eng.formula_cells)       # DB_Evidence 純輸入、無公式
 
 
 def test_named_ranges(model):
-    """142 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
+    """144 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
     eng = Engine(model)
     xml_names = read_defined_names_xml(model)
     assert set(eng.names) == set(xml_names)
@@ -47,7 +49,7 @@ def test_named_ranges(model):
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
     assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
     assert sum(n.startswith("TR_") for n in eng.names) == EXPECT["tr_names"]
-    assert {"IF_TrainGenDefault", "IF_TrainGenAlt"} <= set(eng.names)      # v5.6：J13 預設與並列訓練世代（世代索引）
+    assert {"IF_TrainGenDefault", "IF_TrainGenAlt", "IF_TrainGenDefaultName", "IF_TrainGenAltName"} <= set(eng.names)      # v5.6：J13 預設與並列訓練世代（世代索引）
     block3 = {f"IF_{p}_{t}" for p in BLOCK3_PREFIX for t in TIERS} | {"IF_RDMult"}
     assert len(block3) == EXPECT["block3_names"] and block3 <= set(eng.names), f"缺少：{sorted(block3 - set(eng.names))}"
     assert {"IF_HdrGen", "IF_HdrCost"} <= set(eng.names)
@@ -79,6 +81,9 @@ def test_display_names_alignment(model):
             v = eng.get_name(name)
             want = EXPECT["tr_hook_rows"] if name.startswith(("TR_HookCode", "TR_HookName", "TR_HookVal")) else EXPECT["tr_rows"]
             assert isinstance(v, list) and len(v) == want, f"{name}: {len(v) if isinstance(v, list) else 1} 格，應為 {want}"
+    gens = list(dict.fromkeys(eng.get_name("IF_HdrGen")))
+    for idx, nm in (("IF_TrainGenDefault", "IF_TrainGenDefaultName"), ("IF_TrainGenAlt", "IF_TrainGenAltName")):   # v5.7：名稱＝索引所指世代
+        assert eng.get_name(nm) == gens[int(eng.get_name(idx)) - 1], (nm, eng.get_name(nm))
     for name in ("IF_TrainGenDefault", "IF_TrainGenAlt"):                  # 世代索引：1–5 的整數
         v = eng.get_name(name)
         assert isinstance(v, (int, float)) and v == int(v) and 1 <= v <= len(set(eng.get_name("IF_HdrGen"))), f"{name}={v!r}"

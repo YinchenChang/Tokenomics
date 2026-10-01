@@ -97,14 +97,71 @@ def test_block3_cost_follows_case_and_shares_match_chain():
         assert list(a) == list(b), (key, list(a), list(b))
 
 
+B4 = "from app.views import block4; block4.render()"
+
+
+def test_block4_tables_selectors_and_k6_both_bases():
+    """Block 4：價格表 3 列 × 7 欄；市場表 13 列且中國廠商有標記；營收標題含「理想上限」；兩種攤提並列、不選預設；推導鏈 8 步。"""
+    at = AppTest.from_string(HEAD + B4, default_timeout=180).run()
+    assert not at.exception
+    assert len(at.radio) == 2 and len(at.selectbox) == 1 and not at.toggle and not at.checkbox   # 層級、成本情境、世代
+    price, mkt = at.dataframe[0].value, at.dataframe[1].value
+    assert price.shape == (3, 7) and any("前緣模型" in c for c in price.columns)
+    assert any("新鮮輸入" in c for c in price.columns) and any("快取輸入" in c for c in price.columns)
+    assert any("思考" in c for c in price.columns) and any("可見輸出" in c for c in price.columns)
+    assert len(mkt) == 13 and mkt.shape[1] == 10 and {"模型", "廠商", "國別", "開放權重", "能力指數", "標記"} <= set(mkt.columns)
+    assert set(mkt.loc[mkt["國別"] == "中國", "標記"]) == {"中國廠商"} and set(mkt.loc[mkt["國別"] != "中國", "標記"]) == {""}
+    assert any("理想上限" in sub.value for sub in at.subheader)
+    for tier in ("Luna", "Sol", "Astra"):
+        at.radio[0].set_value(tier).run()
+        for case in ("低成本", "基準", "高成本"):
+            at.radio[1].set_value(case).run()
+            assert not at.exception
+            rev, cost, chain = at.dataframe[2].value, at.dataframe[3].value, at.dataframe[4].value
+            assert len(rev) == 4 and rev.shape[1] == 5 and sum(str(i).startswith(tier) for i in rev.index) == 2
+            assert len(cost) == 4 and all(str(i).startswith(tier) for i in cost.index)
+            assert any("自下而上" in i for i in cost.index) and any("由上而下" in i for i in cost.index)
+            assert chain["層級"].eq(tier).all() and chain["步驟"].str[0].tolist() == sorted(chain["步驟"].str[0].tolist())
+            assert set(chain["步驟"].str[0]) == set("12345678")
+    assert any("K6" in w.value for w in at.warning)                        # 下游預設待 Andy 決定；頁面不選定預設口徑
+
+
+def test_block4_matches_interface_and_follows_case():
+    """表內數值即 IF_ 具名範圍的值；成本情境變動時全成本變動，營收（只由產能、利用率、單價決定）與單價不變。"""
+    from app.common import get_engine, interface_series
+    at = AppTest.from_string(HEAD + B4, default_timeout=180).run()
+    at.radio[0].set_value("Astra").run()
+    eng = get_engine()
+    gens = list(dict.fromkeys(eng.get_name("IF_HdrGen")))
+    seen = {}
+    for case in ("低成本", "基準", "高成本"):
+        at.radio[1].set_value(case).run()
+        rev, price, cost = at.dataframe[2].value, at.dataframe[0].value, at.dataframe[3].value
+        s = interface_series(eng, "IF_RevGW_Astra")
+        want = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+        row = rev.loc[[i for i in rev.index if "OpenAI 有效單價" in i and i.startswith("Astra")][0]]
+        assert [float(x) for x in row.map(str).str.replace(",", "")] == [float(f"{want[g]:,.0f}".replace(",", "")) if abs(want[g]) >= 1000 else float(f"{want[g]:.4g}") for g in gens]
+        full = cost.loc[[i for i in cost.index if "全成本" in i][0]]
+        seen[case] = (tuple(row), tuple(map(tuple, price.values.tolist())), tuple(full))
+    assert len({v[0] for v in seen.values()}) == 1 and len({v[1] for v in seen.values()}) == 1   # 營收、單價不隨成本情境
+    assert len({v[2] for v in seen.values()}) == 3                                                 # 全成本隨成本情境
+
+
+def test_overview_excludes_block4_names():
+    at = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()
+    assert not at.exception
+    idx = " ".join(map(str, at.dataframe[0].value.index))
+    assert "理想上限" not in idx and "攤提" not in idx and "快取儲存" not in idx
+
+
 def test_evidence_page_readonly_table():
     at = AppTest.from_string(HEAD + "from app.views import evidence; evidence.render()", default_timeout=180).run()
     assert not at.exception
     df = at.dataframe[0].value
-    assert df.shape == (9, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
+    assert df.shape == (15, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
     assert df["ID"].tolist()[:2] == ["E001", "E002"] and df["ID"].is_unique
     at.multiselect[0].set_value([df["判定"].iloc[0]]).run()                # 篩選可用且不拋例外
-    assert not at.exception and 0 < len(at.dataframe[0].value) <= 9
+    assert not at.exception and 0 < len(at.dataframe[0].value) <= 15
 
 
 def test_no_label_lookup_in_app_and_engine():

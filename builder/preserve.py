@@ -4,7 +4,8 @@
 # Code defaults therefore apply only to NEW input rows; existing inputs are owned by the Excel file.
 BLUE = "FF0000FF"
 REBUILT = ["Spec_Rack", "Arch", "Serving", "Workload", "Calib", "Energy", "NonNV", "Tech_Registry", "Perf",
-           "Sens_Perf", "Unit_Cost", "Train_In", "Perf_Batch", "Training", "Sens_Train"]
+           "Sens_Perf", "Unit_Cost", "Train_In", "Perf_Batch", "Training", "Sens_Train",
+           "Cap_In", "Capability", "Price_Frontier", "Cache_Store", "Fleet_1GW", "Amortize", "Theory_Rev", "Sens_Rev"]
 
 def _is_input(cell):
     v = cell.value

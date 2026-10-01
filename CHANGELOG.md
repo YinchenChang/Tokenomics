@@ -2,6 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261001_Tokenomics_v5.8.xlsx（取代 v5.7；第 7 輪）
+
+- Commit：見本輪 PR 的合併提交（合併後補上雜湊）。
+- Excel：公式 16,251 → 18,596；具名範圍 144 → 228（新增 84：`B4_` 38 個、`IF_` 46 個）；新增 8 個工作表 Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev（Block 4：單價前緣、快取儲存、1 GW 參考機隊、訓練攤提、理論營收）；`DB_Evidence` 9 → 15 筆。
+- 名稱分類（程式計數）：`IF_` 115（`IF_Hdr` 2、下游可連結 113；v5.7 為 67，本版新增 46）、`B4_` 38（顯示或內部用，下游不得連結）、`TR_` 23、`CAL_` 19、`DRV_` 16、`TRN_` 15、`CTL_` 2；`DRV_`、`CAL_`、`TRN_`、`TR_` 數量不變。
+- builder：依 `docs/builder/Tokenomics_builder_v5.md` 寫入 `builder/`（新增 `block4.py`；`build.py`、`finish.py`、`preserve.py` 有變動；其餘 6 檔與 md 逐字相同）。以 v5.7 為底稿重建、以 v5.8 為底稿重建，LibreOffice 重算後皆與 v5.8 逐格一致（24,093 格不符 0、錯誤 0）；`restore_log` 未對應 0。
+- 測試：期望值改為 18,596 格、228 個具名範圍；新增 Interface D 節形狀檢查（單格與 15 欄分開）、`B4_` 分類檢查；情境 7 → 11（新增 `B4_Disc`、`B4_PeakMode`、`B4_Eps`＋`B4_CompMult`、`B4_MktIndex[6]`，輸入一律用具名範圍）；函數語意新增 MATCH、COUNTIF 文字條件、一列範圍 INDEX、IF 文字＋ISNUMBER、CHOOSE、EXP(ε*LN(x))、公式內具名範圍。每個情境加防空轉檢查（改變格數與 Interface 格數寫入統計）。
+- 引擎：`engine/core.py` 新增 pycel 與 openpyxl 3.1 的具名範圍讀取相容轉接（公式內使用具名範圍時需要；只改名稱目的地的讀法，不涉計算）；新增情境輸入鍵 `NAME`／`NAME[k]`。
+- parity 比對：兩邊都是錯誤值、僅錯誤代碼不同（引擎 `#VALUE!`、LibreOffice `#DIV/0!`）者單獨列帳、不計入不符；詳見 `docs/reports/20261001_v5.8_sync.md`。
+- 網站：新增「Block 4」頁（層級、世代、成本情境選擇器；單價表、市場候選表、理論營收（理想上限）、成本與攤提兩種口徑並列、推導鏈）；總覽頁排除 Block 4 名稱；README 補 `B4_` 說明。
+- 檔案：v5.7 以 `git mv` 移入 `model/archive/`；`model/CURRENT` 改為 v5.8。
+- CI：timeout 30 → 60 分鐘（11 個情境各建一次引擎，全套約 25 分鐘）。
+
 ## 20261001_Tokenomics_v5.7.xlsx（取代 v5.6；第 6 輪，PR #6）
 
 - Commit：見 PR #6 的合併提交（合併後補上雜湊）。

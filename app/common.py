@@ -6,6 +6,7 @@
 - DRV_：Perf 推導鏈——僅供顯示。
 - CAL_：Calib 校準值與驗證表——僅供顯示。
 - TRN_：Training 推導鏈（Block 3）——僅供顯示。
+- B4_：Block 4 顯示或內部用——下游模型不得連結（v5.8）。
 列標籤與單位取具名範圍所在列的欄 A、欄 B（由名稱解析出列號，不搜尋標籤、不寫死位址）。
 """
 from __future__ import annotations
@@ -42,7 +43,7 @@ def is_downstream_name(name: str) -> bool:
     return name.startswith("IF_") and not name.startswith("IF_Hdr")
 
 
-@st.cache_resource(show_spinner="首次載入：以公式引擎建立並重算整份 Excel（約 10–15 秒）…")
+@st.cache_resource(show_spinner="首次載入：以公式引擎建立並重算整份 Excel（約 1 分鐘）…")
 def get_engine() -> Engine:
     return Engine()
 
@@ -263,3 +264,119 @@ def evidence_table(eng: Engine) -> pd.DataFrame:
     header = [str(h) for h in grid[start]]
     rows = [r for r in grid[start + 1:] if any(x != "" for x in r)]
     return pd.DataFrame(rows, columns=header)
+
+
+# ── Block 4（價格、理論營收、成本與攤提）──────────────────────────
+# 欄位映射：Interface D 節（v5.8）。形狀兩種：單格（含文字）與 15 欄（5 世代 × 3 成本情境，與 IF_HdrGen 同寬）。
+# B4_ 名稱屬顯示或內部用，下游模型不得連結；網站只讀不寫。
+B4_PRICE_TYPES = (   # (Interface 名稱前綴, 欄位簡稱)；每一列都帶層級，欄＝token 類型（CLAUDE.md 1a）
+    "PriceFresh", "PriceCached", "PriceThink", "PriceOut", "PriceRef", "FrontRef", "FrontModel")
+B4_REV_TIER = ("RevGW", "RevGWFront")                 # 依層級：每 GW 理論營收（理想上限）
+B4_REV_FLEET = ("IF_RevGWFleet", "IF_RevGWFleetFront")  # 機隊（付費服務、層級組合）
+B4_COST_METRICS = ("CacheStore", "AmortBU", "AmortTD", "FullCost")
+# 市場候選表：B4_Mkt* 欄序（依工作表欄序排列，欄名取範圍正上方一格的表頭文字）
+B4_MKT_NAMES = ("B4_MktModel", "B4_MktVendor", "B4_MktCountry", "B4_MktOpen", "B4_MktIn", "B4_MktCache",
+                "B4_MktOut", "B4_MktPeak", "B4_MktIndex")
+CN_COUNTRY = "中國"   # 顯示標記用：國別欄等於此值的列標為中國廠商（Excel 沒有專屬旗標欄；已列入報告）
+
+
+B4_IF_TIER_METRICS = B4_PRICE_TYPES + ("Life", "CacheStore", "AmortBU", "AmortTD", "FullCost") + B4_REV_TIER
+B4_IF_SCALARS = B4_REV_FLEET + ("IF_ServeShare", "IF_FreeShare")
+
+
+def is_block4_name(name: str) -> bool:
+    """Block 4 的 Interface 名稱（Interface D 節）：IF_<指標>_<層級> 與機隊、占比純量。"""
+    return name in B4_IF_SCALARS or any(name.startswith(f"IF_{m}_") for m in B4_IF_TIER_METRICS)
+
+
+def scalar(eng: Engine, name: str) -> dict:
+    """單格具名範圍（數值或文字）→ {label, unit, value}；標籤與單位取該列欄 A、欄 B。"""
+    sheet, ref = eng.name_ref(name)
+    _, r1, _, _ = range_boundaries(ref)
+    return {"label": _label(str(eng.get(sheet, f"A{r1}"))), "unit": eng.get(sheet, f"B{r1}"), "value": eng.get_name(name)}
+
+
+def pick(s: dict, gen: str, case: str):
+    """15 欄序列中，取指定世代與成本情境的值。"""
+    for g, c, v in zip(s["gens"], s["cases"], s["values"]):
+        if g == gen and c == case:
+            return v
+    raise KeyError((gen, case))
+
+
+def generations(eng: Engine) -> list[str]:
+    return list(dict.fromkeys(eng.get_name("IF_HdrGen")))
+
+
+def price_table(eng: Engine, tier_map: dict[str, str]) -> pd.DataFrame:
+    """單價表：列＝層級；欄＝token 類型（新鮮輸入、快取輸入、思考、可見輸出、參考請求混合、前緣混合、前緣模型）。
+    欄名取 Excel 標籤（去掉層級以外的共同尾綴）與單位；單價不隨世代與成本情境改變（K9：一份價格快照）。"""
+    cols: dict[str, dict] = {}
+    for key in B4_PRICE_TYPES:
+        for tier, title in tier_map.items():
+            s = scalar(eng, f"IF_{key}_{tier}")
+            head = s["label"] if s["unit"] in (None, "") or str(s["unit"]) in s["label"] else f"{s['label']}（{s['unit']}）"
+            cols.setdefault(head, {})[title] = fmt(s["value"]) if not isinstance(s["value"], str) else s["value"]
+    return pd.DataFrame(cols)
+
+
+def market_table(eng: Engine) -> pd.DataFrame:
+    """市場候選表（Cap_In F 節）：來源 B4_Mkt*；中國廠商以標記欄區分；空值顯示為「（空白）」。"""
+    df = _named_table(eng, "B4_Mkt", list(B4_MKT_NAMES))
+    df = df.map(lambda v: "（空白）" if v == "" else fmt(v))   # 全部轉字串（欄內數值與「（空白）」並存）
+    df.insert(0, "標記", ["中國廠商" if c == CN_COUNTRY else "" for c in eng.get_name("B4_MktCountry")])
+    return df
+
+
+def rev_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
+    """理論營收（理想上限）：列＝IF_RevGW_<層級>、IF_RevGWFront_<層級>、機隊兩列；欄＝世代；只取所選成本情境。
+    機隊列是 Luna／Sol／Astra 依付費 token 組合（B4_MixPaid）加權的 1 GW 參考機隊，不是單一層級。"""
+    rows = {}
+    for key in B4_REV_TIER:
+        s = interface_series(eng, f"IF_{key}_{tier}")
+        rows[f"{tier}｜{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+    for n in B4_REV_FLEET:
+        s = interface_series(eng, n)
+        rows[f"機隊（層級組合）｜{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+    return pd.DataFrame(rows).T
+
+
+def cost_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
+    """成本與攤提：列＝快取儲存、攤提（自下而上、由上而下）、全成本；欄＝世代；每列前綴層級；只取所選成本情境。"""
+    rows = {}
+    for key in B4_COST_METRICS:
+        s = interface_series(eng, f"IF_{key}_{tier}")
+        rows[f"{tier}｜{s['label']}（{s['unit']}）"] = {g: v for g, c, v in zip(s["gens"], s["cases"], s["values"]) if c == case}
+    return pd.DataFrame(rows).T
+
+
+def b4_chain(eng: Engine, tier: str, gen: str, case: str) -> pd.DataFrame:
+    """推導鏈（單一層級、世代、成本情境）：每 GW 產出 → 利用率 → 有效單價 → 理論營收 → 服務成本 → 快取儲存 → 攤提 → 全成本。
+    全部讀既有 IF_ 具名範圍（不新增計算）；每列標明層級與 token 類型。"""
+    steps: list[tuple[str, str, str, str, object]] = []
+
+    def add_series(step, name, tokens):
+        s = interface_series(eng, name)
+        steps.append((step, tokens, s["label"], s["unit"], pick(s, gen, case)))
+
+    def add_scalar(step, name, tokens):
+        s = scalar(eng, name)
+        steps.append((step, tokens, s["label"], s["unit"], s["value"]))
+
+    add_series("1 每 GW 產出", f"IF_TokGW_{tier}", "總 token（100%）")
+    add_scalar("2 利用率", "IF_Util", "（不分 token 類型）")
+    for key, tokens in (("PriceFresh", "新鮮輸入"), ("PriceCached", "快取輸入"), ("PriceThink", "思考"), ("PriceOut", "可見輸出"),
+                        ("PriceRef", "參考請求混合"), ("FrontRef", "參考請求混合（前緣）")):
+        add_scalar("3 有效單價", f"IF_{key}_{tier}", tokens)
+    add_series("4 理論營收（理想上限）", f"IF_RevGW_{tier}", "參考請求混合（OpenAI 有效）")
+    add_series("4 理論營收（理想上限）", f"IF_RevGWFront_{tier}", "參考請求混合（前緣）")
+    add_series("5 服務成本", f"IF_CostPre_{tier}", "新鮮輸入（prefill）")
+    add_series("5 服務成本", f"IF_CostCache_{tier}", "快取輸入（prefill）")
+    add_series("5 服務成本", f"IF_CostDec_{tier}", "思考＋可見輸出（decode）")
+    add_series("6 快取儲存", f"IF_CacheStore_{tier}", "快取輸入")
+    add_scalar("7 攤提", f"IF_Life_{tier}", "（商業壽命）")
+    add_series("7 攤提", f"IF_AmortBU_{tier}", "參考請求混合（自下而上）")
+    add_series("7 攤提", f"IF_AmortTD_{tier}", "參考請求混合（由上而下）")
+    add_series("8 全成本", f"IF_FullCost_{tier}", "參考請求混合（自下而上攤提）")
+    return pd.DataFrame([(a, tier, b, c, d, e) for a, b, c, d, e in steps],
+                        columns=["步驟", "層級", "token 類型", "項目（Excel 標籤）", "單位", "值"])

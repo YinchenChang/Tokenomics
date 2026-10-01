@@ -12,6 +12,8 @@ from parity_lib import compare, excel_values, lo_recalc
 SHEET = "輸入頁"   # 含中文頁名
 # 輸入（B 欄）：B1=3.7, B2=-2.5, B3=0.25, B4=文字, B5=空白, B6=10, B7=0, B8="SLO 不可達"
 INPUTS = {"F1": "A", "F2": "B", "F3": "A", "F4": "B", "G1": 1.5, "G2": 2, "G3": 0.5, "G4": 1,   # v5.5：Tech_Registry 掛鉤彙總、Training 條件加總
+          "H1": "a", "H2": "b", "H3": "c", "H4": "d", "J1": 1e9, "J2": 5, "J3": 1e9, "J4": 3,       # v5.8：MATCH／COUNTIF 文字條件／IF 文字
+          "M1": 10, "M2": 20, "M3": 30, "M4": 40, "Q1": 0, "Q2": 0.5,                           # v5.8：一列範圍 INDEX、EXP(ε*LN(x))
           "B1": 3.7, "B2": -2.5, "B3": 0.25, "B4": "abc", "B6": 10, "B7": 0, "B8": "SLO 不可達"}
 FORMULAS = [
     "=2^10", "=B1^2", "=B3^0.5", "=(-8)^(1/3)", "=2^-2", "=B6^B3",            # ^
@@ -32,6 +34,16 @@ FORMULAS = [
     # v5.5：Tech_Registry 掛鉤彙總（同代碼多條目取乘積）與 Training 的 SUMPRODUCT 條件加總
     '=EXP(SUMPRODUCT((F1:F4="A")*LN(G1:G4)))', '=EXP(SUMPRODUCT((F1:F4="B")*LN(G1:G4)))', '=EXP(SUMPRODUCT((F1:F4="Z")*LN(G1:G4)))',
     '=SUMPRODUCT((F1:F4="A")*G1:G4)', "=SUMPRODUCT((F1:F4=F1)*G1:G4)", "=SUMPRODUCT(G1:G4,G1:G4)",
+    # v5.8（Block 4）：新函數與語意
+    '=MATCH(MIN(J1:J4),J1:J4,0)', '=MATCH("c",H1:H4,0)', '=INDEX(H1:H4,MATCH(MIN(J1:J4),J1:J4,0))',   # MATCH 精確比對→列號→INDEX 取文字
+    '=INDEX(H1:H4,MATCH(1E9,J1:J4,0))',                                                      # 重複值：取第一筆
+    '=COUNTIF(J1:J4,"<1E9")', '=COUNTIF(J1:J4,"<1000000000")', '=COUNTIF(J1:J4,"<1")',      # 文字條件含科學記號
+    "=INDEX(M1:P1,1,3)", "=INDEX(M1:P1,1,1)", "=INDEX(F1:G1,1,2)",                          # 一列範圍的三參數 INDEX
+    '=IF(COUNTIF(J1:J4,"<1")=0,"無合格",MIN(J1:J4))', '=ISNUMBER(IF(COUNTIF(J1:J4,"<1")=0,"無合格",MIN(J1:J4)))',
+    '=ISNUMBER(IF(COUNTIF(J1:J4,"<1E9")=0,"無合格",MIN(J1:J4)))',
+    "=CHOOSE(2,B1,B2)", "=CHOOSE(B7+2,B1,B2,B6)",
+    "=EXP(Q1*LN(B1*B6))", "=EXP(Q2*LN(B1*B6))", "=EXP(Q1*LN(B3))",                          # ε＝0 時為 1
+    "=FN_X*2", "=MIN(FN_R)", "=EXP(FN_E*LN(B6))", "=INDEX(FN_R,2,1)",                         # 公式內的具名範圍（單格與範圍）
     "=B1=B1", '=B4="abc"', "=B1<>B6", '=B8<>"x"', "=B5=0", '=B4=B8',
 ]
 
@@ -46,6 +58,9 @@ def results(tmp_path_factory):
         ws[k] = v
     for i, f in enumerate(FORMULAS, start=1):
         ws[f"D{i}"] = f
+    from openpyxl.workbook.defined_name import DefinedName
+    for nm, ref in (("FN_X", "$B$1"), ("FN_E", "$Q$2"), ("FN_R", "$J$1:$J$4")):
+        wb.defined_names[nm] = DefinedName(nm, attr_text=f"'{SHEET}'!{ref}")
     src = d / "fn.xlsx"
     wb.save(src)
     eng = Engine(src)

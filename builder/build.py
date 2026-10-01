@@ -20,7 +20,8 @@ wb = openpyxl.load_workbook(BASE)
 SNAP = snapshot(wb)
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
-          "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train"]:
+          "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train",
+          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev"]:
     if n in wb.sheetnames: del wb[n]
 def clear(ws, r0, c1=1, c2=30):
     for r in range(r0, ws.max_row + 1):
@@ -57,14 +58,30 @@ interface_b3(wb, TRN, ifr, TI)
 checks(wb, CAL, PR, SR, U)
 _r, _rows = checks_b3(wb, TRN, TI, CAL, PB)
 write_checks_b3(wb, _r, _rows, SP)
+# ---- v5.8: Block 4 ----
+from block4 import cap_in, price_frontier, capability, cache_store, fleet, amortize, theory_rev, sens_rev, interface_b4, checks_b4, sources_b4, evidence_b4
+K4 = cap_in(wb)
+P4 = price_frontier(wb, K4, TR)
+C4 = capability(wb, K4, P4, TRN, TI)
+S4 = cache_store(wb)
+F4 = fleet(wb, K4)
+A4 = amortize(wb, F4, P4, S4)
+T4 = theory_rev(wb, F4, A4, S4)
+K4["_capf"] = P4["capf"]
+sens_rev(wb, K4, T4, A4)
+interface_b4(wb, last_row(wb["Interface"]) + 2, P4, S4, A4, T4)
+checks_b4(wb, P4, F4, A4, T4, U)
 sources(wb)
+sources_b4(wb)
 readme(wb)
 # ---- v5.7: write back Excel-owned inputs, then the evidence register (created only if absent) ----
 _m, _c, _d = restore(wb, SNAP, os.path.join(OUTDIR, "restore_log.txt"))
 print(f"restore: matched {_m}, Excel kept over code {_c}, unmatched {len(_d)}")
 evidence_sheet(wb)
+print("evidence rows added:", evidence_b4(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
-         "Train_In","Perf_Batch","Training","Sens_Train","Interface","Energy","NonNV","Sensitivity","Checks","Sources","DB_Evidence"]
+         "Train_In","Perf_Batch","Training","Sens_Train",
+         "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev","Interface","Energy","NonNV","Sensitivity","Checks","Sources","DB_Evidence"]
 wb._sheets = [wb[n] for n in order]
 # ---- v5.3: Block 1 Checks — reference cells instead of literals (CC 第 1 輪第 6 節第 5 項) ----
 from common import put, F_IN
@@ -109,5 +126,5 @@ for n, c in [("TR_ID","A"),("TR_Tech","B"),("TR_Hook","C"),("TR_Acts","D"),("TR_
 nm("TR_HookCode", f"Tech_Registry!$A${h0}:$A${h1}"); nm("TR_HookName", f"Tech_Registry!$B${h0}:$B${h1}")
 nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
 wb.save(out)
-import json; json.dump({"PR":PR,"CAL":CAL,"SR":SR,"PB":PB,"TRN":TRN,"STR":STR,"TI":TI,"TR":{k:v for k,v in TR.items() if not k.startswith("_")},"U":{f"{k[0]}_{k[1]}":v for k,v in U.items()},"SP":SP,"AR":AR}, open(os.path.join(OUTDIR, "rows.json"),"w"))
+import json; json.dump({"K4":K4,"P4":P4,"C4":C4,"S4":S4,"F4":F4,"A4":{k:v for k,v in A4.items() if not k.startswith("cost")},"T4":T4,"PR":PR,"CAL":CAL,"SR":SR,"PB":PB,"TRN":TRN,"STR":STR,"TI":TI,"TR":{k:v for k,v in TR.items() if not k.startswith("_")},"U":{f"{k[0]}_{k[1]}":v for k,v in U.items()},"SP":SP,"AR":AR}, open(os.path.join(OUTDIR, "rows.json"),"w"))
 print("saved")

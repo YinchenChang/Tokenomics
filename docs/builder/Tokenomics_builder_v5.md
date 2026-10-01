@@ -1,0 +1,1791 @@
+# Tokenomics v5 建檔程式（v5.7 產生器：Block 2＋Block 3；Excel 優先）
+
+用途：Block 2、Block 3 的公式頁由程式產生，確保公式一致、可重建。**v5.7 起輸入值由 Excel 擁有**：要改輸入，直接改 Excel（藍字格）；builder 重建時會讀回所有藍字輸入。程式內的數值只是「新增輸入列時的預設值」。
+
+還原步驟：
+1. 取得最新程式與 Excel（2026-10-01 起以 repo 為準）：
+   - 程式：repo `builder/` 各檔，或本檔（repo 內位於 `docs/builder/Tokenomics_builder_v5.md`）；以 Python 解析本檔 ```python 區塊，依標題檔名寫入 `/home/claude/b2/`。
+   - Excel：讀 `https://raw.githubusercontent.com/YinchenChang/Tokenomics/master/model/CURRENT` 取得現行檔名，再下載 `model/<檔名>`。
+2. 執行 `python3 build.py <底稿.xlsx> <輸出.xlsx>`（v5.7 起路徑以參數傳入，不再寫死在程式中）；`restore_log.txt` 與 `rows.json` 寫在輸出檔同一資料夾。
+3. `build.py` 流程：(1) `preserve.snapshot` 讀取 Block 2、3 各頁與 Spec_Rack 第 21 列以下所有藍字輸入，以「工作表＋欄 A 標籤（含重複序號）＋欄位」為鍵；(2) 刪除並重建 Block 2、3 各頁，清除 Interface 第 17 列、Checks 第 12 列、Sources 第 23 列、README 第 4 列以下；(3) `preserve.restore` 把 Excel 的輸入值寫回，並輸出 `restore_log.txt`（列出 Excel 值與程式預設不同的格、以及找不到對應的輸入）；(4) `DB_Evidence` 只在不存在時建立，之後不覆寫。Block 1 其餘內容與 12 個 Block 1 具名範圍保留。
+4. 執行 `python3 build.py`，再以 `/mnt/skills/public/xlsx/scripts/recalc.py` 重算，須為零錯誤；檢查 restore_log 的「unmatched」應為 0，若不為 0，代表有輸入列改名或刪除，需逐筆確認。
+
+修改輸入的方式（v5.7 起）：
+- 改既有輸入：直接改 Excel（或在 chat 端以 openpyxl 改 Excel 後重建），不要改程式中的預設值。
+- 新增輸入列：在程式中加列並給預設值；重建後該列取程式預設。
+- 改列標籤（欄 A）：會使該列失去對應，restore_log 會列為 unmatched；改標籤時須同步確認數值。
+
+驗證紀錄：
+- v5.5（2026-09-30）：公式 16,245 格；具名範圍 117 個。Block 2 Hopper 欄對 v5.4 差異 0.0505–0.0506%（Andy 接受，門檻 0.06%）。
+- v5.6（2026-10-01）：公式 16,251 格；具名範圍 142 個。Block 1、2 與 v5.5 逐格一致。
+- v5.7 builder 參數化（2026-10-01）：以 repo master 的 v5.7 為底稿重建，與 repo 檔逐格一致（20,539 格不符 0；repo 檔與 chat 交付檔位元組完全相同）。
+- v5.7（2026-10-01，以 v5.6 為底稿）：公式 16,251 格、零錯誤；具名範圍 144 個（＋IF_TrainGenDefaultName、IF_TrainGenAltName）。藍字輸入 770 格全數對應、Excel 與程式預設差異 0 格；除 README 與新頁 DB_Evidence 外，對 v5.6 逐格一致（20,391 格不符 0）。Excel 優先測試：在 Excel 改 Train_In rollout 效率 0.85→0.8、Arch!E20 2→3、DB_Evidence 新增一列，重建後三者皆保留。冪等：以 v5.7 重跑 20,539 格不符 0。
+
+## common.py
+
+```python
+# Shared styling + helpers for Tokenomics v5.1 builder
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter as L
+
+BLUE, BLACK, GREEN = "FF0000FF", "FF000000", "FF008000"
+F_IN   = Font(name="Arial", size=10, color=BLUE)
+F_CALC = Font(name="Arial", size=10, color=BLACK)
+F_LINK = Font(name="Arial", size=10, color=GREEN)
+F_BOLD = Font(name="Arial", size=10, bold=True)
+F_HLINK= Font(name="Arial", size=10, bold=True, color=GREEN)
+F_TITLE= Font(name="Arial", size=13, bold=True)
+F_NOTE = Font(name="Arial", size=9, color="FF595959")
+FILL_SEC = PatternFill("solid", fgColor="FFD9E1F2")
+FILL_KEY = PatternFill("solid", fgColor="FFFFF2CC")
+WRAP = Alignment(wrap_text=True, vertical="top")
+
+def put(ws, ref, v, font=None, fmt=None, fill=None, wrap=False):
+    c = ws[ref]; c.value = v
+    if font is None:
+        if isinstance(v, str) and v.startswith("="):
+            font = F_LINK if "!" in v else F_CALC
+        elif isinstance(v, (int, float)):
+            font = F_IN
+        else:
+            font = F_CALC
+    c.font = font
+    if fmt: c.number_format = fmt
+    if fill: c.fill = fill
+    if wrap: c.alignment = WRAP
+    return c
+
+def section(ws, row, text, ncols):
+    for i in range(1, ncols + 1):
+        ws.cell(row=row, column=i).fill = FILL_SEC
+    put(ws, f"A{row}", text, F_BOLD, fill=FILL_SEC)
+
+def title(ws, t1, t2):
+    put(ws, "A1", t1, F_TITLE)
+    put(ws, "A2", t2, F_NOTE)
+```
+
+## inputs.py
+
+```python
+# Input sheets: Spec_Rack (Block 2 rows), Arch, Serving, Energy inputs
+from common import *
+
+GENS = ["C", "D", "E", "F", "G"]          # Hopper, GB200, GB300, VR200, RU in Spec_Rack
+
+def spec_rack(wb):
+    ws = wb["Spec_Rack"]
+    R = {}
+    section(ws, 21, "B2. 效能規格（Block 2；藍字＝輸入；每 GPU 封裝）", 8)
+    put(ws, "H4", "標記／來源", F_BOLD)
+    rows = [
+      ("prec",  "服務精度", None, ["FP8", "NVFP4", "NVFP4", "NVFP4", "NVFP4"], None,
+       "Hopper 不支援 FP4，以 FP8 服務"),
+      ("pk_b",  "峰值 dense（基準）PF/GPU", "#,##0.000", [1.979, 10, 15, 35, 73], None,
+       "Interested-party（NVIDIA 規格）：H100 FP8 dense 1,979 TF（v5.5 更正；v5.4 誤填 BF16 的 989）；GB200 FP4 10 PF（HGX B200 為 9）；B300 15；Rubin NVFP4 訓練 35；RU＝104×35/50 推估 [Derived]。S28"),
+      ("pk_h",  "峰值（高情境：NVFP4 推論口徑）PF/GPU", "#,##0.000", [1.979, 10, 15, 50, 104], None,
+       "Rubin 50 PF 含自適應壓縮；RU NVL576 15 EF ÷ 144。J2：只作高情境"),
+      ("hbm",   "HBM 容量 GB/GPU", "#,##0", [80, 186, 288, 288, 1024], None,
+       "GB200 NVL72 13.4 TB ÷ 72；InferenceX 以 192 計。RU HBM4e 約 1 TB/封裝。S28"),
+      ("bw",    "HBM 頻寬 TB/s/GPU", "#,##0.00", [3.35, 8, 8, 22, 32], None,
+       "Rubin 22 TB/s（NVIDIA 2026 上修）；RU 4.6 PB/s ÷ 144。S28"),
+      ("link",  "EP 通訊頻寬 TB/s/GPU（單向）", "#,##0.00", [0.05, 0.9, 0.9, 1.8, 1.8], None,
+       "Hopper EP 跨節點走 400G IB；NVLink 5＝900 GB/s；NVLink 6＝1.8 TB/s（InferenceX 規格表 S20）；RU 取同 VR [Assumed]"),
+      ("dom",   "Scale-up 域 GPU 數", "#,##0", [8, 72, 72, 72, 144], None, ""),
+      ("ep",    "decode EP 基準寬度", "#,##0", [64, 32, 32, 32, 64], None,
+       "GB300 公開配方 dep32（S21）；Hopper 跨節點 [Analogy DeepSeek]；RU [Assumed]。權重放不下時自動加寬"),
+      ("be",    "專家權重 bytes/param", "0.0000", [1.0, 0.5625, 0.5625, 0.5625, 0.5625], None,
+       "NVFP4＝4 bit＋每 16 值 8 bit scale＝0.5625 B；Hopper FP8"),
+      ("bn",    "非專家權重 bytes/param", "0.00", [1, 1, 1, 1, 1], None, "注意力、路由、embedding 以 FP8 存放 [Analogy V4]"),
+      ("ninst", "每 prefill 實例 GPU 數（算 TTFT）", "#,##0", [8, 4, 4, 4, 8], None,
+       "GB300 配方 dep4 prefill（S21）"),
+      ("gpuw",  "GPU 功率 W/封裝（能量用）", "#,##0", [700, 1200, 1400, 1800, 3600], None,
+       "Interested-party；Rubin 約 1.8 kW、RU 推估。僅用於能量下限估算"),
+      ("ehbm",  "HBM 存取能量 pJ/byte", "#,##0", [31, 25, 25, 20, 18], None,
+       "Analogy：HBM3 約 3.9 pJ/bit、HBM3e 約 3、HBM4 約 2.5；區間 ±30%（S29）"),
+    ]
+    r = 22
+    for key, lab, fmt, vals, _, note in rows:
+        put(ws, f"A{r}", lab)
+        for col, v in zip(GENS, vals):
+            put(ws, f"{col}{r}", v, fmt=fmt)
+        put(ws, f"H{r}", note, F_NOTE)
+        R[key] = r; r += 1
+    # effective peak per J2 selector
+    put(ws, f"A{r}", "計算用峰值 PF/GPU（依 Serving 峰值情境）", F_BOLD)
+    for col in GENS:
+        put(ws, f"{col}{r}", f"=IF(Serving!$C$16=2,{col}{R['pk_h']},{col}{R['pk_b']})", fmt="#,##0.000", fill=FILL_KEY)
+    R["pk"] = r; r += 1
+    put(ws, f"A{r}", "Ridge point（FLOP/byte）")
+    for col in GENS:
+        put(ws, f"{col}{r}", f"={col}{R['pk']}*1000/{col}{R['bw']}", fmt="#,##0")
+    R["ridge"] = r; r += 2
+    # ---- Block 3: training peaks (dense, per package) ----
+    section(ws, r, "B3. 訓練峰值（Block 3；dense；每 GPU 封裝；MFU 以 FP8 列為分母，J7）", 8); r += 1
+    trows = [
+      ("tbf16", "BF16 dense PF/GPU", [0.989, 2.5, 2.5, 4.0, 8.0],
+       "Interested-party（NVIDIA）：H100 989 TF；GB200／GB300 2.5；VR NVL72 288 PF ÷ 72＝4.0（S36）；RU 取 VR×2 [Assumed]"),
+      ("tfp8", "FP8 dense PF/GPU（訓練基準，J7）", [1.979, 5, 5, 17.5, 34.7],
+       "Interested-party（NVIDIA）：H100 1,979 TF；GB200／GB300 FP8 5 PF（B300 未提升 FP8）；VR NVL72 1,260 PF ÷ 72＝17.5（S36）；RU NVL576 5 EF ÷ 144 [模型內建知識，待查]"),
+      ("tfp4", "NVFP4 訓練 dense PF/GPU（Tech_Registry 情境）", [1.979, 10, 15, 35, 73],
+       "Hopper 無 FP4，取 FP8；GB200 10（NVIDIA：Rubin 為 Blackwell 3.5 倍）；GB300 15 [Assumed，區間 10–15]；VR 2,520 PF ÷ 72＝35（S36）；RU＝VR × 104/50 [Derived]"),
+    ]
+    for key, lab, vals, note in trows:
+        put(ws, f"A{r}", lab)
+        for col, v in zip(GENS, vals):
+            put(ws, f"{col}{r}", v, fmt="#,##0.000")
+        put(ws, f"H{r}", note, F_NOTE)
+        R[key] = r; r += 1
+    ws.column_dimensions["H"].width = 70
+    return R
+
+def arch(wb):
+    ws = wb.create_sheet("Arch", 3)
+    title(ws, "Arch — 三層級代表架構（D5：每層級一個代表；參數為公開模型卡或推估）",
+          "Luna／Sol 以公開權重模型為物理代表 [Analogy：對應封閉層級]；Astra 為封閉前沿代理，KV 以情境處理（J1）")
+    for c, w in zip("ABCDEFG", [30, 12, 16, 16, 18, 16, 80]): ws.column_dimensions[c].width = w
+    for c, v in zip("ABCDEFG", ["參數", "單位", "Luna（低層）", "Sol（中層）", "Astra（頂層）", "標記", "來源／說明"]):
+        put(ws, f"{c}4", v, F_BOLD)
+    R = {}
+    rows = [
+      ("rep", "代表架構", "", ["DeepSeek V4-Flash 類", "DeepSeek V4-Pro 類", "封閉前沿代理"], None, "Decision", "D5；Andy 2026-09-30 確認"),
+      ("T", "總參數", "B", [284, 1600, 4000], "#,##0", "Verified／Assumed", "V4-Flash 284B、V4-Pro 1.6T（模型卡，S27）；Astra 4T [Assumed，區間 2–10T]"),
+      ("A", "啟用參數", "B", [13, 49, 180], "#,##0", "Verified／Assumed", "V4-Flash 13B、V4-Pro 49B；Astra 180B [Assumed，區間 60–250B]"),
+      ("L", "層數", "層", [43, 61, 100], "#,##0", "Verified／Assumed", "V4-Pro 61（config.json）；V4-Flash 43（二手）；Astra [Assumed]"),
+      ("d", "d_model", "", [4096, 7168, 12288], "#,##0", "Verified／Derived", "V4-Pro 7168；V4-Flash 由專家維度反推；Astra [Assumed]"),
+      ("hq", "query heads", "", [64, 128, 96], "#,##0", "Verified／Analogy", "V4-Pro 128；V4-Flash 取 Pro 一半 [Analogy]"),
+      ("hd", "head_dim", "", [512, 512, 128], "#,##0", "Verified／Assumed", "V4 單一 512 維 KV head；Astra 128"),
+      ("E", "routed experts", "", [256, 384, 512], "#,##0", "Verified／Assumed", ""),
+      ("k", "每 token 啟用 routed experts", "", [6, 6, 16], "#,##0", "Verified／Assumed", ""),
+      ("s", "shared experts", "", [1, 1, 1], "#,##0", "Verified", ""),
+      ("V", "vocab", "", [129280, 129280, 200000], "#,##0", "Verified／Assumed", ""),
+      ("ff", "全注意力層比例", "%", [0.5, 0.5, 1], "0%", "Verified／Assumed", "V4：CSA 與 HCA 約各半；Astra 全層注意力"),
+      ("cap", "全注意力層跨度上限（0＝全上下文）", "tok", [4224, 4224, 0], "#,##0", "Derived", "V4 CSA：top-k 1,024 壓縮塊 × 4 ＋ 128 窗口"),
+      ("comp", "其他層壓縮比", "x", [128, 128, 1], "#,##0", "Verified", "V4 HCA 128× 壓縮"),
+      ("win", "其他層滑動窗", "tok", [128, 128, 0], "#,##0", "Verified", ""),
+      ("kvsel", "Astra KV 情境（1 混合／2 全層 MLA／3 GQA-8）", "選擇", [None, None, 2], "0", "Decision", "J1：基準 2（Andy 2026-09-30 確認）"),
+      ("kv1", "KV bytes/token — 情境 1", "B", [2795, 3965, 14976], "#,##0", "Derived／Assumed", "Luna 65×43、Sol 65×61（v4 推導，FP8 KV）；Astra 混合：26% 層 × 576 × 100 層（類 K3）"),
+      ("kv2", "KV bytes/token — 情境 2", "B", [2795, 3965, 57600], "#,##0", "Derived／Assumed", "Astra 全層 MLA：576 × 100"),
+      ("kv3", "KV bytes/token — 情境 3", "B", [2795, 3965, 204800], "#,##0", "Derived／Assumed", "Astra GQA-8：8 × 128 × 2 × 100"),
+    ]
+    r = 5
+    for key, lab, unit, vals, fmt, tag, note in rows:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c, v in zip("CDE", vals):
+            if v is not None: put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"F{r}", tag, F_NOTE); put(ws, f"G{r}", note, F_NOTE)
+        R[key] = r; r += 1
+    section(ws, r, "導出", 7); r += 1
+    der = [
+      ("kv", "KV bytes/token（採用）", "B", "=CHOOSE(IF({c}{kvsel}=\"\",1,{c}{kvsel}),{c}{kv1},{c}{kv2},{c}{kv3})", "#,##0"),
+      ("emb", "Embedding＋LM head 參數", "B", "={c}{V}*{c}{d}*2/1E9", "#,##0.00"),
+      ("pe", "每 routed expert 參數", "B", "=({c}{T}-{c}{A})/({c}{L}*({c}{E}-{c}{k}))", "0.0000"),
+      ("ne", "非專家參數（注意力、路由、embedding）", "B", "={c}{A}-{c}{L}*({c}{k}+{c}{s})*{c}{pe}", "#,##0.0"),
+      ("ex", "專家參數", "B", "={c}{T}-{c}{ne}", "#,##0.0"),
+      ("attc", "注意力 FLOPs／每個被注意的 token", "FLOP", "=4*{c}{hq}*{c}{hd}*{c}{L}", "#,##0"),
+      ("kv128", "128K 上下文每序列 KV", "GB", "={c}{kv}*128000/1E9", "#,##0.00"),
+    ]
+    for key, lab, unit, f, fmt in der:
+        R[key] = r
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c in "CDE":
+            m = {k: v for k, v in R.items()}; m["c"] = c
+            put(ws, f"{c}{r}", f.format(**m), fmt=fmt, fill=FILL_KEY if key == "kv" else None)
+        r += 1
+    put(ws, f"G{R['pe']}", "由公開總參數與啟用參數反推，確保總數吻合（v4 方法）", F_NOTE)
+    ws.freeze_panes = "C5"
+    return R
+
+def serving(wb):
+    ws = wb.create_sheet("Serving", 4)
+    title(ws, "Serving — 服務設定與各層級 SLO（主流：分離式 P/D、wide EP、attention DP、NVFP4、MTP、前綴快取）",
+          "藍字＝輸入。SLO 依 J3 採市場觀測輸出速度（Artificial Analysis 2026-09，S26）")
+    for c, w in zip("ABCDEF", [44, 14, 16, 16, 16, 90]): ws.column_dimensions[c].width = w
+    put(ws, "A4", "全域設定", F_BOLD); put(ws, "B4", "單位", F_BOLD); put(ws, "C4", "值", F_BOLD); put(ws, "D4", "標記", F_BOLD); put(ws, "E4", "", F_BOLD); put(ws, "F4", "說明", F_BOLD)
+    g = [
+      (5, "服務架構", "", "分離式 P/D＋wide EP＋attention DP", None, "Decision", "D6 與 Block 2 命題"),
+      (6, "MTP 草稿數 N", "tok", 3, "0", "Analogy", "DeepSeek MTP；區間 1–5"),
+      (7, "每個草稿 token 接受率 α", "%", 0.70, "0%", "Verified-measured", "SGLang 修正後 0.57→0.70（S21）；區間 0.6–0.8"),
+      (8, "每步期望接受 token a", "tok", "=(1-C7^(C6+1))/(1-C7)", "0.00", "Derived", "(1−α^(N+1))/(1−α)"),
+      (9, "HBM 保留比例（啟用值、工作區）", "%", 0.10, "0%", "Assumed", "區間 5–20%"),
+      (10, "非專家權重占可用 HBM 上限", "%", 0.20, "0%", "Assumed", "超過時自動以注意力 TP 切分"),
+      (11, "專家權重占可用 HBM 上限", "%", 0.40, "0%", "Assumed", "超過時自動加寬 EP"),
+      (12, "EP 啟用值 bytes/元素（dispatch＋combine）", "B", 3, "0.0", "Analogy", "FP8 dispatch 1 B＋BF16 combine 2 B"),
+      (13, "KV 讀取頻寬效率 η_mem", "%", 0.70, "0%", "Analogy", "區間 0.5–0.85"),
+      (14, "EP 通訊效率 η_link", "%", 0.70, "0%", "Analogy", "區間 0.5–0.85"),
+      (15, "快取命中 KV 載入頻寬", "TB/s/GPU", 0.10, "0.00", "Assumed", "主機記憶體／SSD 經 NIC 載入；區間 0.05–0.4。未計快取儲存成本"),
+      (16, "峰值情境（1＝dense 基準／2＝NVFP4 推論高）", "選擇", 1, "0", "Decision", "J2：基準 1"),
+      (17, "基準利用率（第 0 層）", "%", 0.60, "0%", "Assumed", "J6：Andy 尚未給值，暫沿用 OpenAI v0.5 的 60%（區間 40–80%）。Unit_Cost 同時輸出 100% 版"),
+      (18, "實測→生產效率折減", "x", 1.0, "0.00", "Assumed", "待 Andy 決定。基準測試為固定長度、穩態負載；生產環境另有長度變異、路由不均、故障。1.0＝不折減。作用：η_p、η_d 乘此值，每層延遲除以此值。第二來源（MLPerf、DeepSeek 自揭）目前均高於本模型，見 Calib H 節"),
+    ]
+    for r, lab, unit, v, fmt, tag, note in g:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit); put(ws, f"C{r}", v, fmt=fmt)
+        put(ws, f"D{r}", tag, F_NOTE); put(ws, f"F{r}", note, F_NOTE)
+    ws["C17"].fill = PatternFill("solid", fgColor="FFFFFF00"); ws["C18"].fill = PatternFill("solid", fgColor="FFFFFF00")
+    section(ws, 19, "各層級 SLO 與參考任務", 6)  # row 18 used by derating
+    for c, v in zip("ABCDEF", ["項目", "單位", "=Arch!C4", "=Arch!D4", "=Arch!E4", "說明"]):
+        put(ws, f"{c}20", v, F_HLINK if "!" in v else F_BOLD)
+    t = [
+      (21, "SLO：每用戶 decode 速度下限", "tok/s", [120, 65, 55], "#,##0", "Verified-measured（市場觀測）：GPT-5.6 Luna 約 120、GPT-5.6 Sol 約 68、GPT-6 Astra 約 52–56、Opus 5 約 54 tok/s（S26）。區間 Luna 100–300、Sol 50–100、Astra 30–75"),
+      (22, "TTFT 上限（只作檢查）", "s", [2, 3, 5], "0.0", "Assumed"),
+      (23, "參考 ISL（每次請求輸入）", "tok", [8192, 16384, 32768], "#,##0", "Assumed：Astra 用於長任務；上下文敏感度見 Sens_Perf"),
+      (24, "參考 OSL（含思考）", "tok", [1024, 2048, 4096], "#,##0", "Assumed"),
+      (25, "decode 平均上下文", "tok", ["=C23+C24/2", "=D23+D24/2", "=E23+E24/2"], "#,##0", "Derived"),
+      (26, "prefill 平均位置", "tok", ["=C23/2", "=D23/2", "=E23/2"], "#,##0", "Derived"),
+    ]
+    for r, lab, unit, vals, fmt, note in t:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"F{r}", note, F_NOTE)
+    for c in "CDE": ws[f"{c}21"].fill = FILL_KEY
+    return ws
+
+def energy_inputs(wb):
+    ws = wb.create_sheet("Energy")
+    title(ws, "Energy — 逐步能量下限與閉合檢查",
+          "物理下限＝FLOPs × pJ/FLOP ＋ HBM bytes × pJ/byte ＋ EP bytes × pJ/byte；閉合：下限功率 ≤ 機架平均用電（Block 1 輸入 Inputs!E10）")
+    for c, w in zip("ABCDEF", [44, 14, 14, 14, 16, 80]): ws.column_dimensions[c].width = w
+    put(ws, "A4", "輸入", F_BOLD)
+    put(ws, "A5", "GPU 功率中可歸於運算的比例"); put(ws, "B5", "%"); put(ws, "C5", 0.6, fmt="0%")
+    put(ws, "F5", "Assumed：pJ/FLOP＝GPU 功率 × 此比例 ÷ 峰值（滿載上限口徑），區間 0.4–0.8", F_NOTE)
+    put(ws, "A6", "EP 通訊能量 NVLink"); put(ws, "B6", "pJ/byte"); put(ws, "C6", 10, fmt="0")
+    put(ws, "F6", "Analogy：SerDes＋交換約 1–2 pJ/bit；區間 5–20", F_NOTE)
+    put(ws, "A7", "EP 通訊能量 IB（Hopper）"); put(ws, "B7", "pJ/byte"); put(ws, "C7", 40, fmt="0")
+    put(ws, "F7", "Analogy：含光模組與網卡；區間 20–80", F_NOTE)
+    return ws
+```
+
+## calib.py
+
+```python
+from common import *
+
+PTS = [  # col, use, gen idx, engine/date, MTP, s, ISL, OSL, measured, source
+ ("C", "擬合點 1", 3, "InferenceX 最佳前緣（約 2026-07）", 1, 72, 8192, 1024, 9384.4, "S22"),
+ ("D", "擬合點 2", 3, "InferenceX 最佳前緣（約 2026-07）", 1, 130, 8192, 1024, 3473.9, "S22"),
+ ("E", "驗證", 3, "SGLang＋MTP，2026-06", 1, 50, 8192, 1024, 11200, "S21"),
+ ("F", "驗證（舊軟體）", 3, "vLLM 無 MTP，2026-05-22", 0, 27, 8192, 1024, 6182, "S20"),
+ ("G", "驗證（舊軟體）", 2, "vLLM 無 MTP，2026-05-22", 0, 27, 8192, 1024, 2189, "S20"),
+ ("H", "驗證（口徑待查）", 2, "InferenceX 比較頁（0813）", 1, 110, 8192, 1024, 3795.5, "S23"),
+ ("I", "驗證（口徑待查）", 3, "InferenceX 比較頁（0813）", 1, 110, 8192, 1024, 6522.4, "S23"),
+]
+
+def calib(wb, SP, AR):
+    ws = wb.create_sheet("Calib", 5)
+    title(ws, "Calib — 以實測錨點校準效率係數（實測只校準係數，不取代推導）",
+          "錨點：DeepSeek V4-Pro（＝Sol 代表架構）、FP4、8K/1K、分離式 P/D，tok/s/GPU 為總 token 口徑。GB300 同一前緣上兩點聯立解出 η_d 與每層延遲；其餘各點為樣本外驗證")
+    for c, w in zip("ABCDEFGHIJ", [44, 12, 16, 16, 16, 16, 16, 16, 16, 60]): ws.column_dimensions[c].width = w
+    C = {}
+    section(ws, 4, "A. 輸入", 10)
+    put(ws, "A5", "η_p：prefill 達成峰值比例"); put(ws, "B5", "%"); put(ws, "C5", 0.30, fmt="0%")
+    put(ws, "J5", "Analogy：DeepSeek H800 線上 prefill 約 0.37（S30，待查）；區間 0.15–0.45。擬合結果對此不敏感（見 G 節）", F_NOTE)
+    section(ws, 7, "B. 錨點（每欄一個實測點）", 10)
+    hdr = [("A8", "項目"), ("B8", "單位")]
+    for a, b in hdr: put(ws, a, b, F_BOLD)
+    rows = [("use", "用途", ""), ("g", "世代索引", ""), ("gn", "世代", ""), ("eng", "軟體／日期", ""),
+            ("mtp", "MTP（1＝有）", ""), ("s", "每用戶速度", "tok/s"), ("isl", "ISL", "tok"), ("osl", "OSL", "tok"),
+            ("T", "實測 tok/s/GPU（總 token）", "tok/s"), ("src", "來源", ""), ("indep", "量測平台（獨立性）", ""), ("lab", "點位標籤（世代｜用途｜速度）", ""), ("basis", "口徑", "")]
+    r = 9
+    for key, lab, unit in rows:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit); r += 1
+    for col, use, g, eng, mtp, s, isl, osl, T, src in PTS:
+        put(ws, f"{col}{C['use']}", use, F_BOLD)
+        put(ws, f"{col}{C['g']}", g, fmt="0")
+        put(ws, f"{col}{C['gn']}", f"=INDEX(Spec_Rack!$C$4:$G$4,{col}{C['g']})")
+        put(ws, f"{col}{C['eng']}", eng, F_NOTE, wrap=True)
+        put(ws, f"{col}{C['mtp']}", mtp, fmt="0")
+        put(ws, f"{col}{C['s']}", s, fmt="#,##0")
+        put(ws, f"{col}{C['isl']}", isl, fmt="#,##0"); put(ws, f"{col}{C['osl']}", osl, fmt="#,##0")
+        put(ws, f"{col}{C['T']}", T, fmt="#,##0", fill=FILL_KEY)
+        put(ws, f"{col}{C['src']}", src, F_NOTE)
+        put(ws, f"{col}{C['indep']}", "InferenceX（SemiAnalysis）", F_NOTE, wrap=True)
+        put(ws, f"{col}{C['lab']}", f'={col}{C["gn"]}&"｜"&{col}{C["use"]}&"｜"&TEXT({col}{C["s"]},"0")&" tok/s"', wrap=True)
+        put(ws, f"{col}{C['basis']}", "總 token（輸入＋輸出）", F_NOTE, wrap=True)
+    put(ws, f"J{C['indep']}", "七個點全部來自同一平台（S21 為 SGLang 作者轉述 InferenceX 資料，不構成獨立來源）。第二來源見 H 節", F_NOTE, wrap=True)
+    ws.row_dimensions[C["eng"]].height = 30; ws.row_dimensions[C["lab"]].height = 30
+    section(ws, r, "C. 各點的模型量（Sol 架構；與 Perf 同一套公式）", 10); r += 1
+    g = lambda row: f"=INDEX(Spec_Rack!$C${row}:$G${row},{{X}}{C['g']})"
+    a = lambda row: f"=Arch!$D${row}"
+    mrows = [
+      ("P", "計算用峰值", "PF/GPU", "#,##0.000", g(SP["pk"])),
+      ("hbm", "HBM 容量", "GB", "#,##0", g(SP["hbm"])),
+      ("bw", "HBM 頻寬", "TB/s", "#,##0.00", g(SP["bw"])),
+      ("link", "EP 通訊頻寬", "TB/s", "#,##0.00", g(SP["link"])),
+      ("epb", "EP 基準寬度", "", "#,##0", g(SP["ep"])),
+      ("be", "專家 bytes/param", "B", "0.0000", g(SP["be"])),
+      ("bn", "非專家 bytes/param", "B", "0.00", g(SP["bn"])),
+      ("A", "啟用參數", "B", "#,##0", a(AR["A"])), ("L", "層數", "", "#,##0", a(AR["L"])),
+      ("d", "d_model", "", "#,##0", a(AR["d"])), ("k", "啟用專家", "", "#,##0", a(AR["k"])),
+      ("ne", "非專家參數", "B", "#,##0.0", a(AR["ne"])), ("ex", "專家參數", "B", "#,##0", a(AR["ex"])),
+      ("kv", "KV bytes/token", "B", "#,##0", a(AR["kv"])), ("attc", "注意力 FLOPs／被注意 token", "", "#,##0", a(AR["attc"])),
+      ("ff", "全注意力層比例", "%", "0%", a(AR["ff"])), ("cap", "跨度上限", "", "#,##0", a(AR["cap"])),
+      ("comp", "壓縮比", "", "#,##0", a(AR["comp"])), ("win", "滑動窗", "", "#,##0", a(AR["win"])),
+      ("ctxd", "decode 平均上下文", "tok", "#,##0", "={X}{isl}+{X}{osl}/2"),
+      ("attd", "decode 被注意 token", "tok", "#,##0", "={X}{ff}*IF({X}{cap}=0,{X}{ctxd},MIN({X}{ctxd},{X}{cap}))+(1-{X}{ff})*({X}{ctxd}/{X}{comp}+{X}{win})"),
+      ("Fd", "decode FLOPs/token", "GFLOP", "#,##0.0", "=(2*{X}{A}*1E9+{X}{attc}*{X}{attd})/1E9"),
+      ("ctxp", "prefill 平均位置", "tok", "#,##0", "={X}{isl}/2"),
+      ("attp", "prefill 被注意 token", "tok", "#,##0", "={X}{ff}*IF({X}{cap}=0,{X}{ctxp},MIN({X}{ctxp},{X}{cap}))+(1-{X}{ff})*({X}{ctxp}/{X}{comp}+{X}{win})"),
+      ("Fp", "prefill FLOPs/token", "GFLOP", "#,##0.0", "=(2*{X}{A}*1E9+{X}{attc}*{X}{attp})/1E9"),
+      ("usable", "可用 HBM", "GB", "#,##0", "={X}{hbm}*(1-Serving!$C$9)"),
+      ("tpa", "注意力 TP 度", "", "0", "=MAX(1,CEILING({X}{ne}*{X}{bn}/(Serving!$C$10*{X}{usable}),1))"),
+      ("epw", "EP 寬度", "", "#,##0", "=MAX({X}{epb},CEILING({X}{ex}*{X}{be}/(Serving!$C$11*{X}{usable}),1))"),
+      ("W", "每 GPU 權重", "GB", "#,##0.0", "={X}{ne}*{X}{bn}/{X}{tpa}+{X}{ex}*{X}{be}/{X}{epw}"),
+      ("n", "草稿數（無 MTP＝0）", "", "0", "=Serving!$C$6*{X}{mtp}"),
+      ("a", "每步接受 token", "", "0.00", "=IF({X}{mtp}=1,Serving!$C$8,1)"),
+      ("Pp", "prefill tok/s/GPU（η_p 基準）", "tok/s", "#,##0", "=$C$5*{X}{P}*1E15/({X}{Fp}*1E9)"),
+      ("c1", "每序列算力時間（η＝1）", "ms", "0.00000", "=({X}{n}+1)*{X}{Fd}/{X}{P}/1000"),
+      ("Dm", "實測反推 decode tok/s（每 decode GPU）", "tok/s", "#,##0", "={X}{osl}/(({X}{isl}+{X}{osl})/{X}{T}-{X}{isl}/{X}{Pp})"),
+      ("Bm", "實測反推批次", "序列/GPU", "#,##0.0", "={X}{Dm}/{X}{s}"),
+    ]
+    for key, lab, unit, fmt, tpl in mrows:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for col, *_ in PTS:
+            m = dict(C); m["X"] = col
+            put(ws, f"{col}{r}", tpl.format(**m), fmt=fmt)
+        r += 1
+    put(ws, f"J{C['Dm']}", "只對擬合點有意義；假設 P:D GPU 依工作量配比", F_NOTE)
+    r += 1
+    section(ws, r, "D. 擬合（擬合點 1、2 聯立；假設兩點皆為算力項綁定，見下列檢查）", 10); r += 1
+    C["etad_fit"] = r
+    put(ws, f"A{r}", "η_d：decode 每序列算力效率"); put(ws, f"B{r}", "%")
+    put(ws, f"C{r}", f"=(C{C['Bm']}-D{C['Bm']})*C{C['c1']}/(1000*(C{C['a']}/C{C['s']}-D{C['a']}/D{C['s']}))", fmt="0.00%", fill=FILL_KEY)
+    put(ws, f"J{r}", "B×c/η＝1000×a/s − 固定延遲；兩點相減消去固定延遲", F_NOTE); r += 1
+    C["tfix_fit"] = r
+    put(ws, f"A{r}", "每步固定延遲（GB300、Sol、含 MTP）"); put(ws, f"B{r}", "ms")
+    put(ws, f"C{r}", f"=1000*C{C['a']}/C{C['s']}-C{C['Bm']}*C{C['c1']}/C{C['etad_fit']}", fmt="#,##0.00"); r += 1
+    C["tl_fit"] = r
+    put(ws, f"A{r}", "每層每次前向固定延遲"); put(ws, f"B{r}", "µs")
+    put(ws, f"C{r}", f"=(C{C['tfix_fit']}-C{C['W']}/C{C['bw']})*1000/(C{C['L']}+C{C['n']})", fmt="#,##0", fill=FILL_KEY)
+    put(ws, f"J{r}", "（固定延遲 − 權重讀取時間）÷（層數＋草稿數）：涵蓋 all-to-all 延遲、kernel 啟動、同步", F_NOTE); r += 1
+    C["chk"] = r
+    put(ws, f"A{r}", "檢查：擬合點 1 算力項為綁定")
+    put(ws, f"C{r}", f"=IF(C{C['c1']}/C{C['etad_fit']}>=MAX(C{C['kv']}*C{C['ctxd']}/(C{C['bw']}*Serving!$C$13)/1E9,(C{C['n']}+1)*C{C['L']}*C{C['k']}*C{C['d']}*Serving!$C$12/(C{C['link']}*Serving!$C$14)/1E9),\"成立\",\"不成立\")")
+    r += 2
+    section(ws, r, "E. 各世代採用參數（GB300＝擬合值；其他世代＝擬合值 × 倍數）", 10); r += 1
+    for c, v in zip("CDEFG", range(1, 6)):
+        put(ws, f"{c}{r}", f"=Spec_Rack!{c}4", F_HLINK)
+    put(ws, f"A{r}", "世代", F_BOLD); r += 1
+    mult = [("etadm", "η_d 倍數", [1.5, 1, 1, 1, 1], "Hopper：v5.4 取 3（DeepSeek H800 線上 decode 約達峰值 18%，S30；當時峰值誤用 989 TF）。v5.5 峰值更正為 FP8 1,979 TF，倍數同步減半為 1.5，使 Hopper 產出不變；S30 口徑查核後重推 [Analogy，區間 0.5–2.5]；GB200、VR200 沿用 GB300 [Analogy]；RU [Assumed]"),
+            ("tlm", "每層延遲倍數", [1.5, 1, 1, 1, 1], "Hopper EP 跨節點走 IB [Assumed 1.5，區間 1–3]"),
+            ("etapm", "η_p 倍數", [0.5, 1, 1, 1, 1], "Hopper 0.5：v5.5 峰值更正（989→1,979 TF）後維持 prefill 產出不變（誤差 0.05%）；S30 口徑查核後重推")]
+    for key, lab, vals, note in mult:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", "x")
+        for c, v in zip("CDEFG", vals): put(ws, f"{c}{r}", v, fmt="0.00")
+        put(ws, f"J{r}", note, F_NOTE, wrap=True); r += 1
+    for key, lab, unit, fmt, base, m in [("etad", "η_d（採用）", "%", "0.00%", f"$C${C['etad_fit']}", "etadm"),
+                                        ("tl", "每層延遲（採用）", "µs", "#,##0", f"$C${C['tl_fit']}", "tlm"),
+                                        ("etap", "η_p（採用）", "%", "0.0%", "$C$5", "etapm")]:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c in "CDEFG":
+            put(ws, f"{c}{r}", f"={base}*{c}{C[m]}", fmt=fmt, fill=FILL_KEY)
+        r += 1
+    r += 1
+    section(ws, r, "F. 樣本外驗證（以採用參數重算各點）", 10); r += 1
+    vrows = [
+      ("ved", "η_d（該世代）", "%", "0.00%", f"=INDEX($C${C['etad']}:$G${C['etad']},{{X}}{C['g']})"),
+      ("vtl", "每層延遲（該世代）", "µs", "#,##0", f"=INDEX($C${C['tl']}:$G${C['tl']},{{X}}{C['g']})"),
+      ("vep", "η_p（該世代）", "%", "0.0%", f"=INDEX($C${C['etap']}:$G${C['etap']},{{X}}{C['g']})"),
+      ("vPp", "prefill tok/s/GPU", "tok/s", "#,##0", "={X}{vep}*{X}{P}*1E15/({X}{Fp}*1E9)"),
+      ("vtf", "每步固定延遲", "ms", "#,##0.00", "={X}{W}/{X}{bw}+({X}{L}+{X}{n})*{X}{vtl}/1000"),
+      ("vce", "每序列每步時間", "ms", "0.0000", "=MAX({X}{c1}/{X}{ved},{X}{kv}*{X}{ctxd}/({X}{bw}*Serving!$C$13)/1E9,({X}{n}+1)*{X}{L}*{X}{k}*{X}{d}*Serving!$C$12*({X}{epw}-1)/{X}{epw}/({X}{link}*Serving!$C$14)/1E9)"),
+      ("vbs", "SLO 批次上限", "序列", "#,##0.0", "=(1000*{X}{a}/{X}{s}-{X}{vtf})/{X}{vce}"),
+      ("vbc", "容量批次上限", "序列", "#,##0", "=({X}{usable}-{X}{W})*1E9/({X}{kv}*{X}{ctxd})"),
+      ("vB", "B*", "序列", "#,##0.0", "=MAX(0,MIN({X}{vbs},{X}{vbc}))"),
+      ("vD", "decode tok/s/GPU", "tok/s", "#,##0", "=IF({X}{vB}>0,{X}{vB}*{X}{a}/(({X}{vtf}+{X}{vB}*{X}{vce})/1000),0)"),
+      ("vT", "模型 tok/s/GPU（總 token）", "tok/s", "#,##0", "=IF({X}{vD}>0,({X}{isl}+{X}{osl})/({X}{isl}/{X}{vPp}+{X}{osl}/{X}{vD}),0)"),
+      ("ratio", "模型 ÷ 實測", "x", "0.00", "={X}{vT}/{X}{T}"),
+    ]
+    for key, lab, unit, fmt, tpl in vrows:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for col, *_ in PTS:
+            m = dict(C); m["X"] = col
+            put(ws, f"{col}{r}", tpl.format(**m), fmt=fmt, fill=FILL_KEY if key == "ratio" else None)
+        r += 1
+    notes = {"C": "擬合點：應為 1.00", "D": "擬合點：應為 1.00", "E": "同世代、不同日期與引擎：檢驗前緣形狀",
+             "F": "舊軟體：模型應高於實測（軟體差距）", "G": "舊軟體＋GB200 記憶體限制配方（S20 說明）",
+             "H": "工作負載標示不明（頁面預設為 agentic）", "I": "同上"}
+    C["vnote"] = r; put(ws, f"A{r}", "判讀")
+    for col, t in notes.items(): put(ws, f"{col}{r}", t, F_NOTE, wrap=True)
+    ws.row_dimensions[r].height = 42
+    r += 2
+    section(ws, r, "G. η_p 敏感度：擬合結果隨 η_p 的變化（η_p 僅影響 prefill／decode GPU 分攤）", 10); r += 1
+    put(ws, f"A{r}", "η_p", F_BOLD)
+    for c, v in zip("CDE", [0.15, 0.30, 0.45]): put(ws, f"{c}{r}", v, fmt="0%")
+    ep_r = r; r += 1
+    srows = [
+      ("Pp1", "擬合點 1 prefill tok/s", "=${c}$" if False else "={c}{ep}*$C${P}*1E15/($C${Fp}*1E9)", "#,##0"),
+      ("Pp2", "擬合點 2 prefill tok/s", "={c}{ep}*$D${P}*1E15/($D${Fp}*1E9)", "#,##0"),
+      ("B1", "擬合點 1 反推批次", "=$C${osl}/(($C${isl}+$C${osl})/$C${T}-$C${isl}/{c}{Pp1})/$C${s}", "#,##0.0"),
+      ("B2", "擬合點 2 反推批次", "=$D${osl}/(($D${isl}+$D${osl})/$D${T}-$D${isl}/{c}{Pp2})/$D${s}", "#,##0.0"),
+      ("ed", "η_d", "=({c}{B1}-{c}{B2})*$C${c1}/(1000*($C${a}/$C${s}-$D${a}/$D${s}))", "0.00%"),
+      ("tl", "每層延遲 µs", "=((1000*$C${a}/$C${s}-{c}{B1}*$C${c1}/{c}{ed})-$C${W}/$C${bw})*1000/($C${L}+$C${n})", "#,##0"),
+    ]
+    SR = {}
+    for key, lab, tpl, fmt in srows:
+        SR[key] = r; put(ws, f"A{r}", lab)
+        for c in "CDE":
+            m = dict(C); m.update(SR); m["c"] = c; m["ep"] = ep_r
+            put(ws, f"{c}{r}", tpl.format(**m), fmt=fmt)
+        r += 1
+
+    r += 1
+    section(ws, r, "H. 第二來源驗證：MLPerf Inference DeepSeek-R1（MLCommons 稽核；提交者 NVIDIA 為利害關係方）", 10); r += 1
+    put(ws, f"A{r}", "R1 架構與工作負載（驗證專用輸入）", F_BOLD); r += 1
+    rin = [("rT", "總參數", "B", 671, "#,##0"), ("rA", "啟用參數", "B", 37, "#,##0"), ("rL", "層數", "", 61, "#,##0"),
+           ("rd", "d_model", "", 7168, "#,##0"), ("rE", "routed experts", "", 256, "#,##0"), ("rk", "啟用 experts", "", 8, "#,##0"),
+           ("rs", "shared experts", "", 1, "#,##0"), ("rV", "vocab", "", 129280, "#,##0"),
+           ("rkv", "KV bytes/token（MLA 576 × 61 層，FP8）", "B", 35136, "#,##0"),
+           ("rac", "注意力 FLOPs／被注意 token（MLA：2×128×192＋2×128×128，× 61）", "FLOP", 4997120, "#,##0"),
+           ("risl", "平均 ISL（MLCommons 資料集）", "tok", 800, "#,##0"), ("rosl", "平均 OSL", "tok", 3880, "#,##0")]
+    for key, lab, unit, v, fmt in rin:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit); put(ws, f"C{r}", v, fmt=fmt); r += 1
+    put(ws, f"J{C['rT']}", "Verified：DeepSeek-V3/R1 模型卡；ISL／OSL 800／3,880（MLCommons 2025-09，S33）", F_NOTE, wrap=True)
+    for key, lab, f, fmt in [("rpe", "每 routed expert 參數", "=(C{rT}-C{rA})/(C{rL}*(C{rE}-C{rk}))", "0.0000"),
+                             ("rne", "非專家參數", "=C{rA}-C{rL}*(C{rk}+C{rs})*C{rpe}", "#,##0.0"),
+                             ("rex", "專家參數", "=C{rT}-C{rne}", "#,##0")]:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", "B"); put(ws, f"C{r}", f.format(**C), fmt=fmt); r += 1
+    r += 1
+    MP = [("C", "GB300 interactive（v6.1）", 3, 1, "=1000/15", "=253506/72"),
+          ("D", "GB200 interactive（v6.0）", 2, 1, "=1000/15", "=240318/72"),
+          ("E", "VR200 interactive（v6.1 預覽）", 4, 1, "=1000/15", "=652750/72"),
+          ("F", "GB300 server（v6.0）", 3, 0, "=1000/80", 8064)]
+    hdr = r; C["mhdr"] = r; put(ws, f"A{r}", "驗證點", F_BOLD)
+    for col, lab, *_ in MP: put(ws, f"{col}{r}", lab, F_BOLD, wrap=True)
+    ws.row_dimensions[r].height = 30; r += 1
+    base = [("mg", "世代索引", "0"), ("ms", "每用戶速度下限（1000 ÷ TPOT）", "#,##0.0"), ("mm", "推測解碼（1＝有）", "0"),
+            ("mT", "MLPerf 實測輸出 tok/s/GPU（總量 ÷ 72）", "#,##0")]
+    UNITS = {"ms": "tok/s", "mT": "tok/s/GPU"}
+    for key, lab, fmt in base:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", UNITS.get(key, ""))
+        for (col, _, g, mtp, s, T) in MP:
+            v = {"mg": g, "ms": s, "mm": mtp, "mT": T}[key]
+            put(ws, f"{col}{r}", v, F_IN if not isinstance(v, str) or "/" in v else None, fmt=fmt,
+                fill=FILL_KEY if key == "mT" else None)
+        r += 1
+    C["mplat"] = r; put(ws, f"A{r}", "量測平台（獨立性）")
+    for col, lab, *_ in MP:
+        put(ws, f"{col}{r}", "MLPerf（MLCommons 稽核）／NVIDIA 提交" + ("（預覽類）" if "預覽" in lab else ""), F_NOTE, wrap=True)
+    ws.row_dimensions[r].height = 30; r += 1
+    C["mgn"] = r; put(ws, f"A{r}", "世代")
+    for col, *_ in MP: put(ws, f"{col}{r}", f"=INDEX(Spec_Rack!$C$4:$G$4,{col}{C['mg']})")
+    r += 1
+    C["mbasis"] = r; put(ws, f"A{r}", "口徑")
+    for col, *_ in MP: put(ws, f"{col}{r}", "輸出 token", F_NOTE)
+    r += 1
+    put(ws, f"J{C['mm']}", "MLCommons 規則表只在 interactive 列出 MTP 推測解碼（3 步），server 設為無", F_NOTE, wrap=True)
+    put(ws, f"J{C['mT']}", "MLPerf 指標為輸出 token；interactive 的 TPOT 15 ms 為 p99，平均速度更高，本模型以下限計算，偏保守", F_NOTE, wrap=True)
+    gl = lambda row: f"=INDEX(Spec_Rack!$C${row}:$G${row},{{X}}{C['mg']})"
+    cl = lambda row: f"=INDEX($C${row}:$G${row},{{X}}{C['mg']})"
+    mrows2 = [
+      ("mP", "計算用峰值", "PF", "#,##0.000", gl(SP["pk"])), ("mH", "HBM", "GB", "#,##0", gl(SP["hbm"])),
+      ("mB", "HBM 頻寬", "TB/s", "#,##0.00", gl(SP["bw"])), ("mLk", "EP 頻寬", "TB/s", "#,##0.00", gl(SP["link"])),
+      ("mEb", "EP 基準", "", "#,##0", gl(SP["ep"])), ("mbe", "專家 B/param", "", "0.0000", gl(SP["be"])), ("mbn", "非專家 B/param", "", "0.00", gl(SP["bn"])),
+      ("mU", "可用 HBM", "GB", "#,##0", "={X}{mH}*(1-Serving!$C$9)"),
+      ("mTP", "注意力 TP", "", "0", "=MAX(1,CEILING($C${rne}*{X}{mbn}/(Serving!$C$10*{X}{mU}),1))"),
+      ("mEP", "EP 寬度", "", "#,##0", "=MAX({X}{mEb},CEILING($C${rex}*{X}{mbe}/(Serving!$C$11*{X}{mU}),1))"),
+      ("mW", "每 GPU 權重", "GB", "#,##0.0", "=$C${rne}*{X}{mbn}/{X}{mTP}+$C${rex}*{X}{mbe}/{X}{mEP}"),
+      ("mcd", "decode 平均上下文", "tok", "#,##0", "=$C${risl}+$C${rosl}/2"),
+      ("mFd", "decode FLOPs/token", "GFLOP", "#,##0.0", "=(2*$C${rA}*1E9+$C${rac}*{X}{mcd})/1E9"),
+      ("mFp", "prefill FLOPs/token", "GFLOP", "#,##0.0", "=(2*$C${rA}*1E9+$C${rac}*$C${risl}/2)/1E9"),
+      ("mn", "草稿數", "", "0", "=Serving!$C$6*{X}{mm}"), ("ma", "每步接受", "", "0.00", "=IF({X}{mm}=1,Serving!$C$8,1)"),
+      ("med", "η_d（該世代）", "%", "0.00%", cl(C["etad"])), ("mtl", "每層延遲（該世代）", "µs", "#,##0", cl(C["tl"])), ("mep", "η_p（該世代）", "%", "0.0%", cl(C["etap"])),
+      ("mPp", "prefill tok/s/GPU", "tok/s", "#,##0", "={X}{mep}*{X}{mP}*1E15/({X}{mFp}*1E9)"),
+      ("mtf", "每步固定延遲", "ms", "#,##0.00", "={X}{mW}/{X}{mB}+($C${rL}+{X}{mn})*{X}{mtl}/1000"),
+      ("mce", "每序列每步時間", "ms", "0.0000", "=MAX(({X}{mn}+1)*{X}{mFd}/({X}{mP}*{X}{med})/1000,$C${rkv}*{X}{mcd}/({X}{mB}*Serving!$C$13)/1E9,({X}{mn}+1)*$C${rL}*$C${rk}*$C${rd}*Serving!$C$12*({X}{mEP}-1)/{X}{mEP}/({X}{mLk}*Serving!$C$14)/1E9)"),
+      ("mBs", "B*", "序列", "#,##0.0", "=MAX(0,MIN((1000*{X}{ma}/{X}{ms}-{X}{mtf})/{X}{mce},({X}{mU}-{X}{mW})*1E9/($C${rkv}*{X}{mcd})))"),
+      ("mD", "decode tok/s/GPU", "tok/s", "#,##0", "=IF({X}{mBs}>0,{X}{mBs}*{X}{ma}/(({X}{mtf}+{X}{mBs}*{X}{mce})/1000),0)"),
+      ("mO", "模型輸出 tok/s/GPU（含 prefill 分攤）", "tok/s", "#,##0", "=IF({X}{mD}>0,$C${rosl}/($C${risl}/{X}{mPp}+$C${rosl}/{X}{mD}),0)"),
+      ("mR", "模型 ÷ MLPerf", "x", "0.00", "={X}{mO}/{X}{mT}"),
+    ]
+    for key, lab, unit, fmt, tpl in mrows2:
+        C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for (col, *_ ) in MP:
+            m = dict(C); m["X"] = col
+            put(ws, f"{col}{r}", tpl.format(**m), fmt=fmt, fill=FILL_KEY if key == "mR" else None)
+        r += 1
+    C["mVR"] = r
+    put(ws, f"A{r}", "VR200 ÷ GB300（interactive）：模型"); put(ws, f"C{r}", f"=E{C['mO']}/C{C['mO']}", fmt="0.00", fill=FILL_KEY); r += 1
+    C["mVRm"] = r
+    put(ws, f"A{r}", "VR200 ÷ GB300（interactive）：MLPerf v6.1"); put(ws, f"C{r}", f"=E{C['mT']}/C{C['mT']}", fmt="0.00", fill=FILL_KEY); r += 1
+    C["mGB"] = r
+    put(ws, f"A{r}", "GB300 ÷ GB200（interactive）：模型 ／ MLPerf"); put(ws, f"C{r}", f"=C{C['mO']}/D{C['mO']}", fmt="0.00"); put(ws, f"D{r}", f"=C{C['mT']}/D{C['mT']}", fmt="0.00"); r += 1
+    put(ws, f"J{C['mVR']}", "VR200 沿用 GB300 效率係數的檢驗：兩者接近即支持此 Analogy（MLPerf VR 為 NVIDIA 預覽類提交）", F_NOTE, wrap=True)
+    put(ws, f"J{C['mGB']}", "來源衝突：InferenceX 顯示 GB300 對 GB200 約 1.7–2.8 倍，MLPerf 約 1.05 倍；GB200 的 VR-eq 應視為區間", F_NOTE, wrap=True)
+    ws.freeze_panes = "C9"
+    return C
+```
+
+## perf.py
+
+```python
+# Perf-like column generator: same row logic for Perf (15 cols) and Sens_Perf (scenario cols)
+from common import *
+
+def perf_rows(SP, AR, CAL, TR):
+    """Row spec: (key, label, unit, fmt, template) ; '§' key = section header. Templates use {X} and row keys."""
+    I = lambda sheet, rng, idx: f"=INDEX({sheet}!{rng},{{X}}${idx})"
+    sp = lambda r: I("Spec_Rack", f"$C${r}:$G${r}", 6)
+    ar = lambda r: I("Arch", f"$C${r}:$E${r}", 7)
+    sv = lambda r: I("Serving", f"$C${r}:$E${r}", 7)
+    return [
+      ("§", "0. Tech_Registry 掛鉤（基準＝1；Registry 未啟用任何條目時與 v5.4 相同）"),
+      ("hflop", "FLOPs/token 倍數（H_FLOP）", "x", "0.00", f"={TR['H_FLOP']}"),
+      ("hkv", "KV bytes/token 倍數（H_KV）", "x", "0.00", f"={TR['H_KV']}"),
+      ("hwb", "權重 bytes/param 倍數（H_WB）", "x", "0.00", f"={TR['H_WB']}"),
+      ("§", "A. 規格（連結 Spec_Rack、DC_Cost）"),
+      ("P", "計算用峰值", "PF/GPU", "#,##0.000", sp(SP["pk"])),
+      ("hbm", "HBM 容量", "GB/GPU", "#,##0", sp(SP["hbm"])),
+      ("bw", "HBM 頻寬", "TB/s/GPU", "#,##0.00", sp(SP["bw"])),
+      ("link", "EP 通訊頻寬（單向）", "TB/s/GPU", "#,##0.00", sp(SP["link"])),
+      ("epb", "decode EP 基準寬度", "GPU", "#,##0", sp(SP["ep"])),
+      ("be", "專家權重 bytes/param（含 H_WB）", "B", "0.0000", sp(SP["be"]) + "*{X}{hwb}"),
+      ("bn", "非專家權重 bytes/param（含 H_WB）", "B", "0.00", sp(SP["bn"]) + "*{X}{hwb}"),
+      ("ninst", "每 prefill 實例 GPU 數", "GPU", "#,##0", sp(SP["ninst"])),
+      ("gpus", "GPU 封裝／架", "顆", "#,##0", sp(6)),
+      ("gpuw", "GPU 功率", "W", "#,##0", sp(SP["gpuw"])),
+      ("ehbm", "HBM 存取能量", "pJ/B", "#,##0", sp(SP["ehbm"])),
+      ("racks", "每 GW 機架數（功率情境）", "架", "#,##0", "=INDEX(DC_Cost!$C$12:$Q$12,3*({X}$6-1)+2)"),
+      ("kw", "每架配電設計功率", "kW", "#,##0", "=INDEX(DC_Cost!$C$11:$Q$11,3*({X}$6-1)+2)"),
+      ("§", "B. 架構（連結 Arch）"),
+      ("A", "啟用參數", "B", "#,##0", ar(AR["A"])),
+      ("L", "層數", "層", "#,##0", ar(AR["L"])),
+      ("d", "d_model", "", "#,##0", ar(AR["d"])),
+      ("k", "啟用 routed experts", "", "#,##0", ar(AR["k"])),
+      ("ne", "非專家參數", "B", "#,##0.0", ar(AR["ne"])),
+      ("ex", "專家參數", "B", "#,##0", ar(AR["ex"])),
+      ("kv", "KV bytes/token（含 H_KV）", "B", "#,##0", ar(AR["kv"]) + "*{X}{hkv}"),
+      ("attc", "注意力 FLOPs／被注意 token", "FLOP", "#,##0", ar(AR["attc"])),
+      ("ff", "全注意力層比例", "%", "0%", ar(AR["ff"])),
+      ("cap", "全注意力跨度上限", "tok", "#,##0", ar(AR["cap"])),
+      ("comp", "其他層壓縮比", "x", "#,##0", ar(AR["comp"])),
+      ("win", "其他層滑動窗", "tok", "#,##0", ar(AR["win"])),
+      ("§", "C. 服務、SLO 與校準參數"),
+      ("s", "SLO：每用戶 decode 速度下限", "tok/s", "#,##0", sv(21)),
+      ("ttft", "TTFT 上限", "s", "0.0", sv(22)),
+      ("isl", "參考 ISL", "tok", "#,##0", sv(23)),
+      ("osl", "參考 OSL（含思考）", "tok", "#,##0", sv(24)),
+      ("ctxd", "decode 平均上下文", "tok", "#,##0", "={X}{isl}+{X}{osl}/2"),
+      ("ctxp", "prefill 平均位置", "tok", "#,##0", "={X}{isl}/2"),
+      ("N", "MTP 草稿數", "tok", "0", "=Serving!$C$6"),
+      ("alpha", "草稿接受率", "%", "0%", "=Serving!$C$7"),
+      ("a", "每步期望接受 token", "tok", "0.00", "=(1-{X}{alpha}^({X}{N}+1))/(1-{X}{alpha})"),
+      ("prod", "實測→生產效率折減", "x", "0.00", "=Serving!$C$18"),
+      ("etap", "η_p（prefill 占峰值；含折減）", "%", "0.0%", f"=INDEX(Calib!$C${CAL['etap']}:$G${CAL['etap']},{{X}}$6)*{{X}}{{prod}}"),
+      ("etadm", "η_d 倍數（Tech_Registry H_ETAD；Sens_Perf 情境覆寫）", "x", "0.00", f"={TR['H_ETAD']}"),
+      ("etad", "η_d（decode 每序列算力效率；含折減）", "%", "0.00%", f"=INDEX(Calib!$C${CAL['etad']}:$G${CAL['etad']},{{X}}$6)*{{X}}{{etadm}}*{{X}}{{prod}}"),
+      ("tlm", "每層延遲倍數（Tech_Registry H_TL；Sens_Perf 情境覆寫）", "x", "0.00", f"={TR['H_TL']}"),
+      ("tl", "每層每次前向固定延遲（含折減）", "µs", "#,##0", f"=INDEX(Calib!$C${CAL['tl']}:$G${CAL['tl']},{{X}}$6)*{{X}}{{tlm}}/{{X}}{{prod}}"),
+      ("res", "HBM 保留比例", "%", "0%", "=Serving!$C$9"),
+      ("shne", "非專家權重占 HBM 上限", "%", "0%", "=Serving!$C$10"),
+      ("shex", "專家權重占 HBM 上限", "%", "0%", "=Serving!$C$11"),
+      ("act", "EP 啟用值 bytes/元素", "B", "0.0", "=Serving!$C$12"),
+      ("etam", "KV 讀取效率", "%", "0%", "=Serving!$C$13"),
+      ("etal", "EP 通訊效率", "%", "0%", "=Serving!$C$14"),
+      ("loadbw", "快取載入頻寬", "TB/s", "0.00", "=Serving!$C$15"),
+      ("§", "D. 每 token 計算量"),
+      ("attd", "decode 被注意 token 數", "tok", "#,##0", "={X}{ff}*IF({X}{cap}=0,{X}{ctxd},MIN({X}{ctxd},{X}{cap}))+(1-{X}{ff})*({X}{ctxd}/{X}{comp}+{X}{win})"),
+      ("Fd", "decode FLOPs/token", "GFLOP", "#,##0.0", "=(2*{X}{A}*1E9+{X}{attc}*{X}{attd})*{X}{hflop}/1E9"),
+      ("attp", "prefill 被注意 token 數", "tok", "#,##0", "={X}{ff}*IF({X}{cap}=0,{X}{ctxp},MIN({X}{ctxp},{X}{cap}))+(1-{X}{ff})*({X}{ctxp}/{X}{comp}+{X}{win})"),
+      ("Fp", "prefill FLOPs/token", "GFLOP", "#,##0.0", "=(2*{X}{A}*1E9+{X}{attc}*{X}{attp})*{X}{hflop}/1E9"),
+      ("§", "E. 記憶體配置（attention DP＋wide EP；每 GPU）"),
+      ("usable", "可用 HBM", "GB", "#,##0", "={X}{hbm}*(1-{X}{res})"),
+      ("tpa", "注意力 TP 度（自動）", "", "0", "=MAX(1,CEILING({X}{ne}*{X}{bn}/({X}{shne}*{X}{usable}),1))"),
+      ("epw", "decode EP 寬度（自動）", "GPU", "#,##0", "=MAX({X}{epb},CEILING({X}{ex}*{X}{be}/({X}{shex}*{X}{usable}),1))"),
+      ("W", "每 GPU 權重", "GB", "#,##0.0", "={X}{ne}*{X}{bn}/{X}{tpa}+{X}{ex}*{X}{be}/{X}{epw}"),
+      ("wsh", "權重占可用 HBM", "%", "0%", "={X}{W}/{X}{usable}"),
+      ("§", "F. Prefill（算力受限）"),
+      ("Pp", "prefill tok/s（每 prefill GPU）", "tok/s", "#,##0", "={X}{etap}*{X}{P}*1E15/({X}{Fp}*1E9)"),
+      ("ttftv", "TTFT（計算部分）", "s", "0.00", "={X}{isl}*{X}{Fp}*1E9/({X}{etap}*{X}{P}*1E15*{X}{ninst})"),
+      ("ttok", "TTFT 符合上限", "", None, "=IF({X}{ttftv}<={X}{ttft},\"是\",\"否\")"),
+      ("§", "G. Decode：每步時間＝固定延遲＋B × 每序列時間；B* ＝ min(SLO 上限, HBM 容量上限)"),
+      ("tfix", "每步固定延遲（權重讀取＋逐層延遲）", "ms", "#,##0.00", "={X}{W}/{X}{bw}+({X}{L}+{X}{N})*{X}{tl}/1000"),
+      ("ccmp", "每序列每步 — 算力項", "ms", "0.0000", "=({X}{N}+1)*{X}{Fd}/({X}{P}*{X}{etad})/1000"),
+      ("ckv", "每序列每步 — KV 讀取項", "ms", "0.0000", "={X}{kv}*{X}{ctxd}/({X}{bw}*{X}{etam})/1E9"),
+      ("ccom", "每序列每步 — EP 通訊項", "ms", "0.0000", "=({X}{N}+1)*{X}{L}*{X}{k}*{X}{d}*{X}{act}*({X}{epw}-1)/{X}{epw}/({X}{link}*{X}{etal})/1E9"),
+      ("ceff", "每序列每步（取最大，假設三者可重疊）", "ms", "0.0000", "=MAX({X}{ccmp},{X}{ckv},{X}{ccom})"),
+      ("cbind", "每序列綁定項", "", None, "=IF({X}{ceff}={X}{ccmp},\"算力\",IF({X}{ceff}={X}{ckv},\"KV 頻寬\",\"EP 通訊\"))"),
+      ("bslo", "SLO 允許的批次上限", "序列/GPU", "#,##0.0", "=(1000*{X}{a}/{X}{s}-{X}{tfix})/{X}{ceff}"),
+      ("bcap", "HBM 容量允許的批次上限", "序列/GPU", "#,##0", "=({X}{usable}-{X}{W})*1E9/({X}{kv}*{X}{ctxd})"),
+      ("B", "採用批次 B*", "序列/GPU", "#,##0.0", "=MAX(0,MIN({X}{bslo},{X}{bcap}))"),
+      ("D", "decode tok/s（每 decode GPU）", "tok/s", "#,##0", "=IF({X}{B}>0,{X}{B}*{X}{a}/(({X}{tfix}+{X}{B}*{X}{ceff})/1000),0)"),
+      ("spd", "實際每用戶速度", "tok/s", "#,##0", "=IF({X}{B}>0,{X}{a}/(({X}{tfix}+{X}{B}*{X}{ceff})/1000),0)"),
+      ("bind", "綁定約束", "", None, "=IF({X}{B}<=0,\"SLO 不可達\",IF({X}{bslo}<={X}{bcap},\"SLO（\"&{X}{cbind}&\"）\",\"HBM 容量\"))"),
+      ("kvsh", "KV 占可用 HBM", "%", "0%", "={X}{B}*{X}{kv}*{X}{ctxd}/1E9/{X}{usable}"),
+      ("§", "H. 每架與每 GW（參考任務；P:D 依工作量配比；100% 利用率）"),
+      ("gsr", "每請求 GPU 秒", "GPU-s", "0.000", "=IF({X}{D}>0,{X}{isl}/{X}{Pp}+{X}{osl}/{X}{D},0)"),
+      ("psh", "prefill GPU 占比", "%", "0%", "=IF({X}{gsr}>0,({X}{isl}/{X}{Pp})/{X}{gsr},0)"),
+      ("rtot", "每架總 tok/s", "tok/s", "#,##0", "=IF({X}{gsr}>0,{X}{gpus}*({X}{isl}+{X}{osl})/{X}{gsr},0)"),
+      ("rdec", "每架 decode tok/s", "tok/s", "#,##0", "={X}{rtot}*{X}{osl}/({X}{isl}+{X}{osl})"),
+      ("rpre", "每架 prefill tok/s", "tok/s", "#,##0", "={X}{rtot}-{X}{rdec}"),
+      ("gwtot", "每 GW 總產出", "M tok/年", "#,##0", "={X}{rtot}*{X}{racks}*8760*3600/1E6"),
+      ("gwdec", "每 GW decode 產出", "M tok/年", "#,##0", "={X}{rdec}*{X}{racks}*8760*3600/1E6"),
+      ("§", "I. 每 M token GPU 秒（供 Unit_Cost）與速覽成本"),
+      ("gsf", "新鮮 prefill", "GPU-s/M", "#,##0.0", "=1E6/{X}{Pp}"),
+      ("gsc", "快取命中 prefill（KV 載入）", "GPU-s/M", "#,##0.000", "=1E6*{X}{kv}/({X}{loadbw}*1E12)"),
+      ("gsd", "decode（含思考 token；0＝SLO 不可達）", "GPU-s/M", "#,##0.0", "=IF({X}{D}>0,1E6/{X}{D},0)"),
+      ("cfq", "速覽：新鮮 prefill $/M（經濟、基準成本、100%）", "$/M", "#,##0.000", "=INDEX(DC_Cost!$C$58:$Q$58,3*({X}$6-1)+2)/3600*{X}{gsf}"),
+      ("cdq", "速覽：decode $/M（經濟、基準成本、100%）", "$/M", "#,##0.000", "=IF({X}{gsd}>0,INDEX(DC_Cost!$C$58:$Q$58,3*({X}$6-1)+2)/3600*{X}{gsd},0)"),
+      ("§", "J. 能量下限與閉合（能量閉合：物理下限功率 ≤ 機架平均用電）"),
+      ("eflop", "運算能量", "pJ/FLOP", "0.000", "={X}{gpuw}*Energy!$C$5/({X}{P}*1E15)*1E12"),
+      ("elink", "EP 通訊能量", "pJ/B", "0", "=IF({X}$6=1,Energy!$C$7,Energy!$C$6)"),
+      ("fpt", "decode FLOPs/接受 token（含草稿驗證）", "GFLOP", "#,##0.0", "=({X}{N}+1)*{X}{Fd}/{X}{a}"),
+      ("bpt", "decode HBM 讀取/接受 token", "GB", "0.000", "=IF({X}{B}>0,({X}{W}+{X}{B}*{X}{kv}*{X}{ctxd}/1E9)/({X}{B}*{X}{a}),0)"),
+      ("cpt", "decode EP 傳輸/接受 token", "GB", "0.0000", "=({X}{N}+1)*{X}{L}*{X}{k}*{X}{d}*{X}{act}/{X}{a}/1E9"),
+      ("Edec", "decode 物理下限能量", "J/tok", "0.0000", "=({X}{fpt}*{X}{eflop}+{X}{bpt}*{X}{ehbm}+{X}{cpt}*{X}{elink})/1000"),
+      ("Epre", "prefill 物理下限能量", "J/tok", "0.0000", "={X}{Fp}*{X}{eflop}/1000"),
+      ("pphys", "物理下限功率（每架）", "kW", "#,##0.0", "=({X}{rpre}*{X}{Epre}+{X}{rdec}*{X}{Edec})/1000"),
+      ("pavg", "機架平均用電（Block 1 假設）", "kW", "#,##0.0", "={X}{kw}*Inputs!$E$10"),
+      ("close", "閉合比（下限 ÷ 平均用電；須 ≤ 100%）", "%", "0%", "=IF({X}{pavg}>0,{X}{pphys}/{X}{pavg},0)"),
+      ("tpj", "tokens／焦耳（總 token，平均用電口徑）", "tok/J", "#,##0.00", "={X}{rtot}/({X}{pavg}*1000)"),
+      ("jdec", "每 decode token 實際能量（平均用電口徑）", "J/tok", "0.000", "=IF({X}{rdec}>0,{X}{pavg}*1000*(1-{X}{psh})/{X}{rdec},0)"),
+    ]
+
+KEY_ROWS = {"D", "rtot", "gwtot", "cdq", "cfq", "bind", "close", "tpj", "B"}
+
+def write_perf(ws, cols, SP, AR, CAL, TR, start=9, overrides=None, label_col_width=42, ov_link=False):
+    """cols: list of column letters; header rows 4-7 already written. overrides: {col: {key: value}}.
+    ov_link=True: overrides are standing links (green, no fill) rather than scenario changes (blue on yellow)."""
+    overrides = overrides or {}
+    R = {}; r = start
+    spec = perf_rows(SP, AR, CAL, TR)
+    for item in spec:
+        if item[0] == "§":
+            section(ws, r, item[1], 2 + len(cols)); r += 1; continue
+        key, lab, unit, fmt, tpl = item
+        R[key] = r
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for X in cols:
+            ov = overrides.get(X, {})
+            if key in ov:
+                v = ov[key].replace("{X}", X) if isinstance(ov[key], str) else ov[key]
+                if ov_link and isinstance(v, str):
+                    put(ws, f"{X}{r}", v, F_LINK, fmt=fmt)
+                else:
+                    put(ws, f"{X}{r}", v, F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00"))
+                continue
+            if isinstance(tpl, (int, float)):
+                put(ws, f"{X}{r}", tpl, F_IN, fmt=fmt); continue
+            m = dict(R); m["X"] = X
+            f = tpl.format(**m)
+            put(ws, f"{X}{r}", f, fmt=fmt, fill=FILL_KEY if key in KEY_ROWS else None)
+        r += 1
+    ws.column_dimensions["A"].width = label_col_width
+    ws.column_dimensions["B"].width = 10
+    return R, r
+```
+
+## outputs.py
+
+```python
+from common import *
+from perf import write_perf
+
+GEN_NAMES_IDX = [1, 2, 3, 4, 5]
+COLS15 = [L(i) for i in range(3, 18)]  # C..Q
+
+def perf_sheet(wb, SP, AR, CAL, TR):
+    ws = wb.create_sheet("Perf", 6)
+    title(ws, "Perf — 每架產出引擎（世代 × 層級；各層級 SLO 與參考任務；100% 利用率）",
+          "decode：每步時間＝固定延遲＋B × 每序列時間；在 SLO 下解出批次 B*，再受 HBM 容量限制。prefill 為算力受限。黃底為關鍵輸出")
+    put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
+    for i, X in enumerate(COLS15):
+        g, t = i // 3 + 1, i % 3 + 1
+        put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
+        put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        ws.column_dimensions[X].width = 13
+    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR)
+    # VR-eq row (15-col layout only)
+    section(ws, r, "K. VR-eq（每 GW 產出 ÷ VR200 同層級）", 17); r += 1
+    R["vreq"] = r
+    put(ws, f"A{r}", "VR-eq 係數"); put(ws, f"B{r}", "x")
+    for X in COLS15:
+        put(ws, f"{X}{r}", f"=IF(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7)>0,{X}{R['gwtot']}/INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7),0)", fmt="0.00", fill=FILL_KEY)
+    ws.freeze_panes = "C8"
+    return R
+
+SCEN = [  # label, vr overrides, gb overrides, tier
+ ("基準", {}, {}, 2),
+ ("VR η_d × 0.5（新世代軟體未成熟）", {"etadm": 0.5}, {}, 2),
+ ("VR η_d × 1.5", {"etadm": 1.5}, {}, 2),
+ ("VR 每層延遲 × 0.7", {"tlm": 0.7}, {}, 2),
+ ("VR 每層延遲 × 1.5", {"tlm": 1.5}, {}, 2),
+ ("VR 峰值 50 PF（J2 高情境）", {"P": 50}, {}, 2),
+ ("SLO 40 tok/s", {"s": 40}, {"s": 40}, 2),
+ ("SLO 100 tok/s", {"s": 100}, {"s": 100}, 2),
+ ("MTP 接受率 0.60", {"alpha": 0.6}, {"alpha": 0.6}, 2),
+ ("MTP 接受率 0.80", {"alpha": 0.8}, {"alpha": 0.8}, 2),
+ ("ISL 4K", {"isl": 4096}, {"isl": 4096}, 2),
+ ("ISL 64K", {"isl": 65536}, {"isl": 65536}, 2),
+ ("生產折減 0.7（兩世代）", {"prod": 0.7}, {"prod": 0.7}, 2),
+ ("Astra KV 情境 1（混合）", {"kv": "=Arch!$E$21"}, {"kv": "=Arch!$E$21"}, 3),
+ ("Astra KV 情境 2（全層 MLA，基準）", {"kv": "=Arch!$E$22"}, {"kv": "=Arch!$E$22"}, 3),
+ ("Astra KV 情境 3（GQA-8）", {"kv": "=Arch!$E$23"}, {"kv": "=Arch!$E$23"}, 3),
+]
+
+def sens_sheet(wb, SP, AR, CAL, TR):
+    ws = wb.create_sheet("Sens_Perf", 7)
+    title(ws, "Sens_Perf — VR200 對 GB300 的單變數敏感度（先看敏感度，再看基準）",
+          "每組兩欄：左 VR200、右 GB300。黃底藍字＝該情境改動的輸入。GB300 為校準世代，VR200 的 η_d 與每層延遲為沿用值 [Analogy]，故 VR 專屬情境只動 VR 欄")
+    cols, ov = [], {}
+    for i, (lab, vo, go, t) in enumerate(SCEN):
+        xv, xg = L(3 + 2 * i), L(4 + 2 * i)
+        cols += [xv, xg]; ov[xv] = vo; ov[xg] = go
+        put(ws, f"{xv}3", lab, F_BOLD, wrap=True)
+        ws.merge_cells(f"{xv}3:{xg}3")
+        for X, g in ((xv, 4), (xg, 3)):
+            put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
+            put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
+            put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+            ws.column_dimensions[X].width = 12.5
+    ws.row_dimensions[3].height = 44
+    put(ws, "A3", "情境", F_BOLD); put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD)
+    put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
+    R, r = write_perf(ws, cols, SP, AR, CAL, TR, overrides=ov)
+    section(ws, r, "L. VR200 ÷ GB300（同一情境；每 GW 口徑）", 2 + len(cols)); r += 1
+    R["rgw"], R["rcost"] = r, r + 1
+    put(ws, f"A{r}", "VR200 ÷ GB300：每 GW 總產出"); put(ws, f"B{r}", "x")
+    put(ws, f"A{r+1}", "VR200 ÷ GB300：decode $/M（經濟、基準）"); put(ws, f"B{r+1}", "x")
+    for i in range(len(SCEN)):
+        xv, xg = L(3 + 2 * i), L(4 + 2 * i)
+        put(ws, f"{xv}{r}", f"=IF({xg}{R['gwtot']}>0,{xv}{R['gwtot']}/{xg}{R['gwtot']},0)", fmt="0.00", fill=FILL_KEY)
+        put(ws, f"{xv}{r+1}", f"=IF(AND({xg}{R['cdq']}>0,{xv}{R['cdq']}>0),{xv}{R['cdq']}/{xg}{R['cdq']},0)", fmt="0.00", fill=FILL_KEY)
+    ws.freeze_panes = "C8"
+    return R
+
+def unit_cost(wb, PR):
+    ws = wb.create_sheet("Unit_Cost", 8)
+    title(ws, "Unit_Cost — 每 M token 成本（世代 × 成本情境；依層級分區；新鮮 prefill／快取 prefill／decode）",
+          "成本＝每 GPU 小時持有成本（DC_Cost）× 每 M token GPU 秒（Perf）。思考 token 在物理上與可見輸出同為 decode，成本相同，差異只在計費（Block 4）。100% 為理想上限；基準利用率版＝100% 版 ÷ 利用率。快取命中只計 KV 載入 GPU 時間，未計儲存成本")
+    ws.column_dimensions["A"].width = 46; ws.column_dimensions["B"].width = 10
+    put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "成本情境", F_BOLD); put(ws, "A6", "世代索引", F_BOLD)
+    for i, X in enumerate(COLS15):
+        put(ws, f"{X}4", f"=DC_Cost!{X}4", F_HLINK); put(ws, f"{X}5", f"=DC_Cost!{X}5", F_HLINK)
+        put(ws, f"{X}6", i // 3 + 1, fmt="0"); ws.column_dimensions[X].width = 12.5
+    U = {}
+    section(ws, 7, "共用", 17)
+    for r, lab, unit, f, fmt in [(8, "每 GPU 小時持有成本 — 經濟", "$/GPU-hr", "=DC_Cost!{X}58", "#,##0.00"),
+                                 (9, "每 GPU 小時持有成本 — 會計", "$/GPU-hr", "=DC_Cost!{X}57", "#,##0.00"),
+                                 (10, "基準利用率", "%", "=Serving!$C$17", "0%")]:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for X in COLS15: put(ws, f"{X}{r}", f.format(X=X), fmt=fmt)
+    r = 12
+    tiers = ["Luna（低層）", "Sol（中層）", "Astra（頂層）"]
+    for t in (1, 2, 3):
+        section(ws, r, f"{tiers[t-1]}", 17); r += 1
+        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:$Q${PR[key]},3*({{X}}$6-1)+{t})"
+        rows = [
+          ("gsf", "GPU 秒／M 新鮮 prefill", "GPU-s", "#,##0.0", pl("gsf")),
+          ("gsc", "GPU 秒／M 快取命中 prefill", "GPU-s", "#,##0.000", pl("gsc")),
+          ("gsd", "GPU 秒／M decode（含思考 token；0＝SLO 不可達）", "GPU-s", "#,##0.0", pl("gsd")),
+          ("cf", "新鮮 prefill $/M — 經濟、100%", "$/M", "#,##0.000", "={X}$8/3600*{X}{gsf}"),
+          ("cc", "快取命中 prefill $/M — 經濟、100%", "$/M", "#,##0.0000", "={X}$8/3600*{X}{gsc}"),
+          ("cd", "decode（含思考 token）$/M — 經濟、100%", "$/M", "#,##0.000", "=IF({X}{gsd}>0,{X}$8/3600*{X}{gsd},\"SLO 不可達\")"),
+          ("cfu", "新鮮 prefill $/M — 經濟、基準利用率", "$/M", "#,##0.000", "={X}{cf}/{X}$10"),
+          ("ccu", "快取命中 prefill $/M — 經濟、基準利用率", "$/M", "#,##0.0000", "={X}{cc}/{X}$10"),
+          ("cdu", "decode（含思考 token）$/M — 經濟、基準利用率", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{cd}),{X}{cd}/{X}$10,{X}{cd})"),
+          ("cda", "decode（含思考 token）$/M — 會計、100%", "$/M", "#,##0.000", "=IF({X}{gsd}>0,{X}$9/3600*{X}{gsd},\"SLO 不可達\")"),
+          ("cref", "參考請求混合 $/M 總 token — 經濟、100%", "$/M", "#,##0.000",
+           f"=IF(ISNUMBER({{X}}{{cd}}),(Serving!${'CDE'[t-1]}$23*{{X}}{{cf}}+Serving!${'CDE'[t-1]}$24*{{X}}{{cd}})/(Serving!${'CDE'[t-1]}$23+Serving!${'CDE'[t-1]}$24),{{X}}{{cd}})"),
+        ]
+        for key, lab, unit, fmt, tpl in rows:
+            U[(t, key)] = r
+            put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+            m = {k2: U[(t, k2)] for (tt, k2) in U if tt == t}
+            for X in COLS15:
+                mm = dict(m); mm["X"] = X
+                put(ws, f"{X}{r}", tpl.format(**mm), fmt=fmt, fill=FILL_KEY if key in ("cd", "cf", "cdu") else None)
+            r += 1
+        r += 1
+    ws.freeze_panes = "C7"
+    return U
+
+def workload(wb, U):
+    ws = wb.create_sheet("Workload", 5)
+    title(ws, "Workload — 任務制工作負載（每任務的 token 結構；思考 token 在物理上屬 decode）",
+          "任務組合權重不在第 0 層（J5）；本頁只定義標準任務。harness token 倍數預設 1.0，Block 5 接手")
+    for c, w in zip("ABCDEFGH", [40, 10, 14, 14, 16, 16, 18, 70]): ws.column_dimensions[c].width = w
+    tasks = ["一般聊天", "推理聊天", "單代理（工具迴圈）", "多代理研究", "Coding agent（長程）"]
+    put(ws, "A4", "參數", F_BOLD); put(ws, "B4", "單位", F_BOLD)
+    for c, t in zip("CDEFG", tasks): put(ws, f"{c}4", t, F_BOLD, wrap=True)
+    put(ws, "H4", "說明", F_BOLD); ws.row_dimensions[4].height = 30
+    ins = [
+      (5, "輪數 T", "輪", [1, 1, 4, 4, 30], "#,##0", "Assumed"),
+      (6, "初始上下文 S（系統提示、歷史、工具定義）", "tok", [2000, 2000, 3000, 3000, 12000], "#,##0", "Assumed"),
+      (7, "每輪新輸入 u（使用者或工具結果）", "tok", [500, 500, 1200, 1200, 2000], "#,##0", "Assumed"),
+      (8, "每輪思考 token h", "tok", [0, 3000, 400, 400, 600], "#,##0", "Assumed；服務端思考占比待查"),
+      (9, "每輪可見輸出 o", "tok", [500, 700, 200, 200, 400], "#,##0", "Assumed"),
+      (10, "思考保留於上下文比例 ρ", "%", [0, 0, 0, 0, 0], "0%", "Assumed：多數 API 不保留前輪思考"),
+      (11, "歷史快取命中率 χ", "%", [0.5, 0.5, 0.9, 0.9, 0.9], "0%", "Assumed；代理迴圈前綴重用高"),
+      (12, "並行子代理數 m", "個", [0, 0, 0, 3, 0], "0", "Assumed：子代理沿用單代理參數"),
+      (13, "harness token 倍數", "x", [1, 1, 1, 1, 1], "0.00", "預設 1.0（Block 5）"),
+    ]
+    for r, lab, unit, vals, fmt, note in ins:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c, v in zip("CDEFG", vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"H{r}", note, F_NOTE)
+    section(ws, 15, "導出（每任務）", 8)
+    der = [
+      (16, "每輪上下文增量 u＋o＋ρh", "tok", "={c}7+{c}9+{c}10*{c}8", "#,##0"),
+      (17, "單代理輸入總量", "tok", "={c}5*({c}6+{c}7)+{c}16*{c}5*({c}5-1)/2", "#,##0"),
+      (18, "其中可快取（前綴）", "tok", "={c}11*({c}5*{c}6+{c}16*{c}5*({c}5-1)/2)", "#,##0"),
+      (19, "其中新鮮", "tok", "={c}17-{c}18", "#,##0"),
+      (20, "單代理 decode（思考＋可見）", "tok", "={c}5*({c}8+{c}9)", "#,##0"),
+      (21, "系統倍數（1＋m）× harness", "x", "=(1+{c}12)*{c}13", "0.00"),
+      (22, "任務新鮮 prefill", "tok", "={c}19*{c}21", "#,##0"),
+      (23, "任務快取 prefill", "tok", "={c}18*{c}21", "#,##0"),
+      (24, "任務 decode", "tok", "={c}20*{c}21", "#,##0"),
+      (25, "任務總 token", "tok", "={c}22+{c}23+{c}24", "#,##0"),
+      (26, "decode 平均上下文", "tok", "={c}6+{c}7+({c}5-1)/2*{c}16+({c}8+{c}9)/2", "#,##0"),
+      (27, "思考占 decode", "%", "=IF({c}8+{c}9>0,{c}8/({c}8+{c}9),0)", "0%"),
+      (28, "總 token ÷ 一般聊天", "x", "={c}25/$C$25", "0.0"),
+      (29, "總 token ÷ 推理聊天", "x", "={c}25/$D$25", "0.0"),
+    ]
+    for r, lab, unit, f, fmt in der:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c in "CDEFG": put(ws, f"{c}{r}", f.format(c=c), fmt=fmt, fill=FILL_KEY if r in (25, 28) else None)
+    put(ws, "A30", "參照：Anthropic 揭露倍數（相對聊天）"); put(ws, "B30", "x")
+    put(ws, "C30", 1, fmt="0"); put(ws, "E30", 4, fmt="0"); put(ws, "F30", 15, fmt="0")
+    put(ws, "H30", "Interested-party：Anthropic 2025-06 多代理研究系統文章，agent 約 4 倍、多代理約 15 倍聊天 token（S25）。其『聊天』口徑未說明是否含思考，故兩個倍數並列", F_NOTE, wrap=True)
+    put(ws, "H26", "Unit_Cost 的 decode 成本取各層級參考上下文；本列顯示任務實際上下文，差距大時看 Sens_Perf 的 ISL 情境", F_NOTE, wrap=True)
+    section(ws, 32, "每任務成本（$／任務；經濟口徑、基準成本情境、基準利用率）", 8)
+    r = 33
+    for gname, col in (("VR200", "M"), ("GB300", "J")):
+        for t, tn in zip((1, 2, 3), ("Luna", "Sol", "Astra")):
+            put(ws, f"A{r}", f"{gname} × {tn}"); put(ws, f"B{r}", "$")
+            cf, cc, cd = U[(t, "cfu")], U[(t, "ccu")], U[(t, "cdu")]
+            for c in "CDEFG":
+                put(ws, f"{c}{r}", f"=IF(ISNUMBER(Unit_Cost!{col}{cd}),({c}22*Unit_Cost!{col}{cf}+{c}23*Unit_Cost!{col}{cc}+{c}24*Unit_Cost!{col}{cd})/1E6,\"SLO 不可達\")",
+                    fmt="$#,##0.0000", fill=FILL_KEY if tn == "Sol" else None)
+            r += 1
+    ws.freeze_panes = "C5"
+    return ws
+
+def nonnv(wb):
+    ws = wb.create_sheet("NonNV")
+    title(ws, "NonNV — 非 NVIDIA 世代比例列（D2；全部 [Assumed]，以區間表示）",
+          "每 GW 產出比與每 GW 持有成本比皆相對 VR200（同層級、同 SLO）。持有成本比預設接近 1，依 Block 1 結論：每 GW 持有成本幾乎不隨世代改變")
+    hdr = ["候選", "產出比 低", "產出比 基準", "產出比 高", "持有比 低", "持有比 基準", "持有比 高",
+           "每 token 成本比 基準", "最佳角落", "最差角落", "標記", "說明"]
+    for i, h in enumerate(hdr): put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True)
+    ws.row_dimensions[4].height = 30
+    data = [
+      ("AMD MI455X（Helios）", 0.5, 0.7, 1.0, 0.8, 0.9, 1.0, "MI355X 在 V4-Pro 上 26 天內吞吐提升 110 倍（S20 所屬部落格），軟體成熟度為主要不確定"),
+      ("Google TPU v7 Ironwood", 0.6, 0.8, 1.1, 0.7, 0.8, 1.0, "自用為主，無公開同口徑實測"),
+      ("AWS Trainium3", 0.3, 0.5, 0.8, 0.6, 0.7, 0.9, "OpenAI v0.5 以 2GW Trainium 合約為輸入"),
+      ("Cerebras WSE-3", 0.2, 0.4, 0.8, 0.8, 1.0, 1.2, "高互動性利基；每 GW 吞吐低、單用戶速度高"),
+      ("OpenAI／Broadcom 客製", 0.4, 0.6, 0.9, 0.7, 0.8, 1.0, "無公開規格；沿用 v0.5「自研／其他 0.6（0.4–1.0）」"),
+    ]
+    for i, (n, ol, ob, oh, hl, hb, hh, note) in enumerate(data):
+        r = 5 + i
+        put(ws, f"A{r}", n)
+        for c, v in zip("BCDEFG", [ol, ob, oh, hl, hb, hh]): put(ws, f"{c}{r}", v, fmt="0.00")
+        put(ws, f"H{r}", f"=F{r}/C{r}", fmt="0.00", fill=FILL_KEY)
+        put(ws, f"I{r}", f"=E{r}/D{r}", fmt="0.00"); put(ws, f"J{r}", f"=G{r}/B{r}", fmt="0.00")
+        put(ws, f"K{r}", "Assumed", F_NOTE); put(ws, f"L{r}", note, F_NOTE)
+    for c, w in zip("ABCDEFGHIJKL", [26, 9, 9, 9, 9, 9, 9, 11, 9, 9, 10, 70]): ws.column_dimensions[c].width = w
+    return ws
+```
+
+## training.py
+
+```python
+# Block 3 (v5.5): Tech_Registry, Train_In, Perf_Batch, Training, Sens_Train
+from common import *
+from perf import write_perf
+from outputs import COLS15
+
+# ---------------------------------------------------------------- Tech_Registry
+HOOKS = [  # code, meaning, where it acts
+    ("H_ETAD", "decode η_d 倍數", "Perf／Perf_Batch：etadm 列"),
+    ("H_TL", "每層延遲倍數", "Perf／Perf_Batch：tlm 列"),
+    ("H_FLOP", "每 token FLOPs 倍數（推論與訓練）", "Perf／Perf_Batch：hflop 列；Training：hflop 列"),
+    ("H_KV", "KV bytes/token 倍數", "Perf／Perf_Batch：hkv 列"),
+    ("H_WB", "權重 bytes/param 倍數", "Perf／Perf_Batch：hwb 列"),
+    ("H_TPK", "訓練峰值倍數", "Training：htpk 列"),
+    ("H_MFU", "訓練 MFU 倍數", "Training：hmfu 列"),
+    ("H_TOK", "達同等預訓練品質所需 token 倍數", "Training：htok 列"),
+    ("H_ROLL", "rollout 效率倍數", "Training：hroll 列"),
+    ("H_CAP", "能力增量（Block 4 占位，尚無作用）", "Block 4"),
+    ("H_HAR", "harness（Block 5 占位，尚無作用）", "Block 5"),
+]
+
+# id, tech, hook, acts-on, lo, base, hi, sel, status, labs, override, in-base, adopt, switch, tag, source/note, trigger
+ENTRIES = [
+ ("T01", "MTP 推測解碼", "—", "Serving!C6:C8（N、α）", 1, 1, 1, 2, "主流", 3, "", "是", 1, 1, "Verified",
+  "DeepSeek V3／V4、GLM-4.5、MiMo 公開採用；已在 Serving 基準", "—"),
+ ("T02", "壓縮／稀疏注意力（CSA/HCA 類）", "—", "Arch 列 16–19", 1, 1, 1, 2, "主流", 3, "", "是", 1, 1, "Verified",
+  "DeepSeek V4 CSA/HCA、DeepSeek／GLM 稀疏注意力、Qwen3-Next 混合注意力；Luna／Sol 基準已含（S27、S35）", "—"),
+ ("T03", "FP4 權重推論（NVFP4／MXFP4）", "—", "Spec_Rack 專家 bytes/param", 1, 1, 1, 2, "主流", 2, "", "是", 1, 1, "Verified",
+  "DeepSeek V4 原生 FP4 專家權重、OpenAI gpt-oss MXFP4；已在基準", "—"),
+ ("T04", "FP4 量化感知訓練（後訓練）", "—", "Spec_Rack 專家 bytes/param", 1, 1, 1, 2, "主流", 2, "", "是", 1, 1, "Interested-party",
+  "DeepSeek V4：主權重量化到 FP4 再反量化到 FP8 計算，沿用 FP8 訓練框架（S35）", "—"),
+ ("T05", "On-policy 蒸餾（多專家整合）", "—", "Training G 節", 1, 1, 1, 2, "主流", 2, "", "是", 1, 1, "Interested-party",
+  "DeepSeek V4（專家 SFT＋GRPO 後以 on-policy 蒸餾整合，S35）、Qwen3；已在 Training 基準", "—"),
+ ("T06", "Muon 優化器", "H_TOK", "預訓練所需 token", 0.7, 0.85, 1, 2, "早期採用", 2, "", "是", 1, 0, "Interested-party",
+  "Moonshot Kimi K2、DeepSeek V4 採用；Luna／Sol 的 token 數為實際值，已隱含其效果，故不套倍數", "第三家前沿實驗室採用，或公開同品質 token 節省的對照實驗"),
+ ("T07", "NVFP4 預訓練", "H_TPK", "訓練峰值", 1.5, 2, 3, 2, "早期採用", 1, "", "否", 1, 0, "Interested-party",
+  "倍數＝NVFP4 訓練峰值 ÷ FP8（VR 35/17.5＝2；GB300 15/5＝3 [Assumed]）。NVIDIA 公開 12B 模型 10T token NVFP4 預訓練；前沿實驗室未見公開採用。MFU 可能同步下降，未計", "任一前沿實驗室公開以 FP4 完成主預訓練"),
+ ("T08", "Looped transformer（權重共享迴圈）— 計算量", "H_FLOP", "每 token FLOPs", 1.5, 2, 4, 2, "研究", 0, "", "否", 1, 0, "Assumed",
+  "同一組權重迴圈 k 次：FLOPs × k、權重 bytes × 1；能力增量於 Block 4（H_CAP）處理", "前沿模型卡或技術報告揭露迴圈深度"),
+ ("T09", "Looped transformer — 每層延遲", "H_TL", "每步逐層延遲", 1.5, 2, 4, 2, "研究", 0, "", "否", 1, 0, "Assumed",
+  "迴圈使有效層數 × k，逐層延遲同比增加；與 T08 同時開關", "同 T08"),
+ ("T10", "非同步 RL（rollout 與訓練解耦、部分 rollout）", "H_ROLL", "rollout 效率", 1.2, 1.4, 1.6, 2, "主流", 4, "", "是", 1, 0, "Interested-party",
+  "旗艦模型公開採用：DeepSeek V4.1（幾乎全部 RL 與 OPD，S45）、Zhipu GLM-5（slime，S46）、Moonshot Kimi-Researcher（完全非同步 rollout，S47）、Meta Llama 3（LlamaRL，S48）。閉源四家未找到披露。v5.6 起併入基準：Train_In rollout 效率 0.85（Andy 2026-10-01 決定 (a)）", "閉源實驗室披露同步做法，或前沿規模對照實驗顯示 off-policy 偏差抵銷吞吐增益"),
+ ("T11", "KV 快取壓縮（FP4 KV 等）", "H_KV", "KV bytes/token", 0.5, 0.5, 0.75, 2, "早期採用", 1, "", "否", 1, 0, "Assumed",
+  "FP8 → FP4 KV：bytes × 0.5；準確率損失待查", "第二家實驗室在生產服務公開採用"),
+ ("T12", "Harness（代理框架）", "H_HAR", "Block 5 占位", 1, 1, 1, 2, "追蹤中", 0, "", "否", 1, 0, "Assumed",
+  "ARC-AGI-3：GPT-6 Astra 標準 harness 62.7% → Provider Adapter 99.9%；Opus 5 30.2% → Strands 99.95%。Block 5 參數化", "Block 5"),
+]
+
+def tech_registry(wb):
+    ws = wb.create_sheet("Tech_Registry")
+    title(ws, "Tech_Registry — 新技術登錄與掛鉤（每列＝技術 × 作用物理量；基準值只在『已在基準＝否』且開關＝1 時套用）",
+          "有效倍數＝1＋開關 × 採用比例 ×（所選倍數−1）；已在基準者恆為 1，避免重複計算。主流判定（J14）：至少兩家實驗室公開採用；L 欄可由 Andy 覆寫")
+    hdr = ["ID", "技術", "掛鉤代碼", "作用物理量", "倍數 低", "倍數 基準", "倍數 高", "情境（1／2／3）", "狀態",
+           "公開採用實驗室數", "主流判定（J14）", "Andy 覆寫", "已在基準", "採用比例", "開關（0／1）", "有效倍數",
+           "證據標記", "來源／說明", "下次檢查觸發", "一致性檢查"]
+    widths = [6, 30, 10, 22, 8, 8, 8, 9, 10, 9, 10, 9, 8, 8, 8, 9, 14, 70, 36, 26]
+    for i, (h, w) in enumerate(zip(hdr, widths)):
+        put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = w
+    ws.row_dimensions[4].height = 30
+    r0 = 5
+    for i, e in enumerate(ENTRIES):
+        r = r0 + i
+        (eid, tech, hook, acts, lo, ba, hi, sel, st, labs, ovr, inb, adopt, sw, tag, src, trig) = e
+        for c, v in zip("ABCD", (eid, tech, hook, acts)): put(ws, f"{c}{r}", v, wrap=(c == "B"))
+        for c, v in zip("EFG", (lo, ba, hi)): put(ws, f"{c}{r}", v, fmt="0.00")
+        put(ws, f"H{r}", sel, fmt="0"); put(ws, f"I{r}", st, F_IN); put(ws, f"J{r}", labs, fmt="0")
+        put(ws, f"K{r}", f'=IF(J{r}>=2,"主流","非主流")')
+        put(ws, f"L{r}", ovr if ovr else None, F_IN)
+        put(ws, f"M{r}", inb, F_IN); put(ws, f"N{r}", adopt, fmt="0%"); put(ws, f"O{r}", sw, fmt="0")
+        put(ws, f"P{r}", f'=IF(M{r}="是",1,1+O{r}*N{r}*(CHOOSE(H{r},E{r},F{r},G{r})-1))', fmt="0.00", fill=FILL_KEY)
+        put(ws, f"Q{r}", tag, F_NOTE); put(ws, f"R{r}", src, F_NOTE, wrap=True); put(ws, f"S{r}", trig, F_NOTE, wrap=True)
+        put(ws, f"T{r}", f'=IF(AND(IF(L{r}="",K{r},L{r})="主流",M{r}="否"),"主流但未入基準：須 Andy 判定",'
+                         f'IF(AND(IF(L{r}="",K{r},L{r})="非主流",M{r}="是",I{r}<>"早期採用"),"非主流卻在基準","一致"))', wrap=True)
+        ws.row_dimensions[r].height = 42
+    r1 = r0 + len(ENTRIES) - 1
+    r = r1 + 2
+    section(ws, r, "掛鉤彙總（同一掛鉤多條目時取乘積；Perf、Perf_Batch、Training 連結本表 E 欄）", 20); r += 1
+    for c, v in zip("ABCDE", ["代碼", "意義", "", "作用位置", "倍數"]): put(ws, f"{c}{r}", v, F_BOLD)
+    r += 1
+    TR = {}
+    for code, meaning, where in HOOKS:
+        put(ws, f"A{r}", code, F_BOLD); put(ws, f"B{r}", meaning); put(ws, f"D{r}", where, F_NOTE, wrap=True)
+        put(ws, f"E{r}", f'=EXP(SUMPRODUCT(($C${r0}:$C${r1}="{code}")*LN($P${r0}:$P${r1})))', fmt="0.000", fill=FILL_KEY)
+        TR[code] = f"Tech_Registry!$E${r}"; r += 1
+    r += 1
+    put(ws, f"A{r}", "注意", F_BOLD)
+    put(ws, f"B{r}", "掛鉤作用於全部世代與層級。新條目：在表中插入一列（範圍內），填倍數、狀態與證據；開關預設 0。"
+                     "Sens_Perf 的 η_d 與每層延遲情境為覆寫值，不受 Registry 影響。", F_NOTE, wrap=True)
+    ws.merge_cells(f"B{r}:R{r}"); ws.row_dimensions[r].height = 30
+    ws.freeze_panes = "C5"
+    TR["_rows"] = (r0, r1)
+    TR["_hooks"] = (r1 + 4, r1 + 3 + len(HOOKS))
+    return TR
+
+# ---------------------------------------------------------------- Train_In
+ROUT_LUNA, ROUT_SOL, ROUT_ASTRA = 2.36, 2.36, 9.6   # v5.6: 由 v5.5 的 2, 2, 8 重校，維持 VR200 上 RL ÷ 預訓練 GPU 小時（J9 (a)）
+
+def train_in(wb):
+    ws = wb.create_sheet("Train_In")
+    title(ws, "Train_In — 訓練輸入（藍字＝輸入；Analogy／Assumed 一律附區間）",
+          "Block 3 命題：各層級代表模型從預訓練到可發布、以及含研發實驗的整個計畫，需要多少 GPU 小時、美元與 1 GW 年。決策 J7–J14 見 README")
+    for c, w in zip("ABCDEFGH", [46, 12, 14, 14, 14, 14, 14, 90]): ws.column_dimensions[c].width = w
+    T = {}
+    put(ws, "A4", "全域設定", F_BOLD); put(ws, "B4", "單位", F_BOLD); put(ws, "C4", "值", F_BOLD); put(ws, "D4", "標記", F_BOLD); put(ws, "H4", "說明", F_BOLD)
+    g = [
+      ("prec", "訓練精度（MFU 分母）", "", "FP8 dense", None, "Decision", "J7：基準 FP8（DeepSeek V4 以 FP8 計算＋FP4 QAT，S35）；NVFP4 預訓練列於 Tech_Registry T07"),
+      ("mfub", "預訓練 MFU 基準（FP8 分母；GB200／GB300）", "%", 0.25, "0%", "Analogy",
+       "DeepSeek V3 推導 H800 FP8 口徑約 20%（Checks）；Llama 3 405B BF16 口徑 38–43%＝FP8 口徑約 19–22%（S37，待查）；NVL72 域大、EP 通訊較佳取 0.25。區間 0.15–0.40"),
+      ("gp", "goodput（扣除故障、重啟、checkpoint 的有效時間比）", "%", 0.90, "0%", "Analogy", "Meta Llama 3：有效訓練時間 >90%（S37，待查）；區間 0.80–0.95"),
+      ("sftk", "SFT MFU 係數（× 預訓練 MFU）", "x", 0.8, "0.00", "Assumed", "較短批次、較多變長序列；區間 0.6–1.0"),
+      ("rlk", "RL trainer MFU 係數（× 預訓練 MFU）", "x", 0.6, "0.00", "Assumed", "長序列、小批次、與 rollout 交替；區間 0.4–0.9。蒸餾學生更新沿用"),
+      ("ref", "參考模型前向（KL 懲罰；0＝無、1＝有）", "選擇", 0, "0", "Assumed", "GRPO 原版含 KL；DAPO 等後續做法移除。取 0，區間 0–1"),
+      ("reff", "rollout 效率（長尾等待、權重同步、閒置）", "%", 0.85, "0%", "Analogy",
+       "v5.6：非同步 RL 已屬主流（Tech_Registry T10）。各家報告非同步增益 1.5–2.7 倍（S45–S49）；同步約 0.4–0.5 → 非同步 0.85，區間 0.7–0.95。v5.5 為 0.6（混合）"),
+      ("G", "GRPO 每題取樣數（共用 prompt，prefill 只算一次）", "個", 16, "0", "Analogy", "DeepSeekMath／R1 GRPO 群組 16；區間 8–64"),
+      ("rdm", "研發倍數（研發總 GPU 小時 ÷ 最終訓練）", "x", 8, "0.0", "Analogy",
+       "J10。Epoch：最終訓練占研發支出 OpenAI 9.6%、MiniMax 22.6%、Z.ai 12.3%（S38）＝4.4–10.4 倍；取 8。以支出為口徑，已含實驗的低利用率，故乘在 GPU 小時上"),
+      ("rdmode", "研發歸屬", "", "家族合計乘一次，依最終訓練 GPU 小時比例分攤", None, "Decision",
+       "J10。比例分攤下，各層級分得＝該層級最終訓練 × 倍數；Training J 節另列家族合計"),
+      ("gtier", "合成資料生成層級（1 Luna／2 Sol／3 Astra）", "選擇", 3, "0", "Assumed", "以頂層模型生成；區間 2–3"),
+      ("gdef", "下游預設訓練世代（世代索引）", "索引", 4, "0", "Decision", "J13：Andy 2026-09-30 決定 VR200（索引 4）；具名範圍 IF_TrainGenDefault"),
+      ("galt", "並列訓練世代（世代索引）", "索引", 3, "0", "Decision", "J13：GB300（索引 3）並列；具名範圍 IF_TrainGenAlt"),
+    ]
+    r = 5
+    for key, lab, unit, v, fmt, tag, note in g:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit); put(ws, f"C{r}", v, fmt=fmt, font=F_IN)
+        put(ws, f"D{r}", tag, F_NOTE); put(ws, f"H{r}", note, F_NOTE, wrap=True)
+        T[key] = r; r += 1
+    for k in ("gdef", "galt"):
+        put(ws, f"E{T[k]}", f"=INDEX(Spec_Rack!$C$4:$G$4,$C${T[k]})", F_HLINK)
+    r += 1
+    section(ws, r, "各世代", 8); r += 1
+    put(ws, f"A{r}", "世代", F_BOLD)
+    for c in "CDEFG": put(ws, f"{c}{r}", f"=Spec_Rack!{c}4", F_HLINK)
+    r += 1
+    T["mfug"] = r
+    put(ws, f"A{r}", "預訓練 MFU 世代倍數"); put(ws, f"B{r}", "x")
+    for c, v in zip("CDEFG", [0.8, 1, 1, 0.9, 0.9]): put(ws, f"{c}{r}", v, fmt="0.00")
+    put(ws, f"H{r}", "Hopper 0.8 使 MFU＝20%，對應 V3 推導值 [Derived]；VR200 峰值 3.5 倍而 HBM 頻寬 2.75 倍，取 0.9 [Assumed，區間 0.7–1.1]；RU 同 VR [Assumed]", F_NOTE, wrap=True)
+    r += 2
+    section(ws, r, "各層級", 8); r += 1
+    put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
+    for c, t in zip("CDE", "CDE"): put(ws, f"{c}{r}", f"=Arch!{t}4", F_HLINK)
+    put(ws, f"H{r}", "說明", F_BOLD); r += 1
+    t = [
+      ("ptok", "預訓練 token", "T", [32, 33, 60], "#,##0.0", "Verified：V4-Flash 32T、V4-Pro 33T（S35）；Astra [Assumed，區間 30–100T；J8 以 Arch 一致為基準，前沿錨點見 Checks]"),
+      ("pseq", "預訓練序列長（dense 注意力）", "tok", [4096, 4096, 8192], "#,##0", "V4：4K → 16K 漸增，其間以 dense 注意力訓練（S35）；多數 token 在 4K [Assumed，區間 4K–16K]"),
+      ("ltok", "長上下文延伸 token", "T", [1, 1, 2], "#,##0.0", "Assumed，區間 0.3–3T（V4 未揭露）"),
+      ("lseq", "長上下文延伸序列長（稀疏注意力路徑）", "tok", [131072, 131072, 131072], "#,##0", "Assumed"),
+      ("stok", "SFT token", "T", [0.05, 0.05, 0.1], "#,##0.00", "Assumed，區間 0.01–0.3T"),
+      ("sseq", "SFT 序列長", "tok", [16384, 16384, 16384], "#,##0", "Assumed"),
+      ("bs", "批次推論速度下限（rollout、合成、評測）", "tok/s", [20, 20, 20], "#,##0", "取代互動 SLO；過低時長尾拉長牆鐘時間 [Assumed，區間 10–40]"),
+      ("risl", "rollout 參考輸入（prompt＋工具結果）", "tok", [4096, 8192, 16384], "#,##0", "Assumed"),
+      ("rosl", "rollout 參考輸出（含思考）", "tok", [8192, 16384, 32768], "#,##0", "Assumed：推理與代理任務的長輸出"),
+      ("rout", "RL rollout 輸出 token（含各領域專家）", "T", [ROUT_LUNA, ROUT_SOL, ROUT_ASTRA], "#,##0.00",
+       "J9：由下而上輸入；基準值校到 VR200 上 RL ÷ 預訓練 GPU 小時約 Luna／Sol 0.3、Astra 1.0（結果見 Training rlH 列與 Checks）；v5.6 因 rollout 效率 0.6→0.85 由 2／2／8 上調為 2.36／2.36／9.6，GPU 小時不變（Andy 決定 (a)）。外部點：R1 約 5%、Grok 4 約 1 倍（S40、S42；GPU 小時或預算口徑）。區間：Luna／Sol 0.3–6T、Astra 2.5–25T"),
+      ("dtok", "On-policy 蒸餾：學生 rollout 輸出 token", "T", [0.2, 0.2, 0.2], "#,##0.00", "Assumed，區間 0.05–1T"),
+      ("dtea", "蒸餾教師層級（1／2／3）", "選擇", [1, 2, 3], "0", "V4 做法：同尺寸各領域專家為教師 [Interested-party，S35]"),
+      ("syn", "合成資料生成 token", "T", [1, 2, 3], "#,##0.0", "Assumed，區間 0.5–10T"),
+      ("ev", "評測 token", "T", [0.02, 0.05, 0.1], "#,##0.00", "Assumed"),
+    ]
+    for key, lab, unit, vals, fmt, note in t:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"H{r}", note, F_NOTE, wrap=True)
+        T[key] = r; r += 1
+    for c in "CDE": ws[f"{c}{T['rout']}"].fill = FILL_KEY
+    r += 1
+    section(ws, r, "外部錨點（Checks 用；不進推導）", 8); r += 1
+    a = [
+      ("v3tok", "DeepSeek V3 預訓練 token", "T", 14.8, "#,##0.0", "Interested-party：DeepSeek V3 技術報告（S44）"),
+      ("v3h", "DeepSeek V3 預訓練 H800 GPU 小時", "M", 2.664, "#,##0.000", "S44（全部 2.788M，含長上下文 0.119M、後訓練 0.005M）"),
+      ("v3seq", "DeepSeek V3 預訓練序列長", "tok", 4096, "#,##0", "S44"),
+      ("r1rl", "DeepSeek R1 RL GPU 小時 ÷ V3 預訓練", "x", 0.055, "0.0%", "147K ÷ 2.664M（S40，Lambert 轉述；GPU 小時口徑）"),
+      ("grok", "Grok 4 RL ÷ 預訓練（宣稱）", "x", 1.0, "0.0", "Interested-party：xAI『預訓練規模』（S42）；口徑不明"),
+      ("an1", "前沿預訓練錨點 低", "FLOP", 2e26, "0.0E+00", "Analogy：Epoch 估計（Grok-3 約 4.6e26，S39）；誤差 2–5 倍"),
+      ("an2", "前沿預訓練錨點 中", "FLOP", 5e26, "0.0E+00", "同上"),
+      ("an3", "前沿預訓練錨點 高", "FLOP", 2e27, "0.0E+00", "同上"),
+    ]
+    for key, lab, unit, v, fmt, note in a:
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit); put(ws, f"C{r}", v, fmt=fmt)
+        put(ws, f"H{r}", note, F_NOTE, wrap=True); T[key] = r; r += 1
+    ws.freeze_panes = "C5"
+    return T
+
+# ---------------------------------------------------------------- Perf_Batch
+def perf_batch(wb, SP, AR, CAL, TR, TI):
+    ws = wb.create_sheet("Perf_Batch")
+    title(ws, "Perf_Batch — 批次推論引擎（RL rollout、蒸餾、合成資料、評測）：與 Perf 同一套公式，只換速度下限與參考任務",
+          "C–Q 欄＝世代 × 層級基準；R、S 欄＝VR200 以 FP8 rollout 的情境（J12 替代）。綠字＝連結 Train_In（非情境改動）；黃底＝情境改動")
+    put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
+    put(ws, "A3", "欄位", F_BOLD)
+    cols = COLS15 + ["R", "S"]
+    for i, X in enumerate(cols):
+        if i < 15: gi, t = i // 3 + 1, i % 3 + 1
+        else: gi, t = 4, i - 13
+        put(ws, f"{X}6", gi, fmt="0"); put(ws, f"{X}7", t, fmt="0")
+        put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        ws.column_dimensions[X].width = 13
+    put(ws, "R3", "情境：FP8 rollout", F_BOLD); put(ws, "S3", "情境：FP8 rollout", F_BOLD)
+    link = {"s": f"=INDEX(Train_In!$C${TI['bs']}:$E${TI['bs']},{{X}}$7)",
+            "isl": f"=INDEX(Train_In!$C${TI['risl']}:$E${TI['risl']},{{X}}$7)",
+            "osl": f"=INDEX(Train_In!$C${TI['rosl']}:$E${TI['rosl']},{{X}}$7)"}
+    ov = {X: dict(link) for X in COLS15}
+    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR, overrides=ov, ov_link=True)
+    # scenario columns (FP8 rollout on VR200): re-write the same rows into R, S with extra overrides
+    fp8 = {"P": f"=Spec_Rack!$F${SP['tfp8']}", "be": 1, "bn": 1}
+    for X in ("R", "S"):
+        rr = 9
+        from perf import perf_rows
+        spec = perf_rows(SP, AR, CAL, TR)
+        m = {}
+        for item in spec:
+            if item[0] == "§": rr += 1; continue
+            key, lab, unit, fmt, tpl = item
+            m[key] = rr
+            if key in link:
+                put(ws, f"{X}{rr}", link[key].replace("{X}", X), F_LINK, fmt=fmt)
+            elif key in fp8:
+                put(ws, f"{X}{rr}", fp8[key], F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00"))
+            elif isinstance(tpl, (int, float)):
+                put(ws, f"{X}{rr}", tpl, F_IN, fmt=fmt)
+            else:
+                mm = dict(m); mm["X"] = X
+                put(ws, f"{X}{rr}", tpl.format(**mm), fmt=fmt)
+            rr += 1
+    section(ws, r, "L. 批次推論的有效 MFU（接受 token 的模型 FLOPs ÷ 峰值）", 19); r += 1
+    R["mfu4"], R["mfu8"] = r, r + 1
+    put(ws, f"A{r}", "decode 有效 MFU（對 Perf 計算用峰值）"); put(ws, f"B{r}", "%")
+    put(ws, f"A{r+1}", "decode 有效 MFU（對 FP8 訓練峰值）"); put(ws, f"B{r+1}", "%")
+    for X in cols:
+        put(ws, f"{X}{r}", f"=IF({X}{R['D']}>0,{X}{R['D']}*{X}{R['Fd']}*1E9/({X}{R['P']}*1E15),0)", fmt="0.0%")
+        put(ws, f"{X}{r+1}", f"=IF({X}{R['D']}>0,{X}{R['D']}*{X}{R['Fd']}*1E9/(INDEX(Spec_Rack!$C${SP['tfp8']}:$G${SP['tfp8']},{X}$6)*1E15),0)", fmt="0.0%", fill=FILL_KEY)
+    ws.freeze_panes = "C8"
+    return R
+
+# ---------------------------------------------------------------- Training engine
+def train_rows(SP, AR, TI, PB, TR):
+    ti = lambda k: f"=INDEX(Train_In!$C${TI[k]}:$E${TI[k]},{{X}}$7)"
+    tg = lambda k: f"=INDEX(Train_In!$C${TI[k]}:$G${TI[k]},{{X}}$6)"
+    tgl = lambda k: f"=Train_In!$C${TI[k]}"
+    sp = lambda row: f"=INDEX(Spec_Rack!$C${row}:$G${row},{{X}}$6)"
+    ar = lambda row: f"=INDEX(Arch!$C${row}:$E${row},{{X}}$7)"
+    dc = lambda row: f"=INDEX(DC_Cost!$C${row}:$Q${row},3*({{X}}$6-1)+2)"
+    pb = lambda k: f"=INDEX(Perf_Batch!$C${PB[k]}:$Q${PB[k]},3*({{X}}$6-1)+{{X}}$7)"
+    pbt = lambda k, tier: f"=INDEX(Perf_Batch!$C${PB[k]}:$Q${PB[k]},3*({{X}}$6-1)+{{X}}{{{tier}}})"
+    hk = lambda code: f"={TR[code]}"
+    sparse = lambda pos: ("={X}{ff}*IF({X}{cap}=0," + pos + ",MIN(" + pos + ",{X}{cap}))+(1-{X}{ff})*(" + pos + "/{X}{comp}+{X}{win})")
+    gpuh = lambda C, k="1": "={X}{" + C + "}/({X}{pk}*1E15*{X}{mfu}*" + k + "*{X}{gp})/3600"
+    return [
+      ("§", "A. 規格、成本與 Tech_Registry 掛鉤"),
+      ("pk8", "FP8 dense 峰值", "PF/GPU", "#,##0.000", sp(SP["tfp8"])),
+      ("htpk", "訓練峰值倍數（H_TPK）", "x", "0.00", hk("H_TPK")),
+      ("pk", "訓練用峰值（MFU 分母）", "PF/GPU", "#,##0.000", "={X}{pk8}*{X}{htpk}"),
+      ("mfub", "預訓練 MFU 基準", "%", "0%", tgl("mfub")),
+      ("mfug", "MFU 世代倍數", "x", "0.00", tg("mfug")),
+      ("hmfu", "訓練 MFU 倍數（H_MFU）", "x", "0.00", hk("H_MFU")),
+      ("mfu", "預訓練 MFU（採用）", "%", "0.0%", "={X}{mfub}*{X}{mfug}*{X}{hmfu}"),
+      ("gp", "goodput", "%", "0%", tgl("gp")),
+      ("gpus", "每 GW GPU 數", "顆", "#,##0", dc(14)),
+      ("ce", "每 GPU 小時持有成本 — 經濟（基準成本）", "$/GPU-hr", "#,##0.00", dc(58)),
+      ("ca", "每 GPU 小時持有成本 — 會計（基準成本）", "$/GPU-hr", "#,##0.00", dc(57)),
+      ("§", "B. 架構（連結 Arch）"),
+      ("A", "啟用參數", "B", "#,##0", ar(AR["A"])),
+      ("attc", "注意力 FLOPs／被注意 token", "FLOP", "#,##0", ar(AR["attc"])),
+      ("ff", "全注意力層比例", "%", "0%", ar(AR["ff"])),
+      ("cap", "全注意力跨度上限", "tok", "#,##0", ar(AR["cap"])),
+      ("comp", "其他層壓縮比", "x", "#,##0", ar(AR["comp"])),
+      ("win", "其他層滑動窗", "tok", "#,##0", ar(AR["win"])),
+      ("hflop", "FLOPs/token 倍數（H_FLOP）", "x", "0.00", hk("H_FLOP")),
+      ("§", "C. 預訓練（反向傳播型；每 token 訓練 FLOPs＝3 × 前向）"),
+      ("htok", "所需 token 倍數（H_TOK）", "x", "0.00", hk("H_TOK")),
+      ("Dp", "預訓練 token", "T", "#,##0.0", ti("ptok") + "*{X}{htok}"),
+      ("Sp", "序列長", "tok", "#,##0", ti("pseq")),
+      ("attp", "平均被注意 token（dense 注意力＝平均位置）", "tok", "#,##0", "={X}{Sp}/2"),
+      ("Fpt", "訓練 FLOPs/token", "GFLOP", "#,##0.0", "=3*(2*{X}{A}*1E9+{X}{attc}*{X}{attp})*{X}{hflop}/1E9"),
+      ("Cp", "預訓練 FLOPs", "FLOP", "0.00E+00", "={X}{Fpt}*1E9*{X}{Dp}*1E12"),
+      ("Hp", "預訓練 GPU 小時", "GPU-hr", "#,##0", gpuh("Cp")),
+      ("§", "D. 長上下文延伸（反向傳播型；稀疏注意力路徑）"),
+      ("Dl", "延伸 token", "T", "#,##0.0", ti("ltok")),
+      ("Sl", "序列長", "tok", "#,##0", ti("lseq")),
+      ("attl", "平均被注意 token", "tok", "#,##0", sparse("{X}{Sl}/2")),
+      ("Flt", "訓練 FLOPs/token", "GFLOP", "#,##0.0", "=3*(2*{X}{A}*1E9+{X}{attc}*{X}{attl})*{X}{hflop}/1E9"),
+      ("Cl", "延伸 FLOPs", "FLOP", "0.00E+00", "={X}{Flt}*1E9*{X}{Dl}*1E12"),
+      ("Hl", "延伸 GPU 小時", "GPU-hr", "#,##0", gpuh("Cl")),
+      ("§", "E. SFT（反向傳播型）"),
+      ("Ds", "SFT token", "T", "#,##0.00", ti("stok")),
+      ("Ss", "序列長", "tok", "#,##0", ti("sseq")),
+      ("atts", "平均被注意 token", "tok", "#,##0", sparse("{X}{Ss}/2")),
+      ("Fst", "訓練 FLOPs/token", "GFLOP", "#,##0.0", "=3*(2*{X}{A}*1E9+{X}{attc}*{X}{atts})*{X}{hflop}/1E9"),
+      ("Cs", "SFT FLOPs", "FLOP", "0.00E+00", "={X}{Fst}*1E9*{X}{Ds}*1E12"),
+      ("sftk", "SFT MFU 係數", "x", "0.00", tgl("sftk")),
+      ("Hs", "SFT GPU 小時", "GPU-hr", "#,##0", gpuh("Cs", "{X}{sftk}")),
+      ("§", "F. RL（rollout＝推論型，以 Perf_Batch 計價；trainer＝反向傳播型）"),
+      ("Rout", "rollout 輸出 token", "T", "#,##0.0", ti("rout")),
+      ("isl", "每樣本輸入", "tok", "#,##0", pb("isl")),
+      ("osl", "每樣本輸出", "tok", "#,##0", pb("osl")),
+      ("ns", "樣本數", "個", "#,##0", "={X}{Rout}*1E12/{X}{osl}"),
+      ("G", "GRPO 每題取樣數", "個", "0", tgl("G")),
+      ("pref", "新鮮 prefill token（每題一次）", "T", "#,##0.00", "={X}{ns}*{X}{isl}/{X}{G}/1E12"),
+      ("gsdr", "rollout decode GPU 秒／M（Perf_Batch 本層級）", "GPU-s/M", "#,##0.0", pb("gsd")),
+      ("gsfr", "rollout prefill GPU 秒／M", "GPU-s/M", "#,##0.0", pb("gsf")),
+      ("fdb", "rollout decode FLOPs/token", "GFLOP", "#,##0.0", pb("Fd")),
+      ("fpb", "rollout prefill FLOPs/token", "GFLOP", "#,##0.0", pb("Fp")),
+      ("hroll", "rollout 效率倍數（H_ROLL）", "x", "0.00", hk("H_ROLL")),
+      ("reff", "rollout 效率（採用）", "%", "0%", tgl("reff") + "*{X}{hroll}"),
+      ("Hro", "rollout GPU 小時（含閒置）", "GPU-hr", "#,##0", "=({X}{Rout}*1E6*{X}{gsdr}+{X}{pref}*1E6*{X}{gsfr})/3600/{X}{reff}"),
+      ("Cro", "rollout FLOPs（接受 token）", "FLOP", "0.00E+00", "={X}{Rout}*1E12*{X}{fdb}*1E9+{X}{pref}*1E12*{X}{fpb}*1E9"),
+      ("Tt", "trainer 處理 token（輸入＋輸出）", "T", "#,##0.0", "={X}{ns}*({X}{isl}+{X}{osl})/1E12"),
+      ("attr", "trainer 平均被注意 token", "tok", "#,##0", sparse("({X}{isl}+{X}{osl})/2")),
+      ("Frt", "trainer FLOPs/token", "GFLOP", "#,##0.0", "=3*(2*{X}{A}*1E9+{X}{attc}*{X}{attr})*{X}{hflop}/1E9"),
+      ("Crt", "trainer FLOPs", "FLOP", "0.00E+00", "={X}{Frt}*1E9*{X}{Tt}*1E12"),
+      ("rlk", "RL trainer MFU 係數", "x", "0.00", tgl("rlk")),
+      ("Hrt", "trainer GPU 小時", "GPU-hr", "#,##0", gpuh("Crt", "{X}{rlk}")),
+      ("refk", "參考模型前向（0／1）", "", "0", tgl("ref")),
+      ("Hrf", "參考模型前向 GPU 小時（推論型）", "GPU-hr", "#,##0", "={X}{refk}*{X}{Hrt}/3"),
+      ("Hrl", "RL GPU 小時合計", "GPU-hr", "#,##0", "={X}{Hro}+{X}{Hrt}+{X}{Hrf}"),
+      ("Crl", "RL FLOPs 合計", "FLOP", "0.00E+00", "={X}{Cro}+{X}{Crt}*(1+{X}{refk}/3)"),
+      ("rlmfu", "RL 有效 MFU（FLOPs ÷ GPU 小時 ÷ 訓練峰值）", "%", "0.0%", "={X}{Crl}/({X}{Hrl}*3600*{X}{pk}*1E15)"),
+      ("rlH", "RL ÷ 預訓練（GPU 小時）", "x", "0.00", "={X}{Hrl}/{X}{Hp}"),
+      ("rlF", "RL ÷ 預訓練（FLOPs）", "x", "0.00", "={X}{Crl}/{X}{Cp}"),
+      ("§", "G. On-policy 蒸餾（學生 rollout＋教師評分＝推論型；學生更新＝反向傳播型）"),
+      ("Dd", "學生 rollout 輸出 token", "T", "#,##0.00", ti("dtok")),
+      ("dt", "教師層級", "", "0", ti("dtea")),
+      ("Td", "教師評分 token（輸入＋輸出）", "T", "#,##0.00", "={X}{Dd}*1E12/{X}{osl}*({X}{isl}+{X}{osl})/1E12"),
+      ("gsft", "教師 prefill GPU 秒／M", "GPU-s/M", "#,##0.0", pbt("gsf", "dt")),
+      ("fpt", "教師 prefill FLOPs/token", "GFLOP", "#,##0.0", pbt("Fp", "dt")),
+      ("Hds", "學生 rollout GPU 小時", "GPU-hr", "#,##0", "={X}{Dd}*1E6*{X}{gsdr}/3600/{X}{reff}"),
+      ("Hdt", "教師評分 GPU 小時", "GPU-hr", "#,##0", "={X}{Td}*1E6*{X}{gsft}/3600"),
+      ("Cdu", "學生更新 FLOPs", "FLOP", "0.00E+00", "={X}{Frt}*1E9*{X}{Td}*1E12"),
+      ("Hdu", "學生更新 GPU 小時", "GPU-hr", "#,##0", gpuh("Cdu", "{X}{rlk}")),
+      ("Hd", "蒸餾 GPU 小時合計", "GPU-hr", "#,##0", "={X}{Hds}+{X}{Hdt}+{X}{Hdu}"),
+      ("Cd", "蒸餾 FLOPs 合計", "FLOP", "0.00E+00", "={X}{Dd}*1E12*{X}{fdb}*1E9+{X}{Td}*1E12*{X}{fpt}*1E9+{X}{Cdu}"),
+      ("§", "H. 合成資料與評測（推論型）"),
+      ("Dsy", "合成資料 token", "T", "#,##0.0", ti("syn")),
+      ("gt", "生成層級", "", "0", tgl("gtier")),
+      ("gsdg", "生成層級 decode GPU 秒／M", "GPU-s/M", "#,##0.0", pbt("gsd", "gt")),
+      ("fdg", "生成層級 decode FLOPs/token", "GFLOP", "#,##0.0", pbt("Fd", "gt")),
+      ("Hsy", "合成資料 GPU 小時", "GPU-hr", "#,##0", "={X}{Dsy}*1E6*{X}{gsdg}/3600"),
+      ("Csy", "合成資料 FLOPs", "FLOP", "0.00E+00", "={X}{Dsy}*1E12*{X}{fdg}*1E9"),
+      ("Dev", "評測 token", "T", "#,##0.00", ti("ev")),
+      ("Hev", "評測 GPU 小時", "GPU-hr", "#,##0", "={X}{Dev}*1E6*{X}{gsdr}/3600"),
+      ("Cev", "評測 FLOPs", "FLOP", "0.00E+00", "={X}{Dev}*1E12*{X}{fdb}*1E9"),
+      ("§", "I. 最終訓練合計（單一模型）"),
+      ("Hpre", "預訓練側 GPU 小時（預訓練＋長上下文）", "GPU-hr", "#,##0", "={X}{Hp}+{X}{Hl}"),
+      ("Hpost", "後訓練 GPU 小時（SFT＋RL＋蒸餾）", "GPU-hr", "#,##0", "={X}{Hs}+{X}{Hrl}+{X}{Hd}"),
+      ("Hoth", "合成資料與評測 GPU 小時", "GPU-hr", "#,##0", "={X}{Hsy}+{X}{Hev}"),
+      ("Hfin", "最終訓練 GPU 小時", "GPU-hr", "#,##0", "={X}{Hpre}+{X}{Hpost}+{X}{Hoth}"),
+      ("Cpre", "預訓練側 FLOPs", "FLOP", "0.00E+00", "={X}{Cp}+{X}{Cl}"),
+      ("Cpost", "後訓練 FLOPs", "FLOP", "0.00E+00", "={X}{Cs}+{X}{Crl}+{X}{Cd}"),
+      ("Cfin", "最終訓練 FLOPs", "FLOP", "0.00E+00", "={X}{Cpre}+{X}{Cpost}+{X}{Csy}+{X}{Cev}"),
+      ("psF", "後訓練占比（FLOPs 口徑）", "%", "0.0%", "={X}{Cpost}/({X}{Cpre}+{X}{Cpost})"),
+      ("psH", "後訓練占比（GPU 小時口徑）", "%", "0.0%", "={X}{Hpost}/({X}{Hpre}+{X}{Hpost})"),
+      ("HI", "推論型 GPU 小時", "GPU-hr", "#,##0", "={X}{Hro}+{X}{Hrf}+{X}{Hds}+{X}{Hdt}+{X}{Hsy}+{X}{Hev}"),
+      ("HB", "反向傳播型 GPU 小時", "GPU-hr", "#,##0", "={X}{Hp}+{X}{Hl}+{X}{Hs}+{X}{Hrt}+{X}{Hdu}"),
+      ("Ish", "推論型占最終訓練", "%", "0.0%", "={X}{HI}/{X}{Hfin}"),
+      ("Ufin", "最終訓練成本 — 經濟", "$M", "#,##0.0", "={X}{Hfin}*{X}{ce}/1E6"),
+      ("Ufa", "最終訓練成本 — 會計", "$M", "#,##0.0", "={X}{Hfin}*{X}{ca}/1E6"),
+      ("GWf", "最終訓練占 1 GW 一年", "%", "0.000%", "={X}{Hfin}/({X}{gpus}*8760)"),
+      ("§", "J. 研發計畫（J10：研發倍數乘在 GPU 小時上；依最終訓練比例分攤＝各層級最終 × 倍數）"),
+      ("rdm", "研發倍數", "x", "0.0", tgl("rdm")),
+      ("Hprog", "研發計畫 GPU 小時", "GPU-hr", "#,##0", "={X}{Hfin}*{X}{rdm}"),
+      ("Hexp", "其中：研發實驗（型態未拆分）", "GPU-hr", "#,##0", "={X}{Hprog}-{X}{Hfin}"),
+      ("Uprog", "研發計畫成本 — 經濟", "$M", "#,##0", "={X}{Hprog}*{X}{ce}/1E6"),
+      ("GWp", "研發計畫占 1 GW 一年", "%", "0.00%", "={X}{Hprog}/({X}{gpus}*8760)"),
+      ("§", "K. 用途 × 型態（GPU 小時；單一模型計畫；對外服務不在第 0 層，J11）"),
+      ("xPreB", "預訓練（含長上下文）｜反向傳播型", "GPU-hr", "#,##0", "={X}{Hpre}"),
+      ("xPostI", "後訓練｜推論型（rollout、參考、蒸餾學生與教師）", "GPU-hr", "#,##0", "={X}{Hro}+{X}{Hrf}+{X}{Hds}+{X}{Hdt}"),
+      ("xPostB", "後訓練｜反向傳播型（SFT、RL trainer、學生更新）", "GPU-hr", "#,##0", "={X}{Hs}+{X}{Hrt}+{X}{Hdu}"),
+      ("xOthI", "合成資料與評測｜推論型", "GPU-hr", "#,##0", "={X}{Hoth}"),
+      ("xExp", "研發實驗｜未拆分", "GPU-hr", "#,##0", "={X}{Hexp}"),
+    ]
+
+TKEY = {"Hp", "Hrl", "Hfin", "psF", "psH", "rlmfu", "Ufin", "GWf", "Hprog", "Uprog", "GWp", "rlH"}
+
+def write_train(ws, cols, SP, AR, TI, PB, TR, start=9, overrides=None):
+    overrides = overrides or {}
+    R = {}; r = start
+    for item in train_rows(SP, AR, TI, PB, TR):
+        if item[0] == "§":
+            section(ws, r, item[1], 2 + len(cols)); r += 1; continue
+        key, lab, unit, fmt, tpl = item
+        R[key] = r
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for X in cols:
+            ov = overrides.get(X, {})
+            if key in ov:
+                v = ov[key].replace("{X}", X) if isinstance(ov[key], str) else ov[key]
+                put(ws, f"{X}{r}", v, F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00")); continue
+            m = dict(R); m["X"] = X
+            put(ws, f"{X}{r}", tpl.format(**m), fmt=fmt, fill=FILL_KEY if key in TKEY else None)
+        r += 1
+    ws.column_dimensions["A"].width = 46; ws.column_dimensions["B"].width = 10
+    return R, r
+
+def hdr15(ws, cols, gens_tiers):
+    put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
+    for X, (g, t) in zip(cols, gens_tiers):
+        put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
+        put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        ws.column_dimensions[X].width = 13
+
+def training_sheet(wb, SP, AR, TI, PB, TR):
+    ws = wb.create_sheet("Training")
+    title(ws, "Training — 訓練與研發計畫的 GPU 小時、成本、1 GW 年占比（世代 × 層級；下游預設 VR200，GB300 並列，J13）",
+          "推論型運算以 Perf_Batch 計價；反向傳播型以訓練峰值 × MFU × goodput 計價。後訓練占比同時列 FLOPs 與 GPU 小時口徑（一級追蹤指標）")
+    hdr15(ws, COLS15, [(i // 3 + 1, i % 3 + 1) for i in range(15)])
+    R, r = write_train(ws, COLS15, SP, AR, TI, PB, TR)
+    section(ws, r, "L. 模型家族合計（同世代三層級；J10 研發歸屬的總額）", 17); r += 1
+    for key, lab, unit, fmt, src in [("fHfin", "家族最終訓練 GPU 小時", "GPU-hr", "#,##0", "Hfin"),
+                                     ("fHprog", "家族研發計畫 GPU 小時", "GPU-hr", "#,##0", "Hprog"),
+                                     ("fUprog", "家族研發計畫成本 — 經濟", "$M", "#,##0", "Uprog"),
+                                     ("fGWp", "家族研發計畫占 1 GW 一年", "%", "0.00%", "GWp")]:
+        R[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for X in COLS15:
+            put(ws, f"{X}{r}", f"=SUMPRODUCT(($C$6:$Q$6={X}$6)*$C${R[src]}:$Q${R[src]})", fmt=fmt, fill=FILL_KEY)
+        r += 1
+    ws.freeze_panes = "C8"
+    return R
+
+SCEN_T = [  # label, overrides applied to both columns (Sol, Astra); special "fp8" flag
+ ("基準", {}),
+ ("預訓練 MFU 基準 0.15", {"mfub": 0.15}),
+ ("預訓練 MFU 基準 0.40", {"mfub": 0.40}),
+ ("NVFP4 訓練峰值（J7 替代）", {"pk8": "=INDEX(Spec_Rack!$C${tfp4}:$G${tfp4},{X}$6)"}),
+ ("預訓練 token × 0.5", {"htok": 0.5}),
+ ("預訓練 token × 1.67", {"htok": 1.67}),
+ ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*0.3"}),
+ ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*3"}),
+ ("rollout 效率 0.6（v5.5 混合現況；rollout token 不變）", {"reff": 0.6}),
+ ("rollout 效率 0.95（rollout token 不變）", {"reff": 0.95}),
+ ("rollout 精度 FP8（J12 替代）", "fp8"),
+ ("合成資料 token × 0", {"Dsy": 0}),
+ ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*3"}),
+ ("研發倍數 4.4（MiniMax）", {"rdm": 4.4}),
+ ("研發倍數 10.4（OpenAI）", {"rdm": 10.4}),
+ ("goodput 0.80", {"gp": 0.8}),
+]
+
+def sens_train(wb, SP, AR, TI, PB, TR):
+    ws = wb.create_sheet("Sens_Train")
+    title(ws, "Sens_Train — 訓練與研發計畫的單變數敏感度（VR200；每組左 Sol、右 Astra；先看敏感度，再看基準）",
+          "黃底藍字＝該情境改動的輸入。L 節為對基準欄（C、D）的比值")
+    cols, ov, gt = [], {}, []
+    for i, (lab, o) in enumerate(SCEN_T):
+        xs, xa = L(3 + 2 * i), L(4 + 2 * i)
+        cols += [xs, xa]; gt += [(4, 2), (4, 3)]
+        if o == "fp8":
+            ov[xs] = {k: f"=Perf_Batch!R{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
+            ov[xa] = {k: f"=Perf_Batch!S{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
+        else:
+            oo = {k: (v.replace("{tfp4}", str(SP["tfp4"])).replace("{rout}", str(TI["rout"])).replace("{syn}", str(TI["syn"])) if isinstance(v, str) else v)
+                  for k, v in o.items()}
+            ov[xs] = dict(oo); ov[xa] = dict(oo)
+        put(ws, f"{xs}3", lab, F_BOLD, wrap=True); ws.merge_cells(f"{xs}3:{xa}3")
+    ws.row_dimensions[3].height = 44; put(ws, "A3", "情境", F_BOLD)
+    hdr15(ws, cols, gt)
+    R, r = write_train(ws, cols, SP, AR, TI, PB, TR, overrides=ov)
+    section(ws, r, "L. 對基準的比值（同層級）", 2 + len(cols)); r += 1
+    for key, lab in [("Hfin", "最終訓練 GPU 小時 ÷ 基準"), ("Hprog", "研發計畫 GPU 小時 ÷ 基準"), ("psH", "後訓練占比（GPU 小時）÷ 基準")]:
+        R["r_" + key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", "x")
+        for i, X in enumerate(cols):
+            base = "C" if i % 2 == 0 else "D"
+            put(ws, f"{X}{r}", f"={X}{R[key]}/${base}${R[key]}", fmt="0.00", fill=FILL_KEY)
+        r += 1
+    ws.freeze_panes = "C8"
+    return R
+```
+
+## finish.py
+
+```python
+from common import *
+from openpyxl.workbook.defined_name import DefinedName
+from outputs import COLS15
+
+def interface(wb, PR, U):
+    ws = wb["Interface"]
+    for r in range(17, 23):
+        for c in range(1, 19): ws.cell(row=r, column=c).value = None
+    put(ws, "A2", "每一列為一個具名範圍（IF_…），欄＝世代 × 成本情境；Block 2 產出依層級分區（物理量不隨成本情境變動）", F_NOTE)
+    section(ws, 17, "B. Block 2 產出（依層級；100%＝理想上限；下游以自身利用率換算）", 17)
+    r = 18; names = []
+    tiers = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+    for t, (tk, tn) in enumerate(tiers, start=1):
+        put(ws, f"A{r}", tn, F_BOLD); r += 1
+        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:$Q${PR[key]},3*(Unit_Cost!{{X}}$6-1)+{t})"
+        rows = [
+          (f"IF_TokRack_{tk}", "每架總 tok/s（參考任務 P:D）", "tok/s", "#,##0", pl("rtot")),
+          (f"IF_TokRackD_{tk}", "每架 decode tok/s", "tok/s", "#,##0", pl("rdec")),
+          (f"IF_TokGW_{tk}", "每 GW 總產出（100%）", "M tok/年", "#,##0", pl("gwtot")),
+          (f"IF_VReq_{tk}", "VR-eq 係數（每 GW 產出 ÷ VR200）", "x", "0.00", pl("vreq")),
+          (f"IF_CostPre_{tk}", "新鮮 prefill $/M（經濟、100%）", "$/M", "#,##0.000", f"=Unit_Cost!{{X}}{U[(t,'cf')]}"),
+          (f"IF_CostCache_{tk}", "快取命中 prefill $/M（經濟、100%）", "$/M", "#,##0.0000", f"=Unit_Cost!{{X}}{U[(t,'cc')]}"),
+          (f"IF_CostDec_{tk}", "decode（含思考 token）$/M（經濟、100%）", "$/M", "#,##0.000", f"=Unit_Cost!{{X}}{U[(t,'cd')]}"),
+          (f"IF_CostDecAcct_{tk}", "decode（含思考 token）$/M（會計、100%）", "$/M", "#,##0.000", f"=Unit_Cost!{{X}}{U[(t,'cda')]}"),
+          (f"IF_TokPerJ_{tk}", "tokens／焦耳（平均用電口徑）", "tok/J", "#,##0.00", pl("tpj")),
+        ]
+        for name, lab, unit, fmt, tpl in rows:
+            put(ws, f"A{r}", f"{lab}　[{name}]"); put(ws, f"B{r}", unit)
+            for X in COLS15:
+                put(ws, f"{X}{r}", tpl.format(X=X), fmt=fmt, fill=FILL_KEY if "CostDec_" in name or "TokGW" in name else None)
+            names.append((name, f"Interface!$C${r}:$Q${r}")); r += 1
+    put(ws, f"A{r}", "基準利用率（第 0 層；下游可覆寫）　[IF_Util]"); put(ws, f"B{r}", "%")
+    put(ws, f"C{r}", "=Serving!$C$17", fmt="0%"); names.append(("IF_Util", f"Interface!$C${r}")); r += 2
+    put(ws, f"A{r}", "每 GW 理論營收"); put(ws, f"C{r}", "待 Block 4（Capability、單價前緣）", F_NOTE)
+    for n, ref in names:
+        wb.defined_names[n] = DefinedName(n, attr_text=ref)
+    ws.column_dimensions["A"].width = 52
+    return names
+
+def checks(wb, CAL, PR, SR, U):
+    ws = wb["Checks"]
+    section(ws, 12, "Block 2 檢查", 6)
+    rows = [
+      ("校準：擬合點重現（應為 1.00）", f"=Calib!C{CAL['ratio']}", "1.00", "x", "擬合正確性", "Calib F 節"),
+      ("樣本外：GB300 SGLang＋MTP 50 tok/s", f"=Calib!E{CAL['ratio']}", "11,200 實測", "模型÷實測", "±10% 內視為前緣形狀成立", "S21"),
+      ("樣本外：GB300 vLLM 無 MTP 27 tok/s", f"=Calib!F{CAL['ratio']}", "6,182 實測", "模型÷實測", "應 >1：舊軟體", "S20"),
+      ("樣本外：GB200 vLLM 無 MTP 27 tok/s", f"=Calib!G{CAL['ratio']}", "2,189 實測", "模型÷實測", "應 >1：舊軟體＋記憶體限制配方", "S20"),
+      ("樣本外：GB200／GB300 110 tok/s", f"=Calib!H{CAL['ratio']}", "3,795 實測", "模型÷實測", "口徑待查", "S23"),
+      ("GB300 Sol 經濟成本 vs InferenceX（72 tok/s，8K/1K）", f"=DC_Cost!J58/(Calib!C{CAL['T']}*3600)*1E6", "0.078", "$/M 總 token", "差異來自每 GPU 小時 TCO（本模型 2.99 對 2.65）", "S22"),
+      ("VR200 ÷ GB300 每 GW 產出（Sol 基準）", f"=Sens_Perf!C{SR['rgw']}", "=DC_Cost!M55/DC_Cost!J55", "x", "外部參照欄＝損益兩平（每 GW 持有成本比）；高於此值時 VR200 每 token 較便宜", "Sens_Perf"),
+      ("GB300 每 GPU 功率：本模型 IT 平均用電", "=DC_Cost!J11*Inputs!$E$10/72", "2.12", "kW/GPU", "InferenceX 72 tok/s 時 9,384 tok/s/GPU ÷ 4.43M tok/s/MW 反推（provisioned，口徑可能含設施）", "S22"),
+      ("VR200 ÷ GB300 decode $/M（Sol 基準）", f"=Sens_Perf!C{SR['rcost']}", "<1 較便宜", "x", "", "Sens_Perf"),
+      ("第二來源：GB300 interactive 模型 ÷ MLPerf（DeepSeek-R1）", f"=Calib!C{CAL['mR']}", "1.00", "x", "<1：本模型低於 MLPerf，InferenceX 校準未比 MLPerf 樂觀", "S31、S32"),
+      ("第二來源：VR200 ÷ GB300 模型 對 MLPerf", f"=Calib!C{CAL['mVR']}", f"=Calib!C{CAL['mVRm']}", "x", "兩者接近即支持 VR 沿用 GB300 效率係數", "S32"),
+      ("來源衝突：GB300 ÷ GB200 模型 對 MLPerf", f"=Calib!C{CAL['mGB']}", f"=Calib!D{CAL['mGB']}", "x", "InferenceX 1.7–2.8、MLPerf 約 1.05、模型居中", "S20、S31"),
+      ("能量閉合：各欄最大閉合比", f"=MAX(Perf!C{PR['close']}:Q{PR['close']})", "≤ 100%", "%", "超過代表產出或能量常數有誤", "Perf J 節"),
+      ("SLO 不可達的欄數（15 欄中）", f"=COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"SLO 不可達\")", "—", "欄", "0＝15 欄在 SLO 下皆可達；Hopper × Astra 每 GPU 僅約 25 tok/s，物理上可達但經濟上不可行", "Perf G 節"),
+      ("牌價空間：V4-Pro 8K/1K 牌價 ÷ GB300 Sol 成本（基準利用率）", f"=((8*1.32+3.96)/9)/((8*Unit_Cost!J{U[(2,'cfu')]}+Unit_Cost!J{U[(2,'cdu')]})/9)", "—", "x", "DeepSeek V4-Pro API 牌價 $1.32／$3.96（2026-09 價格追蹤站；記錄於 Tokenomics v4 活頁簿預設表）；只說明空間，不代表 DeepSeek 毛利", "S27"),
+    ]
+    put(ws, "A13", "項目", F_BOLD); put(ws, "B13", "本模型", F_BOLD); put(ws, "C13", "外部參照", F_BOLD)
+    put(ws, "D13", "單位", F_BOLD); put(ws, "E13", "判讀", F_BOLD); put(ws, "F13", "來源", F_BOLD)
+    for i, (a, b, c, d, e, f) in enumerate(rows):
+        r = 14 + i
+        put(ws, f"A{r}", a, wrap=True); put(ws, f"B{r}", b, fmt="#,##0.00" if "%" not in d else "0%", fill=FILL_KEY)
+        put(ws, f"C{r}", c); put(ws, f"D{r}", d); put(ws, f"E{r}", e, F_NOTE, wrap=True); put(ws, f"F{r}", f, F_NOTE)
+
+def sources(wb):
+    ws = wb["Sources"]
+    data = [
+      ("S20", "InferenceX GB300 對 GB200（V4-Pro）", "vLLM、無 MTP、2026-05-22：27 tok/s 時 6,182 對 2,189 tok/s/GPU；GB300 峰值 11,056@13.1；GB300 多 50% HBM 使配方更寬", "Interested-party（SemiAnalysis：平台受晶片商贊助、另售 TCO 模型）；單一來源須佐證", "2026-05", "inferencex.semianalysis.com/blog/gb300-nvl72-vs-gb200-nvl72-dsv4-pro-vllm-fp4", "已核對原文（交接錨點即此，屬舊軟體）"),
+      ("S21", "SGLang／NVIDIA：V4 on GB300", "SGLang＋MTP 2026-06：約 50 tok/s/user 時約 11,200 tok/s/GPU；草稿接受率 0.57→0.70；配方 10p1d dep4／dep32", "Interested-party（SGLang、NVIDIA 作者）", "2026-06-23", "pytorch.org/blog/serving-deepseek-v4-on-gb300-with-sglang-…", "已核對原文"),
+      ("S22", "InferenceX 每美元比較（B300 對 GB300，V4-Pro）", "GB300：72 tok/s 時 9,384 tok/s/GPU、$0.078/M；130 tok/s 時 3,474、$0.216/M；187 tok/s 時 $1.436/M", "Interested-party（SemiAnalysis）；擬合所用，第二來源見 S31、S32", "約 2026-07", "inferencex.semianalysis.com/compare-per-dollar/deepseek-v4-b300-vs-gb300", "已核對搜尋摘錄；軟體與日期待確認"),
+      ("S23", "InferenceX 比較（GB200 對 GB300，V4-Pro 0813）", "110 tok/s：GB200 3,795、GB300 6,522 tok/s/GPU", "Interested-party（SemiAnalysis）", "2026-08／09", "inferencex.semianalysis.com/compare/deepseek-v4-gb200-vs-gb300", "口徑待查：頁面預設為 agentic traces"),
+      ("S24", "InferenceX H200（V4-Pro，FP8）", "75 tok/s 時 4,036、100 tok/s 時 3,102 tok/s/GPU", "Interested-party（SemiAnalysis）", "2026-08", "inferencex.semianalysis.com/run/deepseek-v4-on-h200", "口徑待查；未入驗證"),
+      ("S25", "Anthropic 多代理研究系統", "agent 約 4 倍、多代理約 15 倍聊天 token", "Interested-party（Anthropic）", "2025-06", "Anthropic Engineering Blog（經多方轉述核對）", "已核對二手"),
+      ("S26", "Artificial Analysis 輸出速度", "GPT-5.6 Luna 約 120、GPT-5.6 Sol 約 68、GPT-6 Astra 約 52–56、Opus 5 約 54、Gemini 3.8 Flash 約 290–350 tok/s", "Verified-measured（反映供應商自身服務選擇）", "2026-09", "artificialanalysis.ai", "已核對"),
+      ("S27", "DeepSeek V4 模型卡與 v4 架構預設表", "V4-Pro 1.6T／49B、61 層、d 7168；V4-Flash 284B／13B", "Verified", "2026", "Tokenomics v4 活頁簿（20260922）預設表；morphllm.com 2026-09-07 彙整", "待以 config.json 核對"),
+      ("S28", "NVIDIA 規格", "H100 FP8 989 TF、80 GB、3.35 TB/s；GB200 FP4 10 PF、186 GB、8 TB/s；B300 15 PF、288 GB；Rubin 50／35 PF、288 GB、22 TB/s；RU NVL576 15 EF、HBM4e", "Interested-party（NVIDIA）", "2025–26", "模型內建知識", "待以規格表核對"),
+      ("S29", "能量常數", "HBM3 約 3.9 pJ/bit、HBM3e 約 3、HBM4 約 2.5；SerDes 1–2 pJ/bit", "Analogy", "—", "文獻常見值（模型內建知識）", "待查核"),
+      ("S31", "MLPerf Inference v6.0（DeepSeek-R1）", "GB300 NVL72 interactive 250,634、GB200 NVL72 240,318 tok/s（72 GPU）；GB300 server 8,064 tok/s/GPU", "Verified-measured（MLCommons 稽核）／Interested-party（NVIDIA 提交並挑選配置）", "2026-04-01", "NVIDIA 資料中心推論效能頁；NVIDIA 技術部落格", "已核對二手"),
+      ("S32", "MLPerf Inference v6.1（VR200 首次提交）", "DeepSeek-R1 interactive：VR200 NVL72 652,750 對 GB300 NVL72 253,506 tok/s（2.58 倍）；VR 為預覽類", "Verified-measured（MLCommons）／Interested-party（NVIDIA 對照表）", "2026-09-16", "shattered.io 轉述 NVIDIA 對照表", "待以 MLCommons 原始結果核對"),
+      ("S33", "MLCommons DeepSeek-R1 基準規格", "平均 ISL 800、OSL 3,880；server TTFT 2 s／TPOT 80 ms；interactive TTFT 1.5 s／TPOT 15 ms（p99），允許 3 步 MTP", "Verified", "2025-09／2026-03", "mlcommons.org；inference_rules", "已核對"),
+      ("S34", "AMD：InferenceX 資料的選擇性使用", "NVIDIA GTC 2026 以 InferenceX 資料比較時選 FP4、MTP=3 等有利設定；同條件下 MI355X 可能更便宜", "Interested-party（AMD）", "2026-03", "amd.com 技術文章", "提醒：同一平台資料可因設定選擇而偏向"),
+      ("S35", "DeepSeek-V4 技術報告（arXiv 2606.19348）", "V4-Flash 32T、V4-Pro 33T token 預訓練；4K→16K dense 注意力後切換稀疏；後訓練：專家 SFT＋GRPO，再以 on-policy 蒸餾整合；FP8 計算＋FP4 QAT，rollout 用原生 FP4 權重；未揭露訓練算力", "Interested-party（DeepSeek）", "2026-06", "arxiv.org/abs/2606.19348", "已核對原文摘錄"),
+      ("S36", "NVIDIA Vera Rubin NVL72 規格表", "NVFP4 推論 3,600 PF、NVFP4 訓練 2,520 PF、FP8/FP6 訓練 1,260 PF、BF16 288 PF（72 GPU）", "Interested-party（NVIDIA）", "2026", "NVIDIA 規格表（Gigabyte 轉載 PDF）；spheron.network 轉述", "已核對兩處轉載"),
+      ("S37", "Meta Llama 3 技術報告", "405B：16K H100、BF16 MFU 38–43%；有效訓練時間 >90%", "Interested-party（Meta）", "2024-07", "arXiv 2407.21783（模型內建知識）", "待查核"),
+      ("S38", "Epoch：最終訓練占研發算力少數", "最終訓練占研發支出：OpenAI 9.6%、MiniMax 22.6%、Z.ai 12.3%；實驗利用率低於最終訓練", "Analogy（Epoch 推估；資料源為 The Information 等報導）", "2026-03", "epoch.ai/gradient-updates/r-and-d-vs-training-compute", "已核對"),
+      ("S39", "Epoch：超過 1e25 FLOP 的模型", "Grok-3 約 4.6e26 FLOP；估計誤差 2–5 倍", "Analogy（Epoch 推估）", "2025-06", "epoch.ai/data-insights/models-over-1e25-flop", "已核對"),
+      ("S40", "R1 RL 算力（Lambert《RLHF》書）", "R1 RL 147K H800 GPU 小時，約 V3 預訓練 2.8M 的 5%", "Interested-party（DeepSeek，經轉述）", "2025／2026", "arxiv.org/pdf/2504.12501", "已核對轉述"),
+      ("S41", "Epoch：推理模型能擴展多遠", "Nemotron Ultra RL 14 萬 H100 小時，不到預訓練 1%", "Analogy（Epoch 轉述 NVIDIA）", "2025-05", "epoch.ai/gradient-updates/how-far-can-reasoning-models-scale", "已核對"),
+      ("S42", "xAI Grok 4 發表", "以 20 萬 GPU 叢集做預訓練規模的 RL；RL 算力為前次 10 倍以上", "Interested-party（xAI，宣傳誘因）", "2025-07", "x.ai/news/grok-4", "已核對原文；口徑不明"),
+      ("S43", "verl DeepSeek V4 RL 配方（PR #7895）", "TE FP8 訓練＋MXFP4 專家 QAT；vLLM rollout FP8、KV FP8", "Verified（開源程式碼）", "2026", "github.com/verl-project/verl/pull/7895", "已核對；J12 替代情境依據"),
+      ("S44", "DeepSeek-V3 技術報告", "預訓練 14.8T token、2.664M H800 GPU 小時（全部 2.788M）；FP8 混合精度訓練；序列長 4K", "Interested-party（DeepSeek）", "2024-12", "arxiv.org/abs/2412.19437", "GPU 小時為模型內建知識，待以原文核對"),
+      ("S45", "DeepSeek-V4.1-Flash 技術報告（arXiv 2609.19969）", "合成任務以大規模非同步 RL；rollout 在 DSec 沙箱、與可搶占訓練池分離；非同步已用於幾乎全部 RL 與 OPD，rollout 與訓練共置分時", "Interested-party（DeepSeek）", "2026-09", "arxiv.org/pdf/2609.19969", "已核對原文摘錄"),
+      ("S46", "GLM-5 技術報告（arXiv 2602.15763）", "以 slime 框架建新非同步 RL 基礎設施，進一步解耦生成與訓練；非同步 Agent RL 演算法", "Interested-party（Zhipu）", "2026-02", "arxiv.org/abs/2602.15763", "已核對原文摘錄"),
+      ("S47", "Kimi-Researcher（Moonshot）", "完全非同步 rollout＋回合層級部分 rollout，rollout 至少加速 1.5 倍；K1.5 為迭代同步＋部分 rollout", "Interested-party（Moonshot）", "2025", "Moonshot 技術部落格（經 Medium 轉述）", "已核對轉述"),
+      ("S48", "LlamaRL（Meta，arXiv 2505.24034）", "Llama 3 後訓練使用非同步 off-policy RL；405B 相對 DeepSpeed-Chat 類系統最高 10.7 倍（基準線較弱）", "Interested-party（Meta）", "2025-07", "arxiv.org/pdf/2505.24034", "已核對"),
+      ("S49", "ROLL Flash（阿里淘天）、AReaL（螞蟻）框架", "ROLL Flash：同 GPU 預算下 RLVR 2.24 倍、agentic 2.72 倍；AReaL：同步約慢 2 倍。僅框架，未證實用於 Qwen／Ling 旗艦模型", "Analogy（框架基準測試）", "2025–2026", "arxiv 2510.11345；inclusionai.github.io/AReaL", "已核對；不計入 J14 採用數"),
+      ("S30", "DeepSeek 推論系統公開統計（H800）", "V3/R1 線上：prefill 與 decode 節點吞吐、每用戶約 20 tok/s；本模型用於 η_p 與 Hopper η_d 倍數", "Interested-party（DeepSeek）", "2025-02", "DeepSeek Open Source Week 第 6 天（模型內建知識）", "待查核"),
+    ]
+    for i, row in enumerate(data):
+        r = 23 + i
+        for c, v in zip("ABCDEFG", row): put(ws, f"{c}{r}", v, wrap=True)
+
+def readme(wb):
+    ws = wb["README"]
+    rows = [
+      ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）。不含營收（Block 4）。"),
+      ("版本", "20261001_Tokenomics_v5.7（Block 1＋2＋3；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。"),
+      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Interface；Energy、NonNV、Sensitivity、Checks、Sources。"),
+      ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
+      ("Block 3 決策", "J7 訓練精度 FP8（NVFP4 預訓練在 Tech_Registry）；J8 Astra 預訓練與 Arch 一致，前沿錨點列 Checks；J9 RL 由下而上，基準校到 RL÷預訓練 GPU 小時 Luna／Sol 0.3、Astra 1.0；J10 研發倍數 8，家族合計、依最終訓練比例分攤；J11 用途 × 型態只列單一計畫；J12 rollout NVFP4（FP8 為情境）；J13 下游預設 VR200、GB300 並列；J14 主流＝至少兩家實驗室公開採用，可覆寫。"),
+      ("Excel 優先（v5.7）", "藍字＝輸入，由本活頁簿擁有：要改輸入，直接改 Excel。builder 重建 Block 2、3 時會先讀取所有藍字輸入，重建後依『工作表＋欄 A 標籤＋欄位』寫回，程式內的預設值只用於新增的輸入列。公式頁不要手改（重建時會被覆寫）。"),
+      ("DB_Evidence（v5.7）", "證據登錄表：所有比對過的新資訊（含不採納者），記錄主張、來源、標記、對應參數、當時值、新值、判定與處理版本。builder 只在本頁不存在時建立。"),
+      ("Tech_Registry", "每列＝技術 × 作用物理量；有效倍數＝1＋開關 × 採用比例 ×（倍數−1）；已在基準者不套倍數。掛鉤彙總表連到 Perf、Perf_Batch、Training。全部開關為 0 時 Block 2 數值與 v5.4 相同。"),
+      ("Block 2 推導", "prefill：tok/s＝η_p × 峰值 ÷ FLOPs/token。decode：每步時間＝固定延遲（權重讀取＋每層延遲 ×（層數＋草稿數））＋B × 每序列時間；在 SLO 下解出批次 B*，再受 HBM 容量限制。η_d 與每層延遲由 GB300 同一前緣兩點聯立解出（Calib）。"),
+      ("成本情境", "低成本／基準／高成本為角落情境。單一變數影響看 Sensitivity（Block 1）與 Sens_Perf（Block 2）。"),
+      ("功率情境", "Inputs!E6 選 1／2／3，決定每架配電設計功率與每 GW 機架數。"),
+      ("顏色", "藍字＝輸入；黑字＝公式；綠字＝跨頁連結；淡黃底＝關鍵輸出；亮黃底＝待 Andy 決定或情境改動。"),
+      ("來源標記", "Verified／Interested-party／Analogy／Assumed／Derived。Analogy 與 Assumed 一律給區間。"),
+      ("網站同步", "本檔為事實來源；repo 以公式引擎直接計算本檔，parity 測試比對 Interface 全部格（新增 IF_ 具名範圍見 Interface B 節）。"),
+      ("具名範圍", "IF_＝下游模型連結用；IF_Hdr／DRV_／CAL_＝網站顯示推導鏈與驗證表用，下游不得連結。"),
+      ("來源原則", "SemiAnalysis（含 InferenceX）資料一律須有第二來源佐證並標記 Interested-party；目前第二來源為 MLPerf（MLCommons 稽核，NVIDIA 提交）與 DeepSeek 自揭（待查）。"),
+      ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取命中只計載入時間，未計儲存成本。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。"),
+    ]
+    for i, (a, b) in enumerate(rows):
+        r = 4 + i
+        put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
+    put(ws, "A1", "Tokenomics v5.7 — Block 1＋2＋3：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫", F_TITLE)
+    put(ws, "A2", "第 0 層規格來源。能力與理論營收於 Block 4 加入。", F_NOTE)
+
+# ---------------------------------------------------------------- Block 3 additions (v5.5)
+def interface_b3(wb, TRN, start, TI):
+    ws = wb["Interface"]
+    r = start
+    section(ws, r, "C. Block 3 產出（依層級；欄＝世代 × 成本情境；GPU 小時不隨成本情境變動；下游預設 VR200、GB300 並列，J13）", 17); r += 1
+    names = []
+    tiers = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+    for t, (tk, tn) in enumerate(tiers, start=1):
+        put(ws, f"A{r}", tn, F_BOLD); r += 1
+        tl = lambda key: f"=INDEX(Training!$C${TRN[key]}:$Q${TRN[key]},3*(Unit_Cost!{{X}}$6-1)+{t})"
+        rows = [
+          (f"IF_TrainGPUh_{tk}", "最終訓練 GPU 小時（單一模型）", "GPU-hr", "#,##0", tl("Hfin")),
+          (f"IF_TrainCost_{tk}", "最終訓練成本 — 經濟（依成本情境）", "$M", "#,##0.0", tl("Hfin") + "*Unit_Cost!{X}$8/1E6"),
+          (f"IF_PostShareFLOP_{tk}", "後訓練占比（FLOPs 口徑）", "%", "0.0%", tl("psF")),
+          (f"IF_PostShareGPUh_{tk}", "後訓練占比（GPU 小時口徑）", "%", "0.0%", tl("psH")),
+          (f"IF_RLMFU_{tk}", "RL 有效 MFU（訓練峰值分母）", "%", "0.0%", tl("rlmfu")),
+          (f"IF_ProgGPUh_{tk}", "研發計畫 GPU 小時（含研發倍數分攤）", "GPU-hr", "#,##0", tl("Hprog")),
+          (f"IF_ProgCost_{tk}", "研發計畫成本 — 經濟（依成本情境）", "$M", "#,##0", tl("Hprog") + "*Unit_Cost!{X}$8/1E6"),
+          (f"IF_ProgGWyr_{tk}", "研發計畫占 1 GW 一年", "%", "0.00%", tl("GWp")),
+        ]
+        for name, lab, unit, fmt, tpl in rows:
+            put(ws, f"A{r}", f"{lab}　[{name}]"); put(ws, f"B{r}", unit)
+            for X in COLS15:
+                put(ws, f"{X}{r}", tpl.format(X=X), fmt=fmt, fill=FILL_KEY if "Prog" in name or "PostShareGPUh" in name else None)
+            names.append((name, f"Interface!$C${r}:$Q${r}")); r += 1
+    put(ws, f"A{r}", "研發倍數（第 0 層基準；下游可覆寫）　[IF_RDMult]"); put(ws, f"B{r}", "x")
+    put(ws, f"C{r}", f"=Train_In!$C${TI['rdm']}", fmt="0.0"); names.append(("IF_RDMult", f"Interface!$C${r}")); r += 1
+    put(ws, f"A{r}", "下游預設訓練世代（索引；J13）　[IF_TrainGenDefault]"); put(ws, f"B{r}", "索引")
+    put(ws, f"C{r}", f"=Train_In!$C${TI['gdef']}", fmt="0"); put(ws, f"D{r}", f"=INDEX(Spec_Rack!$C$4:$G$4,C{r})", F_HLINK)
+    names.append(("IF_TrainGenDefault", f"Interface!$C${r}")); r += 1
+    put(ws, f"A{r}", "並列訓練世代（索引；J13）　[IF_TrainGenAlt]"); put(ws, f"B{r}", "索引")
+    put(ws, f"C{r}", f"=Train_In!$C${TI['galt']}", fmt="0"); put(ws, f"D{r}", f"=INDEX(Spec_Rack!$C$4:$G$4,C{r})", F_HLINK)
+    names.append(("IF_TrainGenAlt", f"Interface!$C${r}"))
+    names.append(("IF_TrainGenDefaultName", f"Interface!$D${r-1}")); names.append(("IF_TrainGenAltName", f"Interface!$D${r}")); r += 1
+    for n, ref in names:
+        wb.defined_names[n] = DefinedName(n, attr_text=ref)
+    return names
+
+def checks_b3(wb, TRN, TI, CAL, PB):
+    ws = wb["Checks"]
+    r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r0, "Block 3 檢查（VR200＝N 欄 Astra、M 欄 Sol；GB300＝K、J）", 6)
+    put(ws, f"A{r0+1}", "項目", F_BOLD); put(ws, f"B{r0+1}", "本模型", F_BOLD); put(ws, f"C{r0+1}", "外部參照", F_BOLD)
+    put(ws, f"D{r0+1}", "單位", F_BOLD); put(ws, f"E{r0+1}", "判讀", F_BOLD); put(ws, f"F{r0+1}", "來源", F_BOLD)
+    T = lambda k, col: f"Training!{col}{TRN[k]}"
+    v3 = (f"=3*(2*Calib!$C${CAL['rA']}*1E9+Calib!$C${CAL['rac']}*Train_In!$C${TI['v3seq']}/2)*Train_In!$C${TI['v3tok']}*1E12"
+          f"/(Train_In!$C${TI['v3h']}*1E6*3600*Spec_Rack!$C${{tfp8}}*1E15)")
+    rows = [
+      ("DeepSeek V3 推導 MFU（H800、FP8 分母）", v3, "=Training!C" + str(TRN["mfu"]), "%",
+       "外部參照欄＝本模型 Hopper 採用 MFU；兩者接近即 Hopper 倍數 0.8 成立", "S44"),
+      ("RL ÷ 預訓練 GPU 小時：VR200 Astra", f"={T('rlH','N')}", f"=Train_In!$C${TI['grok']}", "x",
+       "J9 基準 1.0；參照為 Grok 4 宣稱（口徑不明）", "S42"),
+      ("RL ÷ 預訓練 GPU 小時：VR200 Sol", f"={T('rlH','M')}", f"=Train_In!$C${TI['r1rl']}", "x",
+       "J9 基準 0.3；參照為 R1（2025-01）", "S40"),
+      ("RL 有效 MFU：VR200 Astra", f"={T('rlmfu','N')}", "0.01–0.10", "%", "交接第 3 節區間；本模型為推導值", "交接"),
+      ("後訓練占比：GPU 小時口徑 − FLOPs 口徑（VR200 Astra）", f"={T('psH','N')}-{T('psF','N')}", "≥ 0", "%",
+       "RL 有效 MFU 低於預訓練，GPU 小時占比必然較高", "Training I 節"),
+      ("最終訓練 ÷ 研發計畫", f"=1/Train_In!$C${TI['rdm']}", "9.6%–22.6%", "%", "Epoch 三家公司區間", "S38"),
+      ("前沿錨點中值（5e26）反推 Astra 預訓練 token", f"=Train_In!$C${TI['an2']}/({T('Fpt','N')}*1E9)/1E12",
+       f"=Training!N{TRN['Dp']}", "T", "J8：差距大代表 Astra 啟用參數或 token 假設偏低；錨點低／高值見 Train_In", "S39"),
+      ("Astra 最終訓練占 1 GW 一年：VR200 ／ GB300", f"={T('GWf','N')}", f"={T('GWf','K')}", "%", "本模型 VR200 值；外部參照欄為 GB300", "Training"),
+    ]
+    return r0 + 2, rows
+
+def write_checks_b3(wb, r, rows, SP):
+    ws = wb["Checks"]
+    for i, (a, b, c, d, e, f) in enumerate(rows):
+        rr = r + i
+        b = b.replace("{tfp8}", str(SP["tfp8"]))
+        put(ws, f"A{rr}", a, wrap=True); put(ws, f"B{rr}", b, fmt="0.0%" if d == "%" else "#,##0.00", fill=FILL_KEY)
+        put(ws, f"C{rr}", c, fmt="0.0%" if d == "%" else "#,##0.00"); put(ws, f"D{rr}", d)
+        put(ws, f"E{rr}", e, F_NOTE, wrap=True); put(ws, f"F{rr}", f, F_NOTE)
+
+# ---------------------------------------------------------------- v5.7: evidence register
+EVID_HDR = ["ID", "日期", "主張（摘要）", "來源（S 編號或出處）", "標記", "對應參數（工作表與列）", "Tokenomics 當時值",
+            "新資訊值", "判定", "處理版本", "備註"]
+EVID_SEED = [
+  ("E001", "2026-09-30", "H100 FP8 dense 峰值為 1,979 TF，非 989 TF", "NVIDIA H100 規格（S36 交叉核對）", "Interested-party",
+   "Spec_Rack 峰值 Hopper", "0.989 PF", "1.979 PF", "採納", "v5.5", "η_d、η_p 倍數同步減半維持產出；S30 口徑待查"),
+  ("E002", "2026-09-30", "DeepSeek V4-Flash／Pro 預訓練 32T／33T token", "S35", "Verified", "Train_In 預訓練 token",
+   "—（新增）", "32／33T", "採納", "v5.5", ""),
+  ("E003", "2026-09-30", "Rubin NVL72 FP8 訓練 17.5、NVFP4 訓練 35 PF/GPU", "S36", "Interested-party", "Spec_Rack B3 訓練峰值",
+   "—（新增）", "17.5／35 PF", "採納", "v5.5", ""),
+  ("E004", "2026-09-30", "最終訓練占研發算力支出 9.6–22.6%（OpenAI、MiniMax、Z.ai）", "S38", "Analogy", "Train_In 研發倍數",
+   "—（新增）", "4.4–10.4 倍", "採納（取 8）", "v5.5", "支出口徑，乘在 GPU 小時上"),
+  ("E005", "2026-09-30", "Grok 4 以預訓練規模做 RL", "S42", "Interested-party", "Train_In RL rollout token（J9 錨點）",
+   "—", "RL ≈ 1 × 預訓練", "部分採納", "v5.5", "口徑不明，只作 Astra 錨點上緣參考"),
+  ("E006", "2026-09-30", "前沿預訓練算力約 2e26–2e27 FLOP（Grok-3 約 4.6e26）", "S39", "Analogy", "Train_In Astra 預訓練 token",
+   "60T（約 7e25 FLOP）", "需約 438T（5e26）", "待查", "—", "J8 差距；Block 4 以能力錨點檢驗"),
+  ("E007", "2026-10-01", "非同步 RL 已用於 DeepSeek、Zhipu、Moonshot、Meta 旗艦模型", "S45–S48", "Interested-party",
+   "Tech_Registry T10；Train_In rollout 效率", "0.60（未入基準）", "0.85（入基準）", "採納", "v5.6", "Andy 決定 (a)：rollout token 重校"),
+  ("E008", "2026-10-01", "開源 RL 框架（verl）DeepSeek V4 配方以 FP8 rollout", "S43", "Verified", "Sens_Train rollout 精度情境",
+   "NVFP4（基準）", "FP8", "不採納為基準", "v5.5", "列為 J12 替代情境"),
+  ("E009", "2026-10-01", "ROLL Flash、AReaL 非同步增益約 2–2.7 倍", "S49", "Analogy", "Train_In rollout 效率區間",
+   "—", "增益 2–2.7 倍", "部分採納", "v5.6", "僅框架，不計入 J14 採用數；只用於區間"),
+]
+
+def evidence_sheet(wb):
+    if "DB_Evidence" in wb.sheetnames:
+        return False
+    ws = wb.create_sheet("DB_Evidence")
+    title(ws, "DB_Evidence — 證據登錄表：所有比對過的新資訊（含不採納者）",
+          "每一筆新發現先與 Tokenomics 現值比對，再判定採納／部分採納／不採納／待查。本頁由 Andy 與 Claude 直接在 Excel 維護；builder 只在本頁不存在時建立，之後不再覆寫")
+    widths = [7, 11, 46, 26, 15, 30, 18, 18, 14, 9, 44]
+    for i, (h, w) in enumerate(zip(EVID_HDR, widths)):
+        put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = w
+    for j, row in enumerate(EVID_SEED):
+        for i, v in enumerate(row):
+            put(ws, f"{L(i+1)}{5+j}", v, F_IN, wrap=i in (2, 5, 10))
+        ws.row_dimensions[5 + j].height = 30
+    ws.freeze_panes = "C5"
+    return True
+```
+
+## preserve.py
+
+```python
+# v5.7: Excel-first input preservation.
+# Before Block 2/3 sheets are deleted and rebuilt, snapshot every input cell (blue font, constant value);
+# after rebuild, write the Excel value back wherever the same sheet / column-A label / column still holds an input.
+# Code defaults therefore apply only to NEW input rows; existing inputs are owned by the Excel file.
+BLUE = "FF0000FF"
+REBUILT = ["Spec_Rack", "Arch", "Serving", "Workload", "Calib", "Energy", "NonNV", "Tech_Registry", "Perf",
+           "Sens_Perf", "Unit_Cost", "Train_In", "Perf_Batch", "Training", "Sens_Train"]
+
+def _is_input(cell):
+    v = cell.value
+    if v is None or (isinstance(v, str) and v.startswith("=")):
+        return False
+    c = cell.font.color if cell.font else None
+    return c is not None and c.type == "rgb" and c.rgb == BLUE
+
+def _keys(ws, min_row):
+    seen = {}
+    for r in range(min_row, ws.max_row + 1):
+        lab = ws.cell(row=r, column=1).value
+        if lab is None or (isinstance(lab, str) and lab.startswith("=")):
+            continue
+        k = (str(lab), seen.get(str(lab), 0)); seen[str(lab)] = k[1] + 1
+        yield r, k
+
+def snapshot(wb):
+    snap = {}
+    for s in REBUILT:
+        if s not in wb.sheetnames: continue
+        ws = wb[s]; r0 = 21 if s == "Spec_Rack" else 1
+        for r, k in _keys(ws, r0):
+            for c in range(2, ws.max_column + 1):
+                cell = ws.cell(row=r, column=c)
+                if _is_input(cell):
+                    snap[(s, k, c)] = cell.value
+    return snap
+
+def restore(wb, snap, log_path=None):
+    matched = changed = 0; lines = []
+    present = set()
+    for s in REBUILT:
+        ws = wb[s]; r0 = 21 if s == "Spec_Rack" else 1
+        for r, k in _keys(ws, r0):
+            for c in range(2, ws.max_column + 1):
+                key = (s, k, c)
+                if key not in snap: continue
+                cell = ws.cell(row=r, column=c)
+                if not _is_input(cell): continue
+                present.add(key); matched += 1
+                if cell.value != snap[key]:
+                    lines.append(f"{s}!{cell.coordinate} [{k[0]}]: code default {cell.value!r} -> Excel {snap[key]!r}")
+                    cell.value = snap[key]; changed += 1
+    dropped = [f"{s} [{k[0]}] col {c}: {v!r}" for (s, k, c), v in snap.items() if (s, k, c) not in present]
+    report = [f"inputs in base: {len(snap)}; restored (matched): {matched}; Excel value kept over code default: {changed}; "
+              f"base inputs with no matching input cell in rebuild: {len(dropped)}"] + lines + ["-- unmatched --"] + dropped
+    if log_path: open(log_path, "w").write("\n".join(report))
+    return matched, changed, dropped
+```
+
+## build.py
+
+```python
+# Usage: python3 build.py <base.xlsx> <out.xlsx>
+#   chat:  python3 build.py /mnt/project/<latest>.xlsx /home/claude/b2/<new>.xlsx   (or base downloaded from the repo)
+#   repo:  python3 builder/build.py model/<current>.xlsx <new>.xlsx
+import sys, os, openpyxl
+HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+if len(sys.argv) != 3:
+    sys.exit("usage: build.py <base.xlsx> <out.xlsx>")
+BASE, out = sys.argv[1], sys.argv[2]
+OUTDIR = os.path.dirname(os.path.abspath(out))
+from inputs import spec_rack, arch, serving, energy_inputs
+from calib import calib
+from outputs import perf_sheet, sens_sheet, unit_cost, workload, nonnv
+from finish import interface, checks, sources, readme, interface_b3, checks_b3, write_checks_b3
+from training import tech_registry, train_in, perf_batch, training_sheet, sens_train
+from finish import evidence_sheet
+from preserve import snapshot, restore
+
+wb = openpyxl.load_workbook(BASE)
+# ---- v5.7 Excel-first: snapshot every input cell (blue font) before the rebuild ----
+SNAP = snapshot(wb)
+# ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
+for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
+          "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train"]:
+    if n in wb.sheetnames: del wb[n]
+def clear(ws, r0, c1=1, c2=30):
+    for r in range(r0, ws.max_row + 1):
+        for c in range(c1, c2 + 1):
+            cell = ws.cell(row=r, column=c)
+            cell.value = None; cell.fill = openpyxl.styles.PatternFill(fill_type=None)
+clear(wb["Spec_Rack"], 21); 
+for r in range(1, 21): wb["Spec_Rack"].cell(row=r, column=8).value = None
+clear(wb["Interface"], 17); clear(wb["Checks"], 12); clear(wb["Sources"], 23); clear(wb["README"], 4, 1, 2)
+for n in list(wb.defined_names.keys()):
+    if n not in ("CTL_GW","CTL_PowerCase","IF_CapexFacility","IF_CapexIT","IF_CapexTotal","IF_FacilityGW",
+                 "IF_GPUhrEcon","IF_GPUsPerGW","IF_HoldAcct","IF_HoldEcon","IF_PowerCost","IF_RacksPerGW"):
+        del wb.defined_names[n]
+SP = spec_rack(wb)
+AR = arch(wb)
+serving(wb)
+CAL = calib(wb, SP, AR)
+energy_inputs(wb)
+TR = tech_registry(wb)
+TI = train_in(wb)
+PR = perf_sheet(wb, SP, AR, CAL, TR)
+SR = sens_sheet(wb, SP, AR, CAL, TR)
+PB = perf_batch(wb, SP, AR, CAL, TR, TI)
+TRN = training_sheet(wb, SP, AR, TI, PB, TR)
+STR = sens_train(wb, SP, AR, TI, PB, TR)
+U = unit_cost(wb, PR)
+workload(wb, U)
+nonnv(wb)
+interface(wb, PR, U)
+def last_row(ws):
+    return max(c.row for row in ws.iter_rows() for c in row if c.value is not None)
+ifr = last_row(wb["Interface"]) + 2
+interface_b3(wb, TRN, ifr, TI)
+checks(wb, CAL, PR, SR, U)
+_r, _rows = checks_b3(wb, TRN, TI, CAL, PB)
+write_checks_b3(wb, _r, _rows, SP)
+sources(wb)
+readme(wb)
+# ---- v5.7: write back Excel-owned inputs, then the evidence register (created only if absent) ----
+_m, _c, _d = restore(wb, SNAP, os.path.join(OUTDIR, "restore_log.txt"))
+print(f"restore: matched {_m}, Excel kept over code {_c}, unmatched {len(_d)}")
+evidence_sheet(wb)
+order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
+         "Train_In","Perf_Batch","Training","Sens_Train","Interface","Energy","NonNV","Sensitivity","Checks","Sources","DB_Evidence"]
+wb._sheets = [wb[n] for n in order]
+# ---- v5.3: Block 1 Checks — reference cells instead of literals (CC 第 1 輪第 6 節第 5 項) ----
+from common import put, F_IN
+ck = wb["Checks"]
+for r, v in [(5, 35), (7, 2.21), (8, 2.65), (9, 10.5), (10, 3.57)]:
+    put(ck, f"C{r}", v, F_IN, fmt="#,##0.00")
+ck["E5"].value = '=IF(ABS(B5-C5)/C5<=0.2,"±20% 內","差距 >20%")'
+ck["E7"].value = '=IF(B7>C7,"高於參照（參照假設未知）","低於參照")'
+ck["E8"].value = '=IF(B8>C8,"高於參照（參照假設未知）","低於參照")'
+ck["E9"].value = '="牌價 ÷ 持有成本＝"&TEXT(C9/B9,"0.0")&" 倍"'
+ck["E10"].value = '="參照 ÷ 本模型＝"&TEXT(C10/B10,"0.00")'
+# ---- v5.3: display-only named ranges (DRV_／CAL_／IF_Hdr；CC 第 1 輪第 6 節第 2、3 項) ----
+from openpyxl.workbook.defined_name import DefinedName
+def nm(n, ref): wb.defined_names[n] = DefinedName(n, attr_text=ref)
+nm("IF_HdrGen", "Interface!$C$4:$Q$4"); nm("IF_HdrCost", "Interface!$C$5:$Q$5")
+nm("DRV_Gen", "Perf!$C$4:$Q$4"); nm("DRV_Tier", "Perf!$C$5:$Q$5")
+for n, k in [("DRV_FlopDec","Fd"),("DRV_FlopPre","Fp"),("DRV_WeightGB","W"),("DRV_TfixMs","tfix"),("DRV_SeqMs","ceff"),
+             ("DRV_SeqBind","cbind"),("DRV_Batch","B"),("DRV_Bind","bind"),("DRV_DecTokGPU","D"),("DRV_PreTokGPU","Pp"),
+             ("DRV_PreShare","psh"),("DRV_RackTok","rtot"),("DRV_GWTok","gwtot"),("DRV_Close","close")]:
+    nm(n, f"Perf!$C${PR[k]}:$Q${PR[k]}")
+nm("CAL_EtaD", f"Calib!$C${CAL['etad_fit']}"); nm("CAL_TlayerUs", f"Calib!$C${CAL['tl_fit']}")
+nm("CAL_F_Label", f"Calib!$C${CAL['lab']}:$I${CAL['lab']}")
+for n, k in [("CAL_F_Gen","gn"),("CAL_F_Eng","eng"),("CAL_F_Speed","s"),("CAL_F_Meas","T"),("CAL_F_Model","vT"),("CAL_F_Basis","basis")]:
+    nm(n, f"Calib!$C${CAL[k]}:$I${CAL[k]}")
+for n, k in [("CAL_H_Gen","mgn"),("CAL_H_Speed","ms"),("CAL_H_Meas","mT"),("CAL_H_Model","mO"),("CAL_H_Basis","mbasis")]:
+    nm(n, f"Calib!$C${CAL[k]}:$F${CAL[k]}"); nm("CAL_F_Platform", f"Calib!$C${CAL['indep']}:$I${CAL['indep']}")
+nm("CAL_F_Ratio", f"Calib!$C${CAL['ratio']}:$I${CAL['ratio']}")
+nm("CAL_H_Label", f"Calib!$C${CAL['mhdr']}:$F${CAL['mhdr']}"); nm("CAL_H_Platform", f"Calib!$C${CAL['mplat']}:$F${CAL['mplat']}")
+nm("CAL_H_Ratio", f"Calib!$C${CAL['mR']}:$F${CAL['mR']}")
+# ---- v5.5: Block 3 display-only named ranges (TRN_；網站推導鏈用，下游不得連結) ----
+for n, k in [("TRN_FlopTokPre","Fpt"),("TRN_FlopPre","Cp"),("TRN_GPUhPre","Hp"),("TRN_GPUhRL","Hrl"),("TRN_RLMFU","rlmfu"),
+             ("TRN_RLRatioH","rlH"),("TRN_RLRatioF","rlF"),("TRN_GPUhFinal","Hfin"),("TRN_PostShareF","psF"),("TRN_PostShareH","psH"),
+             ("TRN_InferShare","Ish"),("TRN_GPUhProg","Hprog"),("TRN_GWyrProg","GWp")]:
+    nm(n, f"Training!$C${TRN[k]}:$Q${TRN[k]}")
+nm("TRN_Gen", "Training!$C$4:$Q$4"); nm("TRN_Tier", "Training!$C$5:$Q$5")
+# ---- v5.6: Tech_Registry display-only named ranges (TR_；網站唯讀表用，下游不得連結) ----
+r0, r1 = TR["_rows"]; h0, h1 = TR["_hooks"]
+for n, c in [("TR_ID","A"),("TR_Tech","B"),("TR_Hook","C"),("TR_Acts","D"),("TR_Lo","E"),("TR_Base","F"),("TR_Hi","G"),
+             ("TR_Sel","H"),("TR_Status","I"),("TR_Labs","J"),("TR_Main","K"),("TR_Override","L"),("TR_InBase","M"),
+             ("TR_Adopt","N"),("TR_Switch","O"),("TR_Eff","P"),("TR_Tag","Q"),("TR_Source","R"),("TR_Trigger","S"),("TR_Check","T")]:
+    nm(n, f"Tech_Registry!${c}${r0}:${c}${r1}")
+nm("TR_HookCode", f"Tech_Registry!$A${h0}:$A${h1}"); nm("TR_HookName", f"Tech_Registry!$B${h0}:$B${h1}")
+nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
+wb.save(out)
+import json; json.dump({"PR":PR,"CAL":CAL,"SR":SR,"PB":PB,"TRN":TRN,"STR":STR,"TI":TI,"TR":{k:v for k,v in TR.items() if not k.startswith("_")},"U":{f"{k[0]}_{k[1]}":v for k,v in U.items()},"SP":SP,"AR":AR}, open(os.path.join(OUTDIR, "rows.json"),"w"))
+print("saved")
+```
+

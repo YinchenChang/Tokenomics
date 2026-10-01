@@ -1,12 +1,18 @@
 # Parity 情境檔（CLAUDE.md 第 3 節）。
 # 每個情境：改寫下列輸入格 → LibreOffice 重算作基準 → 與引擎比對全部公式格。
 # 世代 × 層級：Interface 一次算出 5 世代 × 3 成本情境 × 3 層級，每個情境都已涵蓋，不另列組合。
+# v5.5 起：Block 3（Training）的世代 × 層級同樣一次算出（TRN_／IF_Train*／IF_Prog*），情境 f、g 驗證其輸入連動。
 workbook_expectations:            # 版本升級時必須有意識地更新（CLAUDE.md 第 4 節）
-  formula_cells: 8438
-  defined_names: 78
+  formula_cells: 16245
+  defined_names: 117
   block2_names: 28                # IF_{TokRack,TokRackD,TokGW,VReq,CostPre,CostCache,CostDec,CostDecAcct,TokPerJ}_{Luna,Sol,Astra} 與 IF_Util
-  display_only_names: 38          # IF_HdrGen／IF_HdrCost（2）、DRV_*（17）、CAL_*（19；v5.4 新增 11）；僅供網站顯示，下游不得連結
-  downstream_names: 38            # IF_ 開頭且非 IF_Hdr：下游模型可連結（v5.2 起不變）
+  display_only_names: 52          # IF_HdrGen／IF_HdrCost（2）、DRV_*（16；v5.5 移除 DRV_CostDec）、CAL_*（19）、TRN_*（15；v5.5 新增）；僅供網站顯示，下游不得連結
+  drv_names: 16
+  cal_names: 19
+  downstream_names: 63            # IF_ 開頭且非 IF_Hdr：下游模型可連結（v5.4 為 38；v5.5 加 25）
+  block3_names: 25                # IF_{TrainGPUh,TrainCost,PostShareFLOP,PostShareGPUh,RLMFU,ProgGPUh,ProgCost,ProgGWyr}_{Luna,Sol,Astra} 與 IF_RDMult
+  trn_names: 15                   # TRN_*：Training 推導鏈（含表頭 TRN_Gen、TRN_Tier）；僅供網站顯示
+  trn_columns: 15                 # TRN_ 每個名稱的欄數：5 世代 × 3 層級
   cal_f_points: 7                 # CAL_F_* 每個名稱的格數
   cal_h_points: 4                 # CAL_H_* 每個名稱的格數
   drv_columns: 15                 # Perf 推導鏈：5 世代 × 3 層級
@@ -30,3 +36,9 @@ scenarios:
   - id: e_util_08
     description: 利用率 0.8（Serving!C17＝0.8）
     inputs: {"Serving!C17": 0.8}
+  - id: f_registry_t07_t09_on
+    description: Tech_Registry T07–T09 開啟（Tech_Registry!O11:O13＝1）
+    inputs: {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}
+  - id: g_rd_mult_low
+    description: 研發倍數取低端 4.4（Train_In!C13＝4.4；Epoch 區間下限）
+    inputs: {"Train_In!C13": 4.4}

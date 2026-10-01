@@ -13,6 +13,8 @@ def test_overview():
     at = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()
     assert not at.exception
     assert len(at.dataframe) == 1
+    idx = " ".join(map(str, at.dataframe[0].value.index))
+    assert "訓練" not in idx and "研發" not in idx      # Block 3 列不混入 Block 1 表
 
 
 def test_block2_selectors_and_calib_table():
@@ -50,6 +52,49 @@ def test_drv_cost_row_follows_case_selector():
         assert list(drv_cost.iloc[0]) == list(main_cost), (case, list(drv_cost.iloc[0]), list(main_cost))
         seen[case] = tuple(drv_cost.iloc[0])
     assert len(set(seen.values())) == 3                  # 三個成本情境的值各不相同
+
+
+B3 = "from app.views import block3; block3.render()"
+
+
+def test_block3_tables_selectors_and_registry_readonly():
+    at = AppTest.from_string(HEAD + B3, default_timeout=180).run()
+    assert not at.exception
+    assert len(at.radio) == 2 and not at.toggle and not at.checkbox     # 只有層級、成本情境選擇器；沒有 Tech_Registry 開關
+    for tier in ("Luna", "Sol", "Astra"):
+        at.radio[0].set_value(tier).run()
+        for case in ("低成本", "基準", "高成本"):
+            at.radio[1].set_value(case).run()
+            assert not at.exception
+            out = at.dataframe[0].value
+            assert len(out) == 8 and all(str(i).startswith(tier) for i in out.index)
+            assert [any(k in c for c in out.columns[:2]) for k in ("VR200", "GB300")] == [True, True]   # J13：兩個預設世代在最前
+            assert out.shape[1] == 5
+    share, trn, reg, hook = (at.dataframe[i].value for i in (1, 2, 3, 4))
+    assert share.shape == (3, 5) and any("FLOPs 口徑" in i for i in share.index) and any("GPU 小時口徑" in i for i in share.index)
+    assert any("RL 有效 MFU" in i for i in share.index)
+    assert trn.shape == (13, 5)                                            # TRN_ 13 個量（不含表頭 2 個）× 5 世代
+    assert len(reg) == 12 and {"ID", "開關（0／1）", "有效倍數"} <= set(reg.columns)
+    assert len(hook) == 11 and "倍數" in hook.columns
+
+
+def test_block3_cost_follows_case_and_shares_match_chain():
+    """GPU 小時不隨成本情境變、成本隨情境變；後訓練占比表（IF_）與推導鏈（TRN_）同列數值一致。"""
+    at = AppTest.from_string(HEAD + B3, default_timeout=180).run()
+    at.radio[0].set_value("Astra").run()
+    seen = {}
+    for case in ("低成本", "基準", "高成本"):
+        at.radio[1].set_value(case).run()
+        out = at.dataframe[0].value
+        gpuh = [r for r in out.index if "最終訓練 GPU 小時" in r][0]
+        cost = [r for r in out.index if "最終訓練成本" in r][0]
+        seen[case] = (tuple(out.loc[gpuh]), tuple(out.loc[cost]))
+    assert len({v[0] for v in seen.values()}) == 1 and len({v[1] for v in seen.values()}) == 3
+    share, trn = at.dataframe[1].value, at.dataframe[2].value
+    for key in ("FLOPs 口徑", "GPU 小時口徑"):
+        a = share.loc[[i for i in share.index if f"後訓練占比（{key}" in i]].iloc[0]
+        b = trn.loc[[i for i in trn.index if f"後訓練占比（{key}" in i]].iloc[0]
+        assert list(a) == list(b), (key, list(a), list(b))
 
 
 def test_no_label_lookup_in_app_and_engine():

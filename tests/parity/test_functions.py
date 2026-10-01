@@ -11,7 +11,8 @@ from parity_lib import compare, excel_values, lo_recalc
 
 SHEET = "輸入頁"   # 含中文頁名
 # 輸入（B 欄）：B1=3.7, B2=-2.5, B3=0.25, B4=文字, B5=空白, B6=10, B7=0, B8="SLO 不可達"
-INPUTS = {"B1": 3.7, "B2": -2.5, "B3": 0.25, "B4": "abc", "B6": 10, "B7": 0, "B8": "SLO 不可達"}
+INPUTS = {"F1": "A", "F2": "B", "F3": "A", "F4": "B", "G1": 1.5, "G2": 2, "G3": 0.5, "G4": 1,   # v5.5：Tech_Registry 掛鉤彙總、Training 條件加總
+          "B1": 3.7, "B2": -2.5, "B3": 0.25, "B4": "abc", "B6": 10, "B7": 0, "B8": "SLO 不可達"}
 FORMULAS = [
     "=2^10", "=B1^2", "=B3^0.5", "=(-8)^(1/3)", "=2^-2", "=B6^B3",            # ^
     '="SLO（"&B4&"）"', '="x"&B8', '=B4&B4',                                  # &（字串）
@@ -28,6 +29,9 @@ FORMULAS = [
     '=TEXT(10.5/B6,"0.0")', '=TEXT(3.57/B1,"0.00")', '=TEXT(B3,"0.0")', '=TEXT(0.05,"0.0")', '=TEXT(2.675,"0.00")',
     '="牌價 ÷ 持有成本＝"&TEXT(10.5/B6,"0.0")&" 倍"',
     '=COUNTIF(B1:B8,"SLO 不可達")', '=COUNTIF(B1:B8,"abc")', '=COUNTIF(B1:B8,"slo 不可達")',
+    # v5.5：Tech_Registry 掛鉤彙總（同代碼多條目取乘積）與 Training 的 SUMPRODUCT 條件加總
+    '=EXP(SUMPRODUCT((F1:F4="A")*LN(G1:G4)))', '=EXP(SUMPRODUCT((F1:F4="B")*LN(G1:G4)))', '=EXP(SUMPRODUCT((F1:F4="Z")*LN(G1:G4)))',
+    '=SUMPRODUCT((F1:F4="A")*G1:G4)', "=SUMPRODUCT((F1:F4=F1)*G1:G4)", "=SUMPRODUCT(G1:G4,G1:G4)",
     "=B1=B1", '=B4="abc"', "=B1<>B6", '=B8<>"x"', "=B5=0", '=B4=B8',
 ]
 

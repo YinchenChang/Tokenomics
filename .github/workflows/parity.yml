@@ -8,7 +8,7 @@ on:
 jobs:
   parity:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,7 +22,7 @@ jobs:
           sudo apt-get install -y -q libreoffice-calc
       - name: 安裝相依套件
         run: pip install -r requirements-dev.txt
-      - name: Parity（全部公式格＋具名範圍＋基準與 7 個情境＋函數語意）
+      - name: Parity（全部公式格＋具名範圍＋基準與 11 個情境（7 舊＋4 個 Block 4）＋函數語意）
         # 不符時，測試訊息會列出前 20 個不符格：頁名、座標、引擎值、Excel 值
         run: python -m pytest tests/parity -v --tb=short -p no:cacheprovider
       - name: 上傳 parity 統計

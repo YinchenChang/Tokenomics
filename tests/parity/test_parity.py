@@ -1,6 +1,6 @@
 """Excel（LibreOffice 重算）與 engine 的一致性測試（CLAUDE.md 第 3 節）。
 
-比對範圍：全部公式格；具名範圍名稱與 attr_text；7 個情境各以獨立引擎實例重算。
+比對範圍：全部公式格；具名範圍名稱與 attr_text；11 個情境（7 舊＋4 個 Block 4）各以獨立引擎實例重算。
 """
 import time
 from pathlib import Path
@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from engine import Engine, current_model_path, read_defined_names_xml
+from engine import Engine, current_model_path, read_defined_names_xml, resolve_key
 from parity_lib import compare, excel_values, format_mismatches, lo_recalc, set_inputs
 
 HERE = Path(__file__).parent
@@ -25,6 +25,13 @@ def model():
     return current_model_path()
 
 
+@pytest.fixture(scope="module")
+def base_engine(model):
+    """基準引擎（只讀）：供防空轉統計與公式格清單，避免每個情境重複建圖。"""
+    eng = Engine(model)
+    return eng, eng.evaluate_all()
+
+
 def test_model_current_pointer(model):
     """CLAUDE.md 第 2、4 節：model/CURRENT 一行記錄現行檔名，且與 model/ 唯一一份 xlsx 相符。"""
     assert (model.parent / "CURRENT").read_text(encoding="utf-8").strip() == model.name
@@ -34,7 +41,7 @@ def test_workbook_expectations(model):
     eng = Engine(model)
     assert len(eng.formula_cells) == EXPECT["formula_cells"]
     assert len(eng.names) == EXPECT["defined_names"]
-    assert eng.sheetnames == EXPECT["sheets"]                              # v5.7 起含 DB_Evidence（最後一頁）
+    assert eng.sheetnames == EXPECT["sheets"]                              # v5.7 起含 DB_Evidence（最後一頁）；v5.8 起含 8 個 Block 4 頁
     assert not any(s == "DB_Evidence" for s, _ in eng.formula_cells)       # DB_Evidence 純輸入、無公式
 
 
@@ -48,8 +55,9 @@ def test_named_ranges(model):
     block2 = {f"IF_{p}_{t}" for p in BLOCK2_PREFIX for t in TIERS} | {"IF_Util"}
     assert len(block2) == EXPECT["block2_names"]
     assert block2 <= set(eng.names), f"缺少：{sorted(block2 - set(eng.names))}"
-    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_", "TRN_", "TR_"))}
+    display = {n for n in eng.names if n.startswith(("IF_Hdr", "DRV_", "CAL_", "TRN_", "TR_", "B4_"))}
     assert len(display) == EXPECT["display_only_names"]
+    assert sum(n.startswith("B4_") for n in eng.names) == EXPECT["b4_names"]      # B4_：顯示或內部用，下游不得連結
     assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
     assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
@@ -60,6 +68,8 @@ def test_named_ranges(model):
     assert {"IF_HdrGen", "IF_HdrCost"} <= set(eng.names)
     downstream = {n for n in eng.names if n.startswith("IF_") and not n.startswith("IF_Hdr")}
     assert len(downstream) == EXPECT["downstream_names"]
+    if_all = [n for n in eng.names if n.startswith("IF_")]
+    assert len(if_all) == EXPECT["downstream_names"] + 2 and sum(n.startswith("IF_Hdr") for n in eng.names) == 2   # 115＝113 下游＋IF_Hdr 2
     for n in eng.names:  # 每個名稱都能取值，且非錯誤值
         v = eng.get_name(n)
         flat = v if isinstance(v, list) else [v]
@@ -104,6 +114,30 @@ def test_display_names_alignment(model):
     assert set(eng.get_name("CAL_F_Gen")) <= set(eng.get_name("IF_HdrGen"))   # 驗證點的世代名稱都是 Interface 世代
 
 
+def test_interface_d_shapes(model):
+    """Interface D 節（v5.8）兩種形狀分開檢查：單格（含文字）與 15 欄（5 世代 × 3 成本情境）。"""
+    eng = Engine(model)
+    ncol = len(eng.get_name("IF_HdrGen"))
+    single_num = [f"IF_{p}_{t}" for p in ("PriceFresh", "PriceCached", "PriceThink", "PriceOut", "PriceRef", "FrontRef", "Life") for t in TIERS]
+    single_txt = [f"IF_FrontModel_{t}" for t in TIERS]
+    wide = [f"IF_{p}_{t}" for p in ("CacheStore", "AmortBU", "AmortTD", "FullCost", "RevGW", "RevGWFront") for t in TIERS] + ["IF_RevGWFleet", "IF_RevGWFleetFront"]
+    for n in single_num + ["IF_ServeShare", "IF_FreeShare"]:
+        v = eng.get_name(n)
+        assert not isinstance(v, list) and isinstance(v, (int, float)) and not isinstance(v, bool), f"{n} 應為單格數值：{v!r}"
+    for n in single_txt:
+        v = eng.get_name(n)
+        assert isinstance(v, str) and v and not v.startswith("#"), f"{n} 應為單格文字：{v!r}"
+    for n in wide:
+        v = eng.get_name(n)
+        assert isinstance(v, list) and len(v) == ncol == 15, f"{n} 欄數 {len(v) if isinstance(v, list) else 1}，應為 15"
+        assert all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n} 含非數值"
+    covered = set(single_num + single_txt + wide + ["IF_ServeShare", "IF_FreeShare"])
+    b4_if = {n for n in eng.names if n.startswith("IF_") and n in covered}
+    assert len(b4_if) == 46, f"v5.8 新增的 IF_ 應為 46 個，實際檢查 {len(b4_if)} 個"
+    for n in (n for n in eng.names if n.startswith("B4_")):                # B4_：每個名稱都能取值（形狀不另規定）
+        eng.get_name(n)
+
+
 def test_named_ranges_vs_libreoffice(model, tmp_path):
     """LibreOffice 存檔後的名稱範圍（正規化後）與原檔一致。"""
     src = tmp_path / model.name
@@ -116,33 +150,38 @@ def test_named_ranges_vs_libreoffice(model, tmp_path):
 
 
 @pytest.mark.parametrize("sc", SCENARIOS, ids=[s["id"] for s in SCENARIOS])
-def test_scenario_parity(sc, model, tmp_path, results_store):
+def test_scenario_parity(sc, model, base_engine, tmp_path, results_store):
     """情境：改寫輸入 → LibreOffice 重算（基準）→ 與引擎全部公式格比對。"""
     scen_xlsx = tmp_path / model.name
     set_inputs(model, scen_xlsx, sc["inputs"])
-    ref = excel_values(lo_recalc(scen_xlsx, tmp_path / "lo"), Engine(model).formula_cells)
+    ref = excel_values(lo_recalc(scen_xlsx, tmp_path / "lo"), base_engine[0].formula_cells)
 
     eng = Engine(model)                         # 每個情境獨立實例，不受前一情境影響
-    for addr, v in sc["inputs"].items():
-        eng.set_input(*addr.split("!"), v)
+    for key, v in sc["inputs"].items():
+        eng.set_key(key, v)
     t0 = time.perf_counter()
     got = eng.evaluate_all()
     elapsed = time.perf_counter() - t0
 
     res = compare(got, ref)
-    results_store[sc["id"]] = {k: v for k, v in res.items() if k != "mismatches"} | {
-        "n_mismatch": len(res["mismatches"]), "eval_all_seconds_after_change": round(elapsed, 2)}
+    base = base_engine[1]                        # 防空轉：統計相對基準改變的格數（其中屬 Interface 者）
+    changed = [k for k in base if base[k] != got[k]]
+    results_store[sc["id"]] = {k: v for k, v in res.items() if k not in ("mismatches", "error_code_diffs")} | {
+        "n_mismatch": len(res["mismatches"]), "n_error_code_diffs": len(res["error_code_diffs"]),
+        "error_code_diff_cells": [f"{a}!{b}（引擎 {c}／LibreOffice {d}）" for a, b, c, d in res["error_code_diffs"]], "eval_all_seconds_after_change": round(elapsed, 2),
+        "changed_cells": len(changed), "changed_interface_cells": sum(1 for s_, _ in changed if s_ == "Interface")}
+    if sc["id"] != "base":
+        assert changed, f"[{sc['id']}] 未改變任何公式格（測試空轉）"
     assert not res["mismatches"], f"[{sc['id']}] " + format_mismatches(res["mismatches"])
 
 
-def test_scenarios_actually_change_outputs(model, tmp_path):
+def test_scenarios_actually_change_outputs(model, base_engine, tmp_path):
     """防止測試空轉：每個情境至少改變 Interface 的一個格（相對基準）。"""
-    eng0 = Engine(model)
-    base = eng0.evaluate_all()
+    base = base_engine[1]
     for sc in SCENARIOS[1:]:
         eng = Engine(model)
-        for addr, v in sc["inputs"].items():
-            eng.set_input(*addr.split("!"), v)
+        for key, v in sc["inputs"].items():
+            eng.set_key(key, v)
         cur = eng.evaluate_all()
         changed = [k for k in base if base[k] != cur[k]]
         assert changed, f"{sc['id']} 未改變任何公式格"
@@ -152,19 +191,21 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
     """同一實例連續改輸入再還原：結果須與全新實例相同；單次全簿重算 < 2 秒。"""
     eng = Engine(model)
     base = eng.evaluate_all()
+    names = eng.names
     t0 = time.perf_counter()
     eng._xl.recalculate()                      # 強制全簿（全部公式格）重算
     full = time.perf_counter() - t0
     assert full < 2.0, f"全簿強制重算 {full:.2f}s ≥ 2s"
+    base_orig = {a: eng.get(*resolve_key(names, a)) for sc in SCENARIOS[1:] for a in sc["inputs"]}   # 改動前的原值
     for sc in SCENARIOS[1:]:
-        origs = {a: Engine(model).get(*a.split("!")) for a in sc["inputs"]}
+        origs = {a: base_orig[a] for a in sc["inputs"]}
         t0 = time.perf_counter()
-        for addr, v in sc["inputs"].items():
-            eng.set_input(*addr.split("!"), v)
+        for key, v in sc["inputs"].items():
+            eng.set_key(key, v)
         eng.evaluate_all()
         dt = time.perf_counter() - t0
         assert dt < 2.0, f"{sc['id']} 全簿重算 {dt:.2f}s ≥ 2s"
-        for addr, v in origs.items():
-            eng.set_input(*addr.split("!"), v)
+        for key, v in origs.items():
+            eng.set_key(key, v)
     res = compare(eng.evaluate_all(), base)   # 還原後與基準相同（容差內；pycel 部分格以 15 位快取值回填）
     assert not res["mismatches"], format_mismatches(res["mismatches"])

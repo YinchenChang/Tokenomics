@@ -15,6 +15,28 @@ from xml.etree import ElementTree as ET
 import openpyxl
 from pycel import ExcelCompiler
 
+def _patch_pycel_defined_names() -> None:
+    """相容性轉接（非計算）：pycel 1.0b30 讀取具名範圍用 openpyxl 3.0 的 `defined_names.definedName` 清單，
+    openpyxl 3.1 起改為 dict，公式內一旦使用具名範圍（v5.8 Block 4 起）即 AttributeError。
+    此處只改「怎麼讀出名稱的目的地」，語意與 pycel 原實作相同；不涉及任何數值計算。"""
+    from pycel.excelwrapper import ExcelOpxWrapper
+
+    def defined_names(self):
+        if self.workbook is not None and self._defined_names is None:
+            self._defined_names = {}
+            dn = self.workbook.defined_names
+            items = dn.values() if hasattr(dn, "values") else dn.definedName
+            for d_name in items:
+                destinations = [(alias, wksht) for wksht, alias in d_name.destinations if wksht in self.workbook]
+                if destinations:
+                    self._defined_names[str(d_name.name)] = destinations
+        return self._defined_names
+
+    ExcelOpxWrapper.defined_names = property(defined_names)
+
+
+_patch_pycel_defined_names()
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL_DIR = REPO_ROOT / "model"
 MODEL_NAME_RE = re.compile(r"^\d{8}_Tokenomics_v\d+(\.\d+)?\.xlsx$")
@@ -44,6 +66,36 @@ def parse_ref(attr_text: str) -> tuple[str, str]:
     if m["c2"]:
         ref += f":{m['c2']}{m['r2']}"
     return sheet, ref
+
+
+_KEY_RE = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_.]*)(?:\[(?P<i>\d+)\])?$")
+
+
+def resolve_key(names: dict[str, str], key: str) -> tuple[str, str]:
+    """情境輸入鍵 → (頁名, 儲存格)。鍵可為 'Sheet!A1'（舊情境）、'NAME'（單格具名範圍）
+    或 'NAME[k]'（單列或單欄具名範圍的第 k 格，k 從 1 起算）。"""
+    if "!" in key:
+        sheet, coord = key.split("!")
+        return sheet, coord
+    m = _KEY_RE.match(key)
+    if not m or m["name"] not in names:
+        raise KeyError(f"找不到具名範圍：{key!r}")
+    sheet, ref = parse_ref(names[m["name"]])
+    if ":" not in ref:
+        if m["i"]:
+            raise ValueError(f"{key}：單格具名範圍不可加索引")
+        return sheet, ref
+    if not m["i"]:
+        raise ValueError(f"{key}：多格具名範圍必須指定索引，例如 {m['name']}[1]")
+    c1, c2 = ref.split(":")
+    (a, r1), (b, r2) = (re.match(r"([A-Z]+)(\d+)", x).groups() for x in (c1, c2))
+    k = int(m["i"]) - 1
+    from openpyxl.utils import column_index_from_string as ci, get_column_letter as gl
+    if r1 == r2:   # 單列：沿欄展開
+        return sheet, f"{gl(ci(a) + k)}{r1}"
+    if a == b:     # 單欄：沿列展開
+        return sheet, f"{a}{int(r1) + k}"
+    raise ValueError(f"{key}：只支援單列或單欄具名範圍")
 
 
 def read_defined_names_xml(path: Path) -> dict[str, str]:
@@ -125,6 +177,10 @@ class Engine:
             return [x for row in v for x in row]
         return v
 
+    def set_key(self, key: str, value) -> None:
+        """依情境輸入鍵（位址、具名範圍或 NAME[k]）改寫輸入格。"""
+        self.set_input(*resolve_key(self.names, key), value)
+
     def set_name(self, name: str, value) -> None:
         """只允許單格具名範圍（例：CTL_GW）。"""
         sheet, ref = self.name_ref(name)
@@ -144,4 +200,4 @@ class Engine:
         return {k: norm(v) for k, v in zip(self._formula_cells, vals)}
 
 
-__all__ = ["Engine", "current_model_path", "parse_ref", "read_defined_names_xml", "norm"]
+__all__ = ["Engine", "resolve_key", "current_model_path", "parse_ref", "read_defined_names_xml", "norm"]

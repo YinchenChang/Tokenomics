@@ -105,10 +105,10 @@ def sources(wb):
 def readme(wb):
     ws = wb["README"]
     rows = [
-      ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）。不含營收（Block 4）。"),
-      ("版本", "20261001_Tokenomics_v5.7（Block 1＋2＋3；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）。實際營收（需求、市占、訂閱方案）在下游。"),
+      ("版本", "20261001_Tokenomics_v5.8（Block 1＋2＋3＋4；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。"),
-      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Interface；Energy、NonNV、Sensitivity、Checks、Sources。"),
+      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Interface；Energy、NonNV、Sensitivity、Checks、Sources。"),
       ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
       ("Block 3 決策", "J7 訓練精度 FP8（NVFP4 預訓練在 Tech_Registry）；J8 Astra 預訓練與 Arch 一致，前沿錨點列 Checks；J9 RL 由下而上，基準校到 RL÷預訓練 GPU 小時 Luna／Sol 0.3、Astra 1.0；J10 研發倍數 8，家族合計、依最終訓練比例分攤；J11 用途 × 型態只列單一計畫；J12 rollout NVFP4（FP8 為情境）；J13 下游預設 VR200、GB300 並列；J14 主流＝至少兩家實驗室公開採用，可覆寫。"),
       ("Excel 優先（v5.7）", "藍字＝輸入，由本活頁簿擁有：要改輸入，直接改 Excel。builder 重建 Block 2、3 時會先讀取所有藍字輸入，重建後依『工作表＋欄 A 標籤＋欄位』寫回，程式內的預設值只用於新增的輸入列。公式頁不要手改（重建時會被覆寫）。"),
@@ -120,15 +120,17 @@ def readme(wb):
       ("顏色", "藍字＝輸入；黑字＝公式；綠字＝跨頁連結；淡黃底＝關鍵輸出；亮黃底＝待 Andy 決定或情境改動。"),
       ("來源標記", "Verified／Interested-party／Analogy／Assumed／Derived。Analogy 與 Assumed 一律給區間。"),
       ("網站同步", "本檔為事實來源；repo 以公式引擎直接計算本檔，parity 測試比對 Interface 全部格（新增 IF_ 具名範圍見 Interface B 節）。"),
-      ("具名範圍", "IF_＝下游模型連結用；IF_Hdr／DRV_／CAL_＝網站顯示推導鏈與驗證表用，下游不得連結。"),
+      ("具名範圍", "IF_＝下游模型連結用；IF_Hdr／DRV_／CAL_／TRN_／TR_＝網站顯示用，下游不得連結；B4_＝Block 4 公式內部引用的關鍵量（v5.8 起新公式以具名範圍引用，使公式可讀），下游不得連結。"),
+      ("Block 4 推導", "理論營收＝每 GW 產出 × 利用率 × 參考請求混合有效單價（OpenAI 牌價 ×（1−折扣）× 能力單價倍數）。單價前緣＝能力指數 ≥ OpenAI 層級模型者之中，參考請求混合單價最低者（含中國廠商）。快取儲存＝KV bytes × 儲存層 $/GB-hr × 保留時間 ÷ 命中次數。攤提：自下而上＝研發計畫成本 ÷ 商業壽命內服務 token（＝回本所需溢價）；由上而下＝機隊訓練占比 X ÷（1−X）× 服務成本。"),
+      ("Block 4 決策", "K1 OpenAI 單價為基準；K2 (i) 前緣＝同能力最低價；K3 AA 指數為主、METR 檢查；K4 (c)＋(d) 能力→單價彈性基準 0＋回本溢價反解；K5 壽命 Luna／Sol 12、Astra 9 個月；K6 兩種攤提並列（下游預設待定）；K7 機隊以 OpenAI 2025 校準；K8 只計 API 單價；K9 各世代共用 2026-09 單價快照；K10 快取儲存比照公開條款；K11 利用率 60%、折減 1.0 暫用；K12 尖峰離峰並列、前緣用時數加權；K13 中國廠商全納入並標示開放權重；K14 國際站美元價。"),
       ("來源原則", "SemiAnalysis（含 InferenceX）資料一律須有第二來源佐證並標記 Interested-party；目前第二來源為 MLPerf（MLCommons 稽核，NVIDIA 提交）與 DeepSeek 自揭（待查）。"),
-      ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取命中只計載入時間，未計儲存成本。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。"),
+      ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取儲存成本已於 v5.8 Cache_Store 加入（儲存層與保留時間為 Assumed）。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。(11) v5.8：K6 下游攤提預設待 Andy 決定；Claude Opus 5.5、Kimi K3、MiniMax M3 的能力指數未取得，不參與前緣；Anthropic、Moonshot、Alibaba、MiniMax 價格為二手；METR 檢查未入表；Google 未列入候選。"),
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics v5.7 — Block 1＋2＋3：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫", F_TITLE)
-    put(ws, "A2", "第 0 層規格來源。能力與理論營收於 Block 4 加入。", F_NOTE)
+    put(ws, "A1", "Tokenomics v5.8 — Block 1＋2＋3＋4：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣", F_TITLE)
+    put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
 def interface_b3(wb, TRN, start, TI):

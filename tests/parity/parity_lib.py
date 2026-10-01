@@ -8,6 +8,8 @@ from pathlib import Path
 
 import openpyxl
 
+from engine import resolve_key
+
 REL_TOL = 1e-9
 ABS_TOL = 1e-12
 
@@ -15,11 +17,12 @@ ABS_TOL = 1e-12
 def set_inputs(src: Path, dst: Path, inputs: dict[str, object]) -> None:
     """複製活頁簿並改寫輸入格。openpyxl 存檔不帶快取值，LibreOffice 載入時必須重算。"""
     wb = openpyxl.load_workbook(src)
-    for addr, v in inputs.items():
-        sheet, coord = addr.split("!")
+    names = {k: v.attr_text for k, v in wb.defined_names.items()}
+    for key, v in inputs.items():          # 鍵：'Sheet!A1'、'NAME' 或 'NAME[k]'（具名範圍優先）
+        sheet, coord = resolve_key(names, key)
         cell = wb[sheet][coord]
         if isinstance(cell.value, str) and cell.value.startswith("="):
-            raise ValueError(f"{addr} 是公式格，不是輸入格")
+            raise ValueError(f"{key} 是公式格，不是輸入格")
         cell.value = v
     wb.save(dst)
 
@@ -47,6 +50,10 @@ def excel_values(recalculated: Path, cells: list[tuple[str, str]]) -> dict[tuple
     return {(s, c): ("" if wb[s][c].value is None else wb[s][c].value) for s, c in cells}
 
 
+def _is_err(x) -> bool:
+    return isinstance(x, str) and x.startswith("#") and x.endswith(("!", "?", "A"))
+
+
 def _is_num(x) -> bool:
     return isinstance(x, (int, float)) and not isinstance(x, bool)
 
@@ -54,6 +61,7 @@ def _is_num(x) -> bool:
 def compare(engine_vals: dict, excel_vals: dict) -> dict:
     """比對；數值：相對誤差 ≤1e-9 或絕對誤差 ≤1e-12；其他型別必須完全相等。"""
     mismatches, max_rel, max_rel_all, max_abs, n_num, n_err = [], 0.0, 0.0, 0.0, 0, 0
+    code_diffs = []   # 兩邊都是錯誤值、僅錯誤代碼不同（例：#VALUE! 對 #DIV/0!）；單獨列帳，不計入不符（見 docs/reports 的說明）
     for key, e in engine_vals.items():
         x = excel_vals[key]
         if isinstance(e, str) and e.startswith("#") or isinstance(x, str) and x.startswith("#"):
@@ -68,12 +76,16 @@ def compare(engine_vals: dict, excel_vals: dict) -> dict:
                 max_rel = max(max_rel, rel)
             max_abs = max(max_abs, d)
             ok = d <= ABS_TOL or rel <= REL_TOL
+        elif _is_err(e) and _is_err(x):
+            ok = True
+            if e != x:
+                code_diffs.append((key[0], key[1], e, x))
         else:
             ok = type(e) is type(x) and e == x
         if not ok:
             mismatches.append((key[0], key[1], e, x))
     return {
-        "cells": len(engine_vals), "numeric_cells": n_num, "mismatches": mismatches,
+        "cells": len(engine_vals), "numeric_cells": n_num, "mismatches": mismatches, "error_code_diffs": code_diffs,
         "max_rel_err": max_rel, "max_rel_err_all_cells": max_rel_all, "max_abs_err": max_abs, "error_value_cells": n_err,
     }
 

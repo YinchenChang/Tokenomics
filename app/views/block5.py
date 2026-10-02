@@ -40,6 +40,7 @@ def render():
                "每一步都是 Excel 既有具名範圍的值（IF_、B5_），本頁不自行計算；成功率為百分比。")
     chain = b5_chain(eng, tier, list(tier_map), task)
     chain["值"] = [fmt_unit(v, u) for v, u in zip(chain["值"], chain["單位"])]
+    chain = chain[["步驟", "層級", "token 類型", "值", "單位", "項目（Excel 標籤）"]]      # 值與單位靠前，避免被長標籤擠出畫面
     st.dataframe(chain, use_container_width=True, hide_index=True, height=_h(chain))
 
     st.divider()
@@ -47,6 +48,6 @@ def render():
     st.subheader("成功任務成本前緣（VR200）")
     st.metric(f"{pf['label']}（{pf['unit']}）", fmt_unit(pf["value"], pf["unit"]))
     front = b5_front(eng)
-    st.dataframe(front, use_container_width=True, height=_h(front))
+    st.table(front)                                                  # 小表：自動換行、不橫向捲動，Coding agent 欄不被截斷
     st.caption("只比較 p ≥ p_min 的層級 × 檔案組合；p_min 為 Excel 輸入（B5_PFloor）。欄＝任務；列＝最低每成功任務成本、組合（層級｜檔案）、組合成功率；"
                "『無合格』＝無組合達下限。本頁只顯示 Excel 的前緣（IF_FrontSuccVR*），不在網站重算。")

@@ -20,15 +20,15 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 
 Excel 的具名範圍分為兩類（見 Excel README 頁）：
 
-- **`IF_` 開頭且非 `IF_Hdr`**（154 個；v5.9）：Interface 輸出，**下游模型（OpenAI、CRWV、Nebius 等）只連結這一類**。
+- **`IF_` 開頭且非 `IF_Hdr`**（164 個；v5.10）：Interface 輸出，**下游模型（OpenAI、CRWV、Nebius 等）只連結這一類**。
 - **`IF_Hdr*`（`IF_HdrGen`、`IF_HdrCost`、`IF_HdrTask`）、`DRV_*`、`CAL_*`、`TRN_*`、`TR_*`、`B4_*`、`B5_*`、`CTL_*`**：僅供本網站顯示（表頭、推導鏈、Calib 驗證表、Tech_Registry 唯讀表）、內部用或輸入控制，下游不得連結。
-  `B4_*`（39 個）與 `B5_*`（23 個；v5.9 新增）是 Block 4、Block 5 的顯示或內部用名稱（Cap_In／Har_In 輸入、市場候選表、有效單價列、選定 harness 檔案等），**下游一律不得連結**，應改連 `IF_` 的 Block 4、5 輸出（Interface D、E 節）。
+  `B4_*`（39 個）與 `B5_*`（24 個；v5.9 新增、v5.10 加 `B5_PFloor`）是 Block 4、Block 5 的顯示或內部用名稱（Cap_In／Har_In 輸入、市場候選表、有效單價列、選定 harness 檔案等），**下游一律不得連結**，應改連 `IF_` 的 Block 4、5 輸出（Interface D、E 節）。
 
 ## 執行
 
 ```bash
 pip install -r requirements.txt
-streamlit run app/main.py        # 首次載入約 1 分鐘（v5.9 實測約 44 秒；引擎建圖並全簿重算）
+streamlit run app/main.py        # 首次載入約 1 分鐘（v5.10 首次載入約 1 分鐘；引擎建圖並全簿重算）
 ```
 
 ## 測試

@@ -5,6 +5,10 @@
 # L3 enhanced profiles off in the base (Tech_Registry T12 switch 0) — scenarios only; L4 per-GW theoretical revenue unchanged
 # (harness acts on the per-task layer only); L5 cost per success = cost per attempt / p (independent retries, failure detectable);
 # L6 non-GPU harness cost excluded (to-do); L7 scenario values only from neutral parties measured under the same conditions.
+# v5.10 (Andy 2026-10-02): M1 (b) — the cost-per-success frontier compares only combinations with p >= a reliability floor
+# p_min (input, base 50%; 0 = no floor = option (a)); no qualifying combination returns "無合格". The unconstrained frontier
+# is kept as a comparison row. Also (CC round 8, section 6): Interface E adds per-attempt cost (existing Harness D rows) and the
+# effective 50% horizon (H50 x horizon multiplier, new Harness section I).
 # New formulas reference key quantities through named ranges (B5_ = Block 5 internal / display; IF_ = downstream).
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
@@ -75,8 +79,14 @@ def har_in(wb, TR):
     put(ws, f"A{r}", "選定檔案名稱"); put(ws, f"C{r}", f"=CHOOSE(C{H['prof']}-1,\"{PROFILES[2][0]}\",\"{PROFILES[3][0]}\")"); H["pname"] = r; r += 1
     put(ws, f"A{r}", "混合權重 w＝T12 開關 × 採用比例"); put(ws, f"B{r}", "x")
     put(ws, f"C{r}", f"=Tech_Registry!O{t12}*Tech_Registry!N{t12}", F_LINK, fmt="0.00", fill=FILL_KEY)
-    put(ws, f"I{r}", "w＝0：Workload 與標準檔相同，Block 1–4 與 v5.8 一致", F_NOTE); H["w"] = r; r += 2
+    put(ws, f"I{r}", "w＝0：Workload 與標準檔相同，Block 1–4 與 v5.8 一致", F_NOTE); H["w"] = r; r += 1
+    # v5.10 M1 (b): reliability floor for the cost-per-success frontier (Harness H section)
+    put(ws, f"A{r}", "可靠度下限 p_min（成功任務成本前緣只比較 p ≥ 此值者）"); put(ws, f"B{r}", "%"); put(ws, f"C{r}", 0.5, fmt="0%")
+    put(ws, f"H{r}", "Decision", F_NOTE)
+    put(ws, f"I{r}", "M1 (b)（Andy 2026-10-02）：低於此成功率的組合不列入前緣（不可靠的便宜組合不算前緣）；0＝不設下限（等同 (a)）。基準 50%＝METR 時間範圍的定義點", F_NOTE)
+    H["pmin"] = r; r += 1
     nm(wb, "B5_Profile", f"Har_In!$C${H['prof']}"); nm(wb, "B5_ProfileName", f"Har_In!$C${H['pname']}"); nm(wb, "B5_W", f"Har_In!$C${H['w']}")
+    nm(wb, "B5_PFloor", f"Har_In!$C${H['pmin']}")
     section(ws, r, "B. harness 檔案參數（欄＝Workload 任務；標準檔見 Workload 列 5–14，保留時間＝Cap_In 保留時間、時間範圍倍數＝1）", 9); r += 1
     for p in (2, 3):
         pname, rows = PROFILES[p]
@@ -270,18 +280,45 @@ def harness(wb, U, S, WL):
     for t, (tk, tn) in enumerate(TIERS):
         trow(ws, r, f"成功率比（選定 ÷ 標準）：{tn}", "x", f"={{c}}{R[f'p_sel{t}']}/{{c}}{R[f'p_std{t}']}", "0.00"); R[f"pr{t}"] = r; r += 1
     r += 1
-    section(ws, r, "H. 成功任務成本前緣（各世代：3 層級 × {標準、選定檔案} 中每成功任務成本最低者；層級替代）", 8); r += 1
+    section(ws, r, "H. 成功任務成本前緣（各世代：3 層級 × {標準、選定檔案} 中每成功任務成本最低者；層級替代；只比較 p ≥ 可靠度下限 p_min 者，M1 (b)）", 8); r += 1
     for gname, col in GENS:
         cells = [(f"{TIERS[t][0]}｜標準", R[f"cs_{gname}{t}std"]) for t in range(3)] + [(f"{TIERS[t][0]}｜選定", R[f"cs_{gname}{t}sel"]) for t in range(3)]
         R[f"fr_{gname}"] = r
-        trow(ws, r, f"{gname}：最低每成功任務成本", "$", lambda c, k, cells=cells: "=MIN(" + ",".join(f"{c}{rr}" for _, rr in cells) + ")", "$#,##0.0000", key=True); r += 1
+        trow(ws, r, f"對照（不設下限）：{gname} 最低每成功任務成本", "$", lambda c, k, cells=cells: "=MIN(" + ",".join(f"{c}{rr}" for _, rr in cells) + ")", "$#,##0.0000"); r += 1
         def lab(c, k, cells=cells, fr=r - 1):
             f = '"—"'
             for name, rr in reversed(cells):
                 f = f'IF({c}{rr}={c}{fr},"{name}",{f})'
             return "=" + f
-        R[f"frl_{gname}"] = r; trow(ws, r, f"{gname}：前緣組合（層級｜檔案）", "", lab, None); r += 1
-    put(ws, f"A{r}", "註：標準與現行在 w＝0 時相同。前緣只比較成本，不含延遲；選定檔案『供應商專屬』時，前緣組合綁定該供應商 API（Har_In 旗標）", F_NOTE)
+        R[f"frl_{gname}"] = r; trow(ws, r, f"對照（不設下限）：{gname} 前緣組合（層級｜檔案）", "", lab, None); r += 1
+    # v5.10 M1 (b): candidate qualifies when its cost is numeric and its p >= B5_PFloor; none qualifies -> "無合格"
+    for gname, col in GENS:
+        cand = [(f"{TIERS[t][0]}｜標準", R[f"cs_{gname}{t}std"], R[f"p_std{t}"]) for t in range(3)] + \
+               [(f"{TIERS[t][0]}｜選定", R[f"cs_{gname}{t}sel"], R[f"p_sel{t}"]) for t in range(3)]
+        ok = lambda c, cr, pr: f"AND(ISNUMBER({c}{cr}),{c}{pr}>=B5_PFloor)"
+        def fmin(c, k, cand=cand):
+            anyok = "OR(" + ",".join(ok(c, cr, pr) for _, cr, pr in cand) + ")"
+            mn = "MIN(" + ",".join(f"IF({ok(c, cr, pr)},{c}{cr},9E+99)" for _, cr, pr in cand) + ")"
+            return f'=IF({anyok},{mn},"無合格")'
+        R[f"frm_{gname}"] = r
+        trow(ws, r, f"{gname}：最低每成功任務成本（p ≥ p_min）", "$", fmin, "$#,##0.0000", key=True); r += 1
+        def pick(c, k, cand=cand, fr=r - 1, what="name"):
+            f = '"—"' if what == "name" else '"—"'
+            for name, cr, pr in reversed(cand):
+                v = f'"{name}"' if what == "name" else f"{c}{pr}"
+                f = f"IF(AND(ISNUMBER({c}{fr}),{c}{cr}={c}{fr},{ok(c, cr, pr)}),{v},{f})"
+            return f'=IF(ISNUMBER({c}{fr}),{f},"無合格")'
+        R[f"frml_{gname}"] = r; trow(ws, r, f"{gname}：前緣組合（層級｜檔案；p ≥ p_min）", "", pick, None, key=True); r += 1
+        R[f"frmp_{gname}"] = r
+        trow(ws, r, f"{gname}：前緣組合的成功率 p", "%", lambda c, k, cand=cand, fr=r - 2: pick(c, k, cand, fr, "p"), "0.0%"); r += 1
+    put(ws, f"A{r}", "註：標準與現行在 w＝0 時相同。前緣只比較成本，不含延遲；選定檔案『供應商專屬』時，前緣組合綁定該供應商 API（Har_In 旗標）。"
+                     "可靠度下限 p_min 在 Har_In A 節；『無合格』＝該任務沒有任何層級 × 檔案達到下限", F_NOTE)
+    r += 2
+    # v5.10 (CC round 8, section 6 item 2): effective 50% horizon = tier H50 x horizon multiplier (current mix)
+    section(ws, r, "I. 有效 50% 時間範圍（＝層級 50% 時間範圍 × 時間範圍倍數；現行）", 8); r += 1
+    for t, (tk, tn) in enumerate(TIERS):
+        R[f"hz_{t}"] = r
+        trow(ws, r, f"有效 50% 時間範圍：{tn}｜現行", "hr", f"=INDEX(B5_H50,1,{t+1})*{{c}}{R['cur_hz']}", "0.00"); r += 1
     ws.freeze_panes = "C5"
     for key, n in [("cur_tot", "B5_TaskTok"), ("sel_tot", "B5_TaskTokSel"), ("std_tot", "B5_TaskTokStd")]:
         nm(wb, n, f"Harness!$C${R[key]}:$G${R[key]}")
@@ -386,6 +423,17 @@ def interface_b5(wb, start, R):
         row5(f"IF_CostSuccGB_{tk}", "每成功任務成本 — GB300（現行）", "$", f"=Harness!{{c}}{R[f'cs_GB300{t}cur']}", "$#,##0.0000")
         row5(f"IF_RevSucc_{tk}", "每成功任務營收 — OpenAI 有效單價（現行）", "$", f"=Harness!{{c}}{R[f'rs_{t}cur']}", "$#,##0.0000")
         row5(f"IF_HarR_{tk}", "R＝每成功任務成本 選定 ÷ 標準（VR200）", "x", f"=Harness!{{c}}{R[f'R_VR200{t}']}", "0.00")
+    # ---- v5.10 additions (appended; rows above unchanged) ----
+    put(ws, f"A{r}", "v5.10：每次嘗試成本、有效時間範圍與可靠度下限前緣", F_BOLD); r += 1
+    for t, (tk, tn) in enumerate(TIERS):
+        row5(f"IF_CostAttVR_{tk}", f"{tn}｜每次嘗試成本 — VR200（現行；經濟、基準成本、基準利用率；÷ p＝每成功任務成本）", "$",
+             f"=Harness!{{c}}{R[f'c_VR200{t}cur']}", "$#,##0.0000")
+        row5(f"IF_HzEff_{tk}", f"{tn}｜有效 50% 時間範圍（層級基準 × 時間範圍倍數；現行）", "hr", f"=Harness!{{c}}{R[f'hz_{t}']}", "0.00")
+    put(ws, f"A{r}", "可靠度下限 p_min（M1 (b)）　[IF_PFloor]"); put(ws, f"B{r}", "%"); put(ws, f"C{r}", "=B5_PFloor", fmt="0%")
+    names.append(("IF_PFloor", f"Interface!$C${r}")); r += 1
+    row5("IF_FrontSuccVR", "成功任務成本前緣 — VR200（p ≥ p_min；3 層級 × 標準／選定檔案）", "$", f"=Harness!{{c}}{R['frm_VR200']}", "$#,##0.0000", key=True)
+    row5("IF_FrontSuccVRName", "成功任務成本前緣組合 — VR200（層級｜檔案；『無合格』＝無組合達下限）", "", f"=Harness!{{c}}{R['frml_VR200']}", None)
+    row5("IF_FrontSuccVRP", "成功任務成本前緣組合的成功率 p — VR200", "%", f"=Harness!{{c}}{R['frmp_VR200']}", "0.0%")
     for n, ref in names: nm(wb, n, ref)
     return names
 
@@ -407,9 +455,13 @@ def checks_b5(wb, R, H, SH):
        "遠大於區間：ARC 的提升無法用 METR 型曲線表達，故 ARC 只作方向檢查、不校準時間範圍倍數", "S58、S59"),
       ("METR 隱含 β（四個模型平均）", f"=AVERAGE(Har_In!F{H['metr0']}:F{H['metr1']})", "=B5_Beta", "x", "外部參照欄＝本模型採用值", "S59"),
       ("Astra 標準 harness：Coding agent 成功率", f"=Harness!G{R['p_std2']}", "—", "%", "任務長度 8 小時 ÷ 時間範圍 16 小時", "Har_In C 節"),
-      ("每成功任務：Coding agent 前緣組合（VR200）", f"=Harness!G{R['frl_VR200']}", "—", "", "層級替代：選定檔案全採用時較低層級能否勝出", "Harness H 節"),
+      ("每成功任務：Coding agent 前緣組合（VR200；p ≥ p_min）", f"=Harness!G{R['frml_VR200']}", f"=Harness!G{R['frl_VR200']}", "",
+       "外部參照欄＝不設下限的前緣（對照）；兩者不同＝下限排除了較便宜但不可靠的組合（M1 (b)）", "Harness H 節"),
       ("Sens_Har：Astra R 最小～最大（VR200、Coding agent）", f"=MIN(Sens_Har!C{SH['R2']}:Z{SH['R2']})", f"=MAX(Sens_Har!C{SH['R2']}:Z{SH['R2']})", "x",
        "最大值 > 1 即 harness 在區間內可能提高每成功任務成本", "Sens_Har"),
+      ("可靠度下限 p_min（M1 (b)）", "=B5_PFloor", "50%（基準）", "%", "基準 50%；0＝不設下限（等同 (a)）", "Har_In A 節"),
+      ("前緣『無合格』的任務數（VR200，5 任務）", f'=COUNTIF(Harness!C{R["frml_VR200"]}:G{R["frml_VR200"]},"無合格")', "0（基準）", "",
+       "> 0＝下限高於該任務所有組合的成功率", "Harness H 節"),
     ]
     for i, (a, b, c, d, e, f) in enumerate(rows):
         rr = r0 + 2 + i

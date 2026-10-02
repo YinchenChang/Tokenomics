@@ -431,7 +431,7 @@ def b5_table(eng: Engine, tier: str) -> pd.DataFrame:
 
 def b5_chain(eng: Engine, tier: str, tiers_order: list[str], task: str) -> pd.DataFrame:
     """Block 5 推導鏈（單一層級、任務）：任務長度 → 50% 時間範圍 → 成功率 → 每次嘗試（token）→ 每成功任務成本（÷ p 後）→ 每成功任務營收。
-    只讀既有名稱（IF_、B5_ 顯示名稱）；『每次嘗試成本（$）』沒有顯示用名稱，不在此計算（已列入報告）。"""
+    只讀既有名稱（IF_、B5_ 顯示名稱）；v5.10 起每次嘗試成本（IF_CostAttVR_*）與有效時間範圍（IF_HzEff_*）由 Excel 提供，不在此計算。"""
     k = task_names(eng).index(task)
     steps = []
 
@@ -443,16 +443,28 @@ def b5_chain(eng: Engine, tier: str, tiers_order: list[str], task: str) -> pd.Da
         add(step, tokens, s["label"], s["unit"], s["values"][k])
 
     task_val("IF_TaskLen", "1 任務長度", "（人類完成時間）")
+    task_val(f"IF_HzEff_{tier}", "2 時間範圍（有效值）", "（不分 token 類型；現行）")
     h = series(eng, "B5_H50")
-    add("2 時間範圍", "（不分 token 類型）", h["label"], h["unit"], h["values"][tiers_order.index(tier)])
+    add("2 時間範圍（層級基準，對照）", "（不分 token 類型）", h["label"], h["unit"], h["values"][tiers_order.index(tier)])
     task_val(f"IF_TaskSucc_{tier}", "3 成功率", "（現行＝標準 harness）")
     task_val(f"IF_TaskSuccSel_{tier}", "3 成功率", "（選定檔案全採用；情境）")
-    task_val("IF_TaskTokFresh", "4 每次嘗試", "新鮮輸入")
-    task_val("IF_TaskTokCached", "4 每次嘗試", "快取輸入")
-    task_val("IF_TaskTokDec", "4 每次嘗試", "思考＋可見輸出（decode）")
-    task_val(f"IF_CostSuccVR_{tier}", "5 ÷ p → 每成功任務成本", "全 token 類型（VR200）")
-    task_val(f"IF_CostSuccGB_{tier}", "5 ÷ p → 每成功任務成本", "全 token 類型（GB300）")
-    task_val(f"IF_RevSucc_{tier}", "6 每成功任務營收", "全 token 類型（OpenAI 有效單價）")
-    task_val(f"IF_HarR_{tier}", "7 R（選定 ÷ 標準）", "全 token 類型（VR200）")
+    task_val("IF_TaskTokFresh", "4 每次嘗試（token）", "新鮮輸入")
+    task_val("IF_TaskTokCached", "4 每次嘗試（token）", "快取輸入")
+    task_val("IF_TaskTokDec", "4 每次嘗試（token）", "思考＋可見輸出（decode）")
+    task_val(f"IF_CostAttVR_{tier}", "5 每次嘗試成本（$）", "全 token 類型（VR200）")
+    task_val(f"IF_CostSuccVR_{tier}", "6 ÷ p → 每成功任務成本", "全 token 類型（VR200）")
+    task_val(f"IF_CostSuccGB_{tier}", "6 ÷ p → 每成功任務成本", "全 token 類型（GB300）")
+    task_val(f"IF_RevSucc_{tier}", "7 每成功任務營收", "全 token 類型（OpenAI 有效單價）")
+    task_val(f"IF_HarR_{tier}", "8 R（選定 ÷ 標準）", "全 token 類型（VR200）")
     return pd.DataFrame([(a, t, b, c, d, e) for a, t, b, c, d, e in steps],
                         columns=["步驟", "層級", "token 類型", "項目（Excel 標籤）", "單位", "值"])
+
+
+def b5_front(eng: Engine) -> pd.DataFrame:
+    """成功任務成本前緣（VR200）：欄＝任務；列＝最低每成功任務成本、組合（層級｜檔案）、組合成功率。
+    只讀 IF_FrontSuccVR／Name／P；『無合格』原樣顯示；不在此重算前緣。"""
+    rows = {}
+    for name in ("IF_FrontSuccVR", "IF_FrontSuccVRName", "IF_FrontSuccVRP"):
+        s = b5_task_series(eng, name)
+        rows[f"{s['label']}（{s['unit']}）" if s["unit"] else s["label"]] = [fmt_unit(v, s["unit"]) for v in s["values"]]
+    return pd.DataFrame(rows, index=task_names(eng)).T

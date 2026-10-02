@@ -56,9 +56,13 @@ def render():
     st.info("K6 下游預設為 (c)：由上而下總額 × 自下而上權重（`IF_AmortDefault_*`、`IF_FullCostDefault_*`，下游連結此兩者）。"
             "自下而上、由上而下、(d)（由上而下總額 × 營收權重）與以自下而上攤提計的全成本，列為對照；對照列不是下游預設。")
     st.markdown("**攤提 $/M 對照（跨世代）**")
-    amort_rows = [i for i in cost.index if any(k in i for k in ("攤提",))]
+    amort_rows = [i for i in cost.index if "訓練攤提" in i]          # 只放攤提口徑：K6 預設 (c)、自下而上、由上而下、(d)
     chart = cost.loc[amort_rows].T.rename_axis("世代").reset_index().melt("世代", var_name="口徑", value_name="攤提")
     st.bar_chart(chart, x="世代", y="攤提", color="口徑", x_label="世代", y_label="攤提（$/M）", sort=False, stack=False)
+    st.markdown("**全成本 $/M 對照（跨世代；服務＋快取儲存＋攤提）**")
+    full_rows = [i for i in cost.index if "全成本" in i]            # 兩條全成本序列另圖：K6 預設攤提、自下而上攤提
+    chart = cost.loc[full_rows].T.rename_axis("世代").reset_index().melt("世代", var_name="口徑", value_name="全成本")
+    st.bar_chart(chart, x="世代", y="全成本", color="口徑", x_label="世代", y_label="全成本（$/M）", sort=False, stack=False)
 
     st.divider()
     st.subheader(f"推導鏈｜{tier_map[tier]}｜{gen}｜成本情境：{case}")

@@ -2,9 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 第 10 輪：Stage 0 盤點（唯讀）＋網站小修（Excel 不變，仍為 `20261002_Tokenomics_v5.10.xlsx`）
+
+- Commit：見本輪 PR 的合併提交（合併後補上雜湊）。
+- Excel：**未產生新版**；v5.10 的 SHA-256 於本輪前後相同（`d7d59ab8a9c965e9c9a0ed96d7e5a6ba820fbb90adedd146a3542b0ba979497f`）。`builder/`、`model/` 無變動。
+- 新增 `tools/stage0_inventory.py`（可重跑的盤點與影響範圍工具，不在 CI）與盤點檔 `docs/reports/20261002_stage0_inventory.xlsx`；詳見 `docs/reports/20261002_stage0_inventory.md`。
+- 網站：Block 5 任務表改以 `st.table` 呈現（表頭與標籤自動換行），1280 px 下 5 個任務欄全部可見、無橫向捲動；只改呈現，不改數值。截圖在 `docs/reports/img/`。
+- 總覽頁崩潰修正（第 9 輪遺留）：v5.10 新增的 10 個名稱（`IF_CostAttVR_*`、`IF_HzEff_*`、`IF_FrontSuccVR*`、`IF_PFloor`）未列入 Block 5 名稱，總覽頁把它們當 Block 1 的 15 欄名稱而崩潰；`app/common.py` 名稱前綴補 4 個，`tests/app` 兩處期望值同步（任務表改 `at.table`、推導鏈 8 步），12 項全過。不涉及任何數值。
+- CHANGELOG：v5.10 條目補上 PR #9 合併提交雜湊 `fcbb384`。
+
 ## 20261002_Tokenomics_v5.10.xlsx（取代 v5.9；第 9 輪）
 
-- Commit：見本輪 PR 的合併提交（合併後補上雜湊）。v5.9 的合併提交為 `7627a82`（第 8 輪 PR #8）。
+- Commit：`fcbb384`（第 9 輪 PR #9 合併提交）。v5.9 的合併提交為 `7627a82`（第 8 輪 PR #8）。
 - Excel（M1 可靠度下限）：公式 20,686 → 20,780（+94）；具名範圍 294 → 305（新增 11、無移除）：`B5_PFloor`（Har_In!C8，p_min 輸入）；Interface E 節末尾新增 `IF_CostAttVR_{Luna,Sol,Astra}`（每次嘗試成本）、`IF_HzEff_{Luna,Sol,Astra}`（有效時間範圍）、`IF_PFloor`（單格）、`IF_FrontSuccVR`、`IF_FrontSuccVRName`、`IF_FrontSuccVRP`（前緣，5 欄；無合格時為文字「無合格」）。分類計數：`IF_` 167（`IF_Hdr` 3；下游 154 → 164）、`B4_` 39、`B5_` 24、`TR_` 23、`CAL_` 19、`DRV_` 16、`TRN_` 15、`CTL_` 2。
 - 差異：v5.9 → v5.10 以 LibreOffice 重算後共 157 格不同，只在 Har_In 5、Harness 68、Interface 66、Checks 15、README 3；其餘工作表逐格一致；工作表清單不變。Interface E 節既有列位置不變。
 - builder：依 `docs/builder/Tokenomics_builder_v5.md` 還原；`block5.py`、`finish.py`、`build.py` 有變動，其餘 8 檔與 md 逐字相同且未變。以 v5.9、v5.10 為底稿重建，LibreOffice 重算後皆與 repo 的 v5.10 逐格一致（27,334 格不符 0、錯誤 0）；`restore_log` 未對應 0（以 v5.9 為底稿：藍字輸入 1,151 全數對應；以 v5.10 為底稿：1,152）。

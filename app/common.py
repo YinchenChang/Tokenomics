@@ -397,7 +397,8 @@ def b4_chain(eng: Engine, tier: str, gen: str, case: str) -> pd.DataFrame:
 # 只讀 Interface E 節（IF_HdrTask 為任務表頭，欄 C:G＝Workload 任務）。基準 w＝0，現行＝標準 harness；選定檔案為情境。
 B5_TASK_SHARED = ("TaskLen", "TaskTokFresh", "TaskTokCached", "TaskTokDec", "TaskTokSel", "HarTokRatio")   # 不分層級
 B5_TASK_TIER = ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR")                   # 依層級
-B5_IF_PREFIXES = tuple(f"IF_{m}" for m in B5_TASK_SHARED + B5_TASK_TIER + ("HarW", "HarProfile"))
+B5_V510 = ("CostAttVR", "HzEff", "FrontSuccVR", "PFloor")                                                  # v5.10 新增（5 欄任務層與前緣、p_min 單格）；漏列會使總覽頁崩潰
+B5_IF_PREFIXES = tuple(f"IF_{m}" for m in B5_TASK_SHARED + B5_TASK_TIER + B5_V510 + ("HarW", "HarProfile"))
 
 
 def is_block5_name(name: str) -> bool:

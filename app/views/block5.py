@@ -29,7 +29,7 @@ def render():
     st.divider()
     st.subheader(f"任務表｜{tier_map[tier]}")
     tbl = b5_table(eng, tier)
-    st.dataframe(tbl.T, use_container_width=True, height=_h(tbl.T))
+    st.table(tbl.T)                                                  # 小表（5 任務欄）：表頭與標籤自動換行，1280 px 下不需橫向捲動
     st.caption("欄＝任務（取自 IF_HdrTask）；列＝每次嘗試 token（新鮮輸入、快取輸入、decode）、成功率（現行、選定檔案）、"
                "每成功任務成本（VR200、GB300；經濟、基準成本、基準利用率）、每成功任務營收（OpenAI 有效單價）與 R（選定 ÷ 標準，VR200）。")
 

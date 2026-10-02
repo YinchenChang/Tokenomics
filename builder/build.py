@@ -72,7 +72,7 @@ K4["_capf"] = P4["capf"]
 sens_rev(wb, K4, T4, A4)
 interface_b4(wb, last_row(wb["Interface"]) + 2, P4, S4, A4, T4)
 checks_b4(wb, P4, F4, A4, T4, U)
-# ---- v5.9: Block 5 (harness) ----
+# ---- v5.9: Block 5 (harness); v5.10: M1 (b) reliability floor + Interface E additions (inside block5.py) ----
 from block5 import har_in, harness, sens_har, interface_b5, checks_b5, sources_b5, evidence_b5
 H5 = har_in(wb, TR)
 R5 = harness(wb, U, S4, WL)

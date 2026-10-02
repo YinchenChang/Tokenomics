@@ -71,7 +71,7 @@ def test_named_ranges(model):
     downstream = {n for n in eng.names if n.startswith("IF_") and not n.startswith("IF_Hdr")}
     assert len(downstream) == EXPECT["downstream_names"]
     if_all = [n for n in eng.names if n.startswith("IF_")]
-    assert len(if_all) == EXPECT["downstream_names"] + 3 and sum(n.startswith("IF_Hdr") for n in eng.names) == 3   # 157＝154 下游＋IF_Hdr 3（IF_HdrGen、IF_HdrCost、IF_HdrTask）
+    assert len(if_all) == EXPECT["downstream_names"] + 3 and sum(n.startswith("IF_Hdr") for n in eng.names) == 3   # 167＝164 下游＋IF_Hdr 3（IF_HdrGen、IF_HdrCost、IF_HdrTask）
     for n in eng.names:  # 每個名稱都能取值，且非錯誤值
         v = eng.get_name(n)
         flat = v if isinstance(v, list) else [v]
@@ -128,6 +128,9 @@ def test_interface_d_e_shapes(model):
             + ["IF_RevGWFleet", "IF_RevGWFleetFront"])
     task = ([f"IF_{p}_{t}" for p in ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR") for t in TIERS]
             + ["IF_TaskLen", "IF_TaskTokFresh", "IF_TaskTokCached", "IF_TaskTokDec", "IF_TaskTokSel", "IF_HarTokRatio"])
+    task += [f"IF_{p}_{t}" for p in ("CostAttVR", "HzEff") for t in TIERS]                  # v5.10：每次嘗試成本、有效時間範圍（任務 5 欄）
+    single_num += ["IF_PFloor"]                                                           # v5.10：可靠度下限 p_min（單格）
+    front = ["IF_FrontSuccVR", "IF_FrontSuccVRName", "IF_FrontSuccVRP"]                   # v5.10：前緣（5 欄；無合格時為文字「無合格」，數值列可能含文字）
     for n in single_num + ["IF_ServeShare", "IF_FreeShare"]:
         v = eng.get_name(n)
         assert not isinstance(v, list) and isinstance(v, (int, float)) and not isinstance(v, bool), f"{n} 應為單格數值：{v!r}"
@@ -139,16 +142,50 @@ def test_interface_d_e_shapes(model):
             v = eng.get_name(n)
             assert isinstance(v, list) and len(v) == width, f"{n} 欄數 {len(v) if isinstance(v, list) else 1}，應為 {width}"
             assert all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n} 含非數值"
+    for n in front:
+        v = eng.get_name(n)
+        assert isinstance(v, list) and len(v) == ntask, f"{n} 欄數應為 {ntask}"
+        assert all(x != "" and not (isinstance(x, str) and x.startswith("#")) for x in v), f"{n} 含空值或錯誤值"
+        if n != "IF_FrontSuccVRName":                                                     # 數值列：數值或「無合格」
+            assert all(isinstance(x, (int, float)) and not isinstance(x, bool) or x == "無合格" for x in v), f"{n}: {v!r}"
+        else:
+            assert all(isinstance(x, str) for x in v)
     assert all(isinstance(x, str) and x for x in eng.get_name("IF_HdrTask"))              # 任務名稱（文字）
     v59_new = ({f"IF_{p}_{t}" for p in ("AmortDefault", "AmortRev", "FullCostDefault", "RevGWFleet", "RevGWFleetFront") for t in TIERS}
                | {"IF_HarW", "IF_HarProfile", "IF_TaskLen", "IF_TaskTokFresh", "IF_TaskTokCached", "IF_TaskTokDec", "IF_TaskTokSel", "IF_HarTokRatio"}
                | {f"IF_{p}_{t}" for p in ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR") for t in TIERS})
     assert len(v59_new) == 41 and v59_new <= set(single_num + single_txt + wide + task), "v5.9 新增的 41 個下游名稱須全數涵蓋形狀檢查"
-    assert EXPECT["downstream_names"] - len(v59_new) == 113                                  # v5.8 的下游名稱數
+    v510_new = {f"IF_{p}_{t}" for p in ("CostAttVR", "HzEff") for t in TIERS} | {"IF_PFloor"} | set(front)
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) == 113   # v5.8 的下游名稱數；v5.10 新增 10 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
     assert len(mkt) == len(eng.get_name("B4_MktCountry")) and set(mkt) <= {0, 1} and 0 < sum(mkt) < len(mkt)
+
+
+def _floor_engine(model, floor):
+    eng = Engine(model)
+    eng.set_key("B5_PFloor", floor)
+    eng.evaluate_all()
+    return eng
+
+
+def test_floor_scenarios_expected_values(model):
+    """v5.10 M1：floor_0 與 floor_80 的期望值（與 parity 情境互補；parity 保證兩邊一致，這裡保證結果合理）。"""
+    base = Engine(model)
+    names = base.get_name("IF_HdrTask")
+    assert base.get_name("IF_PFloor") == 0.5                                              # 基準 p_min＝50%
+    assert base.get_name("IF_FrontSuccVRName") == ["Luna｜標準", "Luna｜標準", "Luna｜選定", "Luna｜選定", "Sol｜選定"]
+    assert abs(base.get_name("IF_FrontSuccVR")[4] - 0.0209) < 5e-5 and abs(base.get_name("IF_FrontSuccVRP")[4] - 0.627) < 5e-4
+    f0 = _floor_engine(model, 0)                                                          # 不設下限：前緣＝「對照（不設下限）」列
+    cols = "CDEFG"
+    assert [f0.get("Harness", f"{c}151") for c in cols] == [f0.get("Harness", f"{c}147") for c in cols]
+    assert [f0.get("Harness", f"{c}152") for c in cols] == [f0.get("Harness", f"{c}148") for c in cols]
+    assert f0.get_name("IF_FrontSuccVRName")[4] == "Luna｜選定" and abs(f0.get_name("IF_FrontSuccVR")[4] - 0.0125) < 5e-4
+    f8 = _floor_engine(model, 0.8)                                                        # 下限 80%：Coding agent 無合格
+    assert f8.get_name("IF_FrontSuccVR")[4] == f8.get_name("IF_FrontSuccVRName")[4] == f8.get_name("IF_FrontSuccVRP")[4] == "無合格"
+    assert f8.get_name("IF_FrontSuccVRName")[2:4] == ["Sol｜選定", "Sol｜選定"]            # 單代理、多代理研究
+    assert f8.get("Checks", "B70") == 1, names                                            # 無合格任務數
 
 
 def test_named_ranges_vs_libreoffice(model, tmp_path):

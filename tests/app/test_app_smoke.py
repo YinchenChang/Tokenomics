@@ -155,7 +155,7 @@ B5 = "from app.views import block5; block5.render()"
 
 
 def test_block5_tables_chain_and_overview_exclusion():
-    """Block 5：任務表（依層級欄前綴層級）、推導鏈 7 步、說明文字；總覽排除 Block 5 名稱。"""
+    """Block 5：任務表（依層級欄前綴層級）、推導鏈 8 步、說明文字；總覽排除 Block 5 名稱。"""
     from app.common import get_engine
     at = AppTest.from_string(HEAD + B5, default_timeout=180).run()
     assert not at.exception and len(at.radio) == 1 and len(at.selectbox) == 1 and not at.toggle and not at.checkbox   # 層級、任務
@@ -164,7 +164,7 @@ def test_block5_tables_chain_and_overview_exclusion():
     for tier in ("Luna", "Sol", "Astra"):
         at.radio[0].set_value(tier).run()
         assert not at.exception
-        tbl = at.dataframe[0].value                                    # 列＝指標、欄＝任務
+        tbl = at.table[0].value                                        # 列＝指標、欄＝任務（第 10 輪起為 st.table，1280 px 無橫向捲動）
         assert list(tbl.columns) == tasks and len(tbl) == 12
         tier_rows = [i for i in tbl.index if str(i).startswith(f"{tier}｜")]
         assert len(tier_rows) == 6 and all(any(k in i for k in ("成功率", "每成功任務成本", "每成功任務營收", "R＝")) for i in tier_rows)
@@ -172,8 +172,8 @@ def test_block5_tables_chain_and_overview_exclusion():
         assert any("VR200" in i for i in tier_rows) and any("GB300" in i for i in tier_rows)
         for t in tasks:
             at.selectbox[0].set_value(t).run()
-            chain = at.dataframe[1].value
-            assert not at.exception and chain["層級"].eq(tier).all() and set(chain["步驟"].str[0]) == set("1234567")
+            chain = at.dataframe[0].value
+            assert not at.exception and chain["層級"].eq(tier).all() and set(chain["步驟"].str[0]) == set("12345678")
     texts = " ".join(str(e.value) for e in list(at.info) + list(at.caption) + list(at.markdown))
     assert "基準 w＝0" in texts and "L4" in texts and "選定檔案為情境" in texts
     ov = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()
@@ -188,7 +188,8 @@ def test_block5_values_equal_interface():
     at.radio[0].set_value("Sol").run()
     eng = get_engine()
     s = series(eng, "IF_CostSuccVR_Sol")
-    row = at.dataframe[0].value.loc[[i for i in at.dataframe[0].value.index if i.startswith("Sol｜") and "VR200" in i][0]]
+    tbl = at.table[0].value
+    row = tbl.loc[[i for i in tbl.index if i.startswith("Sol｜") and "VR200" in i][0]]
     assert list(row) == [fmt_unit(v, s["unit"]) for v in s["values"]]
 
 

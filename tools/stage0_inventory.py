@@ -3,6 +3,7 @@
 
 用法
   盤點：  python3 tools/stage0_inventory.py inventory model/<現行>.xlsx --out docs/reports/YYYYMMDD_stage0_inventory.xlsx
+  Gate 1：python3 tools/stage0_inventory.py gate1 model/<現行>.xlsx --prev model/archive/<前版>.xlsx --out docs/reports/YYYYMMDD_gate1.md
   影響：  python3 tools/stage0_inventory.py impact model/<現行>.xlsx 'Sheet!C5' ['Sheet!D5' ...]
           （Stage 1 Gate 1 重用：改一筆輸入，列出受影響的 IF_ 名稱、主要輸出與工作表）
 
@@ -932,6 +933,210 @@ def impact(xlsx: Path, targets):
     return sm
 
 
+# ───────────────────────── 7. Gate 1 驗收（第 11 輪；唯讀） ─────────────────────────
+
+GOVERNANCE_SHEETS = {"Gov_Map", "Decisions", "SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "L1", "Checks", "Sources",
+                     "DB_Evidence", "README"}
+UNIT_CONSTS = {0, 1, 2, 3, 4, 8, 10, 12, 24, 60, 100, 168, 365, 1000, 3600, 8760,
+               1e3, 1e6, 1e9, 1e12, 1e15, 1e18}               # 單位換算常數（指令第 3.2 節；0 為本工具加入的空值）
+POSITION_FUNCS = {"INDEX", "CHOOSE", "MATCH"}                   # 位置索引參數不計（MATCH 的比對型態 0／1／-1）
+SRC_PERTURB = ("SRC_HW", "C42", 1.1)                            # 驗收測試：SRC_HW_038 ×1.1
+
+
+def _cmp_sheet(a, b, sheet, rel=REL):
+    """兩份已重算活頁簿的同名工作表逐格比對；回傳 (格數, 差異清單[(coord, x, y, 相對差)])。"""
+    wa, wb_ = a[sheet], b[sheet]
+    coords = {c.coordinate for r in wa.iter_rows() for c in r if c.value is not None} | \
+             {c.coordinate for r in wb_.iter_rows() for c in r if c.value is not None}
+    diffs = []
+    for co in coords:
+        x, y = wa[co].value, wb_[co].value
+        if x == y:
+            continue
+        if is_num(x) and is_num(y):
+            d = abs(x - y) / max(abs(x), abs(y), 1e-300)
+            if d <= rel:
+                continue
+            diffs.append((co, x, y, d))
+        else:
+            diffs.append((co, x, y, None))
+    return len(coords), diffs
+
+
+def scan_constants(wb):
+    """G0-5：模型頁公式內的數值常數（排除單位換算常數與 INDEX／CHOOSE／MATCH 的位置參數）。"""
+    rows = []
+    for ws in wb:
+        if ws.title in GOVERNANCE_SHEETS:
+            continue
+        for row in ws.iter_rows():
+            for c in row:
+                if not is_formula(c.value):
+                    continue
+                text = c.value if isinstance(c.value, str) else c.value.text
+                stack, argi = [], []
+                for tk in Tokenizer(text).items:
+                    if tk.type == "FUNC" and tk.subtype == "OPEN":
+                        stack.append(tk.value[:-1].upper()); argi.append(0)
+                    elif tk.type == "FUNC" and tk.subtype == "CLOSE":
+                        stack.pop(); argi.pop()
+                    elif tk.type == "SEP" and tk.subtype == "ARG" and argi:
+                        argi[-1] += 1
+                    elif tk.type == "OPERAND" and tk.subtype == "NUMBER":
+                        v = float(tk.value)
+                        if v in UNIT_CONSTS or v >= 1e90:        # 1e90 以上＝MIN() 的「無窮大」哨兵值（Harness 前緣 9E+99；Price_Frontier 的 1E9 已在單位表），非數據
+                            continue
+                        if stack and stack[-1] in POSITION_FUNCS and (stack[-1] == "CHOOSE" and argi[-1] == 0 or stack[-1] != "CHOOSE" and argi[-1] >= 1):
+                            continue
+                        rows.append((ws.title, c.coordinate, text, tk.value))
+    return rows
+
+
+def gate1(xlsx: Path, prev: Path, out: Path, workdir: Path, log=print):
+    t0 = time.perf_counter()
+    res = {}
+    wd = workdir; wd.mkdir(parents=True, exist_ok=True)
+    wb = openpyxl.load_workbook(xlsx)
+    graph = Graph(wb)
+    # —— LibreOffice 重算：現行、前版、兩個擾動檔
+    def stage(name, src_wb_edit=None):
+        f = wd / f"{name}.xlsx"
+        w = openpyxl.load_workbook(xlsx)
+        if src_wb_edit:
+            src_wb_edit(w)
+        w.save(f)
+        o = lo_recalc(f, wd / "lo")
+        return openpyxl.load_workbook(o, data_only=True)
+    base = stage("base")
+    prevf = wd / "prev.xlsx"; shutil.copy(prev, prevf)
+    old = openpyxl.load_workbook(lo_recalc(prevf, wd / "lo_prev"), data_only=True)
+    def e_hw(w):
+        s, c, k = SRC_PERTURB; w[s][c].value = w[s][c].value * k
+    hw = stage("hw038", e_hw)
+    gw2 = stage("gw2", lambda w: w["Inputs"].__setitem__("E5", 2))
+    log(f"重算完成 {time.perf_counter() - t0:.0f}s")
+
+    # —— 3.1 對 v5.10：Interface 與全部模型頁
+    n_if, d_if = _cmp_sheet(old, base, "Interface")
+    model_diff = {}
+    for s in old.sheetnames:
+        if s in GOVERNANCE_SHEETS or s not in base.sheetnames:
+            continue
+        n, d = _cmp_sheet(old, base, s)
+        model_diff[s] = (n, len(d), d[:5])
+    res["3.1"] = {"interface_cells": n_if, "interface_diffs": len(d_if), "interface_diff_sample": d_if[:5], "model_pages": model_diff}
+
+    # —— 3.2 原始數據寫死
+    gm = wb["Gov_Map"]; hard, linked, cat = [], 0, collections.Counter()
+    for r in range(5, gm.max_row + 1):
+        if gm.cell(r, 1).value is None:
+            continue
+        cat[gm.cell(r, 6).value] += 1
+        if gm.cell(r, 6).value != "原始數據":
+            continue
+        sheet, ref = gm.cell(r, 3).value, str(gm.cell(r, 4).value)
+        for s_, c_ in _cells_of(sheet, ref):
+            v = wb[s_][c_].value
+            txt = v if isinstance(v, str) else getattr(v, "text", "")
+            if is_formula(v) and "SRC_" in txt:
+                linked += 1
+            else:
+                hard.append((gm.cell(r, 1).value, s_, c_, v))
+    consts = scan_constants(wb)
+    res["3.2"] = {"gov_categories": dict(cat), "raw_linked": linked, "raw_hardcoded": hard, "constants": consts}
+
+    # —— 3.3 Evidence
+    ev_ids = {str(c.value) for c in wb["DB_Evidence"]["A"][4:] if c.value}
+    missing, n_active = [], 0
+    for s in ("SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf"):
+        ws = wb[s]
+        for r in range(5, ws.max_row + 1):
+            if ws.cell(r, 1).value is None or ws.cell(r, 15).value != "Active":
+                continue
+            n_active += 1
+            ids = E_RE.findall(str(ws.cell(r, 17).value))
+            if not ids or any(i not in ev_ids for i in ids):
+                missing.append((ws.cell(r, 1).value, ws.cell(r, 17).value))
+    chk = base["Checks"]
+    e8 = next(chk.cell(r, 4).value for r in range(1, chk.max_row + 1) if chk.cell(r, 1).value == "E8")
+    res["3.3"] = {"active": n_active, "evidence_ids": len(ev_ids), "missing_or_unknown": missing, "E8": e8}
+
+    # —— 3.4 Checks
+    res["3.4"] = {k: base["Checks"][wb.defined_names[k].attr_text.split("!")[1].replace("$", "")].value
+                  for k in ("GOV_Errors", "GOV_Warnings", "GOV_Info")}
+
+    # —— 3.5 驗收測試
+    s_, c_, k_ = SRC_PERTURB
+    reach = graph.reach({(s_, c_)})
+    outs = output_cells(graph)
+    static = summarize_reach(graph, reach, {(s_, c_)}, outs)
+    n_if2, d_if2 = _cmp_sheet(base, hw, "Interface")
+    obs_names = collections.Counter()
+    for n in if_names(graph):
+        cells = {f"{c}" for _, c in graph.names[n]}
+        obs_names[n] = sum(1 for co, *_ in d_if2 if co in cells)
+    obs_names = {n: v for n, v in obs_names.items() if v}
+    other, observed_not_static = {}, []
+    for s in base.sheetnames:
+        n, d = _cmp_sheet(base, hw, s)
+        if d:
+            other[s] = len(d)
+        observed_not_static += [(s, co) for co, *_ in d if (s, co) not in reach and (s, co) != (s_, c_)]
+    cols = sorted({re.match(r"[A-Z]+", co).group(0) for co, *_ in d_if2})
+    res["3.5"] = {"static_if": static["if_names"], "static_cells": static["formula_cells"], "obs_if_cells": len(d_if2),
+                  "obs_names": obs_names, "obs_cols": cols, "other": other, "observed_not_static": observed_not_static,
+                  "obs_subset_static": not observed_not_static and set(obs_names) <= set(static["if_names"])}
+
+    # —— 3.6 F14：E5＝2
+    names_dev, worst = [], (0.0, None)
+    for n in if_names(graph):
+        for s2, co in graph.names[n]:
+            x, y = base[s2][co].value, gw2[s2][co].value
+            if is_num(x) and is_num(y):
+                d = abs(x - y) / max(abs(x), abs(y), 1e-300)
+                if d > worst[0]:
+                    worst = (d, f"{n}（{s2}!{co}）")
+            elif x != y:
+                names_dev.append((n, co, x, y))
+    res["3.6"] = {"max_rel": worst[0], "where": worst[1], "non_numeric_changes": names_dev}
+    res["seconds"] = time.perf_counter() - t0
+    write_gate1_md(res, out, xlsx, prev)
+    return res
+
+
+def write_gate1_md(res, out, xlsx, prev):
+    L = [f"# Gate 1 驗收輸出（`tools/stage0_inventory.py gate1`）", "",
+         f"- 現行：`{xlsx.name}`；前版：`{prev.name}`；執行 {res['seconds']:.0f} 秒（含 4 次 LibreOffice 重算）。",
+         "- 本檔只列事實；通過與否的判定與意見見同輪 `*_v5.11_sync.md`。", ""]
+    r = res["3.1"]
+    L += ["## 3.1 v5.11 對 v5.10（LibreOffice 重算值，相對誤差 1e-9）", "",
+          f"- Interface：{r['interface_cells']} 格，差異 {r['interface_diffs']} 格。", "",
+          "| 模型頁 | 格數 | 差異格 |", "|---|---|---|"]
+    L += [f"| {s} | {n} | {d} |" for s, (n, d, _) in r["model_pages"].items()]
+    r = res["3.2"]
+    L += ["", "## 3.2 原始數據寫死", "", f"- Gov_Map 類別分布：{r['gov_categories']}",
+          f"- 類別＝原始數據：已連結 SRC {r['raw_linked']} 格；寫死 {len(r['raw_hardcoded'])} 格 {r['raw_hardcoded'][:10]}", "",
+          f"### 公式內數值常數（G0-5；排除單位換算與位置索引；{len(r['constants'])} 格）", "",
+          "| 工作表 | 格 | 常數 | 公式 |", "|---|---|---|---|"]
+    L += [f"| {s} | {c} | {v} | `{f[:120].replace('|', '¦')}` |" for s, c, f, v in r["constants"]]
+    r = res["3.3"]
+    L += ["", "## 3.3 Evidence", "", f"- Active SRC {r['active']} 筆；DB_Evidence 共 {r['evidence_ids']} 個 ID；缺或不存在 {len(r['missing_or_unknown'])}：{r['missing_or_unknown'][:10]}；Checks E8＝{r['E8']}"]
+    r = res["3.4"]
+    L += ["", "## 3.4 Checks（LibreOffice）", "", f"- {r}"]
+    r = res["3.5"]
+    L += ["", "## 3.5 SRC_HW_038 ×1.1", "",
+          f"- 靜態依賴：可達公式格 {r['static_cells']}；IF_ 名稱 {len(r['static_if'])} 個。",
+          f"- 觀測變動：Interface {r['obs_if_cells']} 格；IF_ 名稱 {len(r['obs_names'])} 個；欄 {r['obs_cols']}。",
+          f"- 其他頁變動格數：{r['other']}",
+          f"- 觀測 ⊆ 靜態：{r['obs_subset_static']}（觀測但不在靜態可達：{r['observed_not_static'][:10]}）", "",
+          "觀測變動的 IF_ 名稱：" + "、".join(sorted(r["obs_names"])), "",
+          "僅靜態依賴、數值未變的 IF_ 名稱：" + ("、".join(sorted(set(r["static_if"]) - set(r["obs_names"]))) or "—")]
+    r = res["3.6"]
+    L += ["", "## 3.6 Inputs!E5＝2", "", f"- 所有 IF_ 數值格最大相對差：{r['max_rel']:.3e}，位於 {r['where']}",
+          f"- 非數值格的變動：{r['non_numeric_changes'][:10]}"]
+    out.write_text("\n".join(L) + "\n", encoding="utf-8")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -945,7 +1150,15 @@ def main():
     b = sub.add_parser("impact")
     b.add_argument("xlsx", type=Path)
     b.add_argument("cells", nargs="+")
+    g = sub.add_parser("gate1")
+    g.add_argument("xlsx", type=Path)
+    g.add_argument("--prev", type=Path, required=True, help="前一版（model/archive/…）")
+    g.add_argument("--out", type=Path, required=True)
+    g.add_argument("--workdir", type=Path, default=Path(tempfile.gettempdir()) / "gate1")
     args = ap.parse_args()
+    if args.cmd == "gate1":
+        gate1(args.xlsx, args.prev, args.out, args.workdir)
+        return
     if args.cmd == "impact":
         impact(args.xlsx, args.cells)
         return

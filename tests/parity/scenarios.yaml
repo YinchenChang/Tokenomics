@@ -82,3 +82,10 @@ scenarios:
   - id: floor_80
     description: B5_PFloor＝0.8；Coding agent 無合格組合（IF_FrontSuccVR／Name／P 為「無合格」），Checks 無合格任務數＝1
     inputs: {"B5_PFloor": 0.8}
+  # ── v5.11：治理 Stage 1 情境（Gate 1 第 3.5、3.6 節） ──
+  - id: gw_2
+    description: IT 電力規模 CTL_GW＝2（Inputs!E5）；F14 後每 GW 名稱只剩 FLOOR 取整殘差
+    inputs: {"CTL_GW": 2}
+  - id: src_hw038_x1_1
+    description: SRC_HW_038（VR200 FP8 訓練峰值，全架）1,260→1,386 PF（×1.1）；Gate 1 驗收測試，影響限 VR200 欄
+    inputs: {"SRC_HW_038": 1386}

@@ -1,6 +1,6 @@
 """Excel（LibreOffice 重算）與 engine 的一致性測試（CLAUDE.md 第 3 節）。
 
-比對範圍：全部公式格；具名範圍名稱與 attr_text；13 個情境（7 舊＋4 個 Block 4＋2 個 Block 5）各以獨立引擎實例重算。
+比對範圍：全部公式格；具名範圍名稱與 attr_text；17 個情境（含 v5.11 兩個治理情境）各以獨立引擎實例重算。
 """
 import time
 from pathlib import Path

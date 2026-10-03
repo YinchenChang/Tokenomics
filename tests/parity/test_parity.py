@@ -2,7 +2,6 @@
 
 比對範圍：全部公式格；具名範圍名稱與 attr_text；17 個情境（含 v5.11 兩個治理情境）各以獨立引擎實例重算。
 """
-import copy
 import time
 from pathlib import Path
 
@@ -33,20 +32,15 @@ def base_engine(model):
     return eng, eng.evaluate_all()
 
 
-_TEMPLATE: dict = {}
-
-
 def new_engine(model):
-    """回傳獨立的引擎實例：首次建圖並重算（約 50 秒）存為範本，之後以 deepcopy 複製（約 5 秒）。
-    範本本身不被改動；各複本彼此獨立，不受其他情境影響。比對範圍、容差與情境不變。"""
-    if model not in _TEMPLATE:
-        _TEMPLATE[model] = Engine(model)
-    return copy.deepcopy(_TEMPLATE[model])
+    """回傳全新的引擎實例（每次建圖並重算，約 50 秒）。
+    曾評估以 deepcopy 範本共用建圖結果（第 12 輪第 7 點）：總時長可由約 37 分降至約 10 分，但複本偶發
+    'NoneType' has no attribute 'get_range'，且複本的重算變慢（4.9–6.2 秒），不採用。"""
+    return Engine(model)
 
 
 @pytest.fixture(scope="module")
 def template_engine(model):
-    """相容舊簽名：回傳範本的複本來源（呼叫 new_engine 即可）。"""
     return model
 
 

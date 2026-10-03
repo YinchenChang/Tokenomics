@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261003_Tokenomics_v5.12.xlsx（取代 v5.11；第 12 輪：工程基礎）
+
+- Commit：見本輪 PR 的合併提交（合併後補上雜湊）。報告：`docs/reports/20261003_v5.12_sync.md`。v5.11 的合併提交為 `a9bc106`（第 11 輪 PR #11）。
+- Excel（chat 端產生，CC 未改任何數值或公式）：SHA-256 `d04fac3b…0926`；公式 27,700 → 30,158；具名範圍 604 → 611（新增 `CST_` 4、`IDX_` 3；`SRC_` 仍 220）；工作表 41 → 42（新增 `SRC_Index`；`Sources` 更名 `Sources_Legacy`）。Gov_Map 的 S、T 欄改查 SRC_Index（取代 6,960 個多頁 MATCH）；Checks G 節新增 E13（23 項，其後各列下移 1 列）；`B5_SelRho` 公式大小寫改為 `B5_Selrho`（25 格，與名稱一致）。
+- builder：依 `docs/builder/Tokenomics_builder_v5.md` 14 個區塊逐字覆寫（`block4.py`、`block5.py`、`build.py`、`finish.py`、`gov.py`、`inputs.py`、`outputs.py`、`training.py` 有變動）。以 v5.11 為底稿重建，LibreOffice 重算後與 v5.12 逐格一致（52,520 格不符 0、錯誤 0）；`restore_log`：藍字輸入 1,021 全數對應、Excel 值保留 0、未對應 0。以 v5.12 為底稿：1,030／0／0，公式語意相同（原始文字差異 3,849 格皆為寫法）、具名範圍 611 個逐一相同。
+- 檔案：v5.11 以 `git mv` 移入 `model/archive/`；`model/CURRENT` 改為 v5.12。
+- 效能門檻：全簿強制重算恢復為 < 2 秒（硬性）；移除「暫行至 v5.12」註記（測試與 `CLAUDE.md`）。本機實測全簿 1.39 秒、增量最大 0.53 秒（v5.11 為 3.4–3.7 秒）。
+- 測試：期望值改為 30,158 格、611 個具名範圍、42 張工作表，另加 `CST_`／`IDX_` 名稱數與「CST_／IDX_ 不是下游名稱」檢查。18 個情境各 30,158 格不符 0，最大相對誤差約 5e-15。pycel 載入不再出現「Table Name not found」。
+- 工具與網站：`tools/stage0_inventory.py` 的 `GOVERNANCE_SHEETS` 改 `Sources_Legacy` 並加 `SRC_Index`；網站 Checks G 節測試期望 22 → 23 項。`app/` 沒有寫死 `Sources` 頁名，無需修改；`CST_`、`IDX_` 不是 `IF_` 名稱，網站不顯示為下游名稱。
+- 評估未採用：以 deepcopy 共用已建圖的引擎範本可將測試總時長由約 37 分降至約 10 分，但複本偶發 `'NoneType' object has no attribute 'get_range'`，且複本的重算變慢（4.9–6.2 秒），故不採用，測試維持每個情境重新建圖。
+
 ## 20261002_Tokenomics_v5.11.xlsx（取代 v5.10；第 11 輪：治理 Stage 1 切片一）
 
 - Commit：見本輪 PR 的合併提交（合併後補上雜湊）。報告：`docs/reports/20261002_v5.11_sync.md`；Gate 1 輸出：`docs/reports/20261002_gate1.md`。

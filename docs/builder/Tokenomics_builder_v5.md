@@ -1,4 +1,4 @@
-# Tokenomics v5 建檔程式（v5.11 產生器：Block 2＋Block 3＋Block 4＋Block 5＋治理 Stage 1 切片一；Excel 優先）
+# Tokenomics v5 建檔程式（v5.12 產生器（工程基礎）：Block 2＋Block 3＋Block 4＋Block 5＋治理 Stage 1 切片一＋SRC_Index；Excel 優先）
 
 用途：Block 2、Block 3、Block 4、Block 5 的公式頁由程式產生，確保公式一致、可重建。**v5.7 起輸入值由 Excel 擁有**：要改輸入，直接改 Excel（藍字格）；builder 重建時會讀回所有藍字輸入。程式內的數值只是「新增輸入列時的預設值」。
 
@@ -24,6 +24,8 @@
 - v5.9（2026-10-01，以 v5.8 為底稿）：新增 `block5.py`（Har_In、Harness、Sens_Har；Interface E 節、Checks Block 5、Sources S58–S61、DB_Evidence E016–E020）；`outputs.workload` 改為 harness 參數組（新增列 14 歷史保留比與有效參數 B 節，列號下移，回傳列號供 Theory_Rev C 節使用）；`block4.py` 補 SLO 不可達保護（Fleet_1GW、Amortize、Theory_Rev、Checks）、K6 (c)／(d) 與 IF_AmortDefault_*／IF_AmortRev_*／IF_FullCostDefault_*、機隊層級貢獻列 IF_RevGWFleet_*／IF_RevGWFleetFront_*、Cap_In F 節中國廠商旗標欄（B4_MktChina）、B4_Chi 改名 B4_CacheHit。公式 20,686 格、LibreOffice 重算零錯誤；具名範圍 294 個（IF_ 157，其中下游 154；B4_ 39；B5_ 23）。v5.8 的 228 個具名範圍中 227 個（B4_Chi 已改名）在 v5.9 逐格同值（2,285 格），唯一差異為 Tech_Registry T12 與 H_HAR 的說明文字；Block 1–3 各頁與 Block 4 的 Capability、Price_Frontier、Cache_Store、Sens_Rev 逐格一致；Workload 移位後逐格同值。藍字輸入 990 格全數對應；新增輸入 161 格。情境測試（LibreOffice）：生產折減 0.7、Tech_Registry O11:O13＝1、T12 開關＝1、T12 開關＝1 且檔案 3，皆零錯誤（v5.8 前兩者分別 145、339 格錯誤）。冪等：以 v5.9 重建 27,190 格不符 0。新函數：AVERAGE。
 - v5.10（2026-10-02，以 v5.9 為底稿）：只改 `block5.py`、`finish.py`（README）、`build.py`（註解）。M1 (b)：Har_In A 節第 8 列新增可靠度下限 p_min（B5_PFloor，基準 50%；占用原空白列，其後列號不變）；Harness H 節原兩組前緣改標為「對照（不設下限）」，其後新增 p ≥ p_min 的前緣（成本、組合、成功率；無合格回傳「無合格」）與 I 節有效 50% 時間範圍；Interface E 節末尾增列 IF_CostAttVR_*、IF_HzEff_*、IF_PFloor、IF_FrontSuccVR、IF_FrontSuccVRName、IF_FrontSuccVRP（既有列不動）；Checks Block 5 前緣列改讀 p ≥ p_min 版（外部參照欄為不設下限的對照），末尾加兩列。公式 20,780 格、LibreOffice 重算零錯誤；具名範圍 305 個（IF_ 167，其中下游 164；B5_ 24）。對 v5.9 逐格比較 27,334 格，差異 157 格全部在上述位置（Har_In 5、Harness 68、Interface 66、Checks 15、README 3），其餘逐格一致。藍字輸入 1,151 格全數對應，新增 1 格。情境：p_min＝0 時前緣與對照列逐格相同（等同 (a)）；p_min＝80% 時 Coding agent 為「無合格」；三種下限的前緣皆以 Python 由成本與 p 列獨立重算，一致。冪等：以 v5.10 重建 27,334 格不符 0。無新函數（OR、AND、COUNTIF 已在既有檔中使用）。
 - v5.11（2026-10-02，以 v5.10 為底稿；Stage 1 切片一）：新增 `gov.py`、`gov_seed.py`、`gov_decisions.py`；改 `build.py`（呼叫 gov、排序保留治理頁、Checks C5／C7／C8 不再寫死）、`perf.py`（每 GW 機架數 ÷ CTL_GW；公式型情境覆寫改連結格式）、`training.py`（每 GW GPU 數 ÷ CTL_GW；同上格式）、`calib.py`（公式格不再用藍字）、`finish.py`（README）。公式 27,700 格、LibreOffice 重算零錯誤；具名範圍 604 個（SRC_ 220、L1_ 75、GOV_ 4，其餘同 v5.10）。對 v5.10 逐格比較 37,265 格（重算值）：模型頁與 Interface 數值全部一致；差異只在 README、Inputs!H5、DC_Cost 標籤 7 格、Sensitivity!A7、Checks（文字、C19 改為數值、新增 G 節）與 DB_Evidence 新增欄列。藍字輸入：以 v5.10 為底稿 1,152 格全數對應；以 v5.11 為底稿 1,021 格全數對應（131 格改為 SRC 連結）。藍字公式格 31→0。Checks G 節 ERROR 0、WARN 164、INFO 69。情境：E5＝2 時 Interface 每 GW 值變動 ≤1.2e-4（FLOOR 取整殘差；v5.10 為 2 倍）；SRC_HW_038 ×1.1 時 Interface 99 格、33 個 IF_ 名稱變動，全部在 VR200 欄。冪等：以 v5.11 重建，全部格公式與字型不符 0、具名範圍 604 個逐一相同。無新函數（SUMPRODUCT、COUNTIF、INDEX、MATCH、ISNUMBER、TEXT、MIN、MAX、ABS 已在既有檔中使用）。
+- v5.12（2026-10-03，以 v5.11 為底稿；工程基礎，即原規劃的 A 包；工程類，chat 端）：改 `gov.py`（新增 SRC_Index 頁與 IDX_SrcID／IDX_SrcStat／IDX_SrcGrade；Gov_Map 新增 AF 欄，每列 1 個 MATCH，S、T 改讀 SRC_Index，末段為 Gov_Map H 欄哨兵，找不到者回傳「不存在」、無錯誤值；SRC 各頁新增 AH 同指標鍵欄，X 欄改為單一陣列比對；Checks G 節新增 E13（SRC 紀錄超出索引範圍）；GOV_MAP_V512A 於未登錄時附加 Gov_Map 5 列 GM436–440）、`inputs.py`（Arch 第 32 列 CST_CtxKV＝128,000）、`training.py`（Tech_Registry J17 CST_MainMin＝2；Sens_Train 第 8 列情境倍數 CST_STMult，O53:R53、Y93:AB93 改為 基準×倍數；SNAP_MOVES 把 v5.11 的 Y93:Z93 藍字 0 轉到第 8 列）、`block4.py`（Sens_Rev B18 CST_Eps＝0.5）、`build.py`（Sources 更名 Sources_Legacy；SNAP_MOVES；工作表順序加 SRC_Index）、`finish.py`、`block5.py`（Sources_Legacy；README）、`outputs.py`、`block5.py`（公式內 B5_SelRho 改為與具名範圍一致的 B5_Selrho：v5.9 起的大小寫不一致，Excel／LibreOffice 不分大小寫故數值不受影響，pycel 分大小寫）。公式 30,158 格、LibreOffice 重算零錯誤；具名範圍 611 個（新增 CST_ 4、IDX_ 3）。對 v5.11 逐格比較 47,669 格：模型頁、Interface、L1、Gov_Map S／T、SRC X 數值全部一致；差異只在 README 文字、Sens_Rev!G17 說明、Sources_Legacy!A1、Checks G 節（E13 插入，其後列下移 1 列；INFO 69→70，因 I6 結構選擇加 Arch C32）與新增格。藍字輸入：以 v5.11 為底稿 1,021 格全數對應；以 v5.12 為底稿 1,030 格全數對應。冪等：以 v5.12 重建 52,982 格公式與字型不符 0、具名範圍 611 個相同。全簿強制重算（repo engine／pycel，本機）：v5.11 3.37–3.61 秒 → v5.12 1.21–1.30 秒。repo tests/parity 127 項全過（期望值依新版調整、全簿門檻 2 秒）。無新函數。
+
 
 ## common.py
 
@@ -74,6 +76,7 @@ def title(ws, t1, t2):
 ```python
 # Input sheets: Spec_Rack (Block 2 rows), Arch, Serving, Energy inputs
 from common import *
+from openpyxl.workbook.defined_name import DefinedName
 
 GENS = ["C", "D", "E", "F", "G"]          # Hopper, GB200, GB300, VR200, RU in Spec_Rack
 
@@ -187,7 +190,7 @@ def arch(wb):
       ("ne", "非專家參數（注意力、路由、embedding）", "B", "={c}{A}-{c}{L}*({c}{k}+{c}{s})*{c}{pe}", "#,##0.0"),
       ("ex", "專家參數", "B", "={c}{T}-{c}{ne}", "#,##0.0"),
       ("attc", "注意力 FLOPs／每個被注意的 token", "FLOP", "=4*{c}{hq}*{c}{hd}*{c}{L}", "#,##0"),
-      ("kv128", "128K 上下文每序列 KV", "GB", "={c}{kv}*128000/1E9", "#,##0.00"),
+      ("kv128", "128K 上下文每序列 KV", "GB", "={c}{kv}*CST_CtxKV/1E9", "#,##0.00"),
     ]
     for key, lab, unit, f, fmt in der:
         R[key] = r
@@ -197,6 +200,13 @@ def arch(wb):
             put(ws, f"{c}{r}", f.format(**m), fmt=fmt, fill=FILL_KEY if key == "kv" else None)
         r += 1
     put(ws, f"G{R['pe']}", "由公開總參數與啟用參數反推，確保總數吻合（v4 方法）", F_NOTE)
+    # v5.12 (A): the context length of the display row above moved out of the formula into a named input (value unchanged)
+    R["ctx"] = r
+    put(ws, f"A{r}", "上下文長度（上一列顯示用）"); put(ws, f"B{r}", "tok")
+    put(ws, f"C{r}", 128000, fmt="#,##0")
+    put(ws, f"F{r}", "結構選擇", F_NOTE)
+    put(ws, f"G{r}", "顯示列的口徑：128,000（非 131,072）；三層級共用本格（CST_CtxKV）。不影響任何產出", F_NOTE)
+    wb.defined_names["CST_CtxKV"] = DefinedName("CST_CtxKV", attr_text=f"Arch!$C${r}")
     ws.freeze_panes = "C5"
     return R
 
@@ -837,7 +847,7 @@ def workload(wb, U):
       (17, "harness 混合權重 w（Tech_Registry T12 開關 × 採用比例）", "x", "=B5_W", "0.00"),
       (18, "有效輪數 T", "輪", "={c}5*(1+B5_W*(INDEX(B5_SelT,1,{k})-1))", "#,##0.0"),
       (19, "有效每輪思考 h", "tok", "={c}8*(1+B5_W*(INDEX(B5_SelH,1,{k})-1))", "#,##0"),
-      (20, "有效思考保留 ρ", "%", "={c}10+B5_W*(INDEX(B5_SelRho,1,{k})-{c}10)", "0%"),
+      (20, "有效思考保留 ρ", "%", "={c}10+B5_W*(INDEX(B5_Selrho,1,{k})-{c}10)", "0%"),
       (21, "有效快取命中 χ", "%", "=MIN(1,MAX(0,{c}11+B5_W*INDEX(B5_SelDChi,1,{k})))", "0%"),
       (22, "有效子代理數 m", "個", "={c}12+B5_W*INDEX(B5_SelDM,1,{k})", "0.0"),
       (23, "有效歷史保留比 c", "x", "={c}14+B5_W*(INDEX(B5_SelC,1,{k})-{c}14)", "0.00"),
@@ -918,6 +928,7 @@ def nonnv(wb):
 from common import *
 from perf import write_perf
 from outputs import COLS15
+from openpyxl.workbook.defined_name import DefinedName
 
 # ---------------------------------------------------------------- Tech_Registry
 HOOKS = [  # code, meaning, where it acts
@@ -982,7 +993,7 @@ def tech_registry(wb):
         for c, v in zip("ABCD", (eid, tech, hook, acts)): put(ws, f"{c}{r}", v, wrap=(c == "B"))
         for c, v in zip("EFG", (lo, ba, hi)): put(ws, f"{c}{r}", v, fmt="0.00")
         put(ws, f"H{r}", sel, fmt="0"); put(ws, f"I{r}", st, F_IN); put(ws, f"J{r}", labs, fmt="0")
-        put(ws, f"K{r}", f'=IF(J{r}>=2,"主流","非主流")')
+        put(ws, f"K{r}", f'=IF(J{r}>=CST_MainMin,"主流","非主流")')
         put(ws, f"L{r}", ovr if ovr else None, F_IN)
         put(ws, f"M{r}", inb, F_IN); put(ws, f"N{r}", adopt, fmt="0%"); put(ws, f"O{r}", sw, fmt="0")
         put(ws, f"P{r}", f'=IF(M{r}="是",1,1+O{r}*N{r}*(CHOOSE(H{r},E{r},F{r},G{r})-1))', fmt="0.00", fill=FILL_KEY)
@@ -991,6 +1002,11 @@ def tech_registry(wb):
                          f'IF(AND(IF(L{r}="",K{r},L{r})="非主流",M{r}="是",I{r}<>"早期採用"),"非主流卻在基準","一致"))', wrap=True)
         ws.row_dimensions[r].height = 42
     r1 = r0 + len(ENTRIES) - 1
+    # v5.12 (A): J14 threshold ("at least two labs") moved out of the K-column formula into a named input (value unchanged)
+    put(ws, f"A{r1+1}", "門檻"); put(ws, f"B{r1+1}", "主流判定門檻：公開採用實驗室數 ≥ 本格（J14；K 欄共用）", wrap=True)
+    put(ws, f"J{r1+1}", 2, fmt="0"); put(ws, f"Q{r1+1}", "Decision", F_NOTE)
+    put(ws, f"R{r1+1}", "J14：至少兩家實驗室公開採用即為主流（CST_MainMin）", F_NOTE, wrap=True)
+    wb.defined_names["CST_MainMin"] = DefinedName("CST_MainMin", attr_text=f"Tech_Registry!$J${r1+1}")
     r = r1 + 2
     section(ws, r, "掛鉤彙總（同一掛鉤多條目時取乘積；Perf、Perf_Batch、Training 連結本表 E 欄）", 20); r += 1
     for c, v in zip("ABCDE", ["代碼", "意義", "", "作用位置", "倍數"]): put(ws, f"{c}{r}", v, F_BOLD)
@@ -1345,26 +1361,39 @@ SCEN_T = [  # label, overrides applied to both columns (Sol, Astra); special "fp
  ("NVFP4 訓練峰值（J7 替代）", {"pk8": "=INDEX(Spec_Rack!$C${tfp4}:$G${tfp4},{X}$6)"}),
  ("預訓練 token × 0.5", {"htok": 0.5}),
  ("預訓練 token × 1.67", {"htok": 1.67}),
- ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*0.3"}),
- ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*3"}),
+ ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 0.3}),
+ ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 3}),
  ("rollout 效率 0.6（v5.5 混合現況；rollout token 不變）", {"reff": 0.6}),
  ("rollout 效率 0.95（rollout token 不變）", {"reff": 0.95}),
  ("rollout 精度 FP8（J12 替代）", "fp8"),
- ("合成資料 token × 0", {"Dsy": 0}),
- ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*3"}),
+ ("合成資料 token × 0", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 0}),
+ ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 3}),
  ("研發倍數 4.4（MiniMax）", {"rdm": 4.4}),
  ("研發倍數 10.4（OpenAI）", {"rdm": 10.4}),
  ("goodput 0.80", {"gp": 0.8}),
 ]
+
+MULT_ROW = 8
+MULT_LABEL = "情境倍數（×；黃底藍字＝作用中，乘在該情境改動的量上）"
+# v5.11 had the "合成資料 token × 0" scenario written as a blue 0 on the synthetic-token row; v5.12 moves it to MULT_ROW.
+# build.py remaps that snapshot key so an Excel-edited value is carried over (restore stays unmatched 0).
+SNAP_MOVES = [(("Sens_Train", ("合成資料 token", 0), c), ("Sens_Train", (MULT_LABEL, 0), c)) for c in (25, 26)]   # Y, Z
 
 def sens_train(wb, SP, AR, TI, PB, TR):
     ws = wb.create_sheet("Sens_Train")
     title(ws, "Sens_Train — 訓練與研發計畫的單變數敏感度（VR200；每組左 Sol、右 Astra；先看敏感度，再看基準）",
           "黃底藍字＝該情境改動的輸入。L 節為對基準欄（C、D）的比值")
     cols, ov, gt = [], {}, []
+    put(ws, f"A{MULT_ROW}", MULT_LABEL, F_BOLD); put(ws, f"B{MULT_ROW}", "x")
     for i, (lab, o) in enumerate(SCEN_T):
         xs, xa = L(3 + 2 * i), L(4 + 2 * i)
         cols += [xs, xa]; gt += [(4, 2), (4, 3)]
+        # v5.12 (A): scenario multipliers live in one input row (MULT_ROW); "—" where the scenario is not a multiplier
+        m = o.get("_mult") if isinstance(o, dict) else None
+        for X in (xs, xa):
+            if m is None: put(ws, f"{X}{MULT_ROW}", "—", F_NOTE)
+            else: put(ws, f"{X}{MULT_ROW}", m, fmt="0.00", fill=PatternFill("solid", fgColor="FFFFFF00"))
+        if isinstance(o, dict): o = {k: v for k, v in o.items() if not k.startswith("_")}
         if o == "fp8":
             ov[xs] = {k: f"=Perf_Batch!R{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
             ov[xa] = {k: f"=Perf_Batch!S{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
@@ -1375,7 +1404,9 @@ def sens_train(wb, SP, AR, TI, PB, TR):
         put(ws, f"{xs}3", lab, F_BOLD, wrap=True); ws.merge_cells(f"{xs}3:{xa}3")
     ws.row_dimensions[3].height = 44; put(ws, "A3", "情境", F_BOLD)
     hdr15(ws, cols, gt)
+    wb.defined_names["CST_STMult"] = DefinedName("CST_STMult", attr_text=f"Sens_Train!$C${MULT_ROW}:${cols[-1]}${MULT_ROW}")
     R, r = write_train(ws, cols, SP, AR, TI, PB, TR, overrides=ov)
+    R["mult"] = MULT_ROW
     section(ws, r, "L. 對基準的比值（同層級）", 2 + len(cols)); r += 1
     for key, lab in [("Hfin", "最終訓練 GPU 小時 ÷ 基準"), ("Hprog", "研發計畫 GPU 小時 ÷ 基準"), ("psH", "後訓練占比（GPU 小時）÷ 基準")]:
         R["r_" + key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", "x")
@@ -1457,7 +1488,7 @@ def checks(wb, CAL, PR, SR, U):
         put(ws, f"C{r}", c); put(ws, f"D{r}", d); put(ws, f"E{r}", e, F_NOTE, wrap=True); put(ws, f"F{r}", f, F_NOTE)
 
 def sources(wb):
-    ws = wb["Sources"]
+    ws = wb["Sources_Legacy"]
     data = [
       ("S20", "InferenceX GB300 對 GB200（V4-Pro）", "vLLM、無 MTP、2026-05-22：27 tok/s 時 6,182 對 2,189 tok/s/GPU；GB300 峰值 11,056@13.1；GB300 多 50% HBM 使配方更寬", "Interested-party（SemiAnalysis：平台受晶片商贊助、另售 TCO 模型）；單一來源須佐證", "2026-05", "inferencex.semianalysis.com/blog/gb300-nvl72-vs-gb200-nvl72-dsv4-pro-vllm-fp4", "已核對原文（交接錨點即此，屬舊軟體）"),
       ("S21", "SGLang／NVIDIA：V4 on GB300", "SGLang＋MTP 2026-06：約 50 tok/s/user 時約 11,200 tok/s/GPU；草稿接受率 0.57→0.70；配方 10p1d dep4／dep32", "Interested-party（SGLang、NVIDIA 作者）", "2026-06-23", "pytorch.org/blog/serving-deepseek-v4-on-gb300-with-sglang-…", "已核對原文"),
@@ -1498,11 +1529,11 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261002_Tokenomics_v5.11（Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", "20261003_Tokenomics_v5.12（工程基礎；切片二於 v5.13、Block 6 於 v5.14。v5.12：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
-      ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP）、SRC 的 X–Z 檢查欄、Gov_Map 的 Q–AE 欄、L1、Checks G 節，以及 SRC_／L1_／GOV_ 具名範圍。"),
-      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、Sources（v5.12 遷移完成後更名 Sources_Legacy）、DB_Evidence。"),
+      ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
+      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Index（builder 擁有的查找索引）、Sources_Legacy（v5.12 起凍結）、DB_Evidence。"),
       ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
       ("Block 3 決策", "J7 訓練精度 FP8（NVFP4 預訓練在 Tech_Registry）；J8 Astra 預訓練與 Arch 一致，前沿錨點列 Checks；J9 RL 由下而上，基準校到 RL÷預訓練 GPU 小時 Luna／Sol 0.3、Astra 1.0；J10 研發倍數 8，家族合計、依最終訓練比例分攤；J11 用途 × 型態只列單一計畫；J12 rollout NVFP4（FP8 為情境）；J13 下游預設 VR200、GB300 並列；J14 主流＝至少兩家實驗室公開採用，可覆寫。"),
       ("Excel 優先（v5.7）", "藍字＝輸入，由本活頁簿擁有：要改輸入，直接改 Excel。builder 重建 Block 2、3 時會先讀取所有藍字輸入，重建後依『工作表＋欄 A 標籤＋欄位』寫回，程式內的預設值只用於新增的輸入列。公式頁不要手改（重建時會被覆寫）。"),
@@ -1514,7 +1545,7 @@ def readme(wb):
       ("顏色", "藍字＝輸入；黑字＝公式；綠字＝跨頁連結；淡黃底＝關鍵輸出；亮黃底＝待 Andy 決定或情境改動。"),
       ("來源標記", "Verified／Interested-party／Analogy／Assumed／Derived。Analogy 與 Assumed 一律給區間。"),
       ("網站同步", "本檔為事實來源；repo 以公式引擎直接計算本檔，parity 測試比對 Interface 全部格（新增 IF_ 具名範圍見 Interface B 節）。"),
-      ("具名範圍", "SRC_＝第 0 層原始值（值、_Lo、_Hi；SRC_Perf 另有 _ISL、_OSL、_Spd、_MTP），下游可直接引用 Active 紀錄（G8）；L1_＝第 1 層常用推算值（_Lo、_Hi 為區間），下游可引用；GOV_＝治理檢查合計（CI 讀 GOV_Errors）；IF_＝下游模型連結用；IF_Hdr／DRV_／CAL_／TRN_／TR_＝網站顯示用，下游不得連結；B4_／B5_＝Block 4／5 公式內部引用的關鍵量（v5.8 起新公式以具名範圍引用，使公式可讀），下游不得連結；IF_HdrTask 為顯示用表頭。"),
+      ("具名範圍", "SRC_＝第 0 層原始值（值、_Lo、_Hi；SRC_Perf 另有 _ISL、_OSL、_Spd、_MTP），下游可直接引用 Active 紀錄（G8）；L1_＝第 1 層常用推算值（_Lo、_Hi 為區間），下游可引用；GOV_＝治理檢查合計（CI 讀 GOV_Errors）；IF_＝下游模型連結用；IF_Hdr／DRV_／CAL_／TRN_／TR_＝網站顯示用，下游不得連結；B4_／B5_＝Block 4／5 公式內部引用的關鍵量（v5.8 起新公式以具名範圍引用，使公式可讀），下游不得連結；IF_HdrTask 為顯示用表頭；CST_＝原寫在公式內的常數移出後的輸入格（v5.12），IDX_＝SRC_Index 查找欄（v5.12），兩者下游不得連結。"),
       ("Block 4 推導", "理論營收＝每 GW 產出 × 利用率 × 參考請求混合有效單價（OpenAI 牌價 ×（1−折扣）× 能力單價倍數）。單價前緣＝能力指數 ≥ OpenAI 層級模型者之中，參考請求混合單價最低者（含中國廠商）。快取儲存＝KV bytes × 儲存層 $/GB-hr × 保留時間 ÷ 命中次數。攤提：自下而上＝研發計畫成本 ÷ 商業壽命內服務 token（＝回本所需溢價）；由上而下＝機隊訓練占比 X ÷（1−X）× 服務成本。"),
       ("Block 4 決策", "K1 OpenAI 單價為基準；K2 (i) 前緣＝同能力最低價；K3 AA 指數為主、METR 檢查；K4 (c)＋(d) 能力→單價彈性基準 0＋回本溢價反解；K5 壽命 Luna／Sol 12、Astra 9 個月；K6 兩種攤提並列，v5.9 起下游預設 (c)＝由上而下總額 × 自下而上權重、(d) 營收權重並列；K7 機隊以 OpenAI 2025 校準；K8 只計 API 單價；K9 各世代共用 2026-09 單價快照；K10 快取儲存比照公開條款；K11 利用率 60%、折減 1.0 暫用；K12 尖峰離峰並列、前緣用時數加權；K13 中國廠商全納入並標示開放權重；K14 國際站美元價。"),
       ("Block 5 推導", "harness＝作用在標準任務上的參數組（輪數、思考保留 ρ、每輪思考、歷史壓縮、快取命中、子代理、狀態保留時間）加成功率。Workload 有效參數＝標準＋w ×（Har_In 選定檔案−標準），w＝Tech_Registry T12 開關 × 採用比例。成功率 p＝1 ÷（1＋（任務長度 ÷（層級 50% 時間範圍 × harness 倍數））^β）（METR 型）；每成功任務成本＝每次嘗試成本 ÷ p。每 GW 理論營收不受 harness 影響。"),
@@ -2154,7 +2185,7 @@ def sens_rev(wb, K, T, A):
       ("免費占服務 35%", 0.35, "1", "(1-B{r})/(1-B4_Free)", ""),
       ("免費占服務 60%", 0.6, "1", "(1-B{r})/(1-B4_Free)", ""),
       ("前緣單價取代 OpenAI（Sol）", "—", "INDEX(B4_FrontRef,1,2)/INDEX(B4_EffRef,1,2)", "—", "K2 (i)：前緣即 OpenAI 時為 1"),
-      ("ε＝0.5、有效算力 ×7（J8 缺口全數轉為能力）", 7, "EXP(0.5*LN(B{r}))/Price_Frontier!D{capf}", "EXP(0.5*LN(B{r}))/Price_Frontier!D{capf}", "K4 (a) 若採用的量級；不入基準"),
+      ("ε＝0.5、有效算力 ×7（J8 缺口全數轉為能力）", 7, "EXP(CST_Eps*LN(B{r}))/Price_Frontier!D{capf}", "EXP(CST_Eps*LN(B{r}))/Price_Frontier!D{capf}", "K4 (a) 若採用的量級；不入基準；ε 見下一列"),
     ]
     r = 5
     for lab, v, fr, ff, note in rows:
@@ -2167,6 +2198,11 @@ def sens_rev(wb, K, T, A):
         else:
             put(ws, f"F{r}", f"={ff2}", fmt="0.00"); put(ws, f"E{r}", f"={base_fl}*F{r}", fmt="0.00", fill=FILL_KEY)
         put(ws, f"G{r}", note, F_NOTE, wrap=True); r += 1
+    # v5.12 (A): ε of the K4 (a) magnitude scenario moved out of the formulas above into its own input (value unchanged)
+    put(ws, f"A{r}", "ε（上一列量級情境的指數；能力 ∝ 有效算力^ε）"); put(ws, f"B{r}", 0.5, fmt="0.00",
+                                                                 fill=PatternFill("solid", fgColor="FFFFFF00"))
+    put(ws, f"G{r}", "情境值（K4 (a)）；上一列標籤文字的「ε＝0.5」不隨本格更新（CST_Eps）", F_NOTE, wrap=True)
+    wb.defined_names["CST_Eps"] = DefinedName("CST_Eps", attr_text=f"Sens_Rev!$B${r}")
     r += 1
     put(ws, f"A{r}", "攤提（自下而上，Sol）對商業壽命", F_BOLD); r += 1
     for lab, m in [("壽命 6 個月", 6), ("壽命 24 個月", 24)]:
@@ -2287,7 +2323,7 @@ SOURCES_B4 = [
 ]
 
 def sources_b4(wb):
-    ws = wb["Sources"]
+    ws = wb["Sources_Legacy"]
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 1
     for i, row in enumerate(SOURCES_B4):
         for c, v in zip("ABCDEFG", row): put(ws, f"{c}{r+i}", v, wrap=True)
@@ -2512,7 +2548,7 @@ def harness(wb, U, S, WL):
         if sk == "std":
             pT, pH, pRho, pChi, pM, pC = W("T"), W("h"), W("rho"), W("chi"), W("m"), W("c")
         else:
-            pT = W("T") + "*INDEX(B5_SelT,1,{k})"; pH = W("h") + "*INDEX(B5_SelH,1,{k})"; pRho = "INDEX(B5_SelRho,1,{k})"
+            pT = W("T") + "*INDEX(B5_SelT,1,{k})"; pH = W("h") + "*INDEX(B5_SelH,1,{k})"; pRho = "INDEX(B5_Selrho,1,{k})"
             pChi = "MIN(1,MAX(0," + W("chi") + "+INDEX(B5_SelDChi,1,{k})))"; pM = W("m") + "+INDEX(B5_SelDM,1,{k})"; pC = "INDEX(B5_SelC,1,{k})"
         base = r
         rows = [("T", "輪數 T", "輪", "=" + pT, "#,##0.0"), ("h", "每輪思考 h", "tok", "=" + pH, "#,##0"),
@@ -2660,7 +2696,7 @@ def sens_har(wb, U, S, WL, H, R):
     for X, (lab, _, _) in zip(cols, var): put(ws, f"{X}4", lab, F_BOLD, wrap=True)
     ws.row_dimensions[4].height = 42
     W = lambda key: f"Workload!${c0}${WL[key]}"
-    basev = {"T": f"INDEX(B5_SelT,1,{k})", "H": f"INDEX(B5_SelH,1,{k})", "rho": f"INDEX(B5_SelRho,1,{k})", "C": f"INDEX(B5_SelC,1,{k})",
+    basev = {"T": f"INDEX(B5_SelT,1,{k})", "H": f"INDEX(B5_SelH,1,{k})", "rho": f"INDEX(B5_Selrho,1,{k})", "C": f"INDEX(B5_SelC,1,{k})",
              "Hz": f"INDEX(B5_SelHz,1,{k})", "Ret": f"INDEX(B5_SelRet,1,{k})", "beta": "B5_Beta"}
     rows = {}
     r = 5
@@ -2799,7 +2835,7 @@ SOURCES_B5 = [
 ]
 
 def sources_b5(wb):
-    ws = wb["Sources"]
+    ws = wb["Sources_Legacy"]
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 1
     for i, row in enumerate(SOURCES_B5):
         for c, v in zip("ABCDEFG", row): put(ws, f"{c}{r+i}", v, wrap=True)
@@ -14075,7 +14111,8 @@ DECISIONS = [['D1', 'Block 1 口徑', '電力口徑', 'GW 以 IT 關鍵電力為
 #   - SRC_*, Decisions, DB_Evidence, and the judgment columns of Gov_Map are Excel-owned: created from gov_seed /
 #     gov_decisions only when absent, never overwritten afterwards.
 #   - Builder-owned (rewritten on every build): FORMULA_MAP links on model pages, helper formulas in SRC_* (X–Z),
-#     Gov_Map formula / status columns (Q–AE), the L1 sheet, the Checks governance section, SRC_/L1_/GOV_ names.
+#     Gov_Map formula / status columns (Q–AF), the SRC_Index sheet (v5.12), the L1 sheet, the Checks governance section,
+#     SRC_/L1_/GOV_/IDX_ names. v5.12 (A) also appends Gov_Map rows for new input cells (GOV_MAP_V512A) when absent.
 import re
 from openpyxl.styles import PatternFill
 from openpyxl.workbook.defined_name import DefinedName
@@ -14132,17 +14169,23 @@ def src_sheets(wb):
     return made
 
 
+KEY_COL, KEY_SEP = "AH", "¦"       # v5.12 (A): builder-owned key column (指標¦口徑¦適用對象, Active rows only) used by X
+
 def src_refresh(wb):
-    """Helper formulas (X–Z) for every record row, and SRC_ names (value／_Lo／_Hi／Perf attributes)."""
+    """Helper formulas (X–Z, AH) for every record row, and SRC_ names (value／_Lo／_Hi／Perf attributes)."""
     n_names = 0; index = {}
     for sh in SRC_SHEETS:
         ws = wb[sh]
+        put(ws, f"{KEY_COL}4", "同指標鍵（公式；X 欄用，v5.12）", F_BOLD, wrap=True); ws.column_dimensions[KEY_COL].width = 12
         for r in range(5, ws.max_row + 1):
             sid = ws.cell(r, 1).value
             if not (isinstance(sid, str) and sid.startswith("SRC_")): continue
             index[sid] = (sh, r)
             rng = lambda c: f"${c}$5:${c}${SRC_LAST}"
-            put(ws, f"X{r}", f'=IF($O{r}="Active",SUMPRODUCT(({rng("B")}=$B{r})*({rng("G")}=$G{r})*({rng("H")}=$H{r})*({rng("O")}="Active")),0)', fmt="0")
+            # v5.12 (A): same count as v5.11 (B, G, H equal and Active) via one key column (AH) and one comparison array,
+            # instead of four 396-row arrays per record (the SRC X columns were ~60% of full-recalc time after SRC_Index)
+            put(ws, f"{KEY_COL}{r}", f'=IF($O{r}="Active",$B{r}&"{KEY_SEP}"&$G{r}&"{KEY_SEP}"&$H{r},"")')
+            put(ws, f"X{r}", f'=IF($O{r}="Active",SUMPRODUCT(({rng(KEY_COL)}=${KEY_COL}{r})*1),0)', fmt="0")
             put(ws, f"Y{r}", f'=IF(AND($O{r}="Active",OR($Q{r}="{DASH}",$Q{r}="")),1,0)', fmt="0")
             put(ws, f"Z{r}", f'=IF(AND($O{r}="Active",$L{r}="利害關係方",OR($R{r}="{DASH}",$R{r}="")),1,0)', fmt="0")
             _nm(wb, sid, f"{sh}!$C${r}"); n_names += 1
@@ -14247,16 +14290,84 @@ GM_HDR = ["GM_ID", "範圍", "工作表", "格", "列標籤", "類別", "區間�
           "理由", "標記變更（v5.11）", "CC 敏感度分段",
           "模型值", "SRC 值", "SRC 狀態", "SRC 等級", "實際狀態（建置時）",
           "E1 原始寫死", "E2 Analogy 缺可比", "E3 缺區間", "E4 缺理由", "E5 Decision 缺 ID", "E6 決策 ID 不存在", "E9 SRC 非 Active",
-          "E10 區間順序", "W2 3 級×高段", "E12 SRC 不存在"]
+          "E10 區間順序", "W2 3 級×高段", "E12 SRC 不存在", "SRC_Index 列（MATCH；v5.12）"]
 GM_LAST = 700
 
-def _lookup(h, col):
-    parts = []
+# ---------------------------------------------------------------- 5a. SRC_Index (v5.12 A; builder-owned, rebuilt every build)
+# Why: v5.11 Gov_Map S／T ran 16 MATCH per row over 4 SRC sheets × rows 5..400 (≈6,960 MATCH; full recalc 3.4–3.7 s),
+# a cost that grows with Gov_Map rows × SRC sheets. SRC_Index stacks the A (ID), O (status) and K (grade) columns of every
+# SRC sheet into one list, so Gov_Map needs one MATCH per row (column AF), shared by S and T.
+# A sentinel block mirrors Gov_Map!H, so MATCH always finds the ID (an ID absent from every SRC sheet lands in the sentinel
+# block, whose status／grade read "不存在", exactly the v5.11 result) — no #N/A, no new function (no IFERROR).
+IDX_HEAD = 50                       # spare slots per SRC sheet after its last record (Checks E13 flags records beyond them)
+
+def src_index(wb):
+    if "SRC_Index" in wb.sheetnames: del wb["SRC_Index"]
+    ws = wb.create_sheet("SRC_Index")
+    title(ws, "SRC_Index — SRC_* 的 ID、狀態、等級依序堆疊（builder 擁有，每次重建；只供 Gov_Map 查找，不放任何數值）",
+          "Gov_Map AF 欄以 1 個 MATCH 找到 SRC_ID 所在列，S（狀態）、T（等級）欄以 INDEX 讀本頁。各 SRC 頁的範圍＝第 5 列到最後一筆紀錄＋"
+          f"{IDX_HEAD} 列；紀錄超出範圍時 Checks E13 報錯（重建即可）。最後一段為 Gov_Map H 欄的鏡像（哨兵）：找不到的 SRC_ID 落在這段，狀態與等級為「不存在」。")
+    for i, (h, w) in enumerate(zip(["SRC_ID", "工作表", "原列", "狀態", "等級"], [16, 14, 7, 12, 8])):
+        put(ws, f"{L(i+1)}4", h, F_BOLD); ws.column_dimensions[L(i+1)].width = w
+    r = 5; spans = {}
     for sh in SRC_SHEETS:
-        parts.append((f"ISNUMBER(MATCH({h},{sh}!$A$5:$A${SRC_LAST},0))", f"INDEX({sh}!${col}$5:${col}${SRC_LAST},MATCH({h},{sh}!$A$5:$A${SRC_LAST},0))"))
-    f = '"不存在"'
-    for cond, val in reversed(parts): f = f"IF({cond},{val},{f})"
-    return f
+        src = wb[sh]
+        last = max([rr for rr in range(5, min(src.max_row, SRC_LAST) + 1) if src.cell(rr, 1).value not in (None, "")] or [4])
+        end = min(last + IDX_HEAD, SRC_LAST)
+        spans[sh] = (r, end)
+        for rr in range(5, end + 1):
+            put(ws, f"A{r}", f'={sh}!$A{rr}&""'); put(ws, f"B{r}", sh); put(ws, f"C{r}", rr, F_CALC)
+            put(ws, f"D{r}", f"={sh}!$O{rr}"); put(ws, f"E{r}", f"={sh}!$K{rr}")
+            r += 1
+    sent0 = r
+    for gr in range(5, GM_LAST + 1):
+        put(ws, f"A{r}", f'=Gov_Map!$H{gr}&""'); put(ws, f"B{r}", "（哨兵）", F_NOTE); put(ws, f"C{r}", gr, F_CALC)
+        put(ws, f"D{r}", "不存在"); put(ws, f"E{r}", "不存在")
+        r += 1
+    _nm(wb, "IDX_SrcID", f"SRC_Index!$A$5:$A${r-1}")
+    _nm(wb, "IDX_SrcStat", f"SRC_Index!$D$5:$D${r-1}")
+    _nm(wb, "IDX_SrcGrade", f"SRC_Index!$E$5:$E${r-1}")
+    ws.freeze_panes = "A5"
+    return dict(rows=r - 5, src_rows=sent0 - 5, spans={k: v[1] for k, v in spans.items()})
+
+# v5.12 (A): input cells created by moving formula constants out (交接第 8i 節的判定). Each entry: (sheet, column-A label of the
+# row, column span, fields). The cell is located by its label, so the row number is never hard-coded here.
+GOV_MAP_V512A = [
+  ("Arch", "上下文長度（上一列顯示用）", "C", dict(scope="切片一", label="上下文長度（128K 上下文每序列 KV 顯示列）", cls="Assumed", role="單值",
+      rtext="結構選擇（無數值區間）", reason="顯示列口徑 128,000 tok（非 131,072），無任何引用；v5.12 自 Arch C31:E31 公式移出（值不變）", seg="無")),
+  ("Sens_Train", "情境倍數（×；黃底藍字＝作用中，乘在該情境改動的量上）", "O:R", dict(scope="切片二頁（v5.12 A 包）",
+      label="情境倍數：RL rollout token × 0.3／× 3", cls="情境值", role="群組", reason="Sens_Train 情境；v5.12 自 O53:R53 公式移出（值不變）", seg="—")),
+  ("Sens_Train", "情境倍數（×；黃底藍字＝作用中，乘在該情境改動的量上）", "Y:AB", dict(scope="切片二頁（v5.12 A 包）",
+      label="情境倍數：合成資料 token × 0／× 3", cls="情境值", role="群組",
+      reason="Sens_Train 情境；v5.12 自 AA93:AB93 公式與 Y93:Z93 直接寫入的 0 移出（值不變）", seg="—")),
+  ("Sens_Rev", "ε（上一列量級情境的指數；能力 ∝ 有效算力^ε）", "B", dict(scope="切片二頁（v5.12 A 包）", label="ε（K4 (a) 量級情境）",
+      cls="情境值", role="單值", reason="K4 (a) 若採用的量級情境；v5.12 自 D17、F17 公式移出（值不變）", seg="—")),
+  ("Tech_Registry", "門檻", "J", dict(scope="切片二頁（v5.12 A 包）", label="主流判定門檻（公開採用實驗室數）", cls="Decision", role="單值",
+      dec="J14", reason="J14：至少兩家實驗室公開採用即為主流；v5.12 自 K5:K16 公式移出（值不變）", seg="—")),
+]
+
+def _find_row(ws, label):
+    for r in range(1, ws.max_row + 1):
+        if ws.cell(r, 1).value == label: return r
+    raise KeyError(f"{ws.title}: row label not found: {label}")
+
+def gm_append(wb, ws):
+    have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
+    ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
+    nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
+    added = 0
+    for sh, lab, span, g in GOV_MAP_V512A:
+        rr = _find_row(wb[sh], lab)
+        c0, c1 = (span.split(":") + [span])[:2]
+        cell = f"{c0}{rr}" if c0 == c1 else f"{c0}{rr}:{c1}{rr}"
+        if (sh, cell) in have: continue
+        vals = [f"GM{nxt:03d}", g["scope"], sh, cell, g["label"], g["cls"], g["role"], g.get("src") or DASH, g.get("rel") or DASH,
+                g.get("dec") or DASH, None, None, g.get("rtext") or DASH, g["reason"], DASH, g.get("seg") or DASH]
+        for i, v in enumerate(vals):
+            put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (4, 8, 13, 14))
+        r += 1; nxt += 1; added += 1
+    return added
 
 def gov_map(wb, src_index):
     ws = wb["Gov_Map"] if "Gov_Map" in wb.sheetnames else None
@@ -14276,7 +14387,9 @@ def gov_map(wb, src_index):
                 font = F_IN if i in (10, 11) and isinstance(v, (int, float)) else (F_LINK if isinstance(v, str) and v.startswith("=") else F_CALC)
                 put(ws, f"{L(i+1)}{r}", v, font, wrap=i in (4, 8, 13, 14))
         ws.freeze_panes = "E5"
-    # ---- builder-owned columns Q..AE
+    if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
+    gm_append(wb, ws)
+    # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
         sh, cell = ws[f"C{r}"].value, ws[f"D{r}"].value
@@ -14295,8 +14408,9 @@ def gov_map(wb, src_index):
             put(ws, f"R{r}", f"={sid}{suf}", F_LINK)
         else:
             put(ws, f"R{r}", DASH)
-        put(ws, f"S{r}", f'=IF(OR({h}="{DASH}",{h}=""),"{DASH}",{_lookup(h, "O")})')
-        put(ws, f"T{r}", f'=IF(OR({h}="{DASH}",{h}=""),"{DASH}",{_lookup(h, "K")})')
+        put(ws, f"AF{r}", f'=IF(OR({h}="{DASH}",{h}=""),"{DASH}",MATCH({h},IDX_SrcID,0))')
+        put(ws, f"S{r}", f'=IF(ISNUMBER($AF{r}),INDEX(IDX_SrcStat,$AF{r}),"{DASH}")')
+        put(ws, f"T{r}", f'=IF(ISNUMBER($AF{r}),INDEX(IDX_SrcGrade,$AF{r}),"{DASH}")')
         if single:
             v = wb[sh][cell].value
             st = ("連結 SRC" if "SRC_" in v else "公式") if isinstance(v, str) and v.startswith("=") else ("藍字（常數）" if v is not None else "空白")
@@ -14401,10 +14515,13 @@ def l1_sheet(wb):
 
 
 # ---------------------------------------------------------------- 8. Checks governance section (builder-owned)
-def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard):
+def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
     ws = wb["Checks"]
+    terms = [f'COUNTIF({sh}!$A${e+1}:$A${SRC_LAST},"<>{DASH}")-COUNTIF({sh}!$A${e+1}:$A${SRC_LAST},"")'
+             for sh, e in idx_spans.items() if e < SRC_LAST]
+    idx_cov = "=" + "+".join(terms) if terms else 0
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
-    section(ws, r, "G. 治理檢查（Stage 1 切片一，v5.11；規劃書第 5 節）：ERROR 合計必須為 0 才可合併", 6); r += 1
+    section(ws, r, "G. 治理檢查（Stage 1 切片一，v5.11；v5.12 加 E13；規劃書第 5 節）：ERROR 合計必須為 0 才可合併", 6); r += 1
     for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]):
         put(ws, f"{L(i+1)}{r}", h, F_BOLD)
     r += 1
@@ -14423,6 +14540,7 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard):
       ("E10", "基準值不在低／高之間", "ERROR", f'=COUNTIF({GM("AC")},1)', "Gov_Map 數值區間（低、高不分方向）"),
       ("E11", "L1 數值欄不是公式（貼值）", "ERROR", l1_nonformula, "建置時靜態檢查（builder）"),
       ("E12", "引用的 SRC_ID 不存在（切片一）", "ERROR", f'=COUNTIF({GM("AE")},1)', "Gov_Map"),
+      ("E13", "SRC 紀錄超出 SRC_Index 範圍（需重建）", "ERROR", idx_cov, "各 SRC 頁 A 欄在 SRC_Index 範圍之後、第 400 列之前的非空白格（v5.12）"),
       ("W1", "利害關係方 Active 紀錄缺第二來源", "WARN", "=" + srcsum("Z", "1"), "SRC_* Z 欄（SemiAnalysis 規則推廣；Stage 2 補）"),
       ("W2", "3 級紀錄被 CC 高段敏感度參數使用", "WARN", f'=COUNTIF({GM("AD")},1)', "Gov_Map（CC 第 10 輪分段）"),
       ("I1", "DB_Evidence 待判定", "INFO", '=COUNTIF(DB_Evidence!$L$5:$L$500,"待判定")', "DB_Evidence L 欄"),
@@ -14476,9 +14594,11 @@ def gov_all(wb):
     n_f14 = f14(wb)
     checks_block1(wb)
     n_gm, hard = gov_map(wb, idx)
+    SI = src_index(wb)
     n_l1, nonf = l1_sheet(wb)
-    checks_gov(wb, n_l1, nonf, hard)
+    checks_gov(wb, n_l1, nonf, hard, SI["spans"])
     return dict(src_made=made, src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made,
+                src_index_rows=SI["rows"], src_index_src_rows=SI["src_rows"], src_index_spans=SI["spans"],
                 formula_map_changed=n_fm, f14_changed=n_f14, gov_rows=n_gm, gov_raw_hardcoded=hard, l1_rows=n_l1, l1_nonformula=nonf,
                 fm_log=fm_log)
 ```
@@ -14504,8 +14624,17 @@ from finish import evidence_sheet
 from preserve import snapshot, restore
 
 wb = openpyxl.load_workbook(BASE)
+# ---- v5.12 (A): the pre-Source register is frozen as Sources_Legacy (no formula or name refers to it) ----
+if "Sources" in wb.sheetnames and "Sources_Legacy" not in wb.sheetnames:
+    wb["Sources"].title = "Sources_Legacy"
+    wb["Sources_Legacy"]["A1"].value = ("Sources_Legacy — v5.11 以前的來源清單（v5.12 起凍結，只供追溯原 S 編號；"
+                                        "新來源一律先登錄 DB_Evidence，擇優寫入 SRC_*）")
 # ---- v5.7 Excel-first: snapshot every input cell (blue font) before the rebuild ----
 SNAP = snapshot(wb)
+# ---- v5.12 (A): inputs that moved to another row keep their Excel value (restore stays unmatched 0) ----
+from training import SNAP_MOVES
+for _old, _new in SNAP_MOVES:
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
           "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train",
@@ -14519,7 +14648,7 @@ def clear(ws, r0, c1=1, c2=30):
             cell.value = None; cell.fill = openpyxl.styles.PatternFill(fill_type=None)
 clear(wb["Spec_Rack"], 21); 
 for r in range(1, 21): wb["Spec_Rack"].cell(row=r, column=8).value = None
-clear(wb["Interface"], 17); clear(wb["Checks"], 12); clear(wb["Sources"], 23); clear(wb["README"], 4, 1, 2)
+clear(wb["Interface"], 17); clear(wb["Checks"], 12); clear(wb["Sources_Legacy"], 23); clear(wb["README"], 4, 1, 2)
 for n in list(wb.defined_names.keys()):
     if n not in ("CTL_GW","CTL_PowerCase","IF_CapexFacility","IF_CapexIT","IF_CapexTotal","IF_FacilityGW",
                  "IF_GPUhrEcon","IF_GPUsPerGW","IF_HoldAcct","IF_HoldEcon","IF_PowerCost","IF_RacksPerGW"):
@@ -14579,7 +14708,7 @@ print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
-         "Har_In","Harness","Sens_Har","Interface","Energy","NonNV","Sensitivity","Checks","Sources","DB_Evidence"]
+         "Har_In","Harness","Sens_Har","Interface","Energy","NonNV","Sensitivity","Checks","Sources_Legacy","DB_Evidence"]
 wb._sheets = [wb[n] for n in order] + [s for s in wb._sheets if s.title not in order]   # v5.11: keep Excel-owned governance sheets
 # ---- v5.3: Block 1 Checks — reference cells instead of literals (CC 第 1 輪第 6 節第 5 項) ----
 from common import put, F_IN
@@ -14632,7 +14761,7 @@ order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
          "Har_In","Harness","Sens_Har","Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
-         "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","Sources","DB_Evidence"]]
+         "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Index","Sources_Legacy","DB_Evidence"]]
 assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)
 wb._sheets = [wb[n] for n in order]
 wb.save(out)

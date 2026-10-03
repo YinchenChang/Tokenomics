@@ -473,7 +473,7 @@ def b5_front(eng: Engine) -> pd.DataFrame:
 
 # ── 治理（v5.11：第 0 層 Source、第 1 層 L1、Checks G 節）──────────────────
 # 只讀 GOV_*、L1_*、SRC_* 具名範圍；表頭、列範圍與文字全部來自 Excel（由具名範圍解析列號，不寫死位址或數值）。
-SRC_SHEET_PREFIXES = ("SRC_HW_", "SRC_DC_", "SRC_MOD_", "SRC_PERF_")        # SRC 紀錄名稱前綴（A–W 欄為紀錄、X–Z 欄為檢查公式，不讀）
+SRC_SHEET_PREFIXES = ("SRC_HW_", "SRC_DC_", "SRC_MOD_", "SRC_PERF_", "SRC_PRC_", "SRC_CAP_", "SRC_HAR_", "SRC_DEM_")        # SRC 紀錄名稱前綴（v5.13 加後 4 個；A–W 欄為紀錄、X–Z 欄為檢查公式，不讀）
 SRC_LAST_COL = "W"
 L1_LAST_COL = "S"
 
@@ -508,7 +508,7 @@ def l1_table(eng: Engine) -> pd.DataFrame:
 
 
 def src_tables(eng: Engine) -> dict[str, pd.DataFrame]:
-    """SRC_* 四頁（唯讀，A–W 欄）：頁名由具名範圍解析。"""
+    """SRC_* 八頁（唯讀，A–W 欄）：頁名由具名範圍解析。"""
     out = {}
     for p in SRC_SHEET_PREFIXES:
         names = [n for n in eng.names if n.startswith(p)]

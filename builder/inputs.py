@@ -83,8 +83,8 @@ def arch(wb):
       ("T", "總參數", "B", [284, 1600, 4000], "#,##0", "Verified／Assumed", "V4-Flash 284B、V4-Pro 1.6T（模型卡，S27）；Astra 4T [Assumed，區間 2–10T]"),
       ("A", "啟用參數", "B", [13, 49, 180], "#,##0", "Verified／Assumed", "V4-Flash 13B、V4-Pro 49B；Astra 180B [Assumed，區間 60–250B]"),
       ("L", "層數", "層", [43, 61, 100], "#,##0", "Verified／Assumed", "V4-Pro 61（config.json）；V4-Flash 43（二手）；Astra [Assumed]"),
-      ("d", "d_model", "", [4096, 7168, 12288], "#,##0", "Verified／Derived", "V4-Pro 7168；V4-Flash 由專家維度反推；Astra [Assumed]"),
-      ("hq", "query heads", "", [64, 128, 96], "#,##0", "Verified／Analogy", "V4-Pro 128；V4-Flash 取 Pro 一半 [Analogy]"),
+      ("d", "d_model", "", [4096, 7168, 12288], "#,##0", "Verified／Assumed", "V4-Pro 7168；V4-Flash 4096（官方 config.json hidden_size，v5.13 讀原文）；Astra [Assumed]"),
+      ("hq", "query heads", "", [64, 128, 96], "#,##0", "Verified／Assumed", "V4-Pro 128；V4-Flash 64（官方 config.json num_attention_heads，v5.13 讀原文）；Astra [Assumed]"),
       ("hd", "head_dim", "", [512, 512, 128], "#,##0", "Verified／Assumed", "V4 單一 512 維 KV head；Astra 128"),
       ("E", "routed experts", "", [256, 384, 512], "#,##0", "Verified／Assumed", ""),
       ("k", "每 token 啟用 routed experts", "", [6, 6, 16], "#,##0", "Verified／Assumed", ""),
@@ -95,9 +95,10 @@ def arch(wb):
       ("comp", "其他層壓縮比", "x", [128, 128, 1], "#,##0", "Verified", "V4 HCA 128× 壓縮"),
       ("win", "其他層滑動窗", "tok", [128, 128, 0], "#,##0", "Verified", ""),
       ("kvsel", "Astra KV 情境（1 混合／2 全層 MLA／3 GQA-8）", "選擇", [None, None, 2], "0", "Decision", "J1：基準 2（Andy 2026-09-30 確認）"),
-      ("kv1", "KV bytes/token — 情境 1", "B", [2795, 3965, 14976], "#,##0", "Derived／Assumed", "Luna 65×43、Sol 65×61（v4 推導，FP8 KV）；Astra 混合：26% 層 × 576 × 100 層（類 K3）"),
-      ("kv2", "KV bytes/token — 情境 2", "B", [2795, 3965, 57600], "#,##0", "Derived／Assumed", "Astra 全層 MLA：576 × 100"),
-      ("kv3", "KV bytes/token — 情境 3", "B", [2795, 3965, 204800], "#,##0", "Derived／Assumed", "Astra GQA-8：8 × 128 × 2 × 100"),
+      # v5.13 (D): rows 21–23 are formulas of the KV inputs at the bottom of the sheet (rows "KV 推導輸入"); values unchanged
+      ("kv1", "KV bytes/token — 情境 1", "B", [None, None, None], "#,##0", "Derived（公式）", "Luna／Sol＝每層 KV bytes × 層數；Astra 混合＝MLA 層比例 × MLA 每層 KV 元素 × 層數 × 每元素 bytes（v5.13 改公式，值不變）"),
+      ("kv2", "KV bytes/token — 情境 2", "B", [None, None, None], "#,##0", "Derived（公式）", "Astra 全層 MLA＝MLA 每層 KV 元素 × 層數 × 每元素 bytes"),
+      ("kv3", "KV bytes/token — 情境 3", "B", [None, None, None], "#,##0", "Derived（公式）", "Astra GQA＝KV heads × head_dim × 2（K、V）× 層數 × 每元素 bytes"),
     ]
     r = 5
     for key, lab, unit, vals, fmt, tag, note in rows:
@@ -131,6 +132,31 @@ def arch(wb):
     put(ws, f"F{r}", "結構選擇", F_NOTE)
     put(ws, f"G{r}", "顯示列的口徑：128,000（非 131,072）；三層級共用本格（CST_CtxKV）。不影響任何產出", F_NOTE)
     wb.defined_names["CST_CtxKV"] = DefinedName("CST_CtxKV", attr_text=f"Arch!$C${r}")
+    # v5.13 (D): inputs behind KV rows 21–23 (formerly hand-computed constants; defaults reproduce the same values)
+    r += 1
+    section(ws, r, "KV 推導輸入（v5.13 D：第 21–23 列由此計算）", 7); r += 1
+    kin = [
+      ("kvl", "每層 KV bytes/token（壓縮後平均，FP8）", "B", [65, 65, None], "Assumed",
+       "v4 推導值；V4 官方 config：KV head 512（SRC_MOD_009）、CSA 壓縮 4×、HCA 128×、滑動窗 128，以結構重算會改值，Stage 2 處理"),
+      ("mla", "MLA 每層 KV 元素數（Astra 情境 1、2）", "元素", [None, None, 576], "Analogy", "比照 DeepSeek-V3 MLA：512 latent＋64 RoPE（SRC_MOD_028）"),
+      ("mix", "MLA 層比例（Astra 情境 1 混合）", "%", [None, None, 0.26], "Assumed", "混合注意力：其餘層為線性注意力（KV 不隨上下文成長，本列不計）"),
+      ("gqa", "GQA KV heads（Astra 情境 3）", "個", [None, None, 8], "Assumed", "GQA-8（結構選擇）"),
+      ("kvb", "KV 每元素 bytes（FP8；三層級共用）", "B", [1, None, None], "原始數據", "FP8 每元素 1 byte（SRC_HW_055）"),
+    ]
+    for key, lab, unit, vals, tag, note in kin:
+        R[key] = r
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for c, v in zip("CDE", vals):
+            if v is not None: put(ws, f"{c}{r}", v, fmt="0%" if key == "mix" else "#,##0")
+        put(ws, f"F{r}", tag, F_NOTE); put(ws, f"G{r}", note, F_NOTE)
+        r += 1
+    kb = f"$C${R['kvb']}"
+    for key in ("kv1", "kv2", "kv3"):
+        for c in "CD":
+            put(ws, f"{c}{R[key]}", f"={c}{R['kvl']}*{c}{R['L']}", F_CALC, fmt="#,##0")
+    put(ws, f"E{R['kv1']}", f"=E{R['mix']}*E{R['mla']}*E{R['L']}*{kb}", F_CALC, fmt="#,##0")
+    put(ws, f"E{R['kv2']}", f"=E{R['mla']}*E{R['L']}*{kb}", F_CALC, fmt="#,##0")
+    put(ws, f"E{R['kv3']}", f"=E{R['gqa']}*E{R['hd']}*2*E{R['L']}*{kb}", F_CALC, fmt="#,##0")
     ws.freeze_panes = "C5"
     return R
 

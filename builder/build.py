@@ -27,6 +27,12 @@ SNAP = snapshot(wb)
 from training import SNAP_MOVES
 for _old, _new in SNAP_MOVES:
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
+# ---- v5.13 (D): input cells retired because the cell is now a formula (Arch KV rows 21–23, Cap_In N column). Their Excel
+#      values are logged, not restored; the new formulas reproduce them with the default inputs (verified by recalculation).
+from block4 import PRICE_ROWS
+SNAP_RETIRED = [("Arch", (lab, 0), c) for lab in ("KV bytes/token — 情境 1", "KV bytes/token — 情境 2", "KV bytes/token — 情境 3")
+                for c in (3, 4, 5)] + [("Cap_In", (row[0], 0), 14) for row in PRICE_ROWS]
+RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
           "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train",
@@ -144,16 +150,18 @@ for n, c in [("TR_ID","A"),("TR_Tech","B"),("TR_Hook","C"),("TR_Acts","D"),("TR_
     nm(n, f"Tech_Registry!${c}${r0}:${c}${r1}")
 nm("TR_HookCode", f"Tech_Registry!$A${h0}:$A${h1}"); nm("TR_HookName", f"Tech_Registry!$B${h0}:$B${h1}")
 nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
-# ---- v5.11: Stage 1 slice one (Source layer, Evidence upgrade, Decisions, Gov_Map, L1, governance Checks, F14) ----
+# ---- v5.11: Stage 1 slice one (Source layer, Evidence upgrade, Decisions, Gov_Map, L1, governance Checks, F14); v5.13: slice two ----
 from gov import gov_all
 GOV = gov_all(wb)
+GOV["snap_retired"] = len(RETIRED)
+GOV["fm_log"] = GOV["fm_log"] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
 print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
          "Har_In","Harness","Sens_Har","Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
-         "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Index","Sources_Legacy","DB_Evidence"]]
+         "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Price","SRC_Cap","SRC_Harness","SRC_Demand","SRC_Index","Sources_Legacy","DB_Evidence"]]
 assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)
 wb._sheets = [wb[n] for n in order]
 wb.save(out)

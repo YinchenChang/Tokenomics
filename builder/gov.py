@@ -1,4 +1,6 @@
 # v5.11 (Stage 1 slice one): Source layer (SRC_HW／SRC_DC／SRC_Model／SRC_Perf), DB_Evidence upgrade, Decisions,
+# v5.13 (slice two, package B): SRC_Price／SRC_Cap／SRC_Harness／SRC_Demand (gov_seed2), S30 appended to SRC_Perf,
+#   FORMULA_MAP2 links (Cap_In, Har_In, Workload 40), Checks C9:C10／C37／I43:I45 linked to SRC, Gov_Map judgment updates (GOV_MAP_UPD).
 # Gov_Map (blue-cell registry), L1 (first batch), governance Checks, F14 (per-GW outputs divided by Inputs!E5).
 #
 # Ownership (Excel-first, same rule as DB_Evidence since v5.7):
@@ -13,8 +15,13 @@ from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_TITLE, F_NOTE, FILL_SEC, FILL_KEY, WRAP, L, title, section
 from gov_seed import SRC_RECORDS, PERF_ATTR, EVID_MIG, EVID_UPD, FORMULA_MAP, GOV_MAP
 from gov_decisions import DECISIONS
+from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP_UPD, GOV_MAP_V513C, GOV_MAP_UPD_E, DEC_UPD
 
-SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf"]
+ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2
+ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
+ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
+
+SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]   # v5.13: +4
 SRC_LAST = 400                      # record rows 5..SRC_LAST (formula ranges)
 SRC_HDR = ["SRC_ID", "指標", "數值", "低", "高", "單位", "口徑", "適用對象", "日期", "出處", "來源等級", "立場", "立場說明",
            "一手／二手", "狀態", "取代者", "Evidence ID", "第二來源 SRC_ID", "審查日", "Andy 原話", "原 S 編號", "模型使用位置", "備註",
@@ -22,7 +29,9 @@ SRC_HDR = ["SRC_ID", "指標", "數值", "低", "高", "單位", "口徑", "適�
 PERF_HDR = ["平台", "軟體／日期", "ISL", "OSL", "每用戶速度 tok/s", "MTP（1＝有）", "token 口徑"]
 PERF_NAMES = {"AC": "_ISL", "AD": "_OSL", "AE": "_Spd", "AF": "_MTP"}
 SRC_TITLE = {"SRC_HW": "晶片與機架的規格、功率、價格", "SRC_DC": "廠房資本支出、電價、折舊慣例、外部成本參照",
-             "SRC_Model": "模型架構與訓練揭露", "SRC_Perf": "推論與訓練量測（InferenceX、MLPerf、自揭）及量測條件"}
+             "SRC_Model": "模型架構與訓練揭露", "SRC_Perf": "推論與訓練量測（InferenceX、MLPerf、自揭）及量測條件",
+             "SRC_Price": "API 牌價與算力租金（廠商牌價、新雲價目、第三方推算）", "SRC_Cap": "能力評測（Artificial Analysis 指數、METR 時間範圍）",
+             "SRC_Harness": "harness 與代理的 token 倍數、成功率、成本（ARC-AGI-3、廠商揭露）", "SRC_Demand": "需求與支出揭露（實驗室推論／訓練支出、營收、算力規模）"}
 DASH = "—"
 
 
@@ -47,20 +56,36 @@ def src_sheets(wb):
         for i, h in enumerate(hdr):
             put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]
         r = 5
-        for rec in [x for x in SRC_RECORDS if x["sheet"] == sh]:
-            vals = [rec["id"], rec["metric"], rec["val"], rec["lo"], rec["hi"], rec["unit"], rec["basis"] or DASH, rec["applies"] or DASH,
-                    str(rec["date"]), rec["src"] or DASH, rec["grade"], rec["stance"], rec["stance_note"] or DASH, rec["hand"] or DASH,
-                    rec["status"], DASH, rec["ev"], DASH, DASH, DASH, rec["s"], rec["use"] or DASH, rec["note"] or DASH]
-            for i, v in enumerate(vals):
-                f = F_IN if i in (2, 3, 4) and isinstance(v, (int, float)) else F_CALC
-                put(ws, f"{L(i+1)}{r}", v, f, wrap=i in (1, 9, 12, 21, 22))
-            if sh == "SRC_Perf" and rec["id"] in PERF_ATTR:
-                a = PERF_ATTR[rec["id"]]
-                for col, k in zip(["AA", "AB", "AC", "AD", "AE", "AF", "AG"], ["platform", "software", "isl", "osl", "spd", "mtp", "tok"]):
-                    put(ws, f"{col}{r}", a[k], F_IN if isinstance(a[k], (int, float)) else F_CALC)
-            r += 1
+        for rec in [x for x in ALL_RECORDS if x["sheet"] == sh]:
+            _src_row(ws, r, rec); r += 1
         ws.freeze_panes = "C5"
     return made
+
+
+def _src_row(ws, r, rec):
+    vals = [rec["id"], rec["metric"], rec["val"], rec["lo"], rec["hi"], rec["unit"], rec["basis"] or DASH, rec["applies"] or DASH,
+            str(rec["date"]), rec["src"] or DASH, rec["grade"], rec["stance"], rec["stance_note"] or DASH, rec["hand"] or DASH,
+            rec["status"], DASH, rec["ev"], DASH, DASH, DASH, rec["s"], rec["use"] or DASH, rec["note"] or DASH]
+    for i, v in enumerate(vals):
+        f = F_IN if i in (2, 3, 4) and isinstance(v, (int, float)) else F_CALC
+        put(ws, f"{L(i+1)}{r}", v, f, wrap=i in (1, 9, 12, 21, 22))
+    if ws.title == "SRC_Perf" and rec["id"] in ALL_PERF_ATTR:
+        a = ALL_PERF_ATTR[rec["id"]]
+        for col, k in zip(["AA", "AB", "AC", "AD", "AE", "AF", "AG"], ["platform", "software", "isl", "osl", "spd", "mtp", "tok"]):
+            if a[k] is not None or rec["id"] in PERF_ATTR: put(ws, f"{col}{r}", a[k], F_IN if isinstance(a[k], (int, float)) else F_CALC)
+
+
+def src_append(wb):
+    """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
+    the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
+    added = []
+    for rec in SRC_RECORDS2:
+        ws = wb[rec["sheet"]]
+        ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+        if rec["id"] in ids: continue
+        last = max([r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value not in (None, "")] or [4])
+        _src_row(ws, last + 1, rec); added.append(rec["id"])
+    return added
 
 
 KEY_COL, KEY_SEP = "AH", "¦"       # v5.12 (A): builder-owned key column (指標¦口徑¦適用對象, Active rows only) used by X
@@ -107,7 +132,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG:
+    for row in EVID_MIG + EVID_MIG2:
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -135,10 +160,22 @@ def decisions_sheet(wb):
     return True
 
 
+def dec_update(wb):
+    """v5.13 E: Andy's review results written to Decisions (Excel-owned), each field only while it still holds the v5.12 value."""
+    ws = wb["Decisions"]; col = {"D": 4, "F": 6, "G": 7, "J": 10}; n = 0
+    for r in range(5, ws.max_row + 1):
+        f = DEC_UPD.get(ws.cell(r, 1).value)
+        if not f: continue
+        for k, (old, new) in f.items():
+            c = ws.cell(r, col[k])
+            if c.value == old: c.value = new; n += 1
+    return n
+
+
 # ---------------------------------------------------------------- 4. Model-page links (builder-owned)
 def apply_formula_map(wb):
     n = 0; log = []
-    for key, f in FORMULA_MAP.items():
+    for key, f in ALL_FORMULA_MAP.items():
         sh, co = key.split("!")
         c = wb[sh][co]
         if c.value != f:
@@ -263,6 +300,43 @@ def gm_append(wb, ws):
         r += 1; nxt += 1; added += 1
     return added
 
+def gm_append_c(wb, ws):
+    """v5.13 C: register the slice-two pages' numeric blue cells (GOV_MAP_V513C) when the (sheet, cell) is not yet in Gov_Map.
+    The row's column-A label must still match: a moved or renamed row stops the build instead of registering the wrong cell."""
+    have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
+    ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
+    nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
+    added = 0
+    for g in GOV_MAP_V513C:
+        if (g["sheet"], g["cell"]) in have: continue
+        first = g["cell"].split(":")[0]
+        row = int(re.sub(r"[A-Z]+", "", first))
+        if wb[g["sheet"]].cell(row, 1).value != g["label"]:
+            raise KeyError(f"GOV_MAP_V513C: {g['sheet']}!{g['cell']} row label changed: {wb[g['sheet']].cell(row, 1).value!r} != {g['label']!r}")
+        vals = [f"GM{nxt:03d}", g["scope"], g["sheet"], g["cell"], g["label"], g["cls"], g["role"], g["src"] or DASH, g["rel"] or DASH,
+                g["dec"] or DASH, g["lo"], g["hi"], g["rtext"] or DASH, g["reason"] or DASH, g["retag"] or DASH, g["seg"] or DASH]
+        for i, v in enumerate(vals):
+            font = F_IN if i in (10, 11) and isinstance(v, (int, float)) else (F_LINK if isinstance(v, str) and v.startswith("=") else F_CALC)
+            put(ws, f"{L(i+1)}{r}", v, font, wrap=i in (4, 8, 13, 14))
+        r += 1; nxt += 1; added += 1
+    return added
+
+
+def gm_update(ws):
+    """v5.13: judgment updates to existing Gov_Map rows (Excel-owned A–P). Each field is written only while it still holds the
+    v5.12 value, so the update applies once and never overwrites a later Excel edit."""
+    loc = {(ws[f"C{r}"].value, ws[f"D{r}"].value): r for r in range(5, ws.max_row + 1) if ws[f"C{r}"].value}
+    n = 0
+    for sh, cell, fields in GOV_MAP_UPD + GOV_MAP_UPD_E:
+        r = loc.get((sh, cell))
+        if r is None: continue
+        for col, (old, new) in fields.items():
+            if ws[f"{col}{r}"].value == old:
+                ws[f"{col}{r}"].value = new; n += 1
+    return n
+
+
 def gov_map(wb, src_index):
     ws = wb["Gov_Map"] if "Gov_Map" in wb.sheetnames else None
     if ws is None:
@@ -283,6 +357,8 @@ def gov_map(wb, src_index):
         ws.freeze_panes = "E5"
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
+    n_c = gm_append_c(wb, ws)
+    n_upd = gm_update(ws)
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -296,7 +372,7 @@ def gov_map(wb, src_index):
         if isinstance(sid, str) and sid in src_index:
             s2, rr = src_index[sid]
             # value field: the one the model cell links to, else the record value, else its low end
-            fm = FORMULA_MAP.get(f"{sh}!{cell}", "")
+            fm = ALL_FORMULA_MAP.get(f"{sh}!{cell}", "")
             m = re.search(re.escape(sid) + r"(_Lo|_Hi|_Spd|_ISL|_OSL|_MTP)?\b", fm)
             suf = m.group(1) if m and m.group(1) else ("" if wb[s2][f"C{rr}"].value is not None else "_Lo")
             put(ws, f"R{r}", f"={sid}{suf}", F_LINK)
@@ -321,9 +397,9 @@ def gov_map(wb, src_index):
         put(ws, f"AB{r}", f'=IF(AND({F}="原始數據",$S{r}<>"Active"),1,0)', fmt="0")
         put(ws, f"AC{r}", f'=IF(AND(ISNUMBER($K{r}),ISNUMBER($L{r}),ISNUMBER($Q{r})),IF(OR($Q{r}<MIN($K{r},$L{r}),$Q{r}>MAX($K{r},$L{r})),1,0),0)', fmt="0")
         put(ws, f"AD{r}", f'=IF(AND(ISNUMBER($T{r}),$P{r}="高"),IF($T{r}=3,1,0),0)', fmt="0")
-        put(ws, f"AE{r}", f'=IF(AND($S{r}="不存在",$B{r}="切片一"),1,0)', fmt="0")
+        put(ws, f"AE{r}", f'=IF($S{r}="不存在",1,0)', fmt="0")      # v5.13: all scopes (slice-two SRC sheets exist)
         if st == "藍字（常數）" and ws[f"F{r}"].value == "原始數據": static_raw_hard += 1
-    return n, static_raw_hard
+    return n, static_raw_hard, n_upd, n_c
 
 
 # ---------------------------------------------------------------- 7. L1 (builder-owned; every value a live formula)
@@ -377,20 +453,55 @@ def _rows_l1():
                   f"=INDEX({c},1,11)*Sens_Rev!$B$7/IF_Util", "$B/GW/年", UTIL_RNG, "單一層級滿載的上限；實際營收（需求、市占）在下游",
                   "利用率、折扣、快取命中 χ（Sens_Rev）", "利用率 60%：Assumed（K11）；生產折減 1.0：Assumed",
                   DASH, None, None, c, "Interface D 節", "需求與市占不在第 0 層（D7）"))
+    # ---- v5.13 (D): external comparisons moved from Checks (G9); each row's external columns link SRC
+    R.append(("GPUhr_GB200_vsCW", "每 GPU 小時持有成本 — 經濟（GB200）對 CoreWeave 隨需牌價", "100% 時數；不含利潤",
+              "=INDEX(IF_GPUhrEcon,1,5)", "=INDEX(IF_GPUhrEcon,1,4)", "=INDEX(IF_GPUhrEcon,1,6)", "$/GPU-hr", COST_RNG,
+              "隨需牌價約為持有成本 5 倍：含利潤、閒置與風險溢價；長約價通常較低", "機架價格、IT 折舊年限、WACC", "牌價：3 級（spheron 轉述 CoreWeave 價目）",
+              "SRC_PRC_001", "=SRC_PRC_001/4", "=SRC_PRC_001/4", "IF_GPUhrEcon", "Interface 第 14 列；Checks 第 9 列", "長約價未公開"))
+    R.append(("GPUhr_GB300_vsBE", "每 GPU 小時持有成本 — 經濟（GB300）對新雲損益兩平租金", "100% 時數；不含利潤",
+              "=INDEX(IF_GPUhrEcon,1,8)", "=INDEX(IF_GPUhrEcon,1,7)", "=INDEX(IF_GPUhrEcon,1,9)", "$/GPU-hr", COST_RNG,
+              "外部為第三方推算的租金門檻（85% 利用率、9.12% 資金成本、6 年）；本模型為 100% 時數的持有成本", "機架價格、IT 折舊年限、WACC",
+              "外部：2 級、機型未明", "SRC_PRC_002", "=SRC_PRC_002", "=SRC_PRC_002", "IF_GPUhrEcon", "Interface 第 14 列；Checks 第 10 列", "外部值機型未明"))
+    R.append(("RLshare_Sol_VR200", "RL ÷ 預訓練 GPU 小時（Sol，VR200）", "J9 基準；非同步 RL（T10）", "=Training!$M$78", "=Sens_Train!$O$78",
+              "=Sens_Train!$Q$78", "x", "RL rollout token ×0.3–×3（Sens_Train 情境倍數）", "後訓練算力的主要追蹤指標：RL 用掉的 GPU 小時相對預訓練的倍數",
+              "rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "SRC_MOD_034", "=SRC_MOD_034/SRC_MOD_040",
+              "=SRC_MOD_034/SRC_MOD_040", "TRN_RLRatioH", "Training 第 78 列；Checks 第 34 列", "外部為 DeepSeek R1（2025-01）÷ V3 預訓練，代表較早期的 RL 規模"))
+    R.append(("RLshare_Astra_VR200", "RL ÷ 預訓練 GPU 小時（Astra，VR200）", "J9 基準；非同步 RL（T10）", "=Training!$N$78", "=Sens_Train!$P$78",
+              "=Sens_Train!$R$78", "x", "RL rollout token ×0.3–×3（Sens_Train 情境倍數）", "同上；Astra 基準校到約 1（RL 與預訓練同量級）",
+              "rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "SRC_MOD_036", "=SRC_MOD_036", "=SRC_MOD_036",
+              "TRN_RLRatioH", "Training 第 78 列；Checks 第 33 列", "外部為 xAI 宣稱 Grok 4 RL 達「預訓練規模」，口徑（GPU 小時或 FLOPs）不明"))
+    R.append(("FinalTrainShare", "最終訓練 ÷ 研發計畫（GPU 小時）", "J10 研發倍數基準 8", "=1/Train_In!$C$13", "=1/Sens_Train!$AE$119",
+              "=1/Sens_Train!$AC$119", "%", "研發倍數 4.4–10.4（Sens_Train 情境）", "研發中花在最終訓練的比例；其餘為實驗、消融與失敗嘗試",
+              "研發倍數（J10）", "研發倍數：Analogy（由外部區間設定，故本列只驗算一致）", "SRC_DEM_001",
+              "=MIN(SRC_DEM_001,SRC_DEM_002,SRC_DEM_003)", "=MAX(SRC_DEM_001,SRC_DEM_002,SRC_DEM_003)", DASH, "Train_In 第 13 列；Checks 第 37 列",
+              "外部為支出口徑（Epoch 推估三家），本模型為 GPU 小時口徑"))
+    R.append(("RevGWFleet_OAI2025", "OpenAI 2025 對帳：每 GW 機隊付費營收（Hopper／GB200 加權）", "OpenAI 有效單價（2026 快照）；Hopper 占機隊 60%（Checks 對帳常數，Assumed）",
+              "=Checks!$B${rev}", "=Checks!$B${rev}", "=Checks!$B${rev}", "$B/GW/年", "無區間（單一對帳值）", "同量級即機隊配置與單價可閉合；2025 實際單價高於 2026 快照",
+              "OpenAI 有效單價、機隊配置（K7）", "Hopper 占機隊：Assumed", "SRC_DEM_007", "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)",
+              "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)", DASH, "Checks 第 43 列", "外部 GW 口徑未明（D1）"))
+    R.append(("PretrainFLOP_Astra", "Astra 預訓練算力", "J8 基準（啟用參數 × 預訓練 token）", "=Training!$N$31*Training!$N$34*1E21",
+              "=Training!$N$31*Training!$N$34*1E21", "=Training!$N$31*Training!$N$34*1E21", "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
+              "訓練 FLOPs/token × token；與前沿錨點 2e26–2e27 的差距即 J8 缺口", "Astra 啟用參數、預訓練 token", "Astra 架構：Assumed", "SRC_MOD_033",
+              "=SRC_MOD_033", "=SRC_MOD_033", DASH, "Training 第 31、34 列；Checks 第 38 列", "外部為 Grok-3 的 Epoch 估計；GPT-6 Astra 實際算力未揭露"))
     return R
 
 def l1_sheet(wb):
+    global _REV_ROW
+    _REV_ROW = _row_by(wb["Checks"], "A", "OpenAI 2025 對帳：機隊付費營收（Hopper／GB200 加權、OpenAI 有效單價）")
     if "L1" in wb.sheetnames: del wb["L1"]
     ws = wb.create_sheet("L1")
     title(ws, "L1 — 第 1 層常用推算值（G9；即時公式、不貼值；附條件、區間與外部對照）",
           "下游取標準推算值時引用 L1_ 名稱；完整構件仍在 Interface（IF_）。外部值一律連結 SRC。判讀：外部為區間時看是否落在區間內；外部為單一值時以 ±20% 判讀。"
-          "Block 6 的 9 題於 v5.13 補入。")
+          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；Block 6 的 9 題於 v5.14 補入。")
     widths = [22, 38, 26, 10, 10, 10, 10, 24, 30, 24, 26, 12, 10, 10, 9, 14, 18, 18, 30]
     for i, h in enumerate(L1_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]
     r = 5; nonformula = 0
+    rows_at = {}
     for row in _rows_l1():
+        row = tuple(x.replace("{rev}", str(_REV_ROW)) if isinstance(x, str) else x for x in row)
         key, lab, cond, base, lo, hi, unit, rdef, read, drv, weak, sid, elo, ehi, nmref, where, gap = row
+        rows_at[key] = r
         vals = [f"L1_{key}", lab, cond, base, lo, hi, unit, rdef, read, drv, weak, sid, elo, ehi, None, None, f"L1_{key}", where, gap]
         for i, v in enumerate(vals):
             if i == 14 or i == 15: continue
@@ -405,7 +516,7 @@ def l1_sheet(wb):
         _nm(wb, f"L1_{key}", f"L1!$D${r}"); _nm(wb, f"L1_{key}_Lo", f"L1!$E${r}"); _nm(wb, f"L1_{key}_Hi", f"L1!$F${r}")
         r += 1
     ws.freeze_panes = "C5"
-    return r - 5, nonformula
+    return r - 5, nonformula, rows_at
 
 
 # ---------------------------------------------------------------- 8. Checks governance section (builder-owned)
@@ -415,7 +526,7 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
              for sh, e in idx_spans.items() if e < SRC_LAST]
     idx_cov = "=" + "+".join(terms) if terms else 0
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
-    section(ws, r, "G. 治理檢查（Stage 1 切片一，v5.11；v5.12 加 E13；規劃書第 5 節）：ERROR 合計必須為 0 才可合併", 6); r += 1
+    section(ws, r, "G. 治理檢查（Stage 1 切片一，v5.11；v5.12 加 E13；v5.13 SRC 頁 4→8；規劃書第 5 節）：ERROR 合計必須為 0 才可合併", 6); r += 1
     for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]):
         put(ws, f"{L(i+1)}{r}", h, F_BOLD)
     r += 1
@@ -433,7 +544,7 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
       ("E9", "模型連結的 SRC 紀錄不是 Active", "ERROR", f'=COUNTIF({GM("AB")},1)', "Gov_Map 類別＝原始數據"),
       ("E10", "基準值不在低／高之間", "ERROR", f'=COUNTIF({GM("AC")},1)', "Gov_Map 數值區間（低、高不分方向）"),
       ("E11", "L1 數值欄不是公式（貼值）", "ERROR", l1_nonformula, "建置時靜態檢查（builder）"),
-      ("E12", "引用的 SRC_ID 不存在（切片一）", "ERROR", f'=COUNTIF({GM("AE")},1)', "Gov_Map"),
+      ("E12", "引用的 SRC_ID 不存在", "ERROR", f'=COUNTIF({GM("AE")},1)', "Gov_Map"),
       ("E13", "SRC 紀錄超出 SRC_Index 範圍（需重建）", "ERROR", idx_cov, "各 SRC 頁 A 欄在 SRC_Index 範圍之後、第 400 列之前的非空白格（v5.12）"),
       ("W1", "利害關係方 Active 紀錄缺第二來源", "WARN", "=" + srcsum("Z", "1"), "SRC_* Z 欄（SemiAnalysis 規則推廣；Stage 2 補）"),
       ("W2", "3 級紀錄被 CC 高段敏感度參數使用", "WARN", f'=COUNTIF({GM("AD")},1)', "Gov_Map（CC 第 10 輪分段）"),
@@ -442,10 +553,10 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
       ("I3", "L1 落在外部區間外或差距 >20% 的列", "INFO",
        '=COUNTIF(L1!$P$5:$P$200,"低於外部區間")+COUNTIF(L1!$P$5:$P$200,"高於外部區間")+COUNTIF(L1!$P$5:$P$200,"差距 >20%")', "L1 P 欄"),
       ("I4", "原始數據 G0-2 保留藍字（Stage 2 佇列）", "INFO", f'=COUNTIF({GM("F")},"原始數據（G0-2 保留）")', "Gov_Map"),
-      ("I5", "Derived 寫死待改公式", "INFO", f'=COUNTIF({GM("F")},"Derived（待改公式）")', "Gov_Map（Arch 21–23 於 v5.12）"),
+      ("I5", "Derived 寫死待改公式", "INFO", f'=COUNTIF({GM("F")},"Derived（待改公式）")', "Gov_Map（Arch 21–23 已於 v5.13 D 改公式；餘為 Train_In C44 等）"),
       ("I6", "結構選擇（無數值區間）", "INFO", f'=COUNTIF({GM("M")},"結構選擇（無數值區間）")', "Gov_Map"),
-      ("I7", "原始數據待切片二連結", "INFO", f'=COUNTIF({GM("F")},"原始數據（切片二）")', "Gov_Map（Workload 40；Cap_In、Har_In 等頁於 v5.12 登錄）"),
-      ("I8", "v5.11 標記變更（Analogy→Assumed 等）", "INFO", f'=COUNTIF({GM("O")},"<>{DASH}")-COUNTIF({GM("O")},"")', "Gov_Map O 欄；請 Andy 過目"),
+      ("I7", "原始數據待連結（尚無 SRC 紀錄）", "INFO", f'=COUNTIF({GM("F")},"原始數據（切片二）")', "Gov_Map（v5.13 起：原始數據尚無 SRC 紀錄者，例如 Tech_Registry 採用數、Cap_In 尖峰離峰屬性；Stage 2 補紀錄）"),
+      ("I8", "標記變更（v5.11 起；Analogy→Assumed 等）", "INFO", f'=COUNTIF({GM("O")},"<>{DASH}")-COUNTIF({GM("O")},"")', "Gov_Map O 欄；請 Andy 過目"),
     ]
     first = r; err_rows = []; warn_rows = []; info_rows = []
     for code, lab, lvl, f, note in rows:
@@ -479,19 +590,75 @@ def checks_block1(wb):
     ck["C19"].value = "=SRC_PERF_011"; ck["C19"].font = F_LINK
 
 
+# ---------------------------------------------------------------- 9a. v5.13 (B): Checks external references of slice two link to SRC
+def _row_by(ws, col, label):
+    for r in range(1, ws.max_row + 1):
+        if ws[f"{col}{r}"].value == label: return r
+    raise KeyError(f"Checks: {col} label not found: {label}")
+
+def checks_slice2(wb):
+    ck = wb["Checks"]; log = []
+    def setf(ref, f, tag=None):
+        if ck[ref].value != f: log.append(f"Checks!{ref}: {ck[ref].value!r} -> {f}")
+        ck[ref].value = f; ck[ref].font = F_LINK
+        if tag:
+            fr = "F" + ref[1:]
+            v = str(ck[fr].value or "")
+            if "SRC_" not in v: ck[fr].value = f"{v}［{tag}］"
+    setf("C9", "=SRC_PRC_001/4", "SRC_PRC_001；÷4＝每執行個體 GPU 數")           # 4-GPU instance price → $/GPU-hr (unit conversion)
+    setf("C10", "=SRC_PRC_002", "SRC_PRC_002")
+    r = _row_by(ck, "A", "最終訓練 ÷ 研發計畫")
+    lo, hi = "MIN(SRC_DEM_001,SRC_DEM_002,SRC_DEM_003)", "MAX(SRC_DEM_001,SRC_DEM_002,SRC_DEM_003)"
+    setf(f"C{r}", f'=TEXT({lo}*100,"0.0")&"%–"&TEXT({hi}*100,"0.0")&"%"', "SRC_DEM_001–003")
+    for lab, sid in (("OpenAI 2025 營收 $B", "SRC_DEM_007"), ("2024 年底 GW", "SRC_DEM_008"), ("2025 年底 GW", "SRC_DEM_009")):
+        rr = _row_by(ck, "H", lab)
+        if ck[f"I{rr}"].value != f"={sid}": log.append(f"Checks!I{rr}: {ck[f'I{rr}'].value!r} -> ={sid}")
+        ck[f"I{rr}"].value = f"={sid}"; ck[f"I{rr}"].font = F_LINK
+    return log
+
+
+SAMPLE_OUT = (("樣本外：GB300 SGLang＋MTP 50 tok/s", "SRC_PERF_004"), ("樣本外：GB300 vLLM 無 MTP 27 tok/s", "SRC_PERF_001"),
+              ("樣本外：GB200 vLLM 無 MTP 27 tok/s", "SRC_PERF_002"), ("樣本外：GB200／GB300 110 tok/s", "SRC_PERF_014"))
+CK_TO_L1 = (("GB200 市場牌價對照", "GPUhr_GB200_vsCW"), ("新雲損益兩平參照", "GPUhr_GB300_vsBE"),
+            ("RL ÷ 預訓練 GPU 小時：VR200 Astra", "RLshare_Astra_VR200"), ("RL ÷ 預訓練 GPU 小時：VR200 Sol", "RLshare_Sol_VR200"),
+            ("OpenAI 2025 對帳：機隊付費營收（Hopper／GB200 加權、OpenAI 有效單價）", "RevGWFleet_OAI2025"))
+
+def checks_to_l1(wb, l1_at):
+    """v5.13 (D): Checks external references read the L1 external columns (one place per comparison, G9); sample-out literals link SRC_PERF."""
+    ck = wb["Checks"]; log = []
+    def setf(ref, f, note):
+        if ck[ref].value != f: log.append(f"Checks!{ref}: {ck[ref].value!r} -> {f}")
+        ck[ref].value = f; ck[ref].font = F_LINK
+        fr = "F" + ref[1:]; v = str(ck[fr].value or "")
+        if note not in v: ck[fr].value = f"{v}［{note}］"
+    for lab, sid in SAMPLE_OUT:
+        r = _row_by(ck, "A", lab); setf(f"C{r}", f"={sid}", sid); ck[f"C{r}"].number_format = "#,##0"
+    for lab, key in CK_TO_L1:
+        r = _row_by(ck, "A", lab); setf(f"C{r}", f"=L1!$M${l1_at[key]}", f"→ L1_{key}")
+    r = _row_by(ck, "A", "最終訓練 ÷ 研發計畫"); m = l1_at["FinalTrainShare"]
+    setf(f"C{r}", f'=TEXT(L1!$M${m}*100,"0.0")&"%–"&TEXT(L1!$N${m}*100,"0.0")&"%"', "→ L1_FinalTrainShare")
+    r = _row_by(ck, "A", "前沿錨點中值（5e26）反推 Astra 預訓練 token")
+    v = str(ck[f"F{r}"].value or ""); ck[f"F{r}"].value = v if "L1_" in v else f"{v}［Astra 預訓練算力與 SRC_MOD_033 的比較 → L1_PretrainFLOP_Astra］"
+    return log
+
+
 def gov_all(wb):
     made = src_sheets(wb)
+    appended = src_append(wb)
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
     dec_made = decisions_sheet(wb)
+    dec_upd = dec_update(wb)
     n_fm, fm_log = apply_formula_map(wb)
     n_f14 = f14(wb)
     checks_block1(wb)
-    n_gm, hard = gov_map(wb, idx)
+    ck2_log = checks_slice2(wb)
+    n_gm, hard, n_upd, n_c = gov_map(wb, idx)
     SI = src_index(wb)
-    n_l1, nonf = l1_sheet(wb)
+    n_l1, nonf, l1_at = l1_sheet(wb)
+    ck3_log = checks_to_l1(wb, l1_at)
     checks_gov(wb, n_l1, nonf, hard, SI["spans"])
-    return dict(src_made=made, src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made,
+    return dict(src_made=made, src_appended=appended, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made,
                 src_index_rows=SI["rows"], src_index_src_rows=SI["src_rows"], src_index_spans=SI["spans"],
                 formula_map_changed=n_fm, f14_changed=n_f14, gov_rows=n_gm, gov_raw_hardcoded=hard, l1_rows=n_l1, l1_nonformula=nonf,
-                fm_log=fm_log)
+                fm_log=fm_log + ck2_log + ck3_log)

@@ -194,7 +194,7 @@ def harness(wb, U, S, WL):
         if sk == "std":
             pT, pH, pRho, pChi, pM, pC = W("T"), W("h"), W("rho"), W("chi"), W("m"), W("c")
         else:
-            pT = W("T") + "*INDEX(B5_SelT,1,{k})"; pH = W("h") + "*INDEX(B5_SelH,1,{k})"; pRho = "INDEX(B5_SelRho,1,{k})"
+            pT = W("T") + "*INDEX(B5_SelT,1,{k})"; pH = W("h") + "*INDEX(B5_SelH,1,{k})"; pRho = "INDEX(B5_Selrho,1,{k})"
             pChi = "MIN(1,MAX(0," + W("chi") + "+INDEX(B5_SelDChi,1,{k})))"; pM = W("m") + "+INDEX(B5_SelDM,1,{k})"; pC = "INDEX(B5_SelC,1,{k})"
         base = r
         rows = [("T", "輪數 T", "輪", "=" + pT, "#,##0.0"), ("h", "每輪思考 h", "tok", "=" + pH, "#,##0"),
@@ -342,7 +342,7 @@ def sens_har(wb, U, S, WL, H, R):
     for X, (lab, _, _) in zip(cols, var): put(ws, f"{X}4", lab, F_BOLD, wrap=True)
     ws.row_dimensions[4].height = 42
     W = lambda key: f"Workload!${c0}${WL[key]}"
-    basev = {"T": f"INDEX(B5_SelT,1,{k})", "H": f"INDEX(B5_SelH,1,{k})", "rho": f"INDEX(B5_SelRho,1,{k})", "C": f"INDEX(B5_SelC,1,{k})",
+    basev = {"T": f"INDEX(B5_SelT,1,{k})", "H": f"INDEX(B5_SelH,1,{k})", "rho": f"INDEX(B5_Selrho,1,{k})", "C": f"INDEX(B5_SelC,1,{k})",
              "Hz": f"INDEX(B5_SelHz,1,{k})", "Ret": f"INDEX(B5_SelRet,1,{k})", "beta": "B5_Beta"}
     rows = {}
     r = 5
@@ -481,7 +481,7 @@ SOURCES_B5 = [
 ]
 
 def sources_b5(wb):
-    ws = wb["Sources"]
+    ws = wb["Sources_Legacy"]
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 1
     for i, row in enumerate(SOURCES_B5):
         for c, v in zip("ABCDEFG", row): put(ws, f"{c}{r+i}", v, wrap=True)

@@ -16,8 +16,17 @@ from finish import evidence_sheet
 from preserve import snapshot, restore
 
 wb = openpyxl.load_workbook(BASE)
+# ---- v5.12 (A): the pre-Source register is frozen as Sources_Legacy (no formula or name refers to it) ----
+if "Sources" in wb.sheetnames and "Sources_Legacy" not in wb.sheetnames:
+    wb["Sources"].title = "Sources_Legacy"
+    wb["Sources_Legacy"]["A1"].value = ("Sources_Legacy — v5.11 以前的來源清單（v5.12 起凍結，只供追溯原 S 編號；"
+                                        "新來源一律先登錄 DB_Evidence，擇優寫入 SRC_*）")
 # ---- v5.7 Excel-first: snapshot every input cell (blue font) before the rebuild ----
 SNAP = snapshot(wb)
+# ---- v5.12 (A): inputs that moved to another row keep their Excel value (restore stays unmatched 0) ----
+from training import SNAP_MOVES
+for _old, _new in SNAP_MOVES:
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
           "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train",
@@ -31,7 +40,7 @@ def clear(ws, r0, c1=1, c2=30):
             cell.value = None; cell.fill = openpyxl.styles.PatternFill(fill_type=None)
 clear(wb["Spec_Rack"], 21); 
 for r in range(1, 21): wb["Spec_Rack"].cell(row=r, column=8).value = None
-clear(wb["Interface"], 17); clear(wb["Checks"], 12); clear(wb["Sources"], 23); clear(wb["README"], 4, 1, 2)
+clear(wb["Interface"], 17); clear(wb["Checks"], 12); clear(wb["Sources_Legacy"], 23); clear(wb["README"], 4, 1, 2)
 for n in list(wb.defined_names.keys()):
     if n not in ("CTL_GW","CTL_PowerCase","IF_CapexFacility","IF_CapexIT","IF_CapexTotal","IF_FacilityGW",
                  "IF_GPUhrEcon","IF_GPUsPerGW","IF_HoldAcct","IF_HoldEcon","IF_PowerCost","IF_RacksPerGW"):
@@ -91,7 +100,7 @@ print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
-         "Har_In","Harness","Sens_Har","Interface","Energy","NonNV","Sensitivity","Checks","Sources","DB_Evidence"]
+         "Har_In","Harness","Sens_Har","Interface","Energy","NonNV","Sensitivity","Checks","Sources_Legacy","DB_Evidence"]
 wb._sheets = [wb[n] for n in order] + [s for s in wb._sheets if s.title not in order]   # v5.11: keep Excel-owned governance sheets
 # ---- v5.3: Block 1 Checks — reference cells instead of literals (CC 第 1 輪第 6 節第 5 項) ----
 from common import put, F_IN
@@ -144,7 +153,7 @@ order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
          "Har_In","Harness","Sens_Har","Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
-         "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","Sources","DB_Evidence"]]
+         "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Index","Sources_Legacy","DB_Evidence"]]
 assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)
 wb._sheets = [wb[n] for n in order]
 wb.save(out)

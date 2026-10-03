@@ -935,7 +935,7 @@ def impact(xlsx: Path, targets):
 
 # ───────────────────────── 7. Gate 1 驗收（第 11 輪；唯讀） ─────────────────────────
 
-GOVERNANCE_SHEETS = {"Gov_Map", "Decisions", "SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "L1", "Checks", "Sources",
+GOVERNANCE_SHEETS = {"Gov_Map", "Decisions", "SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "L1", "Checks", "Sources_Legacy", "SRC_Index",
                      "DB_Evidence", "README"}
 UNIT_CONSTS = {0, 1, 2, 3, 4, 8, 10, 12, 24, 60, 100, 168, 365, 1000, 3600, 8760,
                1e3, 1e6, 1e9, 1e12, 1e15, 1e18}               # 單位換算常數（指令第 3.2 節；0 為本工具加入的空值）

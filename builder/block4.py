@@ -507,7 +507,7 @@ def sens_rev(wb, K, T, A):
       ("免費占服務 35%", 0.35, "1", "(1-B{r})/(1-B4_Free)", ""),
       ("免費占服務 60%", 0.6, "1", "(1-B{r})/(1-B4_Free)", ""),
       ("前緣單價取代 OpenAI（Sol）", "—", "INDEX(B4_FrontRef,1,2)/INDEX(B4_EffRef,1,2)", "—", "K2 (i)：前緣即 OpenAI 時為 1"),
-      ("ε＝0.5、有效算力 ×7（J8 缺口全數轉為能力）", 7, "EXP(0.5*LN(B{r}))/Price_Frontier!D{capf}", "EXP(0.5*LN(B{r}))/Price_Frontier!D{capf}", "K4 (a) 若採用的量級；不入基準"),
+      ("ε＝0.5、有效算力 ×7（J8 缺口全數轉為能力）", 7, "EXP(CST_Eps*LN(B{r}))/Price_Frontier!D{capf}", "EXP(CST_Eps*LN(B{r}))/Price_Frontier!D{capf}", "K4 (a) 若採用的量級；不入基準；ε 見下一列"),
     ]
     r = 5
     for lab, v, fr, ff, note in rows:
@@ -520,6 +520,11 @@ def sens_rev(wb, K, T, A):
         else:
             put(ws, f"F{r}", f"={ff2}", fmt="0.00"); put(ws, f"E{r}", f"={base_fl}*F{r}", fmt="0.00", fill=FILL_KEY)
         put(ws, f"G{r}", note, F_NOTE, wrap=True); r += 1
+    # v5.12 (A): ε of the K4 (a) magnitude scenario moved out of the formulas above into its own input (value unchanged)
+    put(ws, f"A{r}", "ε（上一列量級情境的指數；能力 ∝ 有效算力^ε）"); put(ws, f"B{r}", 0.5, fmt="0.00",
+                                                                 fill=PatternFill("solid", fgColor="FFFFFF00"))
+    put(ws, f"G{r}", "情境值（K4 (a)）；上一列標籤文字的「ε＝0.5」不隨本格更新（CST_Eps）", F_NOTE, wrap=True)
+    wb.defined_names["CST_Eps"] = DefinedName("CST_Eps", attr_text=f"Sens_Rev!$B${r}")
     r += 1
     put(ws, f"A{r}", "攤提（自下而上，Sol）對商業壽命", F_BOLD); r += 1
     for lab, m in [("壽命 6 個月", 6), ("壽命 24 個月", 24)]:
@@ -640,7 +645,7 @@ SOURCES_B4 = [
 ]
 
 def sources_b4(wb):
-    ws = wb["Sources"]
+    ws = wb["Sources_Legacy"]
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 1
     for i, row in enumerate(SOURCES_B4):
         for c, v in zip("ABCDEFG", row): put(ws, f"{c}{r+i}", v, wrap=True)

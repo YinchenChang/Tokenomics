@@ -2,6 +2,7 @@
 from common import *
 from perf import write_perf
 from outputs import COLS15
+from openpyxl.workbook.defined_name import DefinedName
 
 # ---------------------------------------------------------------- Tech_Registry
 HOOKS = [  # code, meaning, where it acts
@@ -66,7 +67,7 @@ def tech_registry(wb):
         for c, v in zip("ABCD", (eid, tech, hook, acts)): put(ws, f"{c}{r}", v, wrap=(c == "B"))
         for c, v in zip("EFG", (lo, ba, hi)): put(ws, f"{c}{r}", v, fmt="0.00")
         put(ws, f"H{r}", sel, fmt="0"); put(ws, f"I{r}", st, F_IN); put(ws, f"J{r}", labs, fmt="0")
-        put(ws, f"K{r}", f'=IF(J{r}>=2,"主流","非主流")')
+        put(ws, f"K{r}", f'=IF(J{r}>=CST_MainMin,"主流","非主流")')
         put(ws, f"L{r}", ovr if ovr else None, F_IN)
         put(ws, f"M{r}", inb, F_IN); put(ws, f"N{r}", adopt, fmt="0%"); put(ws, f"O{r}", sw, fmt="0")
         put(ws, f"P{r}", f'=IF(M{r}="是",1,1+O{r}*N{r}*(CHOOSE(H{r},E{r},F{r},G{r})-1))', fmt="0.00", fill=FILL_KEY)
@@ -75,6 +76,11 @@ def tech_registry(wb):
                          f'IF(AND(IF(L{r}="",K{r},L{r})="非主流",M{r}="是",I{r}<>"早期採用"),"非主流卻在基準","一致"))', wrap=True)
         ws.row_dimensions[r].height = 42
     r1 = r0 + len(ENTRIES) - 1
+    # v5.12 (A): J14 threshold ("at least two labs") moved out of the K-column formula into a named input (value unchanged)
+    put(ws, f"A{r1+1}", "門檻"); put(ws, f"B{r1+1}", "主流判定門檻：公開採用實驗室數 ≥ 本格（J14；K 欄共用）", wrap=True)
+    put(ws, f"J{r1+1}", 2, fmt="0"); put(ws, f"Q{r1+1}", "Decision", F_NOTE)
+    put(ws, f"R{r1+1}", "J14：至少兩家實驗室公開採用即為主流（CST_MainMin）", F_NOTE, wrap=True)
+    wb.defined_names["CST_MainMin"] = DefinedName("CST_MainMin", attr_text=f"Tech_Registry!$J${r1+1}")
     r = r1 + 2
     section(ws, r, "掛鉤彙總（同一掛鉤多條目時取乘積；Perf、Perf_Batch、Training 連結本表 E 欄）", 20); r += 1
     for c, v in zip("ABCDE", ["代碼", "意義", "", "作用位置", "倍數"]): put(ws, f"{c}{r}", v, F_BOLD)
@@ -429,26 +435,39 @@ SCEN_T = [  # label, overrides applied to both columns (Sol, Astra); special "fp
  ("NVFP4 訓練峰值（J7 替代）", {"pk8": "=INDEX(Spec_Rack!$C${tfp4}:$G${tfp4},{X}$6)"}),
  ("預訓練 token × 0.5", {"htok": 0.5}),
  ("預訓練 token × 1.67", {"htok": 1.67}),
- ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*0.3"}),
- ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*3"}),
+ ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 0.3}),
+ ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 3}),
  ("rollout 效率 0.6（v5.5 混合現況；rollout token 不變）", {"reff": 0.6}),
  ("rollout 效率 0.95（rollout token 不變）", {"reff": 0.95}),
  ("rollout 精度 FP8（J12 替代）", "fp8"),
- ("合成資料 token × 0", {"Dsy": 0}),
- ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*3"}),
+ ("合成資料 token × 0", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 0}),
+ ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 3}),
  ("研發倍數 4.4（MiniMax）", {"rdm": 4.4}),
  ("研發倍數 10.4（OpenAI）", {"rdm": 10.4}),
  ("goodput 0.80", {"gp": 0.8}),
 ]
+
+MULT_ROW = 8
+MULT_LABEL = "情境倍數（×；黃底藍字＝作用中，乘在該情境改動的量上）"
+# v5.11 had the "合成資料 token × 0" scenario written as a blue 0 on the synthetic-token row; v5.12 moves it to MULT_ROW.
+# build.py remaps that snapshot key so an Excel-edited value is carried over (restore stays unmatched 0).
+SNAP_MOVES = [(("Sens_Train", ("合成資料 token", 0), c), ("Sens_Train", (MULT_LABEL, 0), c)) for c in (25, 26)]   # Y, Z
 
 def sens_train(wb, SP, AR, TI, PB, TR):
     ws = wb.create_sheet("Sens_Train")
     title(ws, "Sens_Train — 訓練與研發計畫的單變數敏感度（VR200；每組左 Sol、右 Astra；先看敏感度，再看基準）",
           "黃底藍字＝該情境改動的輸入。L 節為對基準欄（C、D）的比值")
     cols, ov, gt = [], {}, []
+    put(ws, f"A{MULT_ROW}", MULT_LABEL, F_BOLD); put(ws, f"B{MULT_ROW}", "x")
     for i, (lab, o) in enumerate(SCEN_T):
         xs, xa = L(3 + 2 * i), L(4 + 2 * i)
         cols += [xs, xa]; gt += [(4, 2), (4, 3)]
+        # v5.12 (A): scenario multipliers live in one input row (MULT_ROW); "—" where the scenario is not a multiplier
+        m = o.get("_mult") if isinstance(o, dict) else None
+        for X in (xs, xa):
+            if m is None: put(ws, f"{X}{MULT_ROW}", "—", F_NOTE)
+            else: put(ws, f"{X}{MULT_ROW}", m, fmt="0.00", fill=PatternFill("solid", fgColor="FFFFFF00"))
+        if isinstance(o, dict): o = {k: v for k, v in o.items() if not k.startswith("_")}
         if o == "fp8":
             ov[xs] = {k: f"=Perf_Batch!R{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
             ov[xa] = {k: f"=Perf_Batch!S{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
@@ -459,7 +478,9 @@ def sens_train(wb, SP, AR, TI, PB, TR):
         put(ws, f"{xs}3", lab, F_BOLD, wrap=True); ws.merge_cells(f"{xs}3:{xa}3")
     ws.row_dimensions[3].height = 44; put(ws, "A3", "情境", F_BOLD)
     hdr15(ws, cols, gt)
+    wb.defined_names["CST_STMult"] = DefinedName("CST_STMult", attr_text=f"Sens_Train!$C${MULT_ROW}:${cols[-1]}${MULT_ROW}")
     R, r = write_train(ws, cols, SP, AR, TI, PB, TR, overrides=ov)
+    R["mult"] = MULT_ROW
     section(ws, r, "L. 對基準的比值（同層級）", 2 + len(cols)); r += 1
     for key, lab in [("Hfin", "最終訓練 GPU 小時 ÷ 基準"), ("Hprog", "研發計畫 GPU 小時 ÷ 基準"), ("psH", "後訓練占比（GPU 小時）÷ 基準")]:
         R["r_" + key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", "x")

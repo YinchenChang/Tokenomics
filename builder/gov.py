@@ -5,7 +5,8 @@
 #   - SRC_*, Decisions, DB_Evidence, and the judgment columns of Gov_Map are Excel-owned: created from gov_seed /
 #     gov_decisions only when absent, never overwritten afterwards.
 #   - Builder-owned (rewritten on every build): FORMULA_MAP links on model pages, helper formulas in SRC_* (X–Z),
-#     Gov_Map formula / status columns (Q–AE), the L1 sheet, the Checks governance section, SRC_/L1_/GOV_ names.
+#     Gov_Map formula / status columns (Q–AF), the SRC_Index sheet (v5.12), the L1 sheet, the Checks governance section,
+#     SRC_/L1_/GOV_/IDX_ names. v5.12 (A) also appends Gov_Map rows for new input cells (GOV_MAP_V512A) when absent.
 import re
 from openpyxl.styles import PatternFill
 from openpyxl.workbook.defined_name import DefinedName
@@ -62,17 +63,23 @@ def src_sheets(wb):
     return made
 
 
+KEY_COL, KEY_SEP = "AH", "¦"       # v5.12 (A): builder-owned key column (指標¦口徑¦適用對象, Active rows only) used by X
+
 def src_refresh(wb):
-    """Helper formulas (X–Z) for every record row, and SRC_ names (value／_Lo／_Hi／Perf attributes)."""
+    """Helper formulas (X–Z, AH) for every record row, and SRC_ names (value／_Lo／_Hi／Perf attributes)."""
     n_names = 0; index = {}
     for sh in SRC_SHEETS:
         ws = wb[sh]
+        put(ws, f"{KEY_COL}4", "同指標鍵（公式；X 欄用，v5.12）", F_BOLD, wrap=True); ws.column_dimensions[KEY_COL].width = 12
         for r in range(5, ws.max_row + 1):
             sid = ws.cell(r, 1).value
             if not (isinstance(sid, str) and sid.startswith("SRC_")): continue
             index[sid] = (sh, r)
             rng = lambda c: f"${c}$5:${c}${SRC_LAST}"
-            put(ws, f"X{r}", f'=IF($O{r}="Active",SUMPRODUCT(({rng("B")}=$B{r})*({rng("G")}=$G{r})*({rng("H")}=$H{r})*({rng("O")}="Active")),0)', fmt="0")
+            # v5.12 (A): same count as v5.11 (B, G, H equal and Active) via one key column (AH) and one comparison array,
+            # instead of four 396-row arrays per record (the SRC X columns were ~60% of full-recalc time after SRC_Index)
+            put(ws, f"{KEY_COL}{r}", f'=IF($O{r}="Active",$B{r}&"{KEY_SEP}"&$G{r}&"{KEY_SEP}"&$H{r},"")')
+            put(ws, f"X{r}", f'=IF($O{r}="Active",SUMPRODUCT(({rng(KEY_COL)}=${KEY_COL}{r})*1),0)', fmt="0")
             put(ws, f"Y{r}", f'=IF(AND($O{r}="Active",OR($Q{r}="{DASH}",$Q{r}="")),1,0)', fmt="0")
             put(ws, f"Z{r}", f'=IF(AND($O{r}="Active",$L{r}="利害關係方",OR($R{r}="{DASH}",$R{r}="")),1,0)', fmt="0")
             _nm(wb, sid, f"{sh}!$C${r}"); n_names += 1
@@ -177,16 +184,84 @@ GM_HDR = ["GM_ID", "範圍", "工作表", "格", "列標籤", "類別", "區間�
           "理由", "標記變更（v5.11）", "CC 敏感度分段",
           "模型值", "SRC 值", "SRC 狀態", "SRC 等級", "實際狀態（建置時）",
           "E1 原始寫死", "E2 Analogy 缺可比", "E3 缺區間", "E4 缺理由", "E5 Decision 缺 ID", "E6 決策 ID 不存在", "E9 SRC 非 Active",
-          "E10 區間順序", "W2 3 級×高段", "E12 SRC 不存在"]
+          "E10 區間順序", "W2 3 級×高段", "E12 SRC 不存在", "SRC_Index 列（MATCH；v5.12）"]
 GM_LAST = 700
 
-def _lookup(h, col):
-    parts = []
+# ---------------------------------------------------------------- 5a. SRC_Index (v5.12 A; builder-owned, rebuilt every build)
+# Why: v5.11 Gov_Map S／T ran 16 MATCH per row over 4 SRC sheets × rows 5..400 (≈6,960 MATCH; full recalc 3.4–3.7 s),
+# a cost that grows with Gov_Map rows × SRC sheets. SRC_Index stacks the A (ID), O (status) and K (grade) columns of every
+# SRC sheet into one list, so Gov_Map needs one MATCH per row (column AF), shared by S and T.
+# A sentinel block mirrors Gov_Map!H, so MATCH always finds the ID (an ID absent from every SRC sheet lands in the sentinel
+# block, whose status／grade read "不存在", exactly the v5.11 result) — no #N/A, no new function (no IFERROR).
+IDX_HEAD = 50                       # spare slots per SRC sheet after its last record (Checks E13 flags records beyond them)
+
+def src_index(wb):
+    if "SRC_Index" in wb.sheetnames: del wb["SRC_Index"]
+    ws = wb.create_sheet("SRC_Index")
+    title(ws, "SRC_Index — SRC_* 的 ID、狀態、等級依序堆疊（builder 擁有，每次重建；只供 Gov_Map 查找，不放任何數值）",
+          "Gov_Map AF 欄以 1 個 MATCH 找到 SRC_ID 所在列，S（狀態）、T（等級）欄以 INDEX 讀本頁。各 SRC 頁的範圍＝第 5 列到最後一筆紀錄＋"
+          f"{IDX_HEAD} 列；紀錄超出範圍時 Checks E13 報錯（重建即可）。最後一段為 Gov_Map H 欄的鏡像（哨兵）：找不到的 SRC_ID 落在這段，狀態與等級為「不存在」。")
+    for i, (h, w) in enumerate(zip(["SRC_ID", "工作表", "原列", "狀態", "等級"], [16, 14, 7, 12, 8])):
+        put(ws, f"{L(i+1)}4", h, F_BOLD); ws.column_dimensions[L(i+1)].width = w
+    r = 5; spans = {}
     for sh in SRC_SHEETS:
-        parts.append((f"ISNUMBER(MATCH({h},{sh}!$A$5:$A${SRC_LAST},0))", f"INDEX({sh}!${col}$5:${col}${SRC_LAST},MATCH({h},{sh}!$A$5:$A${SRC_LAST},0))"))
-    f = '"不存在"'
-    for cond, val in reversed(parts): f = f"IF({cond},{val},{f})"
-    return f
+        src = wb[sh]
+        last = max([rr for rr in range(5, min(src.max_row, SRC_LAST) + 1) if src.cell(rr, 1).value not in (None, "")] or [4])
+        end = min(last + IDX_HEAD, SRC_LAST)
+        spans[sh] = (r, end)
+        for rr in range(5, end + 1):
+            put(ws, f"A{r}", f'={sh}!$A{rr}&""'); put(ws, f"B{r}", sh); put(ws, f"C{r}", rr, F_CALC)
+            put(ws, f"D{r}", f"={sh}!$O{rr}"); put(ws, f"E{r}", f"={sh}!$K{rr}")
+            r += 1
+    sent0 = r
+    for gr in range(5, GM_LAST + 1):
+        put(ws, f"A{r}", f'=Gov_Map!$H{gr}&""'); put(ws, f"B{r}", "（哨兵）", F_NOTE); put(ws, f"C{r}", gr, F_CALC)
+        put(ws, f"D{r}", "不存在"); put(ws, f"E{r}", "不存在")
+        r += 1
+    _nm(wb, "IDX_SrcID", f"SRC_Index!$A$5:$A${r-1}")
+    _nm(wb, "IDX_SrcStat", f"SRC_Index!$D$5:$D${r-1}")
+    _nm(wb, "IDX_SrcGrade", f"SRC_Index!$E$5:$E${r-1}")
+    ws.freeze_panes = "A5"
+    return dict(rows=r - 5, src_rows=sent0 - 5, spans={k: v[1] for k, v in spans.items()})
+
+# v5.12 (A): input cells created by moving formula constants out (交接第 8i 節的判定). Each entry: (sheet, column-A label of the
+# row, column span, fields). The cell is located by its label, so the row number is never hard-coded here.
+GOV_MAP_V512A = [
+  ("Arch", "上下文長度（上一列顯示用）", "C", dict(scope="切片一", label="上下文長度（128K 上下文每序列 KV 顯示列）", cls="Assumed", role="單值",
+      rtext="結構選擇（無數值區間）", reason="顯示列口徑 128,000 tok（非 131,072），無任何引用；v5.12 自 Arch C31:E31 公式移出（值不變）", seg="無")),
+  ("Sens_Train", "情境倍數（×；黃底藍字＝作用中，乘在該情境改動的量上）", "O:R", dict(scope="切片二頁（v5.12 A 包）",
+      label="情境倍數：RL rollout token × 0.3／× 3", cls="情境值", role="群組", reason="Sens_Train 情境；v5.12 自 O53:R53 公式移出（值不變）", seg="—")),
+  ("Sens_Train", "情境倍數（×；黃底藍字＝作用中，乘在該情境改動的量上）", "Y:AB", dict(scope="切片二頁（v5.12 A 包）",
+      label="情境倍數：合成資料 token × 0／× 3", cls="情境值", role="群組",
+      reason="Sens_Train 情境；v5.12 自 AA93:AB93 公式與 Y93:Z93 直接寫入的 0 移出（值不變）", seg="—")),
+  ("Sens_Rev", "ε（上一列量級情境的指數；能力 ∝ 有效算力^ε）", "B", dict(scope="切片二頁（v5.12 A 包）", label="ε（K4 (a) 量級情境）",
+      cls="情境值", role="單值", reason="K4 (a) 若採用的量級情境；v5.12 自 D17、F17 公式移出（值不變）", seg="—")),
+  ("Tech_Registry", "門檻", "J", dict(scope="切片二頁（v5.12 A 包）", label="主流判定門檻（公開採用實驗室數）", cls="Decision", role="單值",
+      dec="J14", reason="J14：至少兩家實驗室公開採用即為主流；v5.12 自 K5:K16 公式移出（值不變）", seg="—")),
+]
+
+def _find_row(ws, label):
+    for r in range(1, ws.max_row + 1):
+        if ws.cell(r, 1).value == label: return r
+    raise KeyError(f"{ws.title}: row label not found: {label}")
+
+def gm_append(wb, ws):
+    have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
+    ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
+    nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
+    added = 0
+    for sh, lab, span, g in GOV_MAP_V512A:
+        rr = _find_row(wb[sh], lab)
+        c0, c1 = (span.split(":") + [span])[:2]
+        cell = f"{c0}{rr}" if c0 == c1 else f"{c0}{rr}:{c1}{rr}"
+        if (sh, cell) in have: continue
+        vals = [f"GM{nxt:03d}", g["scope"], sh, cell, g["label"], g["cls"], g["role"], g.get("src") or DASH, g.get("rel") or DASH,
+                g.get("dec") or DASH, None, None, g.get("rtext") or DASH, g["reason"], DASH, g.get("seg") or DASH]
+        for i, v in enumerate(vals):
+            put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (4, 8, 13, 14))
+        r += 1; nxt += 1; added += 1
+    return added
 
 def gov_map(wb, src_index):
     ws = wb["Gov_Map"] if "Gov_Map" in wb.sheetnames else None
@@ -206,7 +281,9 @@ def gov_map(wb, src_index):
                 font = F_IN if i in (10, 11) and isinstance(v, (int, float)) else (F_LINK if isinstance(v, str) and v.startswith("=") else F_CALC)
                 put(ws, f"{L(i+1)}{r}", v, font, wrap=i in (4, 8, 13, 14))
         ws.freeze_panes = "E5"
-    # ---- builder-owned columns Q..AE
+    if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
+    gm_append(wb, ws)
+    # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
         sh, cell = ws[f"C{r}"].value, ws[f"D{r}"].value
@@ -225,8 +302,9 @@ def gov_map(wb, src_index):
             put(ws, f"R{r}", f"={sid}{suf}", F_LINK)
         else:
             put(ws, f"R{r}", DASH)
-        put(ws, f"S{r}", f'=IF(OR({h}="{DASH}",{h}=""),"{DASH}",{_lookup(h, "O")})')
-        put(ws, f"T{r}", f'=IF(OR({h}="{DASH}",{h}=""),"{DASH}",{_lookup(h, "K")})')
+        put(ws, f"AF{r}", f'=IF(OR({h}="{DASH}",{h}=""),"{DASH}",MATCH({h},IDX_SrcID,0))')
+        put(ws, f"S{r}", f'=IF(ISNUMBER($AF{r}),INDEX(IDX_SrcStat,$AF{r}),"{DASH}")')
+        put(ws, f"T{r}", f'=IF(ISNUMBER($AF{r}),INDEX(IDX_SrcGrade,$AF{r}),"{DASH}")')
         if single:
             v = wb[sh][cell].value
             st = ("連結 SRC" if "SRC_" in v else "公式") if isinstance(v, str) and v.startswith("=") else ("藍字（常數）" if v is not None else "空白")
@@ -331,10 +409,13 @@ def l1_sheet(wb):
 
 
 # ---------------------------------------------------------------- 8. Checks governance section (builder-owned)
-def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard):
+def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
     ws = wb["Checks"]
+    terms = [f'COUNTIF({sh}!$A${e+1}:$A${SRC_LAST},"<>{DASH}")-COUNTIF({sh}!$A${e+1}:$A${SRC_LAST},"")'
+             for sh, e in idx_spans.items() if e < SRC_LAST]
+    idx_cov = "=" + "+".join(terms) if terms else 0
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
-    section(ws, r, "G. 治理檢查（Stage 1 切片一，v5.11；規劃書第 5 節）：ERROR 合計必須為 0 才可合併", 6); r += 1
+    section(ws, r, "G. 治理檢查（Stage 1 切片一，v5.11；v5.12 加 E13；規劃書第 5 節）：ERROR 合計必須為 0 才可合併", 6); r += 1
     for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]):
         put(ws, f"{L(i+1)}{r}", h, F_BOLD)
     r += 1
@@ -353,6 +434,7 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard):
       ("E10", "基準值不在低／高之間", "ERROR", f'=COUNTIF({GM("AC")},1)', "Gov_Map 數值區間（低、高不分方向）"),
       ("E11", "L1 數值欄不是公式（貼值）", "ERROR", l1_nonformula, "建置時靜態檢查（builder）"),
       ("E12", "引用的 SRC_ID 不存在（切片一）", "ERROR", f'=COUNTIF({GM("AE")},1)', "Gov_Map"),
+      ("E13", "SRC 紀錄超出 SRC_Index 範圍（需重建）", "ERROR", idx_cov, "各 SRC 頁 A 欄在 SRC_Index 範圍之後、第 400 列之前的非空白格（v5.12）"),
       ("W1", "利害關係方 Active 紀錄缺第二來源", "WARN", "=" + srcsum("Z", "1"), "SRC_* Z 欄（SemiAnalysis 規則推廣；Stage 2 補）"),
       ("W2", "3 級紀錄被 CC 高段敏感度參數使用", "WARN", f'=COUNTIF({GM("AD")},1)', "Gov_Map（CC 第 10 輪分段）"),
       ("I1", "DB_Evidence 待判定", "INFO", '=COUNTIF(DB_Evidence!$L$5:$L$500,"待判定")', "DB_Evidence L 欄"),
@@ -406,8 +488,10 @@ def gov_all(wb):
     n_f14 = f14(wb)
     checks_block1(wb)
     n_gm, hard = gov_map(wb, idx)
+    SI = src_index(wb)
     n_l1, nonf = l1_sheet(wb)
-    checks_gov(wb, n_l1, nonf, hard)
+    checks_gov(wb, n_l1, nonf, hard, SI["spans"])
     return dict(src_made=made, src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made,
+                src_index_rows=SI["rows"], src_index_src_rows=SI["src_rows"], src_index_spans=SI["spans"],
                 formula_map_changed=n_fm, f14_changed=n_f14, gov_rows=n_gm, gov_raw_hardcoded=hard, l1_rows=n_l1, l1_nonformula=nonf,
                 fm_log=fm_log)

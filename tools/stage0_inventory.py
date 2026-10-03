@@ -966,6 +966,7 @@ def _cmp_sheet(a, b, sheet, rel=REL):
 def scan_constants(wb):
     """G0-5：模型頁公式內的數值常數（排除單位換算常數與 INDEX／CHOOSE／MATCH 的位置參數）。"""
     rows = []
+    kept = collections.defaultdict(list)           # 被排除的整數常數（2、3、4…）：依「工作表＋常數＋公式型態」歸併，供人工複核
     for ws in wb:
         if ws.title in GOVERNANCE_SHEETS:
             continue
@@ -984,11 +985,14 @@ def scan_constants(wb):
                         argi[-1] += 1
                     elif tk.type == "OPERAND" and tk.subtype == "NUMBER":
                         v = float(tk.value)
+                        if v in UNIT_CONSTS and v not in (0, 1) and v < 1e3 and not (stack and stack[-1] in POSITION_FUNCS and argi[-1] >= 1):
+                            kept[(ws.title, tk.value, re.sub(r"\$?[A-Z]{1,3}\$?\d+", "#", text)[:90])].append(c.coordinate)
                         if v in UNIT_CONSTS or v >= 1e90:        # 1e90 以上＝MIN() 的「無窮大」哨兵值（Harness 前緣 9E+99；Price_Frontier 的 1E9 已在單位表），非數據
                             continue
                         if stack and stack[-1] in POSITION_FUNCS and (stack[-1] == "CHOOSE" and argi[-1] == 0 or stack[-1] != "CHOOSE" and argi[-1] >= 1):
                             continue
                         rows.append((ws.title, c.coordinate, text, tk.value))
+    scan_constants.excluded = kept
     return rows
 
 
@@ -1119,6 +1123,9 @@ def write_gate1_md(res, out, xlsx, prev):
           f"### 公式內數值常數（G0-5；排除單位換算與位置索引；{len(r['constants'])} 格）", "",
           "| 工作表 | 格 | 常數 | 公式 |", "|---|---|---|---|"]
     L += [f"| {s} | {c} | {v} | `{f[:120].replace('|', '¦')}` |" for s, c, f, v in r["constants"]]
+    L += ["", "### 被單位表排除的整數常數（2、3、4、8、10、12、24、60、100、168、365；依公式型態歸併，供人工複核是否為情境倍數）", "",
+          "| 工作表 | 常數 | 格數 | 範例格 | 公式型態 |", "|---|---|---|---|---|"]
+    L += [f"| {s} | {v} | {len(cs)} | {', '.join(dict.fromkeys(cs))[:40]} | `{f.replace('|', '¦')}` |" for (s, v, f), cs in sorted(scan_constants.excluded.items())]
     r = res["3.3"]
     L += ["", "## 3.3 Evidence", "", f"- Active SRC {r['active']} 筆；DB_Evidence 共 {r['evidence_ids']} 個 ID；缺或不存在 {len(r['missing_or_unknown'])}：{r['missing_or_unknown'][:10]}；Checks E8＝{r['E8']}"]
     r = res["3.4"]

@@ -10,9 +10,9 @@
 - 檔案：v5.10 以 `git mv` 移入 `model/archive/`；`model/CURRENT` 改為 v5.11。
 - 測試：parity 期望值改為 27,700 格、604 個具名範圍、41 張工作表，另加 SRC_／L1_／GOV_ 名稱數；情境 16 → 18（新增 `gw_2`：`CTL_GW`＝2；`src_hw038_x1_1`：SRC_HW_038 ×1.1）。18 個情境各 27,700 格不符 0。
 - engine：`norm()` 把 numpy 純量轉為 Python 型別（SUMPRODUCT 回傳 np.int64，型別嚴格比對下造成 158 格誤報；只改型別表示，不改數值）。
-- **未過項目**：`test_incremental_recalc_matches_fresh_and_is_fast` 的「單次全簿強制重算 < 2 秒」實測 3.4–3.7 秒（v5.10 為 0.47 秒；增量重算每情境仍為 0.2–0.5 秒）。依 CLAUDE.md 第 2 節回報 Andy，門檻未放寬、測試未略過。
+- 效能門檻（chat 端定案）：全簿強制重算 3.4–3.7 秒（v5.10 為 0.47 秒），主因是 Gov_Map S、T 欄 6,960 個 MATCH。測試拆為 (a) 每情境增量重算 < 2 秒（硬性）、(b) 全簿強制重算 < 5 秒（暫行，至 v5.12 為止；v5.12 以 SRC_Index 改寫後恢復 < 2 秒）；`CLAUDE.md` 引擎規則同步。
 - 網站：新增「治理」頁（Checks G 節、L1 25 列、SRC 四頁 A–W 欄唯讀）；總覽加 `GOV_Errors`／`GOV_Warnings`／`GOV_Info` 與 Checks G 節表；證據登錄頁筆數 20 → 67（只讀 A:K 欄，L–Q 欄未顯示）。網站測試 13 項全過。
-- 工具：`tools/stage0_inventory.py` 新增 `gate1` 子指令；`tools/export_csv.py` 匯出 SRC_*、Interface 為 CSV 並檢查 `GOV_Errors`；CI 新增兩步（治理檢查、上傳匯出 CSV）。
+- 工具：`tools/stage0_inventory.py` 新增 `gate1` 子指令（含被單位表排除的整數常數複核表）；`tools/export_csv.py` 匯出 SRC_*、Interface 為 CSV 並檢查 `GOV_Errors`；CI 新增兩步（治理檢查、上傳匯出 CSV）。
 
 ## 第 10 輪：Stage 0 盤點（唯讀）＋網站小修（Excel 不變，仍為 `20261002_Tokenomics_v5.10.xlsx`）
 

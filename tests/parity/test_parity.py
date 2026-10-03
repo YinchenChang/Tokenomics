@@ -221,6 +221,7 @@ def test_scenario_parity(sc, model, base_engine, tmp_path, results_store):
     results_store[sc["id"]] = {k: v for k, v in res.items() if k != "mismatches"} | {
         "n_mismatch": len(res["mismatches"]), "eval_all_seconds_after_change": round(elapsed, 2),
         "changed_cells": len(changed), "changed_interface_cells": sum(1 for s_, _ in changed if s_ == "Interface")}
+    assert elapsed < INCREMENTAL_LIMIT_S, f"[{sc['id']}] 改輸入後重算 {elapsed:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"   # (a) 增量重算硬性門檻
     assert res["error_value_cells"] == 0, f"[{sc['id']}] 錯誤值 {res['error_value_cells']} 格（v5.9 起任何情境皆不得出現錯誤值；兩邊錯誤代碼不同亦視為不符）"
     if sc["id"] != "base":
         assert changed, f"[{sc['id']}] 未改變任何公式格（測試空轉）"
@@ -239,15 +240,19 @@ def test_scenarios_actually_change_outputs(model, base_engine, tmp_path):
         assert changed, f"{sc['id']} 未改變任何公式格"
 
 
+# 效能門檻（第 11 輪收尾，chat 端定案）：兩條。
+#   (a) 增量重算 < 2 秒（硬性）：每個情境改輸入後都要測。
+#   (b) 全簿強制重算 < 5 秒（暫行）：防止繼續變慢。
+# 全簿 < 5 秒為暫行門檻，至 v5.12 為止；v5.12 以 SRC_Index 改寫 Gov_Map 查找後，恢復為全簿 < 2 秒。
+FULL_RECALC_LIMIT_S = 5.0
+INCREMENTAL_LIMIT_S = 2.0
+
+
 def test_incremental_recalc_matches_fresh_and_is_fast(model):
-    """同一實例連續改輸入再還原：結果須與全新實例相同；單次全簿重算 < 2 秒。"""
+    """同一實例連續改輸入再還原：結果須與全新實例相同；(a) 每個情境增量重算 < 2 秒（硬性）。"""
     eng = Engine(model)
     base = eng.evaluate_all()
     names = eng.names
-    t0 = time.perf_counter()
-    eng._xl.recalculate()                      # 強制全簿（全部公式格）重算
-    full = time.perf_counter() - t0
-    assert full < 2.0, f"全簿強制重算 {full:.2f}s ≥ 2s"
     base_orig = {a: eng.get(*resolve_key(names, a)) for sc in SCENARIOS[1:] for a in sc["inputs"]}   # 改動前的原值
     for sc in SCENARIOS[1:]:
         origs = {a: base_orig[a] for a in sc["inputs"]}
@@ -256,8 +261,19 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
             eng.set_key(key, v)
         eng.evaluate_all()
         dt = time.perf_counter() - t0
-        assert dt < 2.0, f"{sc['id']} 全簿重算 {dt:.2f}s ≥ 2s"
+        assert dt < INCREMENTAL_LIMIT_S, f"{sc['id']} 增量重算 {dt:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"
         for key, v in origs.items():
             eng.set_key(key, v)
     res = compare(eng.evaluate_all(), base)   # 還原後與基準相同（容差內；pycel 部分格以 15 位快取值回填）
     assert not res["mismatches"], format_mismatches(res["mismatches"])
+
+
+def test_full_recalc_time(model, results_store):
+    """(b) 全簿強制重算 < 5 秒（暫行門檻；見上方註解）。"""
+    eng = Engine(model)
+    eng.evaluate_all()
+    t0 = time.perf_counter()
+    eng._xl.recalculate()                      # 強制全簿（全部公式格）重算
+    full = time.perf_counter() - t0
+    results_store["_full_recalc_seconds"] = round(full, 2)
+    assert full < FULL_RECALC_LIMIT_S, f"全簿強制重算 {full:.2f}s ≥ {FULL_RECALC_LIMIT_S}s"

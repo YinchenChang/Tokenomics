@@ -469,3 +469,49 @@ def b5_front(eng: Engine) -> pd.DataFrame:
         s = b5_task_series(eng, name)
         rows[f"{s['label']}（{s['unit']}）" if s["unit"] else s["label"]] = [fmt_unit(v, s["unit"]) for v in s["values"]]
     return pd.DataFrame(rows, index=task_names(eng)).T
+
+
+# ── 治理（v5.11：第 0 層 Source、第 1 層 L1、Checks G 節）──────────────────
+# 只讀 GOV_*、L1_*、SRC_* 具名範圍；表頭、列範圍與文字全部來自 Excel（由具名範圍解析列號，不寫死位址或數值）。
+SRC_SHEET_PREFIXES = ("SRC_HW_", "SRC_DC_", "SRC_MOD_", "SRC_PERF_")        # SRC 紀錄名稱前綴（A–W 欄為紀錄、X–Z 欄為檢查公式，不讀）
+SRC_LAST_COL = "W"
+L1_LAST_COL = "S"
+
+
+def gov_status(eng: Engine) -> dict[str, object]:
+    """Checks G 節合計：GOV_Errors（CI 讀取）、GOV_Warnings、GOV_Info。"""
+    return {n: eng.get_name(n) for n in ("GOV_Errors", "GOV_Warnings", "GOV_Info")}
+
+
+def gov_table(eng: Engine) -> pd.DataFrame:
+    """Checks G 節表格（GOV_Table）；表頭取範圍正上一列。"""
+    sheet, ref = eng.name_ref("GOV_Table")
+    c1, r1, c2, r2 = range_boundaries(ref)
+    head = eng.get(sheet, f"{get_column_letter(c1)}{r1 - 1}:{get_column_letter(c2)}{r1 - 1}")[0]
+    rows = eng.get_name("GOV_Table")
+    return pd.DataFrame(rows, columns=[str(h) for h in head])
+
+
+def _table_by_names(eng: Engine, sheet: str, row_names: list[str], last_col: str) -> pd.DataFrame:
+    """以具名範圍所在列決定資料列，表頭＝首列的上一列；讀 A:last_col。"""
+    rows = sorted({range_boundaries(eng.name_ref(n)[1])[1] for n in row_names})
+    first, last = rows[0], rows[-1]
+    grid = eng.get(sheet, f"A{first - 1}:{last_col}{last}")
+    df = pd.DataFrame(grid[1:], columns=[str(h) for h in grid[0]])
+    return df[(df.iloc[:, 0].astype(str) != "")].reset_index(drop=True)
+
+
+def l1_table(eng: Engine) -> pd.DataFrame:
+    """L1 頁（第 1 層常用推算值）：列由 L1_ 具名範圍（不含 _Lo／_Hi）決定。"""
+    names = [n for n in eng.names if n.startswith("L1_") and not n.endswith(("_Lo", "_Hi"))]
+    return _table_by_names(eng, eng.name_ref(names[0])[0], names, L1_LAST_COL)
+
+
+def src_tables(eng: Engine) -> dict[str, pd.DataFrame]:
+    """SRC_* 四頁（唯讀，A–W 欄）：頁名由具名範圍解析。"""
+    out = {}
+    for p in SRC_SHEET_PREFIXES:
+        names = [n for n in eng.names if n.startswith(p)]
+        if names:
+            out[eng.name_ref(names[0])[0]] = _table_by_names(eng, eng.name_ref(names[0])[0], names, SRC_LAST_COL)
+    return out

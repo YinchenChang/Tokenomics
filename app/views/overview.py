@@ -4,7 +4,7 @@ import streamlit as st
 from openpyxl.utils import range_boundaries
 
 from app.common import (BLOCK2_METRICS, BLOCK3_SCALARS, fmt, fmt_unit, get_engine, interface_series, is_block3_name,
-                        is_block4_name, is_block5_name, is_downstream_name)
+                        is_block4_name, is_block5_name, is_downstream_name, gov_status, gov_table)
 
 
 def render():
@@ -20,6 +20,13 @@ def render():
     for c, n in zip(cols[len(ctl):], scalars):
         s = interface_series(eng, n)
         c.metric(n, fmt_unit(s["values"][0], s["unit"]))
+
+    st.subheader("治理狀態（Checks G 節）")
+    g = st.columns(3)
+    for col, (n, v) in zip(g, gov_status(eng).items()):
+        col.metric(n, fmt(v))
+    st.table(gov_table(eng).astype(str))      # 以 st.table 呈現，不計入下方 Interface 的 dataframe
+    st.caption("ERROR 必須為 0（CI 讀取 GOV_Errors）；WARN、INFO 為待辦。完整表與 L1、Source 見「治理」頁。")
 
     st.subheader("Interface — Block 1（每 GW＝IT 關鍵電力）")
     block1 = [n for n in eng.names if is_downstream_name(n) and n != "IF_Util" and not is_block3_name(n) and not is_block4_name(n) and not is_block5_name(n)

@@ -204,13 +204,30 @@ def test_evidence_page_readonly_table():
     at = AppTest.from_string(HEAD + "from app.views import evidence; evidence.render()", default_timeout=180).run()
     assert not at.exception
     df = at.dataframe[0].value
-    assert df.shape == (20, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
+    assert df.shape == (67, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
     assert df["ID"].tolist()[:2] == ["E001", "E002"] and df["ID"].is_unique
     at.multiselect[0].set_value([df["判定"].iloc[0]]).run()                # 篩選可用且不拋例外
-    assert not at.exception and 0 < len(at.dataframe[0].value) <= 20
+    assert not at.exception and 0 < len(at.dataframe[0].value) <= 67
 
 
 def test_no_label_lookup_in_app_and_engine():
     """網站與引擎不再以欄 A 標籤定位（改讀 IF_Hdr／DRV_／CAL_ 具名範圍）。"""
     for path in list((ROOT / "app").rglob("*.py")) + list((ROOT / "engine").rglob("*.py")):
         assert "column_labels" not in path.read_text(encoding="utf-8"), path
+
+
+def test_governance_page_and_overview_status():
+    """v5.11：治理頁（L1、Source、Checks G 節）可渲染；總覽顯示 GOV_ 合計且 ERROR＝0。"""
+    at = AppTest.from_string(HEAD + "from app.views import governance; governance.render()", default_timeout=180).run()
+    assert not at.exception
+    m = {x.label: x.value for x in at.metric}
+    assert m["GOV_Errors"] == "0" and set(m) == {"GOV_Errors", "GOV_Warnings", "GOV_Info"}
+    assert len(at.table) == 1 and len(at.table[0].value) == 22         # Checks G 節 22 項（E12＋W2＋I8）
+    l1, src = at.dataframe[0].value, at.dataframe[1].value
+    assert len(l1) == 25 and "L1_ID" in l1.columns
+    assert len(src) == 60                                              # 預設顯示 SRC_HW 60 筆
+    at.radio[0].set_value("SRC_Perf").run()
+    assert not at.exception and len(at.dataframe[1].value) == 40
+    at = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()
+    assert not at.exception and {x.label: x.value for x in at.metric}["GOV_Errors"] == "0"
+    assert len(at.dataframe) == 1                                      # Block 1 表仍只有一張 dataframe

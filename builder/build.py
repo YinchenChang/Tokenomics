@@ -92,13 +92,13 @@ order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
          "Har_In","Harness","Sens_Har","Interface","Energy","NonNV","Sensitivity","Checks","Sources","DB_Evidence"]
-wb._sheets = [wb[n] for n in order]
+wb._sheets = [wb[n] for n in order] + [s for s in wb._sheets if s.title not in order]   # v5.11: keep Excel-owned governance sheets
 # ---- v5.3: Block 1 Checks — reference cells instead of literals (CC 第 1 輪第 6 節第 5 項) ----
 from common import put, F_IN
 ck = wb["Checks"]
-for r, v in [(5, 35), (7, 2.21), (8, 2.65), (9, 10.5), (10, 3.57)]:
+# v5.11: C4–C8 now link to SRC (gov.checks_block1); C9–C10 (SRC_Price) remain literals until slice two (v5.12)
+for r, v in [(9, 10.5), (10, 3.57)]:
     put(ck, f"C{r}", v, F_IN, fmt="#,##0.00")
-ck["E5"].value = '=IF(ABS(B5-C5)/C5<=0.2,"±20% 內","差距 >20%")'
 ck["E7"].value = '=IF(B7>C7,"高於參照（參照假設未知）","低於參照")'
 ck["E8"].value = '=IF(B8>C8,"高於參照（參照假設未知）","低於參照")'
 ck["E9"].value = '="牌價 ÷ 持有成本＝"&TEXT(C9/B9,"0.0")&" 倍"'
@@ -135,6 +135,18 @@ for n, c in [("TR_ID","A"),("TR_Tech","B"),("TR_Hook","C"),("TR_Acts","D"),("TR_
     nm(n, f"Tech_Registry!${c}${r0}:${c}${r1}")
 nm("TR_HookCode", f"Tech_Registry!$A${h0}:$A${h1}"); nm("TR_HookName", f"Tech_Registry!$B${h0}:$B${h1}")
 nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
+# ---- v5.11: Stage 1 slice one (Source layer, Evidence upgrade, Decisions, Gov_Map, L1, governance Checks, F14) ----
+from gov import gov_all
+GOV = gov_all(wb)
+open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
+print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
+order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
+         "Train_In","Perf_Batch","Training","Sens_Train",
+         "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
+         "Har_In","Harness","Sens_Har","Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
+         "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","Sources","DB_Evidence"]]
+assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)
+wb._sheets = [wb[n] for n in order]
 wb.save(out)
 import json; json.dump({"WL":WL,"H5":H5,"R5":R5,"SH5":SH5,"K4":K4,"P4":P4,"C4":C4,"S4":S4,"F4":F4,"A4":{k:v for k,v in A4.items() if not k.startswith("cost")},"T4":T4,"PR":PR,"CAL":CAL,"SR":SR,"PB":PB,"TRN":TRN,"STR":STR,"TI":TI,"TR":{k:v for k,v in TR.items() if not k.startswith("_")},"U":{f"{k[0]}_{k[1]}":v for k,v in U.items()},"SP":SP,"AR":AR}, open(os.path.join(OUTDIR, "rows.json"),"w"))
 print("saved")

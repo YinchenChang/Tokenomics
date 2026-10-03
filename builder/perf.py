@@ -24,7 +24,7 @@ def perf_rows(SP, AR, CAL, TR):
       ("gpus", "GPU 封裝／架", "顆", "#,##0", sp(6)),
       ("gpuw", "GPU 功率", "W", "#,##0", sp(SP["gpuw"])),
       ("ehbm", "HBM 存取能量", "pJ/B", "#,##0", sp(SP["ehbm"])),
-      ("racks", "每 GW 機架數（功率情境）", "架", "#,##0", "=INDEX(DC_Cost!$C$12:$Q$12,3*({X}$6-1)+2)"),
+      ("racks", "每 GW 機架數（功率情境）", "架", "#,##0", "=INDEX(DC_Cost!$C$12:$Q$12,3*({X}$6-1)+2)/CTL_GW"),   # v5.11 F14: DC_Cost is the facility total
       ("kw", "每架配電設計功率", "kW", "#,##0", "=INDEX(DC_Cost!$C$11:$Q$11,3*({X}$6-1)+2)"),
       ("§", "B. 架構（連結 Arch）"),
       ("A", "啟用參數", "B", "#,##0", ar(AR["A"])),
@@ -140,8 +140,9 @@ def write_perf(ws, cols, SP, AR, CAL, TR, start=9, overrides=None, label_col_wid
                 v = ov[key].replace("{X}", X) if isinstance(ov[key], str) else ov[key]
                 if ov_link and isinstance(v, str):
                     put(ws, f"{X}{r}", v, F_LINK, fmt=fmt)
-                else:
-                    put(ws, f"{X}{r}", v, F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00"))
+                else:   # v5.11: a formula override (cross-sheet scenario link) is not an input -> link font, yellow scenario fill kept
+                    put(ws, f"{X}{r}", v, F_LINK if isinstance(v, str) and v.startswith("=") else F_IN, fmt=fmt,
+                        fill=PatternFill("solid", fgColor="FFFFFF00"))
                 continue
             if isinstance(tpl, (int, float)):
                 put(ws, f"{X}{r}", tpl, F_IN, fmt=fmt); continue

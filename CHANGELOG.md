@@ -2,6 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261002_Tokenomics_v5.11.xlsx（取代 v5.10；第 11 輪：治理 Stage 1 切片一）
+
+- Commit：見本輪 PR 的合併提交（合併後補上雜湊）。報告：`docs/reports/20261002_v5.11_sync.md`；Gate 1 輸出：`docs/reports/20261002_gate1.md`。
+- Excel（chat 端產生，CC 未改任何數值或公式）：公式 20,780 → 27,700；具名範圍 305 → 604（SRC_ 220、L1_ 75、GOV_ 4 新增）；工作表 34 → 41（新增 L1、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf）。
+- builder：依 `docs/builder/Tokenomics_builder_v5.md` 14 個區塊逐字覆寫（新增 `gov.py`、`gov_seed.py`、`gov_decisions.py`；`build.py`、`calib.py`、`finish.py`、`perf.py`、`training.py` 有變動）。以 v5.10 為底稿重建，LibreOffice 重算後與 v5.11 逐格一致（46,869 格不符 0、錯誤 0）；restore 1,152／Excel 值保留 0／未對應 0。以 v5.11 為底稿：1,021／0／0，公式語意相同、具名範圍 604 個逐一相同（原始文字差異 3,871 格皆為寫法：1E9 對 1000000000、名稱大小寫、工作表引號、9E+99 對 9E+099）。
+- 檔案：v5.10 以 `git mv` 移入 `model/archive/`；`model/CURRENT` 改為 v5.11。
+- 測試：parity 期望值改為 27,700 格、604 個具名範圍、41 張工作表，另加 SRC_／L1_／GOV_ 名稱數；情境 16 → 18（新增 `gw_2`：`CTL_GW`＝2；`src_hw038_x1_1`：SRC_HW_038 ×1.1）。18 個情境各 27,700 格不符 0。
+- engine：`norm()` 把 numpy 純量轉為 Python 型別（SUMPRODUCT 回傳 np.int64，型別嚴格比對下造成 158 格誤報；只改型別表示，不改數值）。
+- 效能門檻（chat 端定案）：全簿強制重算 3.4–3.7 秒（v5.10 為 0.47 秒），主因是 Gov_Map S、T 欄 6,960 個 MATCH。測試拆為 (a) 每情境增量重算 < 2 秒（硬性）、(b) 全簿強制重算 < 5 秒（暫行，至 v5.12 為止；v5.12 以 SRC_Index 改寫後恢復 < 2 秒）；`CLAUDE.md` 引擎規則同步。
+- 網站：新增「治理」頁（Checks G 節、L1 25 列、SRC 四頁 A–W 欄唯讀）；總覽加 `GOV_Errors`／`GOV_Warnings`／`GOV_Info` 與 Checks G 節表；證據登錄頁筆數 20 → 67（只讀 A:K 欄，L–Q 欄未顯示）。網站測試 13 項全過。
+- 工具：`tools/stage0_inventory.py` 新增 `gate1` 子指令（含被單位表排除的整數常數複核表）；`tools/export_csv.py` 匯出 SRC_*、Interface 為 CSV 並檢查 `GOV_Errors`；CI 新增兩步（治理檢查、上傳匯出 CSV）。
+
 ## 第 10 輪：Stage 0 盤點（唯讀）＋網站小修（Excel 不變，仍為 `20261002_Tokenomics_v5.10.xlsx`）
 
 - Commit：見本輪 PR 的合併提交（合併後補上雜湊）。

@@ -111,8 +111,11 @@ def read_defined_names_xml(path: Path) -> dict[str, str]:
 
 
 def norm(v):
-    """統一空值：None 與空字串視為同一種空值；錯誤值 pycel 以 '#XXX!' 字串回傳。"""
-    return "" if v is None else v
+    """統一空值：None 與空字串視為同一種空值；錯誤值 pycel 以 '#XXX!' 字串回傳。
+    v5.11：SUMPRODUCT 回傳 numpy 純量（np.int64），轉為 Python 型別（只改型別表示，不改數值）。"""
+    if v is None:
+        return ""
+    return v.item() if hasattr(v, "item") and getattr(v, "shape", None) == () else v
 
 
 class Engine:

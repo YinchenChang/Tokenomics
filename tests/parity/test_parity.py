@@ -2,6 +2,7 @@
 
 比對範圍：全部公式格；具名範圍名稱與 attr_text；17 個情境（含 v5.11 兩個治理情境）各以獨立引擎實例重算。
 """
+import copy
 import time
 from pathlib import Path
 
@@ -28,8 +29,29 @@ def model():
 @pytest.fixture(scope="module")
 def base_engine(model):
     """基準引擎（只讀）：供防空轉統計與公式格清單，避免每個情境重複建圖。"""
-    eng = Engine(model)
+    eng = new_engine(model)
     return eng, eng.evaluate_all()
+
+
+_TEMPLATE: dict = {}
+
+
+def new_engine(model):
+    """回傳獨立的引擎實例：首次建圖並重算（約 50 秒）存為範本，之後以 deepcopy 複製（約 5 秒）。
+    範本本身不被改動；各複本彼此獨立，不受其他情境影響。比對範圍、容差與情境不變。"""
+    if model not in _TEMPLATE:
+        _TEMPLATE[model] = Engine(model)
+    return copy.deepcopy(_TEMPLATE[model])
+
+
+@pytest.fixture(scope="module")
+def template_engine(model):
+    """相容舊簽名：回傳範本的複本來源（呼叫 new_engine 即可）。"""
+    return model
+
+
+def _clone(model):
+    return new_engine(model)
 
 
 def test_model_current_pointer(model):
@@ -38,7 +60,7 @@ def test_model_current_pointer(model):
 
 
 def test_workbook_expectations(model):
-    eng = Engine(model)
+    eng = new_engine(model)
     assert len(eng.formula_cells) == EXPECT["formula_cells"]
     assert len(eng.names) == EXPECT["defined_names"]
     assert eng.sheetnames == EXPECT["sheets"]                              # v5.7 起含 DB_Evidence（最後一頁）；v5.8 起含 8 個 Block 4 頁
@@ -47,7 +69,7 @@ def test_workbook_expectations(model):
 
 def test_named_ranges(model):
     """144 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
-    eng = Engine(model)
+    eng = new_engine(model)
     xml_names = read_defined_names_xml(model)
     assert set(eng.names) == set(xml_names)
     for n, txt in eng.names.items():
@@ -63,6 +85,8 @@ def test_named_ranges(model):
     assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
     assert sum(n.startswith("SRC_") for n in eng.names) == EXPECT["src_names"]       # v5.11：第 0 層
     assert sum(n.startswith("L1_") for n in eng.names) == EXPECT["l1_names"] and sum(n.startswith("GOV_") for n in eng.names) == EXPECT["gov_names"]
+    assert sum(n.startswith("CST_") for n in eng.names) == EXPECT["cst_names"] and sum(n.startswith("IDX_") for n in eng.names) == EXPECT["idx_names"]   # v5.12
+    assert not any(n.startswith(("CST_", "IDX_")) for n in eng.names if n.startswith("IF_"))          # CST_／IDX_ 不是下游名稱（下游只可連結 IF_）
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
     assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
     assert sum(n.startswith("TR_") for n in eng.names) == EXPECT["tr_names"]
@@ -82,7 +106,7 @@ def test_named_ranges(model):
 
 def test_display_names_alignment(model):
     """表頭與推導鏈名稱的形狀：DRV_ 皆 15 欄且與 DRV_Gen／DRV_Tier 對齊；IF_Hdr 與 IF_ 輸出欄數一致。"""
-    eng = Engine(model)
+    eng = new_engine(model)
     n = EXPECT["drv_columns"]
     for name in eng.names:
         if name.startswith("DRV_"):
@@ -120,7 +144,7 @@ def test_display_names_alignment(model):
 
 def test_interface_d_e_shapes(model):
     """Interface D 節（v5.8）與 E 節（v5.9）的形狀，分開檢查：單格（數值或文字）、15 欄（5 世代 × 3 成本情境）、5 欄（任務）。"""
-    eng = Engine(model)
+    eng = new_engine(model)
     ncol, ntask = len(eng.get_name("IF_HdrGen")), len(eng.get_name("IF_HdrTask"))
     assert ncol == 15 and ntask == 5
     single_num = [f"IF_{p}_{t}" for p in ("PriceFresh", "PriceCached", "PriceThink", "PriceOut", "PriceRef", "FrontRef", "Life") for t in TIERS] + ["IF_HarW"]
@@ -165,26 +189,26 @@ def test_interface_d_e_shapes(model):
     assert len(mkt) == len(eng.get_name("B4_MktCountry")) and set(mkt) <= {0, 1} and 0 < sum(mkt) < len(mkt)
 
 
-def _floor_engine(model, floor):
-    eng = Engine(model)
+def _floor_engine(template, floor):
+    eng = _clone(template)
     eng.set_key("B5_PFloor", floor)
     eng.evaluate_all()
     return eng
 
 
-def test_floor_scenarios_expected_values(model):
+def test_floor_scenarios_expected_values(model, template_engine):
     """v5.10 M1：floor_0 與 floor_80 的期望值（與 parity 情境互補；parity 保證兩邊一致，這裡保證結果合理）。"""
-    base = Engine(model)
+    base = new_engine(model)
     names = base.get_name("IF_HdrTask")
     assert base.get_name("IF_PFloor") == 0.5                                              # 基準 p_min＝50%
     assert base.get_name("IF_FrontSuccVRName") == ["Luna｜標準", "Luna｜標準", "Luna｜選定", "Luna｜選定", "Sol｜選定"]
     assert abs(base.get_name("IF_FrontSuccVR")[4] - 0.0209) < 5e-5 and abs(base.get_name("IF_FrontSuccVRP")[4] - 0.627) < 5e-4
-    f0 = _floor_engine(model, 0)                                                          # 不設下限：前緣＝「對照（不設下限）」列
+    f0 = _floor_engine(template_engine, 0)                                                          # 不設下限：前緣＝「對照（不設下限）」列
     cols = "CDEFG"
     assert [f0.get("Harness", f"{c}151") for c in cols] == [f0.get("Harness", f"{c}147") for c in cols]
     assert [f0.get("Harness", f"{c}152") for c in cols] == [f0.get("Harness", f"{c}148") for c in cols]
     assert f0.get_name("IF_FrontSuccVRName")[4] == "Luna｜選定" and abs(f0.get_name("IF_FrontSuccVR")[4] - 0.0125) < 5e-4
-    f8 = _floor_engine(model, 0.8)                                                        # 下限 80%：Coding agent 無合格
+    f8 = _floor_engine(template_engine, 0.8)                                                        # 下限 80%：Coding agent 無合格
     assert f8.get_name("IF_FrontSuccVR")[4] == f8.get_name("IF_FrontSuccVRName")[4] == f8.get_name("IF_FrontSuccVRP")[4] == "無合格"
     assert f8.get_name("IF_FrontSuccVRName")[2:4] == ["Sol｜選定", "Sol｜選定"]            # 單代理、多代理研究
     assert f8.get("Checks", "B70") == 1, names                                            # 無合格任務數
@@ -202,13 +226,13 @@ def test_named_ranges_vs_libreoffice(model, tmp_path):
 
 
 @pytest.mark.parametrize("sc", SCENARIOS, ids=[s["id"] for s in SCENARIOS])
-def test_scenario_parity(sc, model, base_engine, tmp_path, results_store):
+def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, results_store):
     """情境：改寫輸入 → LibreOffice 重算（基準）→ 與引擎全部公式格比對。"""
     scen_xlsx = tmp_path / model.name
     set_inputs(model, scen_xlsx, sc["inputs"])
     ref = excel_values(lo_recalc(scen_xlsx, tmp_path / "lo"), base_engine[0].formula_cells)
 
-    eng = Engine(model)                         # 每個情境獨立實例，不受前一情境影響
+    eng = _clone(template_engine)               # 每個情境獨立實例（deepcopy 範本），不受前一情境影響
     for key, v in sc["inputs"].items():
         eng.set_key(key, v)
     t0 = time.perf_counter()
@@ -228,11 +252,11 @@ def test_scenario_parity(sc, model, base_engine, tmp_path, results_store):
     assert not res["mismatches"], f"[{sc['id']}] " + format_mismatches(res["mismatches"])
 
 
-def test_scenarios_actually_change_outputs(model, base_engine, tmp_path):
+def test_scenarios_actually_change_outputs(model, base_engine, template_engine, tmp_path):
     """防止測試空轉：每個情境至少改變 Interface 的一個格（相對基準）。"""
     base = base_engine[1]
     for sc in SCENARIOS[1:]:
-        eng = Engine(model)
+        eng = _clone(template_engine)
         for key, v in sc["inputs"].items():
             eng.set_key(key, v)
         cur = eng.evaluate_all()
@@ -240,17 +264,16 @@ def test_scenarios_actually_change_outputs(model, base_engine, tmp_path):
         assert changed, f"{sc['id']} 未改變任何公式格"
 
 
-# 效能門檻（第 11 輪收尾，chat 端定案）：兩條。
-#   (a) 增量重算 < 2 秒（硬性）：每個情境改輸入後都要測。
-#   (b) 全簿強制重算 < 5 秒（暫行）：防止繼續變慢。
-# 全簿 < 5 秒為暫行門檻，至 v5.12 為止；v5.12 以 SRC_Index 改寫 Gov_Map 查找後，恢復為全簿 < 2 秒。
-FULL_RECALC_LIMIT_S = 5.0
+# 效能門檻（CLAUDE.md 第 2 節）：兩條都是硬性。
+#   (a) 增量重算 < 2 秒：每個情境改輸入後都要測。
+#   (b) 全簿強制重算 < 2 秒：v5.12 以 SRC_Index 改寫 Gov_Map 查找後恢復（v5.11 暫行為 5 秒）。
+FULL_RECALC_LIMIT_S = 2.0
 INCREMENTAL_LIMIT_S = 2.0
 
 
 def test_incremental_recalc_matches_fresh_and_is_fast(model):
     """同一實例連續改輸入再還原：結果須與全新實例相同；(a) 每個情境增量重算 < 2 秒（硬性）。"""
-    eng = Engine(model)
+    eng = new_engine(model)
     base = eng.evaluate_all()
     names = eng.names
     base_orig = {a: eng.get(*resolve_key(names, a)) for sc in SCENARIOS[1:] for a in sc["inputs"]}   # 改動前的原值
@@ -269,8 +292,8 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
 
 
 def test_full_recalc_time(model, results_store):
-    """(b) 全簿強制重算 < 5 秒（暫行門檻；見上方註解）。"""
-    eng = Engine(model)
+    """(b) 全簿強制重算 < 2 秒（v5.12 恢復）。"""
+    eng = new_engine(model)
     eng.evaluate_all()
     t0 = time.perf_counter()
     eng._xl.recalculate()                      # 強制全簿（全部公式格）重算

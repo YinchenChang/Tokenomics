@@ -1,5 +1,6 @@
 # Input sheets: Spec_Rack (Block 2 rows), Arch, Serving, Energy inputs
 from common import *
+from openpyxl.workbook.defined_name import DefinedName
 
 GENS = ["C", "D", "E", "F", "G"]          # Hopper, GB200, GB300, VR200, RU in Spec_Rack
 
@@ -113,7 +114,7 @@ def arch(wb):
       ("ne", "非專家參數（注意力、路由、embedding）", "B", "={c}{A}-{c}{L}*({c}{k}+{c}{s})*{c}{pe}", "#,##0.0"),
       ("ex", "專家參數", "B", "={c}{T}-{c}{ne}", "#,##0.0"),
       ("attc", "注意力 FLOPs／每個被注意的 token", "FLOP", "=4*{c}{hq}*{c}{hd}*{c}{L}", "#,##0"),
-      ("kv128", "128K 上下文每序列 KV", "GB", "={c}{kv}*128000/1E9", "#,##0.00"),
+      ("kv128", "128K 上下文每序列 KV", "GB", "={c}{kv}*CST_CtxKV/1E9", "#,##0.00"),
     ]
     for key, lab, unit, f, fmt in der:
         R[key] = r
@@ -123,6 +124,13 @@ def arch(wb):
             put(ws, f"{c}{r}", f.format(**m), fmt=fmt, fill=FILL_KEY if key == "kv" else None)
         r += 1
     put(ws, f"G{R['pe']}", "由公開總參數與啟用參數反推，確保總數吻合（v4 方法）", F_NOTE)
+    # v5.12 (A): the context length of the display row above moved out of the formula into a named input (value unchanged)
+    R["ctx"] = r
+    put(ws, f"A{r}", "上下文長度（上一列顯示用）"); put(ws, f"B{r}", "tok")
+    put(ws, f"C{r}", 128000, fmt="#,##0")
+    put(ws, f"F{r}", "結構選擇", F_NOTE)
+    put(ws, f"G{r}", "顯示列的口徑：128,000（非 131,072）；三層級共用本格（CST_CtxKV）。不影響任何產出", F_NOTE)
+    wb.defined_names["CST_CtxKV"] = DefinedName("CST_CtxKV", attr_text=f"Arch!$C${r}")
     ws.freeze_panes = "C5"
     return R
 

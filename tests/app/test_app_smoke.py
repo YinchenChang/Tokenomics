@@ -222,7 +222,7 @@ def test_governance_page_and_overview_status():
     assert not at.exception
     m = {x.label: x.value for x in at.metric}
     assert m["GOV_Errors"] == "0" and set(m) == {"GOV_Errors", "GOV_Warnings", "GOV_Info"}
-    assert len(at.table) == 1 and len(at.table[0].value) == 22         # Checks G 節 22 項（E12＋W2＋I8）
+    assert len(at.table) == 1 and len(at.table[0].value) == 23         # Checks G 節 23 項（E13＋W2＋I8；v5.12 新增 E13）
     l1, src = at.dataframe[0].value, at.dataframe[1].value
     assert len(l1) == 25 and "L1_ID" in l1.columns
     assert len(src) == 60                                              # 預設顯示 SRC_HW 60 筆

@@ -61,6 +61,8 @@ def test_named_ranges(model):
     assert sum(n.startswith("B5_") for n in eng.names) == EXPECT["b5_names"]      # B5_：同上（v5.9 新增）
     assert "B4_Chi" not in eng.names and {"B4_CacheHit", "B4_MktChina"} <= set(eng.names)   # v5.9：改名與新增
     assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
+    assert sum(n.startswith("SRC_") for n in eng.names) == EXPECT["src_names"]       # v5.11：第 0 層
+    assert sum(n.startswith("L1_") for n in eng.names) == EXPECT["l1_names"] and sum(n.startswith("GOV_") for n in eng.names) == EXPECT["gov_names"]
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
     assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
     assert sum(n.startswith("TR_") for n in eng.names) == EXPECT["tr_names"]

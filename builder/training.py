@@ -220,7 +220,7 @@ def perf_batch(wb, SP, AR, CAL, TR, TI):
             if key in link:
                 put(ws, f"{X}{rr}", link[key].replace("{X}", X), F_LINK, fmt=fmt)
             elif key in fp8:
-                put(ws, f"{X}{rr}", fp8[key], F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00"))
+                put(ws, f"{X}{rr}", fp8[key], F_LINK if isinstance(fp8[key], str) else F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00"))
             elif isinstance(tpl, (int, float)):
                 put(ws, f"{X}{rr}", tpl, F_IN, fmt=fmt)
             else:
@@ -260,7 +260,7 @@ def train_rows(SP, AR, TI, PB, TR):
       ("hmfu", "訓練 MFU 倍數（H_MFU）", "x", "0.00", hk("H_MFU")),
       ("mfu", "預訓練 MFU（採用）", "%", "0.0%", "={X}{mfub}*{X}{mfug}*{X}{hmfu}"),
       ("gp", "goodput", "%", "0%", tgl("gp")),
-      ("gpus", "每 GW GPU 數", "顆", "#,##0", dc(14)),
+      ("gpus", "每 GW GPU 數", "顆", "#,##0", dc(14) + "/CTL_GW"),   # v5.11 F14: DC_Cost is the facility total
       ("ce", "每 GPU 小時持有成本 — 經濟（基準成本）", "$/GPU-hr", "#,##0.00", dc(58)),
       ("ca", "每 GPU 小時持有成本 — 會計（基準成本）", "$/GPU-hr", "#,##0.00", dc(57)),
       ("§", "B. 架構（連結 Arch）"),
@@ -389,7 +389,7 @@ def write_train(ws, cols, SP, AR, TI, PB, TR, start=9, overrides=None):
             ov = overrides.get(X, {})
             if key in ov:
                 v = ov[key].replace("{X}", X) if isinstance(ov[key], str) else ov[key]
-                put(ws, f"{X}{r}", v, F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00")); continue
+                put(ws, f"{X}{r}", v, F_LINK if isinstance(v, str) and v.startswith("=") else F_IN, fmt=fmt, fill=PatternFill("solid", fgColor="FFFFFF00")); continue
             m = dict(R); m["X"] = X
             put(ws, f"{X}{r}", tpl.format(**m), fmt=fmt, fill=FILL_KEY if key in TKEY else None)
         r += 1

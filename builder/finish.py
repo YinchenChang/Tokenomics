@@ -106,9 +106,11 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261002_Tokenomics_v5.10（Block 1＋2＋3＋4＋5；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
-      ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。"),
-      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Interface；Energy、NonNV、Sensitivity、Checks、Sources。"),
+      ("版本", "20261002_Tokenomics_v5.11（Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
+      ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
+      ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP）、SRC 的 X–Z 檢查欄、Gov_Map 的 Q–AE 欄、L1、Checks G 節，以及 SRC_／L1_／GOV_ 具名範圍。"),
+      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、Sources（v5.12 遷移完成後更名 Sources_Legacy）、DB_Evidence。"),
       ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
       ("Block 3 決策", "J7 訓練精度 FP8（NVFP4 預訓練在 Tech_Registry）；J8 Astra 預訓練與 Arch 一致，前沿錨點列 Checks；J9 RL 由下而上，基準校到 RL÷預訓練 GPU 小時 Luna／Sol 0.3、Astra 1.0；J10 研發倍數 8，家族合計、依最終訓練比例分攤；J11 用途 × 型態只列單一計畫；J12 rollout NVFP4（FP8 為情境）；J13 下游預設 VR200、GB300 並列；J14 主流＝至少兩家實驗室公開採用，可覆寫。"),
       ("Excel 優先（v5.7）", "藍字＝輸入，由本活頁簿擁有：要改輸入，直接改 Excel。builder 重建 Block 2、3 時會先讀取所有藍字輸入，重建後依『工作表＋欄 A 標籤＋欄位』寫回，程式內的預設值只用於新增的輸入列。公式頁不要手改（重建時會被覆寫）。"),
@@ -120,7 +122,7 @@ def readme(wb):
       ("顏色", "藍字＝輸入；黑字＝公式；綠字＝跨頁連結；淡黃底＝關鍵輸出；亮黃底＝待 Andy 決定或情境改動。"),
       ("來源標記", "Verified／Interested-party／Analogy／Assumed／Derived。Analogy 與 Assumed 一律給區間。"),
       ("網站同步", "本檔為事實來源；repo 以公式引擎直接計算本檔，parity 測試比對 Interface 全部格（新增 IF_ 具名範圍見 Interface B 節）。"),
-      ("具名範圍", "IF_＝下游模型連結用；IF_Hdr／DRV_／CAL_／TRN_／TR_＝網站顯示用，下游不得連結；B4_／B5_＝Block 4／5 公式內部引用的關鍵量（v5.8 起新公式以具名範圍引用，使公式可讀），下游不得連結；IF_HdrTask 為顯示用表頭。"),
+      ("具名範圍", "SRC_＝第 0 層原始值（值、_Lo、_Hi；SRC_Perf 另有 _ISL、_OSL、_Spd、_MTP），下游可直接引用 Active 紀錄（G8）；L1_＝第 1 層常用推算值（_Lo、_Hi 為區間），下游可引用；GOV_＝治理檢查合計（CI 讀 GOV_Errors）；IF_＝下游模型連結用；IF_Hdr／DRV_／CAL_／TRN_／TR_＝網站顯示用，下游不得連結；B4_／B5_＝Block 4／5 公式內部引用的關鍵量（v5.8 起新公式以具名範圍引用，使公式可讀），下游不得連結；IF_HdrTask 為顯示用表頭。"),
       ("Block 4 推導", "理論營收＝每 GW 產出 × 利用率 × 參考請求混合有效單價（OpenAI 牌價 ×（1−折扣）× 能力單價倍數）。單價前緣＝能力指數 ≥ OpenAI 層級模型者之中，參考請求混合單價最低者（含中國廠商）。快取儲存＝KV bytes × 儲存層 $/GB-hr × 保留時間 ÷ 命中次數。攤提：自下而上＝研發計畫成本 ÷ 商業壽命內服務 token（＝回本所需溢價）；由上而下＝機隊訓練占比 X ÷（1−X）× 服務成本。"),
       ("Block 4 決策", "K1 OpenAI 單價為基準；K2 (i) 前緣＝同能力最低價；K3 AA 指數為主、METR 檢查；K4 (c)＋(d) 能力→單價彈性基準 0＋回本溢價反解；K5 壽命 Luna／Sol 12、Astra 9 個月；K6 兩種攤提並列，v5.9 起下游預設 (c)＝由上而下總額 × 自下而上權重、(d) 營收權重並列；K7 機隊以 OpenAI 2025 校準；K8 只計 API 單價；K9 各世代共用 2026-09 單價快照；K10 快取儲存比照公開條款；K11 利用率 60%、折減 1.0 暫用；K12 尖峰離峰並列、前緣用時數加權；K13 中國廠商全納入並標示開放權重；K14 國際站美元價。"),
       ("Block 5 推導", "harness＝作用在標準任務上的參數組（輪數、思考保留 ρ、每輪思考、歷史壓縮、快取命中、子代理、狀態保留時間）加成功率。Workload 有效參數＝標準＋w ×（Har_In 選定檔案−標準），w＝Tech_Registry T12 開關 × 採用比例。成功率 p＝1 ÷（1＋（任務長度 ÷（層級 50% 時間範圍 × harness 倍數））^β）（METR 型）；每成功任務成本＝每次嘗試成本 ÷ p。每 GW 理論營收不受 harness 影響。"),
@@ -131,7 +133,7 @@ def readme(wb):
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics v5.10 — Block 1＋2＋3＋4＋5：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣、harness 與每成功任務成本", F_TITLE)
+    put(ws, "A1", "Tokenomics v5.11 — Block 1＋2＋3＋4＋5＋第 0 層 Source（切片一）：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣、harness 與每成功任務成本", F_TITLE)
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)

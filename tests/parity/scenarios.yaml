@@ -6,8 +6,8 @@
 # v5.8 起：新增 4 個 Block 4 情境，輸入一律用具名範圍（NAME 或 NAME[k]，k 為列索引）；舊情境維持儲存格位址。
 # v5.5 起：Block 3（Training）的世代 × 層級同樣一次算出（TRN_／IF_Train*／IF_Prog*），情境 f、g 驗證其輸入連動。
 workbook_expectations:            # 版本升級時必須有意識地更新（CLAUDE.md 第 4 節）
-  formula_cells: 20780
-  defined_names: 305
+  formula_cells: 27700       # v5.11：20,780 → 27,700（SRC 連結、L1、Checks G 節、Gov_Map 檢查欄）
+  defined_names: 604          # v5.11：305 → 604（新增 SRC_ 220、L1_ 75、GOV_ 4）
   block2_names: 28                # IF_{TokRack,TokRackD,TokGW,VReq,CostPre,CostCache,CostDec,CostDecAcct,TokPerJ}_{Luna,Sol,Astra} 與 IF_Util
   display_only_names: 139         # IF_Hdr*（3：IF_HdrGen／IF_HdrCost／IF_HdrTask）、DRV_*（16）、CAL_*（19）、TRN_*（15）、TR_*（23）、B4_*（39）、B5_*（24）；僅供網站顯示，下游不得連結
   b4_names: 39                    # v5.9：B4_Chi 改名 B4_CacheHit，新增 B4_MktChina
@@ -17,7 +17,10 @@ workbook_expectations:            # 版本升級時必須有意識地更新（CL
   downstream_names: 164           # v5.10 加 10（Interface E 節：IF_CostAttVR_*／IF_HzEff_* 各 3、IF_PFloor、IF_FrontSuccVR／Name／P）； IF_ 開頭且非 IF_Hdr：下游模型可連結（v5.4 為 38；v5.5 加 25；v5.6 加 IF_TrainGenDefault／IF_TrainGenAlt；v5.7 加 IF_TrainGenDefaultName／IF_TrainGenAltName；v5.8 加 46＝Interface D 節 Price*／FrontRef／FrontModel／Life／CacheStore／AmortBU／AmortTD／FullCost／RevGW*／ServeShare／FreeShare）
   block3_names: 25                # IF_{TrainGPUh,TrainCost,PostShareFLOP,PostShareGPUh,RLMFU,ProgGPUh,ProgCost,ProgGWyr}_{Luna,Sol,Astra} 與 IF_RDMult
   trn_names: 15                   # TRN_*：Training 推導鏈（含表頭 TRN_Gen、TRN_Tier）；僅供網站顯示
-  sheets: [README, Inputs, Spec_Rack, Arch, Serving, Workload, Calib, Tech_Registry, Perf, Sens_Perf, Unit_Cost, DC_Cost, Train_In, Perf_Batch, Training, Sens_Train, Cap_In, Capability, Price_Frontier, Cache_Store, Fleet_1GW, Amortize, Theory_Rev, Sens_Rev, Har_In, Harness, Sens_Har, Interface, Energy, NonNV, Sensitivity, Checks, Sources, DB_Evidence]
+  sheets: [README, Inputs, Spec_Rack, Arch, Serving, Workload, Calib, Tech_Registry, Perf, Sens_Perf, Unit_Cost, DC_Cost, Train_In, Perf_Batch, Training, Sens_Train, Cap_In, Capability, Price_Frontier, Cache_Store, Fleet_1GW, Amortize, Theory_Rev, Sens_Rev, Har_In, Harness, Sens_Har, Interface, L1, Energy, NonNV, Sensitivity, Checks, Gov_Map, Decisions, SRC_HW, SRC_DC, SRC_Model, SRC_Perf, Sources, DB_Evidence]
+  src_names: 220                  # v5.11：SRC_*（第 0 層 Source 具名範圍）
+  l1_names: 75                    # v5.11：L1_*（第 1 層推算值）
+  gov_names: 4                    # v5.11：GOV_*
   evidence_columns: 11            # DB_Evidence 純輸入、無公式；表頭列 A4:K4
   tr_names: 23                    # TR_*：Tech_Registry 唯讀表（登錄表 20 個、各 12 格；掛鉤彙總 3 個、各 11 格）
   tr_rows: 12

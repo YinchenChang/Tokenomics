@@ -405,6 +405,5 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert abs(eng.get_name("L1_Ans5_GM") - 0.95589) < 5e-6
-    h3 = [r for r in eng.get("Checks", "A100:D120") if r[0] == "H3"]
-    assert len(h3) == 1 and h3[0][3] == 0 and h3[0][2] == "WARN"
+    assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 241 and eng.get_name("GOV_Info") == 103

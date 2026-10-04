@@ -9,7 +9,7 @@ workbook_expectations:            # 版本升級時必須有意識地更新（CL
   formula_cells: 34552       # v5.16：34,534 → 34,552（L1 新增 3 列、改 4 列公式、Checks H3）
   # v5.15：33,480 → 34,534（Block 6：Alloc、Alloc_In、Interface F、L1 新增 12 列、SRC_Index 擴充、Gov_Map）
   # v5.13：30,158 → 33,480（切片二：SRC 四新頁、SRC_Index 擴充、Gov_Map／L1 擴充、KV 與 Cap_In 改公式）
-  defined_names: 874          # v5.16：865 → 874（L1_ 新增 3 列 × 3 名稱）
+  defined_names: 875          # v5.16：865 → 875（L1_ 新增 3 列 × 3 名稱；CHK_L1Order 1）
   # v5.15：736 → 865（AL_ 80、IF_Alloc 7、L1_ 96→132、SRC_ 324→330、IF_ 其餘不變）
   # v5.13：611 → 736（SRC_ 220→324、L1_ 75→96；其餘前綴計數不變）
   block2_names: 28                # IF_{TokRack,TokRackD,TokGW,VReq,CostPre,CostCache,CostDec,CostDecAcct,TokPerJ}_{Luna,Sol,Astra} 與 IF_Util

@@ -3254,6 +3254,7 @@ def checks_h(wb):
     put(ws, f"A{r}", "H3"); put(ws, f"B{r}", "L1 的 D、E、F 皆為數字，但不滿足 E ≤ D ≤ F 的列數"); put(ws, f"C{r}", "WARN", F_BOLD)
     put(ws, f"D{r}", f"=SUMPRODUCT(ISNUMBER({D})*ISNUMBER({E})*ISNUMBER({F})*((({E}>{D})+({D}>{F}))>0))", fmt="0")
     put(ws, f"E{r}", "L1 D、E、F 欄（D＝基準、E＝低、F＝高；只用比較、不做算術，故含文字的列不會產生錯誤值，也不套容差）；情境下利用率或成本參數改變時可能合理翻轉，不計入 GOV_Errors", F_NOTE); r += 1
+    nm(wb, "CHK_L1Order", f"Checks!$D${h3}")        # v5.16: named so tests read H3 without a label lookup (the engine cache holds no constant labels)
     # GOV_Warnings (G section WARN total) also counts H3
     wref = wb.defined_names["GOV_Warnings"].attr_text.split("!")[1].replace("$", "")
     wc = ws[wref]

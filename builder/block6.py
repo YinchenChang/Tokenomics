@@ -342,10 +342,10 @@ def checks_h(wb):
     r += 1
     h1 = r
     put(ws, f"A{r}", "H1"); put(ws, f"B{r}", "服務世代組合 Hopper＋GB200＋GB300＋VR200 合計 ≠ 100%（容差 1e-9）"); put(ws, f"C{r}", "ERROR", F_BOLD)
-    put(ws, f"D{r}", "=IF(ABS(SUM(AL_MixGen)-1)>1E-9,1,0)", fmt="0"); put(ws, f"E{r}", "Alloc_In 世代組合三格", F_NOTE); r += 1
+    put(ws, f"D{r}", "=IF(ABS(SUM(AL_MixGen)-1)>1E-9,1,0)", fmt="0"); put(ws, f"E{r}", "Alloc_In 世代組合四格", F_NOTE); r += 1
     h2 = r
     put(ws, f"A{r}", "H2"); put(ws, f"B{r}", "Alloc G 節自我檢查不等於基準的列數（兩邊皆為文字時不報錯）"); put(ws, f"C{r}", "ERROR", F_BOLD)
-    put(ws, f"D{r}", "=SUM(AL_SensCheck)", fmt="0"); put(ws, f"E{r}", "Alloc 敏感度表 V 欄（容差 1e-12）", F_NOTE); r += 1
+    put(ws, f"D{r}", "=SUM(AL_SensCheck)", fmt="0"); put(ws, f"E{r}", f"Alloc 敏感度表 {wb.defined_names['AL_SensCheck'].attr_text.split('$')[1]} 欄（容差 1e-12）", F_NOTE); r += 1
     # GOV_Errors (G section total) now also counts H1 and H2
     ref = wb.defined_names["GOV_Errors"].attr_text.split("!")[1].replace("$", "")
     cell = ws[ref]
@@ -388,11 +388,11 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
         "新鮮輸入與快取輸入見 IF_CostPre_*、IF_CostCache_*",
         "η_d、每層延遲、SLO、生產折減", "生產折減 1.0：Assumed（K11）；VR200 η_d：Analogy", "L1_CostDec_Sol_VR200", f"L1 第 {at['CostDec_Sol_VR200']} 列",
         "VR200 無實測，η_d 沿用 GB300；本題只連結既有 L1 列，未新增計算")
-    ans(5, "每 GW 理論營收（Sol，VR200）與理論毛利率", "OpenAI 有效單價、基準成本、基準利用率；單一層級滿載的上限",
+    ans(5, "每 GW 理論營收（Sol，VR200）", "OpenAI 有效單價、基準成本、基準利用率；單一層級滿載的上限",
         "=L1_RevGW_Sol_VR200", "=L1_RevGW_Sol_VR200_Lo", "=L1_RevGW_Sol_VR200_Hi", "$B/GW/年", UTIL_RNG,
         "連結 L1_RevGW_*（Luna、Sol、Astra、機隊各一列）；全成本 $/M 見 IF_FullCost_*", "利用率、折扣、快取命中 χ、單價快照",
         "利用率 60%：Assumed（K11）", "IF_RevGW_Sol", f"L1 第 {at['RevGW_Sol_VR200']} 列；Interface D 節",
-        "未能回答：理論毛利率。Interface 沒有毛利率列（IF_FullCost* 為 $/M、IF_RevGW* 為 $B/GW/年，單位不同），需新增計算，待 Project 判斷（工作單 B10）")
+        "未能回答：理論毛利率（Andy／chat 2026-10-04：本題標籤暫去「毛利率」，毛利率留 v5.16）。Interface 沒有毛利率列（IF_FullCost* 為 $/M、IF_RevGW* 為 $B/GW/年，單位不同），需新增計算")
     ans(6, "後訓練占比（Sol；訓練世代＝IF_TrainGenDefault）：FLOPs 口徑 對 GPU 小時口徑", "單一模型最終訓練；Block 3 基準",
         "=INDEX(IF_PostShareFLOP_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "%",
         "無區間：D＝FLOPs 口徑，E、F＝GPU 小時口徑（兩種口徑並列，不是低高）",

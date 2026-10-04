@@ -77,8 +77,8 @@ for _k, _r in _ROWS.items():
     GOV_MAP_V515.append({'scope': _SC, 'sheet': _N, 'cell': f'D{_r}:E{_r}', 'label': _LAB[_k], 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '',
                          'lo': None, 'hi': None, 'rtext': f'C{_r} 的低、高端點', 'reason': _REASON[_k], 'retag': '', 'seg': '—'})
 GOV_MAP_V515 += [
- {'scope': _SC, 'sheet': _N, 'cell': 'C9:C12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '群組', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
-  'rtext': '各 0–100%，合計 100%（Checks H1）', 'reason': '8f 驅動表：服務機隊的世代組合（Hopper／GB200／GB300／VR200 基準 0%／40%／40%／20%；補充 2：2025 機隊 Hopper 60%／GB200 40%）；四者合計須為 100%', 'retag': '', 'seg': '—'},
- {'scope': _SC, 'sheet': _N, 'cell': 'D9:E12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+ {'scope': _SC, 'sheet': _N, 'cell': 'C9:C12', 'label': '服務世代組合（Hopper／GB200／GB300／VR200）', 'check': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '群組', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+  'rtext': '各 0–100%，合計 100%（Checks H1）', 'reason': '8f 驅動表：服務機隊的世代組合（Hopper／GB200／GB300／VR200 基準 0%／40%／40%／20%；補充 2：2025 機隊 Hopper 60%／GB200 40%）；四者合計須為 100%。保留 2025 實際機隊選項；基準定義待 v0.6 討論', 'retag': '', 'seg': '—'},
+ {'scope': _SC, 'sheet': _N, 'cell': 'D9:E12', 'label': '服務世代組合（Hopper／GB200／GB300／VR200）', 'check': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
   'rtext': 'C9:C12 的低、高端點（各 0–100%）', 'reason': '8f 驅動表：服務機隊的世代組合', 'retag': '', 'seg': '—'},
 ]

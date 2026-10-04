@@ -3243,10 +3243,10 @@ def checks_h(wb):
     r += 1
     h1 = r
     put(ws, f"A{r}", "H1"); put(ws, f"B{r}", "服務世代組合 Hopper＋GB200＋GB300＋VR200 合計 ≠ 100%（容差 1e-9）"); put(ws, f"C{r}", "ERROR", F_BOLD)
-    put(ws, f"D{r}", "=IF(ABS(SUM(AL_MixGen)-1)>1E-9,1,0)", fmt="0"); put(ws, f"E{r}", "Alloc_In 世代組合三格", F_NOTE); r += 1
+    put(ws, f"D{r}", "=IF(ABS(SUM(AL_MixGen)-1)>1E-9,1,0)", fmt="0"); put(ws, f"E{r}", "Alloc_In 世代組合四格", F_NOTE); r += 1
     h2 = r
     put(ws, f"A{r}", "H2"); put(ws, f"B{r}", "Alloc G 節自我檢查不等於基準的列數（兩邊皆為文字時不報錯）"); put(ws, f"C{r}", "ERROR", F_BOLD)
-    put(ws, f"D{r}", "=SUM(AL_SensCheck)", fmt="0"); put(ws, f"E{r}", "Alloc 敏感度表 V 欄（容差 1e-12）", F_NOTE); r += 1
+    put(ws, f"D{r}", "=SUM(AL_SensCheck)", fmt="0"); put(ws, f"E{r}", f"Alloc 敏感度表 {wb.defined_names['AL_SensCheck'].attr_text.split('$')[1]} 欄（容差 1e-12）", F_NOTE); r += 1
     # GOV_Errors (G section total) now also counts H1 and H2
     ref = wb.defined_names["GOV_Errors"].attr_text.split("!")[1].replace("$", "")
     cell = ws[ref]
@@ -3289,11 +3289,11 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
         "新鮮輸入與快取輸入見 IF_CostPre_*、IF_CostCache_*",
         "η_d、每層延遲、SLO、生產折減", "生產折減 1.0：Assumed（K11）；VR200 η_d：Analogy", "L1_CostDec_Sol_VR200", f"L1 第 {at['CostDec_Sol_VR200']} 列",
         "VR200 無實測，η_d 沿用 GB300；本題只連結既有 L1 列，未新增計算")
-    ans(5, "每 GW 理論營收（Sol，VR200）與理論毛利率", "OpenAI 有效單價、基準成本、基準利用率；單一層級滿載的上限",
+    ans(5, "每 GW 理論營收（Sol，VR200）", "OpenAI 有效單價、基準成本、基準利用率；單一層級滿載的上限",
         "=L1_RevGW_Sol_VR200", "=L1_RevGW_Sol_VR200_Lo", "=L1_RevGW_Sol_VR200_Hi", "$B/GW/年", UTIL_RNG,
         "連結 L1_RevGW_*（Luna、Sol、Astra、機隊各一列）；全成本 $/M 見 IF_FullCost_*", "利用率、折扣、快取命中 χ、單價快照",
         "利用率 60%：Assumed（K11）", "IF_RevGW_Sol", f"L1 第 {at['RevGW_Sol_VR200']} 列；Interface D 節",
-        "未能回答：理論毛利率。Interface 沒有毛利率列（IF_FullCost* 為 $/M、IF_RevGW* 為 $B/GW/年，單位不同），需新增計算，待 Project 判斷（工作單 B10）")
+        "未能回答：理論毛利率（Andy／chat 2026-10-04：本題標籤暫去「毛利率」，毛利率留 v5.16）。Interface 沒有毛利率列（IF_FullCost* 為 $/M、IF_RevGW* 為 $B/GW/年，單位不同），需新增計算")
     ans(6, "後訓練占比（Sol；訓練世代＝IF_TrainGenDefault）：FLOPs 口徑 對 GPU 小時口徑", "單一模型最終訓練；Block 3 基準",
         "=INDEX(IF_PostShareFLOP_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "%",
         "無區間：D＝FLOPs 口徑，E、F＝GPU 小時口徑（兩種口徑並列，不是低高）",
@@ -19040,9 +19040,9 @@ for _k, _r in _ROWS.items():
     GOV_MAP_V515.append({'scope': _SC, 'sheet': _N, 'cell': f'D{_r}:E{_r}', 'label': _LAB[_k], 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '',
                          'lo': None, 'hi': None, 'rtext': f'C{_r} 的低、高端點', 'reason': _REASON[_k], 'retag': '', 'seg': '—'})
 GOV_MAP_V515 += [
- {'scope': _SC, 'sheet': _N, 'cell': 'C9:C12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '群組', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
-  'rtext': '各 0–100%，合計 100%（Checks H1）', 'reason': '8f 驅動表：服務機隊的世代組合（Hopper／GB200／GB300／VR200 基準 0%／40%／40%／20%；補充 2：2025 機隊 Hopper 60%／GB200 40%）；四者合計須為 100%', 'retag': '', 'seg': '—'},
- {'scope': _SC, 'sheet': _N, 'cell': 'D9:E12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+ {'scope': _SC, 'sheet': _N, 'cell': 'C9:C12', 'label': '服務世代組合（Hopper／GB200／GB300／VR200）', 'check': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '群組', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+  'rtext': '各 0–100%，合計 100%（Checks H1）', 'reason': '8f 驅動表：服務機隊的世代組合（Hopper／GB200／GB300／VR200 基準 0%／40%／40%／20%；補充 2：2025 機隊 Hopper 60%／GB200 40%）；四者合計須為 100%。保留 2025 實際機隊選項；基準定義待 v0.6 討論', 'retag': '', 'seg': '—'},
+ {'scope': _SC, 'sheet': _N, 'cell': 'D9:E12', 'label': '服務世代組合（Hopper／GB200／GB300／VR200）', 'check': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
   'rtext': 'C9:C12 的低、高端點（各 0–100%）', 'reason': '8f 驅動表：服務機隊的世代組合', 'retag': '', 'seg': '—'},
 ]
 ```
@@ -19708,8 +19708,8 @@ def gm_append_c(wb, ws):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
-        if wb[g["sheet"]].cell(row, 1).value != g["label"]:
-            raise KeyError(f"GOV_MAP_V513C: {g['sheet']}!{g['cell']} row label changed: {wb[g['sheet']].cell(row, 1).value!r} != {g['label']!r}")
+        if wb[g["sheet"]].cell(row, 1).value != g.get("check", g["label"]):     # "check": 模型頁欄 A 的實際標籤（Gov_Map 顯示標籤可不同）
+            raise KeyError(f"GOV_MAP_V513C: {g['sheet']}!{g['cell']} row label changed: {wb[g['sheet']].cell(row, 1).value!r} != {g.get('check', g['label'])!r}")
         vals = [f"GM{nxt:03d}", g["scope"], g["sheet"], g["cell"], g["label"], g["cls"], g["role"], g["src"] or DASH, g["rel"] or DASH,
                 g["dec"] or DASH, g["lo"], g["hi"], g["rtext"] or DASH, g["reason"] or DASH, g["retag"] or DASH, g["seg"] or DASH]
         for i, v in enumerate(vals):

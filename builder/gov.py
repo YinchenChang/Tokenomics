@@ -332,8 +332,8 @@ def gm_append_c(wb, ws):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
-        if wb[g["sheet"]].cell(row, 1).value != g["label"]:
-            raise KeyError(f"GOV_MAP_V513C: {g['sheet']}!{g['cell']} row label changed: {wb[g['sheet']].cell(row, 1).value!r} != {g['label']!r}")
+        if wb[g["sheet"]].cell(row, 1).value != g.get("check", g["label"]):     # "check": 模型頁欄 A 的實際標籤（Gov_Map 顯示標籤可不同）
+            raise KeyError(f"GOV_MAP_V513C: {g['sheet']}!{g['cell']} row label changed: {wb[g['sheet']].cell(row, 1).value!r} != {g.get('check', g['label'])!r}")
         vals = [f"GM{nxt:03d}", g["scope"], g["sheet"], g["cell"], g["label"], g["cls"], g["role"], g["src"] or DASH, g["rel"] or DASH,
                 g["dec"] or DASH, g["lo"], g["hi"], g["rtext"] or DASH, g["reason"] or DASH, g["retag"] or DASH, g["seg"] or DASH]
         for i, v in enumerate(vals):

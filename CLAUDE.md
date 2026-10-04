@@ -1,14 +1,16 @@
-# Tokenomics — Claude Code 工作規範（2026-10-01 修訂四，取代 repo 內現有 CLAUDE.md）
+# Tokenomics — Claude Code 工作規範（2026-10-04 修訂五，取代 repo 內現有 CLAUDE.md）
 
 ## 1. 角色與事實來源
 
 - **Excel 活頁簿是唯一事實來源**：`model/YYYYMMDD_Tokenomics_vN.xlsx`。所有計算機制與數值以 Excel 為準。
 - 本 repo 的 Python 與網站只能**執行**或**呈現** Excel。不得自行新增、修改或省略任何計算機制與參數。
   - 本條取代舊版的「Build new features directly in Python (skip Excel prototyping)」。
-- **Excel 的修改分兩類**（2026-10-01 Andy 決定）：
-  - **判斷類**：只能在 Project 端（Andy 與 Claude chat）修改並升版，再依第 4 節同步。範圍：任何輸入值、計算機制或公式邏輯、新參數、來源與標記、Tech_Registry 條目、DB_Evidence 判定、假設與區間。
-  - **工程類**：Claude Code 可在本 repo 以 `builder/` 直接產生新版，依第 4a 節執行。範圍：具名範圍、標籤與單位文字、格式、僅供顯示的列、Checks 參照格改為儲存格引用、工作表順序、不改變任何數值的 builder 重構。
-  - **分不清屬哪一類時，一律視為判斷類**：在報告中提出，不要動手。
+- **Excel 的修改分兩類**（2026-10-01 Andy 決定；2026-10-04 修訂五：分工改為「Project 判斷、CC 執行、chat 審查」）：
+  - **判斷類**：「決定權」只在 Project 端（Andy 與 Claude chat）。範圍：任何輸入值、計算機制或公式邏輯、新參數、來源與標記、Tech_Registry 條目、DB_Evidence 判定、假設與區間。
+    - 「執行」由 CC 依工作單進行：工作單放在 `docs/workorders/YYYYMMDD_vN.md`，寫明要改什麼、確切數值與來源、公式邏輯、驗收標準。CC 依工作單改 `builder/` 並產生新版 Excel（第 4 節）。
+    - 工作單沒寫到、或寫得不清楚的地方：CC 不自行決定，列在報告「待 Project 判斷」一節；能先做的部分照做，不能做的部分保留現狀。
+  - **工程類**：Claude Code 直接執行，依第 4a 節。範圍：具名範圍、標籤與單位文字、格式、僅供顯示的列、Checks 參照格改為儲存格引用、工作表順序、不改變任何數值的 builder 重構。
+  - **分不清屬哪一類時，一律視為判斷類**：沒有工作單就不動手，在報告中提出。
 - **Excel 優先（v5.7 起）**：輸入值（藍字格）由 Excel 擁有；`builder/` 只產生公式頁，重建時讀回所有藍字輸入。改輸入一律改 Excel，不改 builder 的預設值。
 - 可以有更底層的資料庫（`DB_*` 工作表，或 `data/db/*.csv`），但必須由 Excel 讀入，且在 Excel 中看得到。
 - Tokenomics 是本研究體系的第 0 層。下游 OpenAI、CRWV、Nebius 等模型只連結 Excel 的 `Interface` 頁。
@@ -54,16 +56,22 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
    - 相對誤差不超過 1e-9；字串必須完全一致。
 4. GitHub Actions 在每次 push 與 PR 執行。未通過即阻擋合併。
 
-## 4. 同步流程（每個 Excel 新版本）
+## 4. 建置與同步流程（每個 Excel 新版本）
 
-1. 新版 xlsx 放入 `model/`，舊版以 `git mv` 移到 `model/archive/`（不刪除）；更新 `model/CURRENT`。
-   - chat 端交付新的 `Tokenomics_builder_v5.md` 時：依檔內 `## <檔名>.py` 標題下的 python 區塊，覆寫 `builder/` 內同名檔（逐字，不改內容），並確認 `python3 builder/build.py model/archive/<前一版>.xlsx /tmp/check.xlsx` 經 LibreOffice 重算後，數值與新版逐格一致（README 版本文字除外）。不一致時在報告中列出，不要自行修正。
-2. 執行 parity 測試。
+1. 新版 Excel 一律由 CC 以 `python3 builder/build.py model/<現行>.xlsx model/<新版>.xlsx` 產生（經 LibreOffice 重算存檔後放入 `model/`）；版本號依交接文件第 11 節：只新增 Evidence 為修補版，SRC Active 值或公式改變為次版，契約改變為主版。
+   - 舊版以 `git mv` 移到 `model/archive/`（不刪除）；更新 `model/CURRENT`。
+   - CC 同時重新產生 `docs/builder/Tokenomics_builder_v5.md`（`tools/gen_builder_md.py`；標題與各檔 `## <檔名>.py` 區塊格式不變）。chat 端不再交付 Excel 或 builder md。
+   - 工作單要求改動的輸入值：直接寫入 Excel 的藍字格，沿用「只在仍為舊值時才寫」的機制（`gov.gm_update` 同類寫法），不改 builder 的預設值。
+2. **驗收（全部成立才可提交）**：
+   - LibreOffice 重算錯誤 0 格；本機跑受影響子集；parity 全套以 CI 為準；合併門檻為 CI 全部 job 通過。增量與全簿重算皆 < 2 秒。
+   - `restore_log` unmatched 0；「Excel value kept over code default」只能出現工作單列明的格。
+   - 冪等：以新版為底稿重建，兩邊都經 LibreOffice 重算存檔後比較，數值與公式文字不符 0（builder 直接輸出的科學記號寫法與 LibreOffice 存檔不同，不作為不一致）。
+   - 與現行版逐格比較：差異必須全部落在工作單的「預期變動」範圍內。
 3. 如果具名範圍有增減，依 Excel 更新 `app/` 的欄位映射。
 4. 在 `CHANGELOG.md` 記錄 Excel 版本、commit 與變動摘要。
 5. 發現 Excel 本身的錯誤（`#REF!`、`#DIV/0!`、循環參照、單位不一致）時：
-   - 在 PR 描述中列出。
-   - 不得在 Python 端修補。
+   - 在 PR 描述與報告中列出；不得在 Python 端旁路修補。
+   - 例外：屬工作單範圍內可直接修正的 Excel 公式缺陷，可在同一版修正，並在報告表 1 列出。其他錯誤列在報告，交 Project 判斷。
 
 ## 4a. 工程類變更（CC 直接執行；2026-10-01 起）
 
@@ -102,6 +110,11 @@ Andy 不熟悉程式，所以每一輪工作結束都要交報告：
 - **同一份內容也貼成 PR comment**，讓 Andy 可以從 GitHub 通知信讀取。
 - 報告開頭列出：分支名稱、最新提交 SHA、報告檔路徑，讓 chat 端可直接以 `https://raw.githubusercontent.com/YinchenChang/Tokenomics/<SHA>/<路徑>` 讀取原檔。
 - 合併前請 Andy 確認。
+- **必填一節「預期變動 vs 實際變動」**（修訂五）：
+  - 表 1：工作單每一項 → 是否完成、實際位置（頁、列或名稱）、數值摘要。
+  - 表 2：逐格比較中，不在工作單範圍內的所有差異（應為 0；若非 0 逐項說明）。
+  - 另列：重算秒數（本機與 CI，CI 以 job summary 為準）、parity 項數與情境數、GOV 三項計數。
+- 必填「待 Project 判斷」一節：工作單沒寫到或寫得不清楚而 CC 未自行決定的事項。
 
 ## 6. 禁止事項
 

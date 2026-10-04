@@ -2,7 +2,8 @@ name: parity
 
 # CLAUDE.md 第 3 節：每次 push 與 PR 執行；任一格不符即失敗（合併閘門）。
 # 2026-10-04 提速（工程類）：情境分 6 片並行；結構性測試與兩條重算測試另成一個 job；防空轉測試獨立一個 job；
-# engine 計算圖由 engine-cache job 建一次、以 pycel 序列化檔分給各 job（比對範圍、容差、情境、斷言皆不變）。
+# engine 計算圖由 engine-cache job 建一次、以 pycel 序列化檔分給 scenario-guard 與 structure-recalc 使用；
+# scenarios 的核心斷言用重建引擎，另以 test_cache_matches_fresh 每次 CI 驗證快取與重建精確相等（比對範圍、容差、情境、斷言皆不變）。
 # 合併門檻＝名為 parity 的最後一個 job（needs 全部 job，任一未通過即失敗）。
 on:
   push:
@@ -60,9 +61,10 @@ jobs:
         with:
           name: engine-cache
           path: engine-cache/
-      - name: Parity 情境（全部公式格＋錯誤值＋增量重算門檻；此片的情境）
+      - name: Parity 情境（重建引擎：全部公式格＋錯誤值＋增量重算門檻）＋快取等價（此片的情境）
         # 不符時，測試訊息會列出前 20 個不符格：頁名、座標、引擎值、Excel 值
-        run: python -m pytest tests/parity/test_parity.py -k test_scenario_parity -v --tb=short -p no:cacheprovider --junitxml=junit.xml
+        # test_scenario_parity 一律用重建引擎；test_cache_matches_fresh 以快取載入實例與同一個重建實例精確比對
+        run: python -m pytest tests/parity/test_parity.py -k "test_scenario_parity or test_cache_matches_fresh" -v --tb=short -p no:cacheprovider --junitxml=junit.xml
       - name: job summary
         if: always()
         run: python tools/ci_summary.py job "scenarios 第 ${{ matrix.shard }} 片" junit.xml "$PARITY_RESULTS" >> "$GITHUB_STEP_SUMMARY"
@@ -101,7 +103,7 @@ jobs:
           path: engine-cache/
       - name: Parity 其餘測試（工作表、名稱、CURRENT、形狀、函數語意、兩條重算）
         # 兩條重算測試（增量 <2 秒、全簿 <2 秒）一律用重建的引擎，不經快取
-        run: python -m pytest tests/parity -k "not test_scenario_parity and not test_scenarios_actually_change_outputs" -v --tb=short -p no:cacheprovider --junitxml=junit.xml
+        run: python -m pytest tests/parity -k "not test_scenario_parity and not test_cache_matches_fresh and not test_scenarios_actually_change_outputs" -v --tb=short -p no:cacheprovider --junitxml=junit.xml
       - name: job summary
         if: always()
         run: python tools/ci_summary.py job "structure-recalc" junit.xml "$PARITY_RESULTS" >> "$GITHUB_STEP_SUMMARY"

@@ -13,18 +13,18 @@ RESULTS = Path(os.environ.get("PARITY_RESULTS") or Path(__file__).parent / "_res
 
 
 def pytest_collection_modifyitems(config, items):
-    """CI 分片（只切分，不改任何測試或斷言）：PARITY_SHARD="i/N" 時，test_scenario_parity 只留第 i 片
+    """CI 分片（只切分，不改任何測試或斷言）：PARITY_SHARD="i/N" 時，test_scenario_parity 與 test_cache_matches_fresh 只留第 i 片
     （情境依 scenarios.yaml 順序輪流分配，i 從 0 起算）。其他測試不受影響。
     未設定 PARITY_SHARD 時全部照跑。"""
     spec = os.environ.get("PARITY_SHARD")
     if not spec:
         return
     i, n = (int(x) for x in spec.split("/"))
-    keep, drop, k = [], [], 0
+    keep, drop, k = [], [], {}
     for it in items:
-        if it.originalname == "test_scenario_parity":
-            (keep if k % n == i else drop).append(it)
-            k += 1
+        if it.originalname in ("test_scenario_parity", "test_cache_matches_fresh"):   # 兩者依同一順序分片，同一情境落在同一片
+            j = k[it.originalname] = k.get(it.originalname, -1) + 1
+            (keep if j % n == i else drop).append(it)
         else:
             keep.append(it)
     items[:] = keep

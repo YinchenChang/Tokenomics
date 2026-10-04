@@ -24,7 +24,12 @@ def job(name, junit, results):
     print(f"- 測試：{len(cases)} 項；失敗 {len(bad)}；略過 {len(skipped)}；pytest 內計時合計 {wall:.0f} 秒")
     if results and Path(results).exists():
         d = json.loads(Path(results).read_text())
-        sc = {k: v for k, v in d.items() if isinstance(v, dict)}
+        sc = {k: v for k, v in d.items() if isinstance(v, dict) and not k.startswith("_")}
+        eq = d.get("_cache_equiv", {})
+        if eq:
+            print(f"- 快取等價（快取載入 vs 重建，精確比對）：{len(eq)} 個情境；公式格不符 {sum(v['cell_mismatch'] for v in eq.values())}、"
+                  f"具名範圍不符 {sum(v['name_mismatch'] for v in eq.values())}；每情境比對 {next(iter(eq.values()))['cells']} 格／{next(iter(eq.values()))['names']} 個名稱；"
+                  f"載入最長 {max(v['load_seconds'] for v in eq.values())} 秒")
         if sc:
             print(f"- 情境 {len(sc)} 個；不符格數合計 {sum(v['n_mismatch'] for v in sc.values())}；"
                   f"含錯誤值的情境 {[k for k, v in sc.items() if v['error_value_cells']]}")
@@ -47,7 +52,7 @@ def gate(folder):
     got, dup = [], []
     for f in sorted(Path(folder).rglob("_results*.json")):
         for k, v in json.loads(f.read_text()).items():
-            if isinstance(v, dict):
+            if isinstance(v, dict) and not k.startswith("_"):
                 (dup if k in got else got).append(k)
     miss = sorted(set(want) - set(got))
     extra = sorted(set(got) - set(want))

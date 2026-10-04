@@ -96,11 +96,15 @@ def src_refresh(wb):
     for sh in SRC_SHEETS:
         ws = wb[sh]
         put(ws, f"{KEY_COL}4", "同指標鍵（公式；X 欄用，v5.12）", F_BOLD, wrap=True); ws.column_dimensions[KEY_COL].width = 12
+        # v5.14: X compares only rows 5..(last record + IDX_HEAD), the same span SRC_Index uses for this sheet (was 5..SRC_LAST).
+        # A record beyond the span is already an ERROR (Checks E13, fixed by rebuilding), so the counts are unchanged; the
+        # comparison arrays shrink from 8 × 396 to about 700 rows (X columns were ~40% of full-recalc time in v5.13).
+        end = _span_end(ws)
         for r in range(5, ws.max_row + 1):
             sid = ws.cell(r, 1).value
             if not (isinstance(sid, str) and sid.startswith("SRC_")): continue
             index[sid] = (sh, r)
-            rng = lambda c: f"${c}$5:${c}${SRC_LAST}"
+            rng = lambda c: f"${c}$5:${c}${end}"
             # v5.12 (A): same count as v5.11 (B, G, H equal and Active) via one key column (AH) and one comparison array,
             # instead of four 396-row arrays per record (the SRC X columns were ~60% of full-recalc time after SRC_Index)
             put(ws, f"{KEY_COL}{r}", f'=IF($O{r}="Active",$B{r}&"{KEY_SEP}"&$G{r}&"{KEY_SEP}"&$H{r},"")')
@@ -232,6 +236,11 @@ GM_LAST = 700
 # block, whose status／grade read "不存在", exactly the v5.11 result) — no #N/A, no new function (no IFERROR).
 IDX_HEAD = 50                       # spare slots per SRC sheet after its last record (Checks E13 flags records beyond them)
 
+def _span_end(src):
+    """Last row covered for an SRC sheet: last record + IDX_HEAD, capped at SRC_LAST (shared by SRC_Index and the X columns)."""
+    last = max([rr for rr in range(5, min(src.max_row, SRC_LAST) + 1) if src.cell(rr, 1).value not in (None, "")] or [4])
+    return min(last + IDX_HEAD, SRC_LAST)
+
 def src_index(wb):
     if "SRC_Index" in wb.sheetnames: del wb["SRC_Index"]
     ws = wb.create_sheet("SRC_Index")
@@ -243,8 +252,7 @@ def src_index(wb):
     r = 5; spans = {}
     for sh in SRC_SHEETS:
         src = wb[sh]
-        last = max([rr for rr in range(5, min(src.max_row, SRC_LAST) + 1) if src.cell(rr, 1).value not in (None, "")] or [4])
-        end = min(last + IDX_HEAD, SRC_LAST)
+        end = _span_end(src)
         spans[sh] = (r, end)
         for rr in range(5, end + 1):
             put(ws, f"A{r}", f'={sh}!$A{rr}&""'); put(ws, f"B{r}", sh); put(ws, f"C{r}", rr, F_CALC)
@@ -492,7 +500,7 @@ def l1_sheet(wb):
     ws = wb.create_sheet("L1")
     title(ws, "L1 — 第 1 層常用推算值（G9；即時公式、不貼值；附條件、區間與外部對照）",
           "下游取標準推算值時引用 L1_ 名稱；完整構件仍在 Interface（IF_）。外部值一律連結 SRC。判讀：外部為區間時看是否落在區間內；外部為單一值時以 ±20% 判讀。"
-          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；Block 6 的 9 題於 v5.14 補入。")
+          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；Block 6 的 9 題於 v5.15 補入。")
     widths = [22, 38, 26, 10, 10, 10, 10, 24, 30, 24, 26, 12, 10, 10, 9, 14, 18, 18, 30]
     for i, h in enumerate(L1_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]
@@ -510,9 +518,11 @@ def l1_sheet(wb):
                 fmt=fmt, wrap=i in (1, 2, 7, 8, 9, 10, 18), fill=FILL_KEY if i == 3 else None)
         for c in "DEF":
             if not str(ws[f"{c}{r}"].value).startswith("="): nonformula += 1
-        put(ws, f"O{r}", f'=IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),D{r}/((M{r}+N{r})/2),"{DASH}")', fmt="0.00")
-        put(ws, f"P{r}", f'=IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),IF(M{r}=N{r},IF(ABS(D{r}/M{r}-1)<=0.2,"±20% 內","差距 >20%"),'
-                         f'IF(D{r}<M{r},"低於外部區間",IF(D{r}>N{r},"高於外部區間","落在外部區間"))),"無外部對照")')
+        # v5.14: D (base value) may be text in some scenarios (e.g. L1_RevGWFleet_OAI2025 reads Checks text "SLO 不可達");
+        # guard D as well as M/N so O/P never return an error value. Base-case values are unchanged.
+        put(ws, f"O{r}", f'=IF(AND(ISNUMBER(D{r}),ISNUMBER(M{r}),ISNUMBER(N{r})),D{r}/((M{r}+N{r})/2),"{DASH}")', fmt="0.00")
+        put(ws, f"P{r}", f'=IF(ISNUMBER(D{r}),IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),IF(M{r}=N{r},IF(ABS(D{r}/M{r}-1)<=0.2,"±20% 內","差距 >20%"),'
+                         f'IF(D{r}<M{r},"低於外部區間",IF(D{r}>N{r},"高於外部區間","落在外部區間"))),"無外部對照"),"推算值非數字（本情境）")')
         _nm(wb, f"L1_{key}", f"L1!$D${r}"); _nm(wb, f"L1_{key}_Lo", f"L1!$E${r}"); _nm(wb, f"L1_{key}_Hi", f"L1!$F${r}")
         r += 1
     ws.freeze_panes = "C5"

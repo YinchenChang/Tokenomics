@@ -1,14 +1,49 @@
 name: parity
 
 # CLAUDE.md 第 3 節：每次 push 與 PR 執行；任一格不符即失敗（合併閘門）。
+# 2026-10-04 提速（工程類）：情境分 6 片並行；結構性測試與兩條重算測試另成一個 job；防空轉測試獨立一個 job；
+# engine 計算圖由 engine-cache job 建一次、以 pycel 序列化檔分給各 job（比對範圍、容差、情境、斷言皆不變）。
+# 合併門檻＝名為 parity 的最後一個 job（needs 全部 job，任一未通過即失敗）。
 on:
   push:
   pull_request:
 
+env:
+  TOKENOMICS_ENGINE_CACHE: ${{ github.workspace }}/engine-cache/engine.pkl
+
 jobs:
-  parity:
+  engine-cache:
+    name: engine-cache（建一次計算圖）
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: 建圖、重算並序列化
+        run: python tools/build_engine_cache.py engine-cache/engine.pkl | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: engine-cache
+          path: engine-cache/
+          retention-days: 1
+
+  scenarios:
+    name: scenarios（第 ${{ matrix.shard }} 片／共 6）
+    needs: engine-cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    env:
+      PARITY_SHARD: ${{ matrix.shard }}/6
+      PARITY_RESULTS: tests/parity/_results_shard${{ matrix.shard }}.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -20,38 +55,143 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q libreoffice-calc
-      - name: 安裝相依套件
-        run: pip install -r requirements-dev.txt
-      - name: Parity（全部公式格＋具名範圍＋基準與 15 個情境＋函數語意）
+      - run: pip install -r requirements-dev.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: engine-cache
+          path: engine-cache/
+      - name: Parity 情境（全部公式格＋錯誤值＋增量重算門檻；此片的情境）
         # 不符時，測試訊息會列出前 20 個不符格：頁名、座標、引擎值、Excel 值
-        run: python -m pytest tests/parity -v --tb=short -p no:cacheprovider
-      - name: 重算秒數與 parity 統計寫入 job summary（只改輸出，不改斷言）
+        run: python -m pytest tests/parity/test_parity.py -k test_scenario_parity -v --tb=short -p no:cacheprovider --junitxml=junit.xml
+      - name: job summary
         if: always()
+        run: python tools/ci_summary.py job "scenarios 第 ${{ matrix.shard }} 片" junit.xml "$PARITY_RESULTS" >> "$GITHUB_STEP_SUMMARY"
+      - name: 上傳 parity 統計
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-results-scenarios-${{ matrix.shard }}
+          path: |
+            tests/parity/_results_shard${{ matrix.shard }}.json
+            junit.xml
+          if-no-files-found: ignore
+
+  structure-recalc:
+    name: structure-recalc（結構性測試＋函數語意＋兩條重算）
+    needs: engine-cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PARITY_RESULTS: tests/parity/_results_structure.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: 安裝 LibreOffice Calc（headless 重算基準）
         run: |
-          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-          import json, os
-          p = "tests/parity/_results.json"
-          if os.path.exists(p):
-              d = json.load(open(p))
-              sc = {k: v for k, v in d.items() if isinstance(v, dict)}
-              print("## Parity 統計")
-              print(f"- 情境數：{len(sc)}（含基準）")
-              print(f"- 不符格數合計：{sum(v['n_mismatch'] for v in sc.values())}；含錯誤值的情境：{[k for k, v in sc.items() if v['error_value_cells']]}")
-              print(f"- 增量重算最大秒數：{max(v['eval_all_seconds_after_change'] for v in sc.values())}")
-              print(f"- 全簿強制重算秒數：{d.get('_full_recalc_seconds')}")
-          PY
+          sudo apt-get update -q
+          sudo apt-get install -y -q libreoffice-calc
+      - run: pip install -r requirements-dev.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: engine-cache
+          path: engine-cache/
+      - name: Parity 其餘測試（工作表、名稱、CURRENT、形狀、函數語意、兩條重算）
+        # 兩條重算測試（增量 <2 秒、全簿 <2 秒）一律用重建的引擎，不經快取
+        run: python -m pytest tests/parity -k "not test_scenario_parity and not test_scenarios_actually_change_outputs" -v --tb=short -p no:cacheprovider --junitxml=junit.xml
+      - name: job summary
+        if: always()
+        run: python tools/ci_summary.py job "structure-recalc" junit.xml "$PARITY_RESULTS" >> "$GITHUB_STEP_SUMMARY"
+      - name: 上傳 parity 統計
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-results-structure
+          path: |
+            tests/parity/_results_structure.json
+            junit.xml
+          if-no-files-found: ignore
+
+  scenario-guard:
+    name: scenario-guard（防空轉：每個情境至少改變一格）
+    needs: engine-cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: engine-cache
+          path: engine-cache/
+      - name: 防空轉（test_scenarios_actually_change_outputs；17 次獨立引擎，不需 LibreOffice）
+        run: python -m pytest tests/parity/test_parity.py -k test_scenarios_actually_change_outputs -v --tb=short -p no:cacheprovider --junitxml=junit.xml
+      - name: job summary
+        if: always()
+        run: python tools/ci_summary.py job "scenario-guard" junit.xml >> "$GITHUB_STEP_SUMMARY"
+
+  governance:
+    name: governance（GOV_Errors 必須為 0；匯出 CSV）
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
       - name: 治理檢查（GOV_Errors 必須為 0）並匯出 SRC_／Interface CSV
-        run: python tools/export_csv.py --out data/export
+        run: python tools/export_csv.py --out data/export | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 上傳匯出 CSV
         uses: actions/upload-artifact@v4
         with:
           name: export-csv
           path: data/export/*.csv
           if-no-files-found: ignore
-      - name: 上傳 parity 統計
-        if: always()
-        uses: actions/upload-artifact@v4
+
+  # 合併閘門：沿用原 job 名稱 parity，既有的必要狀態檢查不必改。
+  parity:
+    name: parity
+    needs: [engine-cache, scenarios, structure-recalc, scenario-guard, governance]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          name: parity-results
-          path: tests/parity/_results.json
-          if-no-files-found: ignore
+          python-version: "3.11"
+      - run: pip install pyyaml
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: parity-results-*
+          path: results/
+      - name: 各 job 結果
+        run: |
+          {
+            echo "## parity 合併門檻"
+            echo "| job | 結果 |"
+            echo "|---|---|"
+            echo "| engine-cache | ${{ needs.engine-cache.result }} |"
+            echo "| scenarios（6 片） | ${{ needs.scenarios.result }} |"
+            echo "| structure-recalc | ${{ needs.structure-recalc.result }} |"
+            echo "| scenario-guard | ${{ needs.scenario-guard.result }} |"
+            echo "| governance | ${{ needs.governance.result }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: 情境覆蓋（18 個情境恰各跑一次）
+        run: python tools/ci_summary.py gate results/ | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: 全部 job 必須通過
+        if: needs.engine-cache.result != 'success' || needs.scenarios.result != 'success' || needs.structure-recalc.result != 'success' || needs.scenario-guard.result != 'success' || needs.governance.result != 'success'
+        run: |
+          echo "有 job 未通過" >&2
+          exit 1

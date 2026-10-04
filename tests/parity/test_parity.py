@@ -2,6 +2,7 @@
 
 比對範圍：全部公式格；具名範圍名稱與 attr_text；17 個情境（含 v5.11 兩個治理情境）各以獨立引擎實例重算。
 """
+import os
 import time
 from pathlib import Path
 
@@ -32,11 +33,15 @@ def base_engine(model):
     return eng, eng.evaluate_all()
 
 
-def new_engine(model):
-    """回傳全新的引擎實例（每次建圖並重算，約 50 秒）。
+def new_engine(model, fresh=False):
+    """回傳全新的引擎實例。預設（無快取）每次建圖並重算，約 50 秒。
+    CI 設定 TOKENOMICS_ENGINE_CACHE 時改由 pycel 序列化檔載入（ExcelCompiler.from_file，約數秒），每次載入都是獨立實例；
+    載入後仍強制全簿重算。第 14 輪評估：18 情境與重建逐格比對不符 0（2026-10-04 提速報告）。
+    fresh=True 一律重建：效能門檻測試（兩條重算）量的是真正建出來的引擎，不經快取。
     曾評估以 deepcopy 範本共用建圖結果（第 12 輪第 7 點）：總時長可由約 37 分降至約 10 分，但複本偶發
     'NoneType' has no attribute 'get_range'，且複本的重算變慢（4.9–6.2 秒），不採用。"""
-    return Engine(model)
+    cache = None if fresh else os.environ.get("TOKENOMICS_ENGINE_CACHE")
+    return Engine(model, cache=cache or None)
 
 
 @pytest.fixture(scope="module")
@@ -267,7 +272,7 @@ INCREMENTAL_LIMIT_S = 2.0
 
 def test_incremental_recalc_matches_fresh_and_is_fast(model):
     """同一實例連續改輸入再還原：結果須與全新實例相同；(a) 每個情境增量重算 < 2 秒（硬性）。"""
-    eng = new_engine(model)
+    eng = new_engine(model, fresh=True)
     base = eng.evaluate_all()
     names = eng.names
     base_orig = {a: eng.get(*resolve_key(names, a)) for sc in SCENARIOS[1:] for a in sc["inputs"]}   # 改動前的原值
@@ -287,7 +292,7 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
 
 def test_full_recalc_time(model, results_store):
     """(b) 全簿強制重算 < 2 秒（v5.12 恢復）。"""
-    eng = new_engine(model)
+    eng = new_engine(model, fresh=True)
     eng.evaluate_all()
     t0 = time.perf_counter()
     eng._xl.recalculate()                      # 強制全簿（全部公式格）重算

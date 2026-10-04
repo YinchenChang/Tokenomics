@@ -7,7 +7,11 @@
 """
 from __future__ import annotations
 
+import hashlib
+import json
+import platform
 import re
+import sys
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -115,15 +119,39 @@ def norm(v):
     v5.11：SUMPRODUCT 回傳 numpy 純量（np.int64），轉為 Python 型別（只改型別表示，不改數值）。"""
     if v is None:
         return ""
-    return v.item() if hasattr(v, "item") and getattr(v, "shape", None) == () else v
+    if hasattr(v, "item") and getattr(v, "shape", None) == ():
+        return v.item()
+    if isinstance(v, float) and type(v) is not float:        # 從序列化快取載入時為 ruamel 的 ScalarFloat／ScalarInt
+        return float(v)
+    if isinstance(v, int) and not isinstance(v, bool) and type(v) is not int:
+        return int(v)
+    return v
+
+
+PLUGINS = ["engine.excel_semantics"]
+
+
+def _cache_fingerprint(path: Path) -> dict:
+    """序列化快取的有效條件：活頁簿內容、引擎原始碼、pycel 與 Python 版本任一改變即失效。"""
+    import pycel
+    here = Path(__file__).resolve().parent
+    h = lambda p: hashlib.sha256(Path(p).read_bytes()).hexdigest()   # noqa: E731
+    return {"xlsx": h(path), "core": h(here / "core.py"), "semantics": h(here / "excel_semantics.py"),
+            "pycel": getattr(pycel, "__version__", "?"), "python": platform.python_version()}
 
 
 class Engine:
-    """封裝 pycel：載入、設定輸入、依具名範圍取值。"""
+    """封裝 pycel：載入、設定輸入、依具名範圍取值。
 
-    def __init__(self, path: str | Path | None = None):
+    cache：pycel 序列化檔（見 `save_cache`）。有給時從檔案載入計算圖，省去約 50 秒建圖；
+    快取與活頁簿／引擎原始碼／pycel／Python 版本不符時直接報錯（不靜默改走重建）。"""
+
+    def __init__(self, path: str | Path | None = None, cache: str | Path | None = None):
         self.path = Path(path) if path else current_model_path()
-        self._xl = ExcelCompiler(filename=str(self.path), plugins=["engine.excel_semantics"])
+        if cache:
+            self._xl = self._load_cache(Path(cache), self.path)
+        else:
+            self._xl = ExcelCompiler(filename=str(self.path), plugins=PLUGINS)
         wb = openpyxl.load_workbook(self.path)  # 公式模式：取得公式格清單與具名範圍
         self.sheetnames = list(wb.sheetnames)
         self.names = {k: v.attr_text for k, v in wb.defined_names.items()}
@@ -134,7 +162,25 @@ class Engine:
             for c in row
             if isinstance(c.value, str) and c.value.startswith("=")
         ]
-        self._warm_up()
+        self._warm_up()     # 從快取載入時圖已建好，此處只剩強制全簿重算
+
+    @staticmethod
+    def _load_cache(cache: Path, path: Path):
+        want = json.loads(cache.with_suffix(cache.suffix + ".json").read_text(encoding="utf-8"))
+        have = _cache_fingerprint(path)
+        if want != have:
+            raise RuntimeError(f"引擎快取已失效，請重建：{ {k: (want.get(k), have[k]) for k in have if want.get(k) != have[k]} }")
+        sys.setrecursionlimit(max(sys.getrecursionlimit(), 100000))
+        return ExcelCompiler.from_file(str(cache), plugins=PLUGINS)
+
+    def save_cache(self, cache: str | Path) -> None:
+        """建圖並重算後，把 pycel 計算圖序列化到檔案，附 `.json` 指紋。"""
+        cache = Path(cache)
+        for name in self.names:      # 只靠具名範圍讀取的常數格（不被任何公式引用）也要先進計算圖，否則載入後讀到空值
+            self._xl.evaluate(self._addr(*self.name_ref(name)))
+        sys.setrecursionlimit(max(sys.getrecursionlimit(), 100000))
+        self._xl.to_file(str(cache))
+        cache.with_suffix(cache.suffix + ".json").write_text(json.dumps(_cache_fingerprint(self.path)), encoding="utf-8")
 
     def _warm_up(self) -> None:
         """建立全簿計算圖，並強制全部公式格重算。

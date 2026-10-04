@@ -3,35 +3,34 @@
 - 分支：`claude/compassionate-mendel-6bbmoo`（PR：[#14](https://github.com/YinchenChang/Tokenomics/pull/14)）
 - 最新提交 SHA：以 PR 最新提交為準（本報告隨 PR 提交）
 - 報告檔：`docs/reports/20261004_ci_speedup.md`
-- **依賴的 PR**：[#13](https://github.com/YinchenChang/Tokenomics/pull/13)（v5.14 同步）。本 PR 疊在 #13 的分支上；#13 合併後把 base 改回 master。
+- **依賴的 PR**：[#13](https://github.com/YinchenChang/Tokenomics/pull/13)（v5.14 同步，已合併為 `ecb10e1`）。本 PR 已 rebase 到 master，base 為 master。
 - 性質：工程類。Excel、builder、藍字輸入都沒動；測試的比對範圍、容差、情境、斷言都沒動。
 
 ## 一、先講一個你需要知道的現況
 
-master 目前（`3b6d47d`）的 `model/` 同時有 v5.12、v5.13、v5.14 三份 xlsx、`CURRENT` 還寫 v5.12，所以 `current_model_path()` 直接報錯，master 的 parity 是紅燈（Actions 第 81、82、85 次都失敗）。PR #13 把舊版移入 archive、`CURRENT` 指向 v5.14，才會恢復。所以本 PR 疊在 #13 之上，否則連基線都跑不起來。
+（歷史，已解決）當時 master（`3b6d47d`）的 `model/` 同時有 v5.12、v5.13、v5.14 三份 xlsx、`CURRENT` 還寫 v5.12，所以 `current_model_path()` 直接報錯，master 的 parity 是紅燈（Actions 第 81、82、85 次都失敗）。PR #13 把舊版移入 archive、`CURRENT` 指向 v5.14，才會恢復。所以本 PR 疊在 #13 之上，否則連基線都跑不起來。
 
 ## 二、做了什麼、為什麼
 
 原本單一 job 串行跑 127 項測試，約 40–46 分鐘。耗時來源：每次「建一個全新引擎」要 50 秒（pycel 建 33,480 格計算圖），整個流程共建了約 55 次。
 
-1. **情境分 6 片並行**（18 個情境，依 `scenarios.yaml` 順序輪流分給 6 片，每片 3 個）。每片自己跑 LibreOffice 重算與比對，斷言不變。
-2. **其餘測試分成三個 job**：
-   - `structure-recalc`：工作表、名稱、CURRENT、形狀、函數語意，加上兩條重算（增量 <2 秒、全簿 <2 秒）。
-   - `scenario-guard`：防空轉測試（每個情境至少改變一格），單獨成 job，因為它自己要建 17 個引擎，是最慢的一項。
+1. **情境分 6 片並行**（18 個情境輪流分給 6 片，每片 3 個）。每片自己跑 LibreOffice 重算與比對。**核心斷言（`test_scenario_parity`）一律用重建引擎，不依賴快取**（審查第 2 點）。
+2. **快取等價測試 `test_cache_matches_fresh`**（新增，每次 CI 都跑）：各片對自己分到的情境，以快取載入的實例與重建的實例套用相同輸入，**全部 33,480 個公式格與全部 736 個具名範圍精確比對（不用容差，型別也要相同）**，不符即失敗；結果（比對格數、不符數、載入秒數）寫入該片的 job summary。「重建實例」就是同片 `test_scenario_parity` 剛算完的那一個，所以不必多建一次。
+3. **其餘測試分成三個 job**：
+   - `structure-recalc`：工作表、名稱、CURRENT、形狀、函數語意，加上兩條重算（增量 <2 秒、全簿 <2 秒；兩條一律用重建引擎量測）。
+   - `scenario-guard`：防空轉測試（每個情境至少改變一格），最慢的一項，單獨成 job。
    - `governance`：GOV_Errors 必須為 0，並匯出 CSV。
-3. **`engine-cache` job** 只建一次計算圖並序列化，其他 job 下載後載入（見第四節）。
-4. **合併門檻**：最後的 `parity` job（沿用原名稱，既有的必要狀態檢查不用改）要求所有 job 都通過，並檢查 18 個情境「恰好各跑一次」（不漏、不重）。每個 job 的測試數、失敗數、各情境重算秒數、最慢 5 項都寫進 job summary。
-
-兩條重算測試**一律用重建的引擎、不經快取**，因為它們量的是引擎實際建出來的效能門檻。
+4. **`engine-cache` job** 只建一次計算圖並序列化。**快取只用於 `scenario-guard`、`structure-recalc`（其中非重算的測試）與等價測試本身**；`scenarios` 的核心斷言與兩條重算門檻都不經快取。
+5. **合併門檻**：最後的 `parity` job（沿用原名稱，既有的必要狀態檢查不用改）要求所有 job 都通過，並檢查 18 個情境「恰好各跑一次」（不漏、不重）。
 
 ## 三、測試覆蓋沒有變少
 
 | 項目 | 改前 | 改後 |
 |---|---|---|
-| 測試總數 | 127 | 127（`structure-recalc` 109 項含防空轉 1 項已移到 `scenario-guard`；`scenarios` 18 項） |
+| 原有測試 | 127 | 127（分布見第六節） |
+| 新增 | — | `test_cache_matches_fresh` 18 項（另計） |
 | 情境 | 18 | 18，由 `parity` job 檢查恰各跑一次 |
-| 比對範圍／容差 | 全部公式格；1e-9 | 不變 |
-| 斷言 | — | 一條都沒改；`git diff` 只動 `new_engine()` 的建構方式與兩處 `fresh=True` |
+| 比對範圍／容差／斷言 | 全部公式格；1e-9 | 不變；`git diff` 只動引擎建構方式（`fresh=True`）與新增測試 |
 
 ## 四、pycel 序列化快取（第 2 點）：採用
 
@@ -48,6 +47,8 @@ master 目前（`3b6d47d`）的 `model/` 同時有 v5.12、v5.13、v5.14 三份 
 1. **78 個具名範圍讀到空字串**：這些範圍涵蓋的是「只給網站顯示、沒被任何公式引用」的常數格（共 261 個文字格等）。pycel 只把被公式引用的格子存進計算圖，載入後這些格子就消失。修正：存檔前先對每個具名範圍求值一次，讓它們進計算圖。
 2. **2,037 格型別不同**：數值相等，但經 YAML 往返後變成 `ScalarFloat/ScalarInt`（float/int 的子類別）。修正：`norm()` 轉回 `float/int`。
 
+**此後每次 CI 都由 `test_cache_matches_fresh` 重做這項比對**（見第二節），不再只靠這次一次性驗證。
+
 沒有看到偶發錯誤：第 2 次是 4 個行程同時各自載入快取（共 18 次載入），全部一致。第 1 次的「複本偶發 `get_range` 錯誤」（第 12 輪 deepcopy 方案）在 pickle 載入的實例上沒有出現；之後每次 CI 都是一次新的獨立驗證。
 
 速度（本機 4 核，4 行程同時跑）：重建 48–53 秒，快取載入 11–14 秒（含 openpyxl 讀檔與強制重算）；單行程載入約 2.6 秒讀檔＋重算。
@@ -60,9 +61,39 @@ master 目前（`3b6d47d`）的 `model/` 同時有 v5.12、v5.13、v5.14 三份 
 | `structure-recalc`＋`scenario-guard` 合併（109 項） | 全過；497 秒（其中防空轉 224 秒，現已獨立成 job）；全簿強制重算 1.03 秒；增量最大 0.49 秒 |
 | 兩條重算門檻 | 全簿 1.03 秒＜2、增量 0.49 秒＜2（在重建引擎上量測） |
 
-## 六、CI 實測（GitHub Actions）
+## 六、CI 實測（GitHub Actions，提交 `d4912ab`，run #96）
 
-見下方「實測更新」；CI 跑完後補上。
+**牆鐘時間：8 分 25 秒**（04:07:00 → 04:15:25），全部 job 通過；目標 ≤ 15 分鐘，達成。改前約 39–46 分鐘。
+
+### 各 job 時間（含環境準備）與實際測試數
+
+| job | 時間 | 測試數 | 內容 |
+|---|---|---|---|
+| engine-cache | 1 分 33 秒 | 0 | 建圖、重算、序列化（建圖＋序列化 66 秒） |
+| governance | 1 分 25 秒 | 0 | export_csv，GOV_Errors 0 |
+| scenarios 第 0 片 | 6 分 06 秒 | 3＋3 | 3 項 parity、3 項快取等價 |
+| scenarios 第 1 片 | 4 分 12 秒 | 3＋3 | 同上 |
+| scenarios 第 2 片 | 5 分 42 秒 | 3＋3 | 同上 |
+| scenarios 第 3 片 | 5 分 57 秒 | 3＋3 | 同上 |
+| scenarios 第 4 片 | 6 分 29 秒（最慢） | 3＋3 | 同上 |
+| scenarios 第 5 片 | 5 分 51 秒 | 3＋3 | 同上 |
+| structure-recalc | 5 分 37 秒 | 108 | 結構性、函數語意、兩條重算 |
+| scenario-guard | 5 分 45 秒 | 1 | 防空轉（17 次快取載入） |
+| parity（合併門檻） | 10 秒 | 0 | 各 job 結果＋18 情境覆蓋檢查 |
+
+測試數合計：原有 **127**＝108（structure-recalc）＋1（scenario-guard）＋18（scenarios 的 parity，6 片各 3）；另有 **18 項快取等價測試**（6 片各 3），不計入 127。本機 `--collect-only` 共 145 項，與此一致。各 job 的快取等價比對格數、不符數寫在該片 job summary。
+
+關鍵路徑：engine-cache（1.5 分）→ 最慢的 scenarios 片（6.5 分）→ parity（0.2 分）。最慢的一片比最快的多約 2 分鐘（各片情境不同，LibreOffice 重算與重建引擎的耗時不一）。
+
+### 與「快取用於所有 job」版本比較（提交 `9c6cc12`，run #91）
+
+| 版本 | 牆鐘 |
+|---|---|
+| 改前（單一 job） | 約 39–46 分 |
+| 快取用於所有 job | 8 分 55 秒 |
+| 本版（scenarios 重建＋等價測試） | 8 分 25 秒（兩次 run 的機器差異，兩版時間相近） |
+
+本版在核心斷言不依賴快取的前提下，時間沒有變差。
 
 ### 改前基線（Actions 歷史）
 
@@ -73,14 +104,12 @@ master 目前（`3b6d47d`）的 `model/` 同時有 v5.12、v5.13、v5.14 三份 
 | #83（第 13 輪續，push） | 約 46 分 |
 | #84（第 13 輪續，PR） | 約 44 分 |
 
-單一 job，沒有 job 層級的拆分。
-
 ## 七、發現的 Excel 問題
 
 無。
 
 ## 八、下一步與需要你決定的事
 
-1. 合併前請確認。建議順序：先合併 #13，再把本 PR 的 base 改回 master 合併。
+1. 合併前請確認。#13 已合併（`ecb10e1`），本 PR 已 rebase 並把 base 改回 master。
 2. 合併後建議把分支保護的必要檢查維持為名為 `parity` 的那一項（現在它代表全部 job）。
 3. `engine-cache` 這個 job 失敗時（例如 pycel 升版），所有下游 job 會被擋住；處理方式是回報，不會自動退回到「每次重建」。

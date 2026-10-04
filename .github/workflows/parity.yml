@@ -134,7 +134,7 @@ jobs:
         with:
           name: engine-cache
           path: engine-cache/
-      - name: 防空轉（test_scenarios_actually_change_outputs；17 次獨立引擎，不需 LibreOffice）
+      - name: 防空轉（test_scenarios_actually_change_outputs；22 次獨立引擎，不需 LibreOffice）
         run: python -m pytest tests/parity/test_parity.py -k test_scenarios_actually_change_outputs -v --tb=short -p no:cacheprovider --junitxml=junit.xml
       - name: job summary
         if: always()
@@ -190,7 +190,7 @@ jobs:
             echo "| scenario-guard | ${{ needs.scenario-guard.result }} |"
             echo "| governance | ${{ needs.governance.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: 情境覆蓋（18 個情境恰各跑一次）
+      - name: 情境覆蓋（23 個情境恰各跑一次）
         run: python tools/ci_summary.py gate results/ | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 全部 job 必須通過
         if: needs.engine-cache.result != 'success' || needs.scenarios.result != 'success' || needs.structure-recalc.result != 'success' || needs.scenario-guard.result != 'success' || needs.governance.result != 'success'

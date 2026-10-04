@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261004_Tokenomics_v5.15.xlsx（取代 v5.14；Block 6 Alloc；判斷類，依工作單 `docs/workorders/20261004_v5.15.md` r3 執行）
+
+- Commit：見本輪 PR（合併後補上雜湊）。報告：`docs/reports/20261004_v5.15.md`。底稿：master `7402b3e`（含 PR #13、#14）。
+- Excel（CC 以 `builder/` 自 v5.14 產生，經 LibreOffice 重算存檔）：新增 `Alloc_In`（輸入）與 `Alloc`（推導）；Interface F 節新增 `IF_AllocQ1`、`IF_AllocQ1_R2`、`IF_AllocQ2`、`IF_AllocServeGW`、`IF_AllocRDGW`、`IF_AllocDemand`、`IF_AllocImpliedNk`；L1 新增 Answers 9 題與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013；DB_Evidence 新增 E166–E169；Decisions 新增 A9、A10，A1–A8 狀態改「v5.15 已建」；Checks 新增 H 節（計入 GOV_Errors）。公式格 33,480 → 34,534；具名範圍 736 → 865；工作表 46 → 48。既有模型頁、Interface 既有列、既有 L1 列數值逐格不變。
+- 工單更正：W1 支出路線服務 GW 不乘 1e9；W2 改版計畫取 Training 第 104 列。補充 2：服務世代組合加 Hopper 欄；新增情境 `h_alloc_mix_2025`。
+- builder：新增 `block6.py`、`gov_seed3.py`；`build.py`、`gov.py`、`preserve.py`、`finish.py` 接上；`docs/builder/Tokenomics_builder_v5.md` 重新產生（`tools/gen_builder_md.py`）。以 v5.14 重建 `restore_log` matched 936／Excel 值保留 0／unmatched 0；冪等（以 v5.15 重建）0 不符。
+- 測試：期望值 33,480 → 34,534 格、736 → 865 名稱（新增 `al_names` 80）、`downstream_names` 164 → 171、`src_names` 324 → 330、`l1_names` 96 → 132、工作表 46 → 48；新增情境 `h_alloc_no_refresh`、`h_alloc_k_high`、`h_alloc_tok_high`、`h_alloc_growth`、`h_alloc_mix_2025`（共 23 個含基準）；新增 `test_alloc_expected_values_and_slo_text`、`test_alloc_mix_2025_expected_values`；`test_cache_matches_fresh` 的具名範圍比對加型別檢查。網站新增 Alloc 與問答頁。`tools/export_csv.py` 的 Interface 匯出範圍 200 → 300 列。
+- 治理：GOV_Errors 0、GOV_Warnings 238 → 241、GOV_Info 99 → 102。
+
 ## 20261004_Tokenomics_v5.14.xlsx（取代 v5.13；第 13 輪續：L1 錯誤值修正）
 
 - Commit：見本輪 PR #13 的合併提交（合併後補上雜湊）。報告：`docs/reports/20261004_v5.14_sync.md`。

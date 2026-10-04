@@ -296,7 +296,11 @@ def test_cache_matches_fresh(sc, model, cache_path, results_store):
         eng.set_key(key, v)
     got_cells = eng.evaluate_all()
     bad_cells = [k for k in want_cells if want_cells[k] != got_cells[k] or type(want_cells[k]) is not type(got_cells[k])]
-    bad_names = [n for n in want_names if want_names[n] != eng.get_name(n)]
+    def _same(a, b):                      # 具名範圍：值相等且型別相同（清單逐元素；PR #14 審查遺留項）
+        if isinstance(a, list) or isinstance(b, list):
+            return isinstance(a, list) and isinstance(b, list) and len(a) == len(b) and all(_same(x, y) for x, y in zip(a, b))
+        return a == b and type(a) is type(b)
+    bad_names = [n for n in want_names if not _same(want_names[n], eng.get_name(n))]
     results_store.setdefault("_cache_equiv", {})[sc["id"]] = {
         "cells": len(want_cells), "names": len(want_names), "cell_mismatch": len(bad_cells),
         "name_mismatch": len(bad_names), "load_seconds": round(load_s, 1)}

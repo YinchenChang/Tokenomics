@@ -406,6 +406,11 @@ def is_block5_name(name: str) -> bool:
     return name.startswith(B5_IF_PREFIXES)
 
 
+def is_block6_name(name: str) -> bool:
+    """Block 6（v5.15）的 Interface 名稱（Interface F 節 IF_Alloc*，單格，數值或文字「SLO 不可達」）；由 Alloc 頁與問答頁呈現，不列入 Block 1 總覽表。"""
+    return name.startswith("IF_Alloc")
+
+
 def task_names(eng: Engine) -> list[str]:
     return [str(x) for x in eng.get_name("IF_HdrTask")]
 
@@ -504,7 +509,11 @@ def _table_by_names(eng: Engine, sheet: str, row_names: list[str], last_col: str
 def l1_table(eng: Engine) -> pd.DataFrame:
     """L1 頁（第 1 層常用推算值）：列由 L1_ 具名範圍（不含 _Lo／_Hi）決定。"""
     names = [n for n in eng.names if n.startswith("L1_") and not n.endswith(("_Lo", "_Hi"))]
-    return _table_by_names(eng, eng.name_ref(names[0])[0], names, L1_LAST_COL)
+    df = _table_by_names(eng, eng.name_ref(names[0])[0], names, L1_LAST_COL)
+    for c in df.columns:                      # 同欄混有數值與文字（例：外部值「—」）時轉為文字，避免表格序列化失敗
+        if df[c].map(lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)).nunique() > 1:
+            df[c] = df[c].map(lambda v: fmt(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else str(v))
+    return df
 
 
 def src_tables(eng: Engine) -> dict[str, pd.DataFrame]:

@@ -1,4 +1,4 @@
-# Tokenomics v5 建檔程式（v5.13 產生器：Block 2＋Block 3＋Block 4＋Block 5＋治理 Stage 1 切片一＋切片二（B–E 包）＋SRC_Index；Excel 優先）
+# Tokenomics v5 建檔程式（v5.14 產生器：Block 2＋Block 3＋Block 4＋Block 5＋治理 Stage 1 切片一＋切片二（B–E 包）＋SRC_Index；Excel 優先）
 
 用途：Block 2、Block 3、Block 4、Block 5 的公式頁由程式產生，確保公式一致、可重建。**v5.7 起輸入值由 Excel 擁有**：要改輸入，直接改 Excel（藍字格）；builder 重建時會讀回所有藍字輸入。程式內的數值只是「新增輸入列時的預設值」。
 
@@ -30,6 +30,7 @@
 - v5.13 D 包（2026-10-03，以 v5.12 為底稿，接續 B、C 包；chat 端）：`inputs.arch` 第 21–23 列 KV bytes 改公式，新增「KV 推導輸入」5 列（每層 KV bytes、MLA 每層元素、MLA 層比例、GQA KV heads、每元素 bytes＝SRC_HW_055）；Arch C9、C10 連結 V4-Flash 官方 config.json（SRC_MOD_052、053，1 級，E165）；`block4` Cap_In N 欄改公式；`build.SNAP_RETIRED`：改為公式的舊輸入格（22 格）記入 gov_log、不還原；`gov._rows_l1` 新增 7 列（Checks 外部比對移入 L1：CoreWeave 牌價、損益兩平租金、RL ÷ 預訓練 Sol／Astra、最終訓練占研發、OpenAI 2025 對帳、Astra 預訓練算力），`gov.checks_to_l1`：Checks 對應列讀 L1 外部欄、樣本外實測值連結 SRC_Perf；GOV_MAP_UPD 再加 11 列、GOV_MAP_V513C 再加 5 列；C 包提議區間依 Andy 2026-10-03「all ok」改為已確認。公式 33,481 格、LibreOffice 零錯誤。對 v5.12：模型頁、Interface 與既有 L1 25 列數值全部一致（Checks 第 34 列外部參照 0.055→0.0552，改由 SRC 計算）。Checks G 節 ERROR 0、WARN 238、INFO 97。restore：以 v5.12 為底稿 1,008 格全數對應（另 22 格為改公式的舊輸入）；冪等 74,711 格不符 0；Excel 優先：改 Arch E36、C34 後重建保留且第 21 列隨之變動。pycel 33,481 格不符 0；全簿強制重算本機 1.46–1.55 秒。
 - v5.13 E 包（部分，2026-10-03）：D 包審閱檔 Andy「BOTH ok」，Arch C34:D34、E36 的提議區間改為已確認（Gov_Map M 欄 2 格）；README 版本列更新。對 D 包檔逐格比較 74,711 格，差異只有這 3 格。v5.11 審閱檔尚未回填。
 - v5.13 E 包（2026-10-03）：Andy 對 v5.11 審閱檔「all OK」（全部依 Claude 建議）：`gov_seed2.GOV_MAP_UPD_E`（95 列、114 欄位）與 `DEC_UPD`（83 項原話＋A1–A8 狀態與 G10 文字，98 欄位），由 `gov.gm_update`、`gov.dec_update` 只在仍為 v5.12 原值時寫入。內容：74 格提議區間改為已確認；R12 輪數下限 max(1, ×0.5)；R17 χ 分任務（聊天 30–70%、代理 70–95%）；R19 Calib C69 改為 Derived（待改公式）；標記變更 25 格註記 Andy 同意；Decisions 原話 83 項 J 欄改否，G0-9 文字修正（PUE 改標 Assumed），CV1 維持 4×HGX，K1、K2、K13 補原話。v5.13 交付檔（以 v5.12 為底稿）：公式 33,480 格、LibreOffice 零錯誤；具名範圍 736（SRC 324、L1 96）；對 v5.12 逐格比較 71,141 格：模型頁、Interface 與既有 L1 25 列數值全部一致。Checks G 節 ERROR 0、WARN 238、INFO 99。restore 1,008 格全數對應、22 格改公式記入 gov_log；冪等 74,711 格不符 0；pycel 33,480 格不符 0；全簿強制重算本機 1.34–1.50 秒。
+- v5.14（2026-10-04，以 v5.13 為底稿；工程類，chat 端）：(1) CC 第 13 輪發現 v5.13 在 SLO 不可達情境（b_prod_derate、f_registry_t07_t09_on）下 L1!O35、P35 出現錯誤值（D35 連 Checks!B43，該情境為文字「SLO 不可達」，O、P 只檢查 M、N）。`gov.l1_sheet`：L1 全部 32 列 O 欄改為 D、M、N 皆為數字才計算，否則「—」；P 欄 D 非數字時回傳「推算值非數字（本情境）」；L1 標題的 Block 6 版號改 v5.15。(2) 重算時間：SRC 各頁 X 欄的比對範圍由第 5–400 列改為第 5 列到最後一筆紀錄＋IDX_HEAD（與 SRC_Index 共用 `gov._span_end`）；超出範圍的紀錄已由 Checks E13 報錯，故計數不變。`finish.py` README。公式 33,480 格、LibreOffice 零錯誤；具名範圍 736。對 v5.13 逐格比較 74,711 格：數值差異只有 README!B5 與 L1!A2（說明文字）；公式文字差異 332 格（L1 O、P 64 格、SRC 各頁 X 266 格與上述 2 格）。restore：以 v5.13 為底稿 936 格全數對應、unmatched 0；冪等 74,711 格數值與公式文字不符 0。E7 測試：把 SRC_HW 第 6 列的指標、口徑、對象改成與第 5 列相同，X5、X6＝2、E7＝2、GOV_Errors＝2（偵測不變）。全簿強制重算（repo engine／pycel，同一台機器）：v5.13 2.44–2.71 秒 → v5.14 1.68–1.76 秒；剩餘最大項為 Gov_Map AF 欄（574 個 MATCH，約 0.44 秒），日後若需再降，從此處著手。（備註：以 builder 直接輸出、未經 LibreOffice 存檔的檔案與交付檔比較公式原始文字時，約 3,900 格因 LibreOffice 把 1E9 等數字常數展開而寫法不同，數值不受影響；冪等應比較兩邊皆經 LibreOffice 重算存檔的檔案。）無新函數。
 
 
 
@@ -1561,7 +1562,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261003_Tokenomics_v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", "20261004_Tokenomics_v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -18944,11 +18945,15 @@ def src_refresh(wb):
     for sh in SRC_SHEETS:
         ws = wb[sh]
         put(ws, f"{KEY_COL}4", "同指標鍵（公式；X 欄用，v5.12）", F_BOLD, wrap=True); ws.column_dimensions[KEY_COL].width = 12
+        # v5.14: X compares only rows 5..(last record + IDX_HEAD), the same span SRC_Index uses for this sheet (was 5..SRC_LAST).
+        # A record beyond the span is already an ERROR (Checks E13, fixed by rebuilding), so the counts are unchanged; the
+        # comparison arrays shrink from 8 × 396 to about 700 rows (X columns were ~40% of full-recalc time in v5.13).
+        end = _span_end(ws)
         for r in range(5, ws.max_row + 1):
             sid = ws.cell(r, 1).value
             if not (isinstance(sid, str) and sid.startswith("SRC_")): continue
             index[sid] = (sh, r)
-            rng = lambda c: f"${c}$5:${c}${SRC_LAST}"
+            rng = lambda c: f"${c}$5:${c}${end}"
             # v5.12 (A): same count as v5.11 (B, G, H equal and Active) via one key column (AH) and one comparison array,
             # instead of four 396-row arrays per record (the SRC X columns were ~60% of full-recalc time after SRC_Index)
             put(ws, f"{KEY_COL}{r}", f'=IF($O{r}="Active",$B{r}&"{KEY_SEP}"&$G{r}&"{KEY_SEP}"&$H{r},"")')
@@ -19080,6 +19085,11 @@ GM_LAST = 700
 # block, whose status／grade read "不存在", exactly the v5.11 result) — no #N/A, no new function (no IFERROR).
 IDX_HEAD = 50                       # spare slots per SRC sheet after its last record (Checks E13 flags records beyond them)
 
+def _span_end(src):
+    """Last row covered for an SRC sheet: last record + IDX_HEAD, capped at SRC_LAST (shared by SRC_Index and the X columns)."""
+    last = max([rr for rr in range(5, min(src.max_row, SRC_LAST) + 1) if src.cell(rr, 1).value not in (None, "")] or [4])
+    return min(last + IDX_HEAD, SRC_LAST)
+
 def src_index(wb):
     if "SRC_Index" in wb.sheetnames: del wb["SRC_Index"]
     ws = wb.create_sheet("SRC_Index")
@@ -19091,8 +19101,7 @@ def src_index(wb):
     r = 5; spans = {}
     for sh in SRC_SHEETS:
         src = wb[sh]
-        last = max([rr for rr in range(5, min(src.max_row, SRC_LAST) + 1) if src.cell(rr, 1).value not in (None, "")] or [4])
-        end = min(last + IDX_HEAD, SRC_LAST)
+        end = _span_end(src)
         spans[sh] = (r, end)
         for rr in range(5, end + 1):
             put(ws, f"A{r}", f'={sh}!$A{rr}&""'); put(ws, f"B{r}", sh); put(ws, f"C{r}", rr, F_CALC)
@@ -19340,7 +19349,7 @@ def l1_sheet(wb):
     ws = wb.create_sheet("L1")
     title(ws, "L1 — 第 1 層常用推算值（G9；即時公式、不貼值；附條件、區間與外部對照）",
           "下游取標準推算值時引用 L1_ 名稱；完整構件仍在 Interface（IF_）。外部值一律連結 SRC。判讀：外部為區間時看是否落在區間內；外部為單一值時以 ±20% 判讀。"
-          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；Block 6 的 9 題於 v5.14 補入。")
+          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；Block 6 的 9 題於 v5.15 補入。")
     widths = [22, 38, 26, 10, 10, 10, 10, 24, 30, 24, 26, 12, 10, 10, 9, 14, 18, 18, 30]
     for i, h in enumerate(L1_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]
@@ -19358,9 +19367,11 @@ def l1_sheet(wb):
                 fmt=fmt, wrap=i in (1, 2, 7, 8, 9, 10, 18), fill=FILL_KEY if i == 3 else None)
         for c in "DEF":
             if not str(ws[f"{c}{r}"].value).startswith("="): nonformula += 1
-        put(ws, f"O{r}", f'=IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),D{r}/((M{r}+N{r})/2),"{DASH}")', fmt="0.00")
-        put(ws, f"P{r}", f'=IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),IF(M{r}=N{r},IF(ABS(D{r}/M{r}-1)<=0.2,"±20% 內","差距 >20%"),'
-                         f'IF(D{r}<M{r},"低於外部區間",IF(D{r}>N{r},"高於外部區間","落在外部區間"))),"無外部對照")')
+        # v5.14: D (base value) may be text in some scenarios (e.g. L1_RevGWFleet_OAI2025 reads Checks text "SLO 不可達");
+        # guard D as well as M/N so O/P never return an error value. Base-case values are unchanged.
+        put(ws, f"O{r}", f'=IF(AND(ISNUMBER(D{r}),ISNUMBER(M{r}),ISNUMBER(N{r})),D{r}/((M{r}+N{r})/2),"{DASH}")', fmt="0.00")
+        put(ws, f"P{r}", f'=IF(ISNUMBER(D{r}),IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),IF(M{r}=N{r},IF(ABS(D{r}/M{r}-1)<=0.2,"±20% 內","差距 >20%"),'
+                         f'IF(D{r}<M{r},"低於外部區間",IF(D{r}>N{r},"高於外部區間","落在外部區間"))),"無外部對照"),"推算值非數字（本情境）")')
         _nm(wb, f"L1_{key}", f"L1!$D${r}"); _nm(wb, f"L1_{key}_Lo", f"L1!$E${r}"); _nm(wb, f"L1_{key}_Hi", f"L1!$F${r}")
         r += 1
     ws.freeze_panes = "C5"

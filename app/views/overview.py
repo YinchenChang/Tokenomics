@@ -4,7 +4,7 @@ import streamlit as st
 from openpyxl.utils import range_boundaries
 
 from app.common import (BLOCK2_METRICS, BLOCK3_SCALARS, fmt, fmt_unit, get_engine, interface_series, is_block3_name,
-                        is_block4_name, is_block5_name, is_downstream_name, gov_status, gov_table)
+                        is_block4_name, is_block5_name, is_block6_name, is_downstream_name, gov_status, gov_table)
 
 
 def render():
@@ -29,7 +29,7 @@ def render():
     st.caption("ERROR 必須為 0（CI 讀取 GOV_Errors）；WARN、INFO 為待辦。完整表與 L1、Source 見「治理」頁。")
 
     st.subheader("Interface — Block 1（每 GW＝IT 關鍵電力）")
-    block1 = [n for n in eng.names if is_downstream_name(n) and n != "IF_Util" and not is_block3_name(n) and not is_block4_name(n) and not is_block5_name(n)
+    block1 = [n for n in eng.names if is_downstream_name(n) and n != "IF_Util" and not is_block3_name(n) and not is_block4_name(n) and not is_block5_name(n) and not is_block6_name(n)
               and not any(n.startswith(f"IF_{m}_") for m in BLOCK2_METRICS)]
     rows = {}
     for n in sorted(block1, key=lambda n: range_boundaries(eng.name_ref(n)[1])[1]):   # 依 Excel 列序

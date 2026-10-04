@@ -21,6 +21,9 @@ BLOCK3_PREFIX = ("TrainGPUh", "TrainCost", "PostShareFLOP", "PostShareGPUh", "RL
 BLOCK2_PREFIX = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
 
 
+ALLOC_IF = ("IF_AllocQ1", "IF_AllocQ1_R2", "IF_AllocQ2", "IF_AllocServeGW", "IF_AllocRDGW", "IF_AllocDemand", "IF_AllocImpliedNk")
+
+
 @pytest.fixture(scope="module")
 def model():
     return current_model_path()
@@ -84,6 +87,7 @@ def test_named_ranges(model):
     assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
     assert sum(n.startswith("SRC_") for n in eng.names) == EXPECT["src_names"]       # v5.11：第 0 層
     assert sum(n.startswith("L1_") for n in eng.names) == EXPECT["l1_names"] and sum(n.startswith("GOV_") for n in eng.names) == EXPECT["gov_names"]
+    assert sum(n.startswith("AL_") for n in eng.names) == EXPECT["al_names"]            # v5.15：Block 6 顯示名稱
     assert sum(n.startswith("CST_") for n in eng.names) == EXPECT["cst_names"] and sum(n.startswith("IDX_") for n in eng.names) == EXPECT["idx_names"]   # v5.12
     assert not any(n.startswith(("CST_", "IDX_")) for n in eng.names if n.startswith("IF_"))          # CST_／IDX_ 不是下游名稱（下游只可連結 IF_）
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
@@ -181,7 +185,7 @@ def test_interface_d_e_shapes(model):
                | {f"IF_{p}_{t}" for p in ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR") for t in TIERS})
     assert len(v59_new) == 41 and v59_new <= set(single_num + single_txt + wide + task), "v5.9 新增的 41 個下游名稱須全數涵蓋形狀檢查"
     v510_new = {f"IF_{p}_{t}" for p in ("CostAttVR", "HzEff") for t in TIERS} | {"IF_PFloor"} | set(front)
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) == 113   # v5.8 的下游名稱數；v5.10 新增 10 個
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
@@ -248,6 +252,12 @@ def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, resu
     results_store[sc["id"]] = {k: v for k, v in res.items() if k != "mismatches"} | {
         "n_mismatch": len(res["mismatches"]), "eval_all_seconds_after_change": round(elapsed, 2),
         "changed_cells": len(changed), "changed_interface_cells": sum(1 for s_, _ in changed if s_ == "Interface")}
+    if sc["id"].startswith("h_alloc_"):          # v5.15 防空轉：Interface F 節（IF_Alloc*）至少一格改變；成長情境只改 Alloc 頁（見報告）
+        sheet_ref = [base_engine[0].name_ref(n) for n in ALLOC_IF] if sc["id"] != "h_alloc_growth" else [("Alloc", None)]
+        if sc["id"] != "h_alloc_growth":
+            assert any(base[(s_, r_)] != got[(s_, r_)] for s_, r_ in sheet_ref if (s_, r_) in base), f"[{sc['id']}] Interface F 節未改變"
+        else:
+            assert any(s_ == "Alloc" for s_, _ in changed), f"[{sc['id']}] Alloc 頁未改變"
     assert elapsed < INCREMENTAL_LIMIT_S, f"[{sc['id']}] 改輸入後重算 {elapsed:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"   # (a) 增量重算硬性門檻
     assert res["error_value_cells"] == 0, f"[{sc['id']}] 錯誤值 {res['error_value_cells']} 格（v5.9 起任何情境皆不得出現錯誤值；兩邊錯誤代碼不同亦視為不符）"
     if sc["id"] != "base":
@@ -286,7 +296,11 @@ def test_cache_matches_fresh(sc, model, cache_path, results_store):
         eng.set_key(key, v)
     got_cells = eng.evaluate_all()
     bad_cells = [k for k in want_cells if want_cells[k] != got_cells[k] or type(want_cells[k]) is not type(got_cells[k])]
-    bad_names = [n for n in want_names if want_names[n] != eng.get_name(n)]
+    def _same(a, b):                      # 具名範圍：值相等且型別相同（清單逐元素；PR #14 審查遺留項）
+        if isinstance(a, list) or isinstance(b, list):
+            return isinstance(a, list) and isinstance(b, list) and len(a) == len(b) and all(_same(x, y) for x, y in zip(a, b))
+        return a == b and type(a) is type(b)
+    bad_names = [n for n in want_names if not _same(want_names[n], eng.get_name(n))]
     results_store.setdefault("_cache_equiv", {})[sc["id"]] = {
         "cells": len(want_cells), "names": len(want_names), "cell_mismatch": len(bad_cells),
         "name_mismatch": len(bad_names), "load_seconds": round(load_s, 1)}
@@ -343,3 +357,38 @@ def test_full_recalc_time(model, results_store):
     full = time.perf_counter() - t0
     results_store["_full_recalc_seconds"] = round(full, 2)
     assert full < FULL_RECALC_LIMIT_S, f"全簿強制重算 {full:.2f}s ≥ {FULL_RECALC_LIMIT_S}s"
+
+
+def test_alloc_expected_values_and_slo_text(model, template_engine):
+    """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
+    base = new_engine(model)
+    assert abs(base.get_name("AL_DDaily") - 11.48) < 0.01                                 # 每日 token 約 11.5T
+    assert abs(base.get_name("AL_ServeGWSpend") - 0.751) < 5e-4                           # 工作單 r3 更正 1
+    assert abs(base.get_name("AL_RefGWyr") - 0.01808) < 5e-6                              # 工作單 r3 更正 2
+    assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
+    assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
+    for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
+                              ("b_prod_derate", {"Serving!C18": 0.7}, False)):
+        eng = _clone(template_engine)
+        for k, v in inputs.items():
+            eng.set_key(k, v)
+        eng.evaluate_all()
+        for n in ALLOC_IF:                                                                  # 每個 IF_Alloc*：數值或文字「SLO 不可達」，不得為錯誤值
+            v = eng.get_name(n)
+            assert (isinstance(v, (int, float)) and not isinstance(v, bool)) or v == "SLO 不可達", (sid, n, v)
+        assert eng.get_name("GOV_Errors") == 0, sid
+        if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
+            assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
+        else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 48.8%）
+            assert abs(eng.get_name("IF_AllocQ1") - 0.4876) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
+
+
+def test_alloc_mix_2025_expected_values(model, template_engine):
+    """補充 2：2025 機隊 Hopper 60%／GB200 40%（h_alloc_mix_2025）的期望值（chat 端獨立重算）。"""
+    eng = _clone(template_engine)
+    for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
+        eng.set_key(k, v)
+    eng.evaluate_all()
+    for n, want in (("IF_AllocServeGW", 0.13724), ("AL_ServeGWSpend", 0.86022), ("IF_AllocQ1", 0.36945), ("IF_AllocQ2", 0.41972)):
+        assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
+    assert eng.get_name("GOV_Errors") == 0

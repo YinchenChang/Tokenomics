@@ -16,8 +16,9 @@ from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_TITLE, F_NOTE, FILL_SEC,
 from gov_seed import SRC_RECORDS, PERF_ATTR, EVID_MIG, EVID_UPD, FORMULA_MAP, GOV_MAP
 from gov_decisions import DECISIONS
 from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP_UPD, GOV_MAP_V513C, GOV_MAP_UPD_E, DEC_UPD
+from gov_seed3 import SRC_RECORDS3, EVID_MIG3, DECISIONS_V515, DEC_STATUS_V515, GOV_MAP_V515
 
-ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2
+ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
 
@@ -79,7 +80,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2:
+    for rec in SRC_RECORDS2 + SRC_RECORDS3:
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -136,7 +137,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2:
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3:
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -168,11 +169,22 @@ def dec_update(wb):
     """v5.13 E: Andy's review results written to Decisions (Excel-owned), each field only while it still holds the v5.12 value."""
     ws = wb["Decisions"]; col = {"D": 4, "F": 6, "G": 7, "J": 10}; n = 0
     for r in range(5, ws.max_row + 1):
-        f = DEC_UPD.get(ws.cell(r, 1).value)
+        f = {**DEC_UPD, **DEC_STATUS_V515}.get(ws.cell(r, 1).value)     # v5.15: A1–A8 status "v5.15 已建"
         if not f: continue
         for k, (old, new) in f.items():
             c = ws.cell(r, col[k])
             if c.value == old: c.value = new; n += 1
+    return n
+
+
+def dec_append(wb):
+    """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
+    ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
+    for row in DECISIONS_V515:
+        if row[0] in have: continue
+        for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
     return n
 
 
@@ -316,12 +328,12 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C:
+    for g in GOV_MAP_V513C + GOV_MAP_V515:
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
-        if wb[g["sheet"]].cell(row, 1).value != g["label"]:
-            raise KeyError(f"GOV_MAP_V513C: {g['sheet']}!{g['cell']} row label changed: {wb[g['sheet']].cell(row, 1).value!r} != {g['label']!r}")
+        if wb[g["sheet"]].cell(row, 1).value != g.get("check", g["label"]):     # "check": 模型頁欄 A 的實際標籤（Gov_Map 顯示標籤可不同）
+            raise KeyError(f"GOV_MAP_V513C: {g['sheet']}!{g['cell']} row label changed: {wb[g['sheet']].cell(row, 1).value!r} != {g.get('check', g['label'])!r}")
         vals = [f"GM{nxt:03d}", g["scope"], g["sheet"], g["cell"], g["label"], g["cls"], g["role"], g["src"] or DASH, g["rel"] or DASH,
                 g["dec"] or DASH, g["lo"], g["hi"], g["rtext"] or DASH, g["reason"] or DASH, g["retag"] or DASH, g["seg"] or DASH]
         for i, v in enumerate(vals):
@@ -491,6 +503,8 @@ def _rows_l1():
               "=Training!$N$31*Training!$N$34*1E21", "=Training!$N$31*Training!$N$34*1E21", "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
               "訓練 FLOPs/token × token；與前沿錨點 2e26–2e27 的差距即 J8 缺口", "Astra 啟用參數、預訓練 token", "Astra 架構：Assumed", "SRC_MOD_033",
               "=SRC_MOD_033", "=SRC_MOD_033", DASH, "Training 第 31、34 列；Checks 第 38 列", "外部為 Grok-3 的 Epoch 估計；GPT-6 Astra 實際算力未揭露"))
+    from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
+    R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     return R
 
 def l1_sheet(wb):
@@ -500,7 +514,7 @@ def l1_sheet(wb):
     ws = wb.create_sheet("L1")
     title(ws, "L1 — 第 1 層常用推算值（G9；即時公式、不貼值；附條件、區間與外部對照）",
           "下游取標準推算值時引用 L1_ 名稱；完整構件仍在 Interface（IF_）。外部值一律連結 SRC。判讀：外部為區間時看是否落在區間內；外部為單一值時以 ±20% 判讀。"
-          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；Block 6 的 9 題於 v5.15 補入。")
+          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；v5.15 補入 Block 6 的 9 題（L1_Ans1–9）與 3 列外部對照。")
     widths = [22, 38, 26, 10, 10, 10, 10, 24, 30, 24, 26, 12, 10, 10, 9, 14, 18, 18, 30]
     for i, h in enumerate(L1_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]
@@ -658,6 +672,7 @@ def gov_all(wb):
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
     dec_made = decisions_sheet(wb)
+    dec_made2 = dec_append(wb)
     dec_upd = dec_update(wb)
     n_fm, fm_log = apply_formula_map(wb)
     n_f14 = f14(wb)
@@ -668,7 +683,7 @@ def gov_all(wb):
     n_l1, nonf, l1_at = l1_sheet(wb)
     ck3_log = checks_to_l1(wb, l1_at)
     checks_gov(wb, n_l1, nonf, hard, SI["spans"])
-    return dict(src_made=made, src_appended=appended, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made,
+    return dict(src_made=made, src_appended=appended, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made, decisions_appended=dec_made2,
                 src_index_rows=SI["rows"], src_index_src_rows=SI["src_rows"], src_index_spans=SI["spans"],
                 formula_map_changed=n_fm, f14_changed=n_f14, gov_rows=n_gm, gov_raw_hardcoded=hard, l1_rows=n_l1, l1_nonformula=nonf,
                 fm_log=fm_log + ck2_log + ck3_log)

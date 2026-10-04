@@ -31,7 +31,7 @@ def main():
         for s in SRC_SHEETS + ("Interface",):
             last = "W" if s.startswith("SRC_") else "R"
             first = 4 if s.startswith("SRC_") else 1
-            grid = eng.get(s, f"A{first}:{last}{600 if s.startswith('SRC_') else 200}")
+            grid = eng.get(s, f"A{first}:{last}{600 if s.startswith('SRC_') else 300}")
             rows = [r for r in grid if any(x != "" for x in r)]
             with open(a.out / f"{s}.csv", "w", newline="", encoding="utf-8-sig") as f:
                 csv.writer(f).writerows(rows)

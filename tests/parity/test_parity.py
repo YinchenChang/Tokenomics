@@ -20,6 +20,9 @@ BLOCK3_PREFIX = ("TrainGPUh", "TrainCost", "PostShareFLOP", "PostShareGPUh", "RL
 BLOCK2_PREFIX = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
 
 
+ALLOC_IF = ("IF_AllocQ1", "IF_AllocQ1_R2", "IF_AllocQ2", "IF_AllocServeGW", "IF_AllocRDGW", "IF_AllocDemand", "IF_AllocImpliedNk")
+
+
 @pytest.fixture(scope="module")
 def model():
     return current_model_path()
@@ -79,6 +82,7 @@ def test_named_ranges(model):
     assert sum(n.startswith("DRV_") for n in eng.names) == EXPECT["drv_names"] and sum(n.startswith("CAL_") for n in eng.names) == EXPECT["cal_names"]
     assert sum(n.startswith("SRC_") for n in eng.names) == EXPECT["src_names"]       # v5.11：第 0 層
     assert sum(n.startswith("L1_") for n in eng.names) == EXPECT["l1_names"] and sum(n.startswith("GOV_") for n in eng.names) == EXPECT["gov_names"]
+    assert sum(n.startswith("AL_") for n in eng.names) == EXPECT["al_names"]            # v5.15：Block 6 顯示名稱
     assert sum(n.startswith("CST_") for n in eng.names) == EXPECT["cst_names"] and sum(n.startswith("IDX_") for n in eng.names) == EXPECT["idx_names"]   # v5.12
     assert not any(n.startswith(("CST_", "IDX_")) for n in eng.names if n.startswith("IF_"))          # CST_／IDX_ 不是下游名稱（下游只可連結 IF_）
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
@@ -239,6 +243,12 @@ def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, resu
     results_store[sc["id"]] = {k: v for k, v in res.items() if k != "mismatches"} | {
         "n_mismatch": len(res["mismatches"]), "eval_all_seconds_after_change": round(elapsed, 2),
         "changed_cells": len(changed), "changed_interface_cells": sum(1 for s_, _ in changed if s_ == "Interface")}
+    if sc["id"].startswith("h_alloc_"):          # v5.15 防空轉：Interface F 節（IF_Alloc*）至少一格改變；成長情境只改 Alloc 頁（見報告）
+        sheet_ref = [base_engine[0].name_ref(n) for n in ALLOC_IF] if sc["id"] != "h_alloc_growth" else [("Alloc", None)]
+        if sc["id"] != "h_alloc_growth":
+            assert any(base[(s_, r_)] != got[(s_, r_)] for s_, r_ in sheet_ref if (s_, r_) in base), f"[{sc['id']}] Interface F 節未改變"
+        else:
+            assert any(s_ == "Alloc" for s_, _ in changed), f"[{sc['id']}] Alloc 頁未改變"
     assert elapsed < INCREMENTAL_LIMIT_S, f"[{sc['id']}] 改輸入後重算 {elapsed:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"   # (a) 增量重算硬性門檻
     assert res["error_value_cells"] == 0, f"[{sc['id']}] 錯誤值 {res['error_value_cells']} 格（v5.9 起任何情境皆不得出現錯誤值；兩邊錯誤代碼不同亦視為不符）"
     if sc["id"] != "base":
@@ -294,3 +304,20 @@ def test_full_recalc_time(model, results_store):
     full = time.perf_counter() - t0
     results_store["_full_recalc_seconds"] = round(full, 2)
     assert full < FULL_RECALC_LIMIT_S, f"全簿強制重算 {full:.2f}s ≥ {FULL_RECALC_LIMIT_S}s"
+
+
+def test_alloc_expected_values_and_slo_text(model, template_engine):
+    """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
+    base = new_engine(model)
+    assert abs(base.get_name("AL_DDaily") - 11.48) < 0.01                                 # 每日 token 約 11.5T
+    assert abs(base.get_name("AL_ServeGWSpend") - 0.751) < 5e-4                           # 工作單 r3 更正 1
+    assert abs(base.get_name("AL_RefGWyr") - 0.01808) < 5e-6                              # 工作單 r3 更正 2
+    assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
+    assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
+    for inputs in ({"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1},):
+        eng = _clone(template_engine)
+        for k, v in inputs.items():
+            eng.set_key(k, v)
+        eng.evaluate_all()
+        assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達"
+        assert eng.get_name("GOV_Errors") == 0

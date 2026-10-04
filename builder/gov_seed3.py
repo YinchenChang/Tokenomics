@@ -54,7 +54,7 @@ _SC = '切片三（v5.15 Block 6）'
 _N = 'Alloc_In'
 _LAB = {'Nmajor': '家族計畫數 N_major（個／年）', 'Nrefresh': '改版計畫數 N_refresh（個／年）', 'k': '計畫規模倍數 k（相對 Block 3）',
         'g': '機隊年成長率 g', 'APIratio': 'API 全年平均 ÷ 10 月時點值', 'TokPerPrompt': '每則提示 token 數', 'FreeShare': 'ChatGPT token 中免費用戶占比'}
-_ROWS = {'Nmajor': 6, 'Nrefresh': 7, 'k': 8, 'g': 12, 'APIratio': 13, 'TokPerPrompt': 14, 'FreeShare': 15}   # Alloc_In row numbers (labels are re-checked at build)
+_ROWS = {'Nmajor': 6, 'Nrefresh': 7, 'k': 8, 'g': 13, 'APIratio': 14, 'TokPerPrompt': 15, 'FreeShare': 16}   # Alloc_In row numbers (labels are re-checked at build)
 _REASON = {
  'Nmajor': '8f 驅動表：前沿實驗室每年約 1–2 個旗艦家族（基準 1）',
  'Nrefresh': '8f 驅動表、A2：改版計畫計入（基準 2，區間 0–4）',
@@ -77,8 +77,8 @@ for _k, _r in _ROWS.items():
     GOV_MAP_V515.append({'scope': _SC, 'sheet': _N, 'cell': f'D{_r}:E{_r}', 'label': _LAB[_k], 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '',
                          'lo': None, 'hi': None, 'rtext': f'C{_r} 的低、高端點', 'reason': _REASON[_k], 'retag': '', 'seg': '—'})
 GOV_MAP_V515 += [
- {'scope': _SC, 'sheet': _N, 'cell': 'C9:C11', 'label': '服務世代組合：GB200', 'cls': 'Assumed', 'role': '群組', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
-  'rtext': '各 0–100%，合計 100%（Checks H1）', 'reason': '8f 驅動表：服務機隊的世代組合（GB200／GB300／VR200 基準 40%／40%／20%）；三者合計須為 100%', 'retag': '', 'seg': '—'},
- {'scope': _SC, 'sheet': _N, 'cell': 'D9:E11', 'label': '服務世代組合：GB200', 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
-  'rtext': 'C9:C11 的低、高端點（各 0–100%）', 'reason': '8f 驅動表：服務機隊的世代組合', 'retag': '', 'seg': '—'},
+ {'scope': _SC, 'sheet': _N, 'cell': 'C9:C12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '群組', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+  'rtext': '各 0–100%，合計 100%（Checks H1）', 'reason': '8f 驅動表：服務機隊的世代組合（Hopper／GB200／GB300／VR200 基準 0%／40%／40%／20%；補充 2：2025 機隊 Hopper 60%／GB200 40%）；四者合計須為 100%', 'retag': '', 'seg': '—'},
+ {'scope': _SC, 'sheet': _N, 'cell': 'D9:E12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+  'rtext': 'C9:C12 的低、高端點（各 0–100%）', 'reason': '8f 驅動表：服務機隊的世代組合', 'retag': '', 'seg': '—'},
 ]

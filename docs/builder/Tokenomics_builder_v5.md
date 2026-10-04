@@ -1,4 +1,4 @@
-# Tokenomics v5 建檔程式（v5.14 產生器：Block 2＋Block 3＋Block 4＋Block 5＋治理 Stage 1 切片一＋切片二（B–E 包）＋SRC_Index；Excel 優先）
+# Tokenomics v5 建檔程式（v5.15 產生器：Block 2＋Block 3＋Block 4＋Block 5＋Block 6 Alloc＋治理 Stage 1 切片一＋切片二（B–E 包）＋SRC_Index；Excel 優先）
 
 用途：Block 2、Block 3、Block 4、Block 5 的公式頁由程式產生，確保公式一致、可重建。**v5.7 起輸入值由 Excel 擁有**：要改輸入，直接改 Excel（藍字格）；builder 重建時會讀回所有藍字輸入。程式內的數值只是「新增輸入列時的預設值」。
 
@@ -31,8 +31,7 @@
 - v5.13 E 包（部分，2026-10-03）：D 包審閱檔 Andy「BOTH ok」，Arch C34:D34、E36 的提議區間改為已確認（Gov_Map M 欄 2 格）；README 版本列更新。對 D 包檔逐格比較 74,711 格，差異只有這 3 格。v5.11 審閱檔尚未回填。
 - v5.13 E 包（2026-10-03）：Andy 對 v5.11 審閱檔「all OK」（全部依 Claude 建議）：`gov_seed2.GOV_MAP_UPD_E`（95 列、114 欄位）與 `DEC_UPD`（83 項原話＋A1–A8 狀態與 G10 文字，98 欄位），由 `gov.gm_update`、`gov.dec_update` 只在仍為 v5.12 原值時寫入。內容：74 格提議區間改為已確認；R12 輪數下限 max(1, ×0.5)；R17 χ 分任務（聊天 30–70%、代理 70–95%）；R19 Calib C69 改為 Derived（待改公式）；標記變更 25 格註記 Andy 同意；Decisions 原話 83 項 J 欄改否，G0-9 文字修正（PUE 改標 Assumed），CV1 維持 4×HGX，K1、K2、K13 補原話。v5.13 交付檔（以 v5.12 為底稿）：公式 33,480 格、LibreOffice 零錯誤；具名範圍 736（SRC 324、L1 96）；對 v5.12 逐格比較 71,141 格：模型頁、Interface 與既有 L1 25 列數值全部一致。Checks G 節 ERROR 0、WARN 238、INFO 99。restore 1,008 格全數對應、22 格改公式記入 gov_log；冪等 74,711 格不符 0；pycel 33,480 格不符 0；全簿強制重算本機 1.34–1.50 秒。
 - v5.14（2026-10-04，以 v5.13 為底稿；工程類，chat 端）：(1) CC 第 13 輪發現 v5.13 在 SLO 不可達情境（b_prod_derate、f_registry_t07_t09_on）下 L1!O35、P35 出現錯誤值（D35 連 Checks!B43，該情境為文字「SLO 不可達」，O、P 只檢查 M、N）。`gov.l1_sheet`：L1 全部 32 列 O 欄改為 D、M、N 皆為數字才計算，否則「—」；P 欄 D 非數字時回傳「推算值非數字（本情境）」；L1 標題的 Block 6 版號改 v5.15。(2) 重算時間：SRC 各頁 X 欄的比對範圍由第 5–400 列改為第 5 列到最後一筆紀錄＋IDX_HEAD（與 SRC_Index 共用 `gov._span_end`）；超出範圍的紀錄已由 Checks E13 報錯，故計數不變。`finish.py` README。公式 33,480 格、LibreOffice 零錯誤；具名範圍 736。對 v5.13 逐格比較 74,711 格：數值差異只有 README!B5 與 L1!A2（說明文字）；公式文字差異 332 格（L1 O、P 64 格、SRC 各頁 X 266 格與上述 2 格）。restore：以 v5.13 為底稿 936 格全數對應、unmatched 0；冪等 74,711 格數值與公式文字不符 0。E7 測試：把 SRC_HW 第 6 列的指標、口徑、對象改成與第 5 列相同，X5、X6＝2、E7＝2、GOV_Errors＝2（偵測不變）。全簿強制重算（repo engine／pycel，同一台機器）：v5.13 2.44–2.71 秒 → v5.14 1.68–1.76 秒；剩餘最大項為 Gov_Map AF 欄（574 個 MATCH，約 0.44 秒），日後若需再降，從此處著手。（備註：以 builder 直接輸出、未經 LibreOffice 存檔的檔案與交付檔比較公式原始文字時，約 3,900 格因 LibreOffice 把 1E9 等數字常數展開而寫法不同，數值不受影響；冪等應比較兩邊皆經 LibreOffice 重算存檔的檔案。）無新函數。
-
-
+- v5.15（2026-10-04，以 v5.14 為底稿；判斷類，依 docs/workorders/20261004_v5.15.md r3 執行）：Block 6 Alloc。新增 block6.py（Alloc_In 輸入頁、Alloc 推導頁、Interface F 節 IF_Alloc* 7 名、Checks H 節、L1 的 Answers 9 題與外部對照 3 列）、gov_seed3.py（SRC_DEM_010–013、E166–E169、Decisions A9／A10 與 A1–A8 狀態、Gov_Map 列）；build.py、gov.py、preserve.py、finish.py 接上。補充 1（支出路線不乘 1e9）、補充 2（Hopper 世代欄；h_alloc_mix_2025）。對既有頁數值逐格不變。
 
 ## common.py
 
@@ -1562,11 +1561,12 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261004_Tokenomics_v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", "20261004_Tokenomics_v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
-      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand、SRC_Index（builder 擁有的查找索引）、Sources_Legacy（v5.12 起凍結）、DB_Evidence。"),
+      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Alloc_In → Alloc → Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand、SRC_Index（builder 擁有的查找索引）、Sources_Legacy（v5.12 起凍結）、DB_Evidence。"),
+      ("Block 6 推導（v5.15）", "實驗室年度算力＝研發需求＋服務需求。需求 D（token 路線，A9）：API＝SRC_DEM_010 × 525,600 × 全年平均比例；ChatGPT＝SRC_DEM_012 × 每則提示 token 數 × 365。服務 GW＝D ÷ 世代組合後每 GW 年產能（依 Cap_In 層級組合與 IF_TokGW_*、IF_Util，寫法同 Fleet_1GW 第 19–29 列）。研發 GW 年＝k ×（N_major × 家族計畫＋N_refresh × 改版計畫），家族計畫＝IF_ProgGWyr 三層級合計，改版計畫＝後訓練 GPU 小時 × 研發倍數換算 GW 年（訓練世代＝IF_TrainGenDefault）。Q1＝研發 GW ÷（研發＋服務 GW）；Q2 以各世代 IF_HoldEcon 加權，利用率不進入。研發占比的物理部分只給下限，實際占比由策略變數決定。隱含 N × k 由 2025 支出比反推（A3）。SLO 不可達時回傳文字。決策 A1–A10 見 Decisions。"),
       ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
       ("Block 3 決策", "J7 訓練精度 FP8（NVFP4 預訓練在 Tech_Registry）；J8 Astra 預訓練與 Arch 一致，前沿錨點列 Checks；J9 RL 由下而上，基準校到 RL÷預訓練 GPU 小時 Luna／Sol 0.3、Astra 1.0；J10 研發倍數 8，家族合計、依最終訓練比例分攤；J11 用途 × 型態只列單一計畫；J12 rollout NVFP4（FP8 為情境）；J13 下游預設 VR200、GB300 並列；J14 主流＝至少兩家實驗室公開採用，可覆寫。"),
       ("Excel 優先（v5.7）", "藍字＝輸入，由本活頁簿擁有：要改輸入，直接改 Excel。builder 重建 Block 2、3 時會先讀取所有藍字輸入，重建後依『工作表＋欄 A 標籤＋欄位』寫回，程式內的預設值只用於新增的輸入列。公式頁不要手改（重建時會被覆寫）。"),
@@ -2896,6 +2896,444 @@ def evidence_b5(wb):
     return n
 ```
 
+## block6.py
+
+```python
+# Block 6 (v5.15): Alloc_In (inputs) and Alloc (derivation) — lab compute allocation between R&D and serving.
+# Work order docs/workorders/20261004_v5.15.md (B3–B5, B8, H). Decisions A1–A10 (A9 demand route, A10 tokens per prompt).
+# Alloc_In: every number is an Excel-owned blue input (restored by preserve.py from the base workbook).
+# Alloc: formulas only; key quantities are named ranges (AL_ = display only, IF_Alloc* = downstream via Interface F).
+from common import *
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.worksheet.datavalidation import DataValidation
+
+SLO = "SLO 不可達"
+GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
+TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+
+
+def nm(wb, n, ref):
+    if n in wb.defined_names: del wb.defined_names[n]
+    wb.defined_names[n] = DefinedName(n, attr_text=ref)
+
+
+def _row_of(ws, label):
+    for r in range(1, ws.max_row + 1):
+        if ws.cell(r, 1).value == label: return r
+    raise KeyError(f"{ws.title}: row label not found: {label}")
+
+
+# ---------------------------------------------------------------- Alloc_In
+# (label, unit, base, low, high, tag, decision／source, name stem)   — labels are the preserve.py keys (column A)
+IN_ROWS = [
+    ("實驗室", "選擇", "OpenAI", None, None, "Decision", "A8（只放 OpenAI 一組；Anthropic 待來源查核後加入）", "Lab"),
+    ("家族計畫數 N_major（個／年）", "個／年", 1, 1, 2, "Assumed", "8f 驅動表：前沿實驗室每年約 1–2 個旗艦家族", "Nmajor"),
+    ("改版計畫數 N_refresh（個／年）", "個／年", 2, 0, 4, "Assumed", "8f 驅動表、A2：改版計畫計入", "Nrefresh"),
+    ("計畫規模倍數 k（相對 Block 3）", "x", 1, 0.5, 7, "Assumed", "A3：不以 59% 校準 k；校準值只反推隱含 N × k（E 節）", "k"),
+    ("服務世代組合：Hopper", "%", 0, 0, 1, "Assumed", "補充 2：2025 機隊含 Hopper（基準 0；h_alloc_mix_2025 情境為 Hopper 60%／GB200 40%）", "MixHopper"),
+    ("服務世代組合：GB200", "%", 0.4, 0, 1, "Assumed", "8f 驅動表：服務機隊的世代組合（四者合計 100%）", "MixGB200"),
+    ("服務世代組合：GB300", "%", 0.4, 0, 1, "Assumed", "同上", "MixGB300"),
+    ("服務世代組合：VR200", "%", 0.2, 0, 1, "Assumed", "同上", "MixVR200"),
+    ("機隊年成長率 g", "%", 0, 0, 1, "Assumed（情境）", "A6：成長只作情境；基準為穩態年度（A1）", "g"),
+    ("API 全年平均 ÷ 10 月時點值", "x", 0.75, 0.6, 0.9, "Assumed", "A9：API 處理量為 2025-10 時點值，換成全年平均", "APIratio"),
+    ("每則提示 token 數", "tok", 2000, 1000, 6000, "Assumed", "A10：含輸入、上下文、推理與輸出 token；上限 6,000 無直接來源（Q1 最弱輸入）", "TokPerPrompt"),
+    ("ChatGPT token 中免費用戶占比", "%", 0.6, 0.4, 0.8, "Assumed", "新增；以 L1 外部對照（免費服務算力占比）檢查", "FreeShare"),
+]
+
+
+def alloc_in(wb):
+    ws = wb.create_sheet("Alloc_In")
+    title(ws, "Alloc_In — Block 6 輸入（藍字＝輸入；全部 Assumed 或 Decision，附區間；登錄於 Gov_Map）",
+          "研發與服務的算力配置（A1–A10）：實驗室年度算力＝研發需求＋服務需求。研發占比的物理部分只給下限，實際占比由策略變數決定。訓練世代不設輸入，沿用 Interface IF_TrainGenDefault（J13）")
+    for i, h in enumerate(["標籤", "單位", "基準", "低", "高", "標記", "決策／來源"]):
+        put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True)
+    for c, w in zip("ABCDEFG", [40, 9, 11, 9, 9, 16, 70]): ws.column_dimensions[c].width = w
+    R = {}
+    for j, (lab, unit, base, lo, hi, tag, src, stem) in enumerate(IN_ROWS):
+        r = 5 + j; R[stem] = r
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        fmt = "0%" if unit == "%" else ("#,##0" if unit == "tok" else "0.0")
+        put(ws, f"C{r}", base, F_IN, fmt=fmt if stem != "Lab" else None, fill=FILL_KEY)
+        if lo is not None:
+            put(ws, f"D{r}", lo, F_IN, fmt=fmt); put(ws, f"E{r}", hi, F_IN, fmt=fmt)
+        else:
+            put(ws, f"D{r}", "—"); put(ws, f"E{r}", "—")
+        put(ws, f"F{r}", tag); put(ws, f"G{r}", src, F_NOTE, wrap=True)
+        nm(wb, f"AL_{stem}", f"Alloc_In!$C${r}")
+        if lo is not None:
+            nm(wb, f"AL_{stem}_Lo", f"Alloc_In!$D${r}"); nm(wb, f"AL_{stem}_Hi", f"Alloc_In!$E${r}")
+    nm(wb, "AL_MixGen", f"Alloc_In!$C${R['MixHopper']}:$C${R['MixVR200']}")
+    dv = DataValidation(type="list", formula1='"OpenAI"', allow_blank=False); ws.add_data_validation(dv); dv.add(f"C{R['Lab']}")
+    r = 5 + len(IN_ROWS) + 1
+    put(ws, f"A{r}", "服務世代組合合計（應為 100%；Checks H1）", F_BOLD)
+    put(ws, f"C{r}", "=SUM(AL_MixGen)", fmt="0%"); R["mixsum"] = r
+    put(ws, f"A{r+2}", "訓練世代不設輸入：沿用 IF_TrainGenDefault（J13，目前為 VR200）。實驗室選擇器目前只有 OpenAI（A8）。", F_NOTE)
+    ws.freeze_panes = "A5"
+    return R
+
+
+# ---------------------------------------------------------------- Alloc
+def alloc(wb, AIN):
+    ws = wb.create_sheet("Alloc")
+    title(ws, "Alloc — 研發與服務的算力配置（需求 D → 服務 GW → 研發 GW → Q1、Q2；A1–A10；基準為 2025 穩態年度）",
+          "每列顯示推導：C 欄為數值（世代、層級分列者為 C–E 欄）；G 欄為算式說明（向右延伸顯示）。需求以 token 路線為基準（A9），支出路線在 F 節並列為外部對照。"
+          "SLO 不可達時各格回傳文字「SLO 不可達」（比照 Fleet_1GW 第 18 列）。")
+    for c, w in zip("ABCDEFGH", [58, 11, 15, 15, 15, 15, 15, 12]): ws.column_dimensions[c].width = w
+    R = {}; r = 4
+
+    def hdr(text):
+        nonlocal r
+        section(ws, r, text, 7); r += 1
+
+    def line(key, lab, unit, f, fmt="#,##0.000", name=None, note=None, key_fill=False, cols="C", span=None):
+        """one row; f is a formula string, or a dict col->formula for multi-column rows"""
+        nonlocal r
+        put(ws, f"A{r}", lab, wrap=True); put(ws, f"B{r}", unit)
+        if isinstance(f, dict):
+            for c, v in f.items(): put(ws, f"{c}{r}", v, fmt=fmt, fill=FILL_KEY if key_fill else None)
+        else:
+            put(ws, f"C{r}", f, fmt=fmt, fill=FILL_KEY if key_fill else None)
+        if note: put(ws, f"G{r}", note, F_NOTE)
+        R[key] = r
+        if name:
+            nm(wb, name, f"Alloc!$C${r}" if not span else f"Alloc!${span[0]}${r}:${span[1]}${r}")
+        r += 1
+
+    # ---------------- A. demand D (token route, A9)
+    hdr("A. 需求 D（2025；M tok/年；token 路線為基準，A9）")
+    line("api", "API token（SRC_DEM_010 × 525,600 分鐘 × 全年平均比例）", "M tok/年",
+         "=SRC_DEM_010*1E9*525600*AL_APIratio/1E6", "#,##0", "AL_DAPI",
+         "SRC_DEM_010（B tok/min，2025-10 時點值）× 1e9 × 525,600 × 全年平均比例 ÷ 1e6")
+    line("chat", "ChatGPT token（SRC_DEM_012 × 每則提示 token 數 × 365）", "M tok/年",
+         "=SRC_DEM_012*1E9*AL_TokPerPrompt*365/1E6", "#,##0", "AL_DChat",
+         "SRC_DEM_012（B 則/日，2025-07 時點值視同全年平均：年內近似線性成長；不乘比例）× 1e9 × 每則 token × 365 ÷ 1e6")
+    line("chatfree", "ChatGPT 免費 token", "M tok/年", "=AL_DChat*AL_FreeShare", "#,##0", "AL_DChatFree", "ChatGPT token × 免費占比")
+    line("chatpaid", "ChatGPT 付費 token", "M tok/年", "=AL_DChat-AL_DChatFree", "#,##0", "AL_DChatPaid", "ChatGPT token − 免費 token")
+    line("dpaid", "付費 D（API＋ChatGPT 付費）", "M tok/年", "=AL_DAPI+AL_DChatPaid", "#,##0", "AL_DPaid")
+    line("dfree", "免費 D（ChatGPT 免費）", "M tok/年", "=AL_DChatFree", "#,##0", "AL_DFree")
+    line("dtot", "D 合計", "M tok/年", "=AL_DPaid+AL_DFree", "#,##0", "AL_D", key_fill=True)
+    line("ddaily", "每日 token 合計（供 Epoch 對照）", "T tok/日", "=AL_D/365/1E6", "#,##0.00", "AL_DDaily",
+         "D 合計 ÷ 365 ÷ 1e6（M → T）；對照 SRC_DEM_013（10–100 T/日）")
+    r += 1
+
+    # ---------------- B. serving GW
+    hdr("B. 服務 GW（token 路線；欄 C–F＝服務世代 Hopper／GB200／GB300／VR200）")
+    put(ws, f"A{r}", "世代", F_BOLD)
+    for c, (g, gi) in zip("CDEF", GENS): put(ws, f"{c}{r}", f"=INDEX(Spec_Rack!$C$4:$G$4,{c}{r+1})", F_HLINK)
+    R["gen"] = r; r += 1
+    line("genidx", "世代索引（Spec_Rack 順序）", "索引", {c: gi for c, (g, gi) in zip("CDEF", GENS)}, "0")
+    for c in "CDEF": ws[f"{c}{R['genidx']}"].font = F_CALC
+    line("col", "Interface 欄索引（基準成本欄；與 L1 第 5–8 列 INDEX 用法一致）", "索引",
+         {c: f"=3*({c}{R['genidx']}-1)+2" for c in "CDEF"}, "0", "AL_GenCol", span=("C", "F"))
+    line("share", "世代占比（Alloc_In）", "%",
+         {"C": "=AL_MixHopper", "D": "=AL_MixGB200", "E": "=AL_MixGB300", "F": "=AL_MixVR200"}, "0%", "AL_ShareGen", span=("C", "F"))
+    mp, mf = "B4_MixPaid", "B4_MixFree"
+    def reach(mix, c):
+        return "AND(" + ",".join(f"OR(INDEX({mix},1,{t})=0,INDEX(IF_TokGW_{tn},1,{c}${R['col']})>0)" for t, (tn, _) in enumerate(TIERS, 1)) + ")"
+    line("ok", "可服務（付費與免費組合內各層級皆 SLO 可達＝1；同 Fleet_1GW 第 18 列）", "旗標",
+         {c: f"=IF(AND({reach(mp, c)},{reach(mf, c)}),1,0)" for c in "CDEF"}, "0", "AL_GenOK", span=("C", "F"))
+    def invsum(mix, c):
+        return "+".join(f"INDEX({mix},1,{t})/INDEX(IF_TokGW_{tn},1,{c}${R['col']})" for t, (tn, _) in enumerate(TIERS, 1))
+    line("ip", "Σ（付費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mp, c)},"{SLO}")' for c in "CDEF"}, "0.00E+00",
+         note="付費 token 的層級組合（Cap_In）依各層級每 GW 總產出（IF_TokGW_*）加權：每 M tok 佔用的 GW·年（100% 利用率）")
+    line("if", "Σ（免費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mf, c)},"{SLO}")' for c in "CDEF"}, "0.00E+00")
+    line("capp", "每 GW 年產能（付費；基準利用率）", "M tok/GW/年",
+         {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["ip"]},"{SLO}")' for c in "CDEF"}, "#,##0", "AL_CapPaid", "利用率 IF_Util ÷ Σ；與 Fleet_1GW 第 19 列同式（每 GW）", span=("C", "F"))
+    line("capf", "每 GW 年產能（免費；基準利用率）", "M tok/GW/年",
+         {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["if"]},"{SLO}")' for c in "CDEF"}, "#,##0", "AL_CapFree", "與 Fleet_1GW 第 20 列同式（每 GW）", span=("C", "F"))
+    def blend(caprow, sharecells=("C", "D", "E")):
+        ss = [f"{c}${R['share']}" for c in "CDEF"]; cc = [f"{c}${caprow}" for c in "CDEF"]
+        bad = "OR(" + ",".join(f"AND({s}>0,NOT(ISNUMBER({k})))" for s, k in zip(ss, cc)) + ")"
+        return f'=IF({bad},"{SLO}",' + "+".join(f"IF({s}>0,{s}*{k},0)" for s, k in zip(ss, cc)) + ")"
+    line("bp", "世代組合後每 GW 年產能（付費）＝Σ 世代占比 × 各世代產能", "M tok/GW/年", blend(R["capp"]), "#,##0", "AL_BlendPaid")
+    line("bf", "世代組合後每 GW 年產能（免費）", "M tok/GW/年", blend(R["capf"]), "#,##0", "AL_BlendFree")
+    line("sgp", "服務 GW（付費）＝付費 D ÷ 付費產能", "GW", f'=IF(AND(ISNUMBER(AL_BlendPaid),AL_DPaid>=0),IF(AL_BlendPaid>0,AL_DPaid/AL_BlendPaid,"{SLO}"),"{SLO}")', "0.0000", "AL_ServeGWPaid")
+    line("sgf", "服務 GW（免費）＝免費 D ÷ 免費產能", "GW", f'=IF(AND(ISNUMBER(AL_BlendFree),AL_DFree>=0),IF(AL_BlendFree>0,AL_DFree/AL_BlendFree,"{SLO}"),"{SLO}")', "0.0000", "AL_ServeGWFree")
+    line("sg", "服務 GW 合計", "GW", f'=IF(AND(ISNUMBER(AL_ServeGWPaid),ISNUMBER(AL_ServeGWFree)),AL_ServeGWPaid+AL_ServeGWFree,"{SLO}")', "0.0000", "AL_ServeGW", key_fill=True)
+    line("sgg", "各世代服務 GW＝合計 × 世代占比", "GW",
+         {c: f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGW*{c}{R["share"]},"{SLO}")' for c in "CDEF"}, "0.0000", "AL_ServeGen", span=("C", "F"))
+    line("hold", "各世代每 GW 年經濟持有成本（IF_HoldEcon，基準成本）", "$B/GW/年",
+         {c: f"=INDEX(IF_HoldEcon,1,{c}{R['col']})" for c in "CDEF"}, "0.000", "AL_HoldGen", span=("C", "F"))
+    r += 1
+
+    # ---------------- C. R&D GW-years (physical floor)
+    hdr("C. 研發 GW 年（物理下限；訓練世代＝IF_TrainGenDefault；欄 C–E＝層級 Luna／Sol／Astra，F＝合計）")
+    line("tg", "訓練世代索引（IF_TrainGenDefault，J13）", "索引", "=IF_TrainGenDefault", "0", "AL_TrainGen")
+    line("tc", "Interface／Training 欄索引（基準成本欄；Training 另加層級索引）", "索引", "=3*(AL_TrainGen-1)+2", "0", "AL_TrainCol")
+    put(ws, f"A{r}", "層級", F_BOLD)
+    for c, (tk, tn) in zip("CDE", TIERS): put(ws, f"{c}{r}", tn, F_BOLD)
+    put(ws, f"F{r}", "合計", F_BOLD); r += 1
+    line("tier", "層級索引", "索引", {"C": 1, "D": 2, "E": 3}, "0")
+    for c in "CDE": ws[f"{c}{R['tier']}"].font = F_CALC
+    line("fam", "家族計畫 GW 年（IF_ProgGWyr；含研發倍數；等同 Fleet_1GW 第 33 列）", "GW·年",
+         {**{c: f"=INDEX(IF_ProgGWyr_{tk},1,AL_TrainCol)" for c, (tk, tn) in zip("CDE", TIERS)}, "F": f"=SUM(C{r}:E{r})"}, "0.0000", "AL_FamGWyr",
+         "每個家族計畫：三層級最終訓練 GPU 小時 × 研發倍數，換算為訓練世代的 GW 年", key_fill=False)
+    nm(wb, "AL_FamGWyr", f"Alloc!$F${R['fam']}")
+    tr = wb["Training"]
+    r104 = _row_of(tr, "後訓練 GPU 小時（SFT＋RL＋蒸餾）"); r18 = _row_of(tr, "每 GW GPU 數")
+    line("post", "後訓練 GPU 小時（SFT＋RL＋蒸餾；單一模型；Training 頁）", "GPU-hr",
+         {**{c: f"=INDEX(Training!$C${r104}:$Q${r104},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "F": f"=SUM(C{r}:E{r})"}, "#,##0",
+         note="Training 第 104 列「後訓練 GPU 小時（SFT＋RL＋蒸餾）」，不含第 105 列；依訓練世代與層級取值；依欄 A 標籤定位（工作單 r3 更正 2）")
+    line("gpugw", "每 GW GPU 數（訓練世代）", "顆", {c: f"=INDEX(Training!$C${r18}:$Q${r18},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "#,##0")
+    line("ref", "改版計畫 GW 年＝後訓練 GPU 小時 × 研發倍數 ÷（每 GW GPU 數 × 8,760）", "GW·年",
+         {**{c: f"={c}{R['post']}*IF_RDMult/({c}{R['gpugw']}*8760)" for c in "CDE"}, "F": f"=SUM(C{r}:E{r})"}, "0.0000",
+         note="改版（refresh）計畫：後訓練 GPU 小時 × 研發倍數（IF_RDMult，A2）；GW 年換算同 Training「占 1 GW 一年」")
+    nm(wb, "AL_RefGWyr", f"Alloc!$F${R['ref']}")
+    line("rd", "研發 GW 年＝k ×（N_major × 家族計畫＋N_refresh × 改版計畫）", "GW·年",
+         "=AL_k*(AL_Nmajor*AL_FamGWyr+AL_Nrefresh*AL_RefGWyr)", "0.0000", "AL_RDGW", key_fill=True)
+    line("rdg", "研發 GW 年（成長情境，A6）＝研發 GW 年 ×（1＋g）；服務 GW 不變", "GW·年", "=AL_RDGW*(1+AL_g)", "0.0000", "AL_RDGWg")
+    line("ht", "訓練世代每 GW 年經濟持有成本（IF_HoldEcon，基準成本）", "$B/GW/年", "=INDEX(IF_HoldEcon,1,AL_TrainCol)", "0.000", "AL_HoldTrain")
+    line("rdcost", "研發算力成本（研發 GW × 訓練世代持有成本；Q3 的算力部分）", "$B/年", "=AL_RDGW*AL_HoldTrain", "0.000", "AL_RDCost")
+    r += 1
+
+    # ---------------- D. Q1, Q2
+    hdr("D. Q1、Q2（R1 基準，R2 並列；A7）")
+    line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_RDGW/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1", key_fill=True)
+    line("q1b", "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷ 總 GW", "%",
+         f'=IF(ISNUMBER(AL_ServeGW),(AL_RDGW+AL_ServeGWFree)/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1R2")
+    line("q2", "Q2 研發算力成本占比＝研發 GW × 持有成本 ÷（研發 GW × 持有成本＋Σ 各世代服務 GW × 各世代持有成本）", "%",
+         f'=IF(ISNUMBER(AL_ServeGW),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
+    line("q1g", "Q1（R1；成長情境 g）", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_RDGWg/(AL_RDGWg+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1g")
+    line("q2g", "Q2（成長情境 g）", "%",
+         f'=IF(ISNUMBER(AL_ServeGW),AL_RDGWg*AL_HoldTrain/(AL_RDGWg*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2g")
+    line("r3", "R3（內部使用）", "", "缺口：無參數（A7）", None, note="R3 不設公式")
+    r += 1
+
+    # ---------------- E. calibration back-solve (A3)
+    hdr("E. 校準反推（A3；2025 支出比不用來校準 k，只反推隱含 N × k）")
+    line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", "=SRC_DEM_006/(SRC_DEM_004+SRC_DEM_006)", "0.0%", "AL_SpendRatio", "SRC_DEM_006 ÷（SRC_DEM_004＋SRC_DEM_006）（約 58.8%）")
+    line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計", "GW", f'=IF(ISNUMBER(AL_ServeGW),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGW,"{SLO}")', "0.0000", "AL_ImpliedRDGW")
+    line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", f'=IF(ISNUMBER(AL_ImpliedRDGW),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "0.00", "AL_ImpliedNk", key_fill=True)
+    line("j8", "J8 落差＝隱含 N × k ÷（N_major＋N_refresh × 改版÷家族）", "x",
+         f'=IF(ISNUMBER(AL_ImpliedNk),AL_ImpliedNk/(AL_Nmajor+AL_Nrefresh*AL_RefGWyr/AL_FamGWyr),"{SLO}")', "0.00", "AL_J8Gap",
+         "相對 Alloc_In 基準的規模落差：1 表示基準 N、k 已吻合支出比")
+    r += 1
+
+    # ---------------- F. external comparisons
+    hdr("F. 外部對照（同時寫入 L1；支出路線與 SRC_DEM_013）")
+    line("sgx", "支出路線服務 GW＝SRC_DEM_004（$B）÷ Σ（世代占比 × 各世代持有成本）", "GW", "=SRC_DEM_004/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
+         "單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）")
+    line("fsh", "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGWFree/AL_ServeGW,"{SLO}")', "0.0%", "AL_FreeServeShare")
+    line("fsx", "免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ SRC_DEM_004", "%", "=SRC_DEM_005/SRC_DEM_004", "0.0%", "AL_FreeSpendShare")
+    line("dlo", "Epoch 每日 token 低（SRC_DEM_013_Lo）", "T tok/日", "=SRC_DEM_013_Lo", "#,##0.0")
+    line("dhi", "Epoch 每日 token 高（SRC_DEM_013_Hi）", "T tok/日", "=SRC_DEM_013_Hi", "#,##0.0")
+    line("din", "每日 token 合計是否在 Epoch 區間內", "", '=IF(AL_DDaily<SRC_DEM_013_Lo,"區間外（低於）",IF(AL_DDaily>SRC_DEM_013_Hi,"區間外（高於）","區間內"))', None)
+    r += 1
+
+    # ---------------- G. sensitivity table (closed-form; one input at a time; self-check block)
+    hdr("G. 敏感度表（一次動一個輸入，取區間低與高；每列以閉式公式重寫 A–D 節推導鏈；端點值引用 Alloc_In 的區間格）")
+    put(ws, f"A{r}", "左側 C–L 為該列輸入；M–V 為推導鏈；W 為自我檢查（同一公式、輸入全改回基準，須等於 D 節 Q1、Q2；容差 1e-12；0＝通過）。"
+                     "不使用運算列表，也不在 Python 端計算。", F_NOTE); r += 1
+    heads_in = ["N_major", "N_refresh", "k", "API 比例", "每則 token", "免費占比", "Hopper", "GB200", "GB300", "VR200"]
+    heads_ch = ["付費 D", "免費 D", "付費產能", "免費產能", "服務 GW", "研發 GW", "Q1（R1）", "Q2", "研發算力成本 $B", "每日 T tok"]
+    put(ws, f"A{r}", "情境", F_BOLD); put(ws, f"B{r}", "動的輸入", F_BOLD)
+    for i, h in enumerate(heads_in + heads_ch + ["自我檢查"]): put(ws, f"{L(3+i)}{r}", h, F_BOLD, wrap=True)
+    for i in range(3, 3 + len(heads_in) + len(heads_ch) + 1): ws.column_dimensions[L(i)].width = max(ws.column_dimensions[L(i)].width or 0, 13)
+    R["gh"] = r; r += 1
+    base = {"Nmaj": "AL_Nmajor", "Nref": "AL_Nrefresh", "k": "AL_k", "ratio": "AL_APIratio", "tok": "AL_TokPerPrompt", "free": "AL_FreeShare",
+            "m0": "AL_MixHopper", "m1": "AL_MixGB200", "m2": "AL_MixGB300", "m3": "AL_MixVR200"}
+    # (label, input key varied, end label, replacement names (key->name))
+    def endp(stem, side): return f"AL_{stem}_{side}"
+    scen = [("基準", "—", {})]
+    for lab, key, stem in (("N_major", "Nmaj", "Nmajor"), ("N_refresh", "Nref", "Nrefresh"), ("k", "k", "k"), ("每則提示 token 數", "tok", "TokPerPrompt"),
+                           ("API 全年平均比例", "ratio", "APIratio"), ("免費占比", "free", "FreeShare")):
+        scen.append((f"{lab} 低", lab, {key: endp(stem, "Lo")})); scen.append((f"{lab} 高", lab, {key: endp(stem, "Hi")}))
+    scen.append(("服務世代組合：全 GB200", "世代組合", {"m0": "AL_MixHopper_Lo", "m1": "AL_MixGB200_Hi", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Lo"}))
+    scen.append(("服務世代組合：全 VR200", "世代組合", {"m0": "AL_MixHopper_Lo", "m1": "AL_MixGB200_Lo", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Hi"}))
+    keys = ["Nmaj", "Nref", "k", "ratio", "tok", "free", "m0", "m1", "m2", "m3"]
+    capp = [f"${c}${R['capp']}" for c in "CDEF"]
+    capf = [f"${c}${R['capf']}" for c in "CDEF"]
+    holds = [f"${c}${R['hold']}" for c in "CDEF"]
+
+    def chain(rr, ic):
+        """chain formulas for row rr; ic maps input key -> column letter (the row's own input cells)"""
+        m = [f"{ic['m0']}{rr}", f"{ic['m1']}{rr}", f"{ic['m2']}{rr}", f"{ic['m3']}{rr}"]
+        dchat = f"SRC_DEM_012*1E9*{ic['tok']}{rr}*365/1E6"
+        dapi = f"SRC_DEM_010*1E9*525600*{ic['ratio']}{rr}/1E6"
+        out = {}
+        out["dp"] = f"={dapi}+{dchat}*(1-{ic['free']}{rr})"
+        out["df"] = f"={dchat}*{ic['free']}{rr}"
+        def bl(cap):
+            bad = "OR(" + ",".join(f"AND({s}>0,NOT(ISNUMBER({k})))" for s, k in zip(m, cap)) + ")"
+            return f'=IF({bad},"{SLO}",' + "+".join(f"IF({s}>0,{s}*{k},0)" for s, k in zip(m, cap)) + ")"
+        out["cp"] = bl(capp); out["cf"] = bl(capf)
+        return m, out
+
+    sens_cells = {}
+    r0 = r
+    # main rows then check rows (same builder → same formulas)
+    for blk in ("main", "check"):
+        rows_here = []
+        for lab, varied, rep in scen:
+            rr = r
+            if blk == "main":
+                put(ws, f"A{rr}", lab); put(ws, f"B{rr}", varied)
+            else:
+                put(ws, f"A{rr}", f"檢查：{lab}（輸入全為基準）", F_NOTE); put(ws, f"B{rr}", varied, F_NOTE)
+            ic = {}
+            for i, k in enumerate(keys):
+                col = L(3 + i); ic[k] = col
+                src = rep.get(k) if blk == "main" else None
+                fmt = {"m0": "0%", "m1": "0%", "m2": "0%", "m3": "0%", "free": "0%", "ratio": "0.00", "tok": "#,##0", "k": "0.0"}.get(k, "0.0")
+                put(ws, f"{col}{rr}", f"={src or base[k]}", fmt=fmt, fill=FILL_KEY if src else None)
+            m, ch = chain(rr, ic)
+            base_c = 3 + len(keys)                      # first chain column
+            cols = {n: L(base_c + i) for i, n in enumerate(["dp", "df", "cp", "cf", "sg", "rd", "q1", "q2", "cost", "daily"])}
+            put(ws, f"{cols['dp']}{rr}", ch["dp"], fmt="#,##0"); put(ws, f"{cols['df']}{rr}", ch["df"], fmt="#,##0")
+            put(ws, f"{cols['cp']}{rr}", ch["cp"], fmt="#,##0"); put(ws, f"{cols['cf']}{rr}", ch["cf"], fmt="#,##0")
+            cp, cf, dp, df_ = (f"{cols[x]}{rr}" for x in ("cp", "cf", "dp", "df"))
+            put(ws, f"{cols['sg']}{rr}", f'=IF(AND(ISNUMBER({cp}),ISNUMBER({cf})),IF(AND({cp}>0,{cf}>0),{dp}/{cp}+{df_}/{cf},"{SLO}"),"{SLO}")', fmt="0.0000")
+            sg = f"{cols['sg']}{rr}"
+            put(ws, f"{cols['rd']}{rr}", f"={ic['k']}{rr}*({ic['Nmaj']}{rr}*AL_FamGWyr+{ic['Nref']}{rr}*AL_RefGWyr)", fmt="0.0000")
+            rd = f"{cols['rd']}{rr}"
+            put(ws, f"{cols['q1']}{rr}", f'=IF(ISNUMBER({sg}),{rd}/({rd}+{sg}),"{SLO}")', fmt="0.0%")
+            hmix = "+".join(f"{s}*{h}" for s, h in zip(m, holds))
+            put(ws, f"{cols['q2']}{rr}", f'=IF(ISNUMBER({sg}),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({hmix})),"{SLO}")', fmt="0.0%")
+            put(ws, f"{cols['cost']}{rr}", f"={rd}*AL_HoldTrain", fmt="0.000")
+            put(ws, f"{cols['daily']}{rr}", f"=({dp}+{df_})/365/1E6", fmt="#,##0.00")
+            rows_here.append((rr, cols))
+            r += 1
+        sens_cells[blk] = rows_here
+        if blk == "main": r += 1
+    main_rows, chk_rows = sens_cells["main"], sens_cells["check"]
+    ckcol = L(3 + len(keys) + 10)
+    for (rr, cols), (rc, colsc) in zip(main_rows, chk_rows):
+        q1, q2, q1c, q2c = f"{cols['q1']}{rc}", f"{cols['q2']}{rc}", f"{cols['q1']}{rc}", f"{cols['q2']}{rc}"
+        q1c, q2c = f"{colsc['q1']}{rc}", f"{colsc['q2']}{rc}"
+        f = (f'=IF(AND(ISNUMBER({q1c}),ISNUMBER({q2c}),ISNUMBER(AL_Q1),ISNUMBER(AL_Q2)),'
+             f'IF(AND(ABS({q1c}-AL_Q1)<=1E-12,ABS({q2c}-AL_Q2)<=1E-12),0,1),'
+             f'IF(AND(NOT(ISNUMBER({q1c})),NOT(ISNUMBER(AL_Q1))),0,1))')
+        put(ws, f"{ckcol}{rr}", f, fmt="0")
+    first, last = main_rows[0][0], main_rows[-1][0]
+    cols0 = main_rows[0][1]
+    nm(wb, "AL_SensQ1", f"Alloc!${cols0['q1']}${first}:${cols0['q1']}${last}")
+    nm(wb, "AL_SensQ2", f"Alloc!${cols0['q2']}${first}:${cols0['q2']}${last}")
+    nm(wb, "AL_SensCost", f"Alloc!${cols0['cost']}${first}:${cols0['cost']}${last}")
+    nm(wb, "AL_SensDaily", f"Alloc!${cols0['daily']}${first}:${cols0['daily']}${last}")
+    nm(wb, "AL_SensCheck", f"Alloc!${ckcol}${first}:${ckcol}${last}")
+    R["sens_first"], R["sens_last"] = first, last
+    ws.freeze_panes = "C4"
+    return R
+
+
+# ---------------------------------------------------------------- Interface F
+def interface_b6(wb, start):
+    ws = wb["Interface"]; r = start; names = []
+    section(ws, r, "F. Block 6 產出（研發與服務的算力配置；2025 穩態年度；服務世代組合與訓練世代見 Alloc_In／Alloc；SLO 不可達時為文字）", 17); r += 1
+    rows = [("IF_AllocQ1", "研發算力占比 Q1（R1：研發 GW ÷ 研發＋服務 GW）", "%", "=AL_Q1", "0.0%", True),
+            ("IF_AllocQ1_R2", "研發算力占比 Q1（R2：免費服務算作產品改良）", "%", "=AL_Q1R2", "0.0%", False),
+            ("IF_AllocQ2", "研發算力成本占比 Q2（已裝 GW × 各世代每 GW 年持有成本；利用率不進入）", "%", "=AL_Q2", "0.0%", True),
+            ("IF_AllocServeGW", "服務 GW 合計（token 路線；付費＋免費；IT 關鍵電力）", "GW", "=AL_ServeGW", "0.0000", False),
+            ("IF_AllocRDGW", "研發 GW 年（k ×（N_major × 家族＋N_refresh × 改版）；訓練世代＝IF_TrainGenDefault）", "GW·年", "=AL_RDGW", "0.0000", False),
+            ("IF_AllocDemand", "需求 D 合計（API＋ChatGPT；付費＋免費 token；2025）", "M tok/年", "=AL_D", "#,##0", False),
+            ("IF_AllocImpliedNk", "隱含 N × k（2025 支出比反推；以家族計畫當量；A3）", "個", "=AL_ImpliedNk", "0.00", False)]
+    for n, lab, unit, f, fmt, key in rows:
+        put(ws, f"A{r}", f"{lab}　[{n}]"); put(ws, f"B{r}", unit); put(ws, f"C{r}", f, fmt=fmt, fill=FILL_KEY if key else None)
+        names.append((n, f"Interface!$C${r}")); r += 1
+    for n, ref in names: nm(wb, n, ref)
+    return {n: ref for n, ref in names}
+
+
+# ---------------------------------------------------------------- Checks H (appended after the G section; counted in GOV_Errors)
+def checks_h(wb):
+    ws = wb["Checks"]
+    r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r, "H. Alloc 輸入檢查（Block 6，v5.15）：ERROR 計入 GOV_Errors", 6); r += 1
+    for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]): put(ws, f"{L(i+1)}{r}", h, F_BOLD)
+    r += 1
+    h1 = r
+    put(ws, f"A{r}", "H1"); put(ws, f"B{r}", "服務世代組合 Hopper＋GB200＋GB300＋VR200 合計 ≠ 100%（容差 1e-9）"); put(ws, f"C{r}", "ERROR", F_BOLD)
+    put(ws, f"D{r}", "=IF(ABS(SUM(AL_MixGen)-1)>1E-9,1,0)", fmt="0"); put(ws, f"E{r}", "Alloc_In 世代組合三格", F_NOTE); r += 1
+    h2 = r
+    put(ws, f"A{r}", "H2"); put(ws, f"B{r}", "Alloc G 節自我檢查不等於基準的列數（兩邊皆為文字時不報錯）"); put(ws, f"C{r}", "ERROR", F_BOLD)
+    put(ws, f"D{r}", "=SUM(AL_SensCheck)", fmt="0"); put(ws, f"E{r}", "Alloc 敏感度表 V 欄（容差 1e-12）", F_NOTE); r += 1
+    # GOV_Errors (G section total) now also counts H1 and H2
+    ref = wb.defined_names["GOV_Errors"].attr_text.split("!")[1].replace("$", "")
+    cell = ws[ref]
+    if f"D{h1}" not in str(cell.value): cell.value = f"{cell.value}+D{h1}+D{h2}"
+    ws[f"B{int(ref[1:])}"].value = "ERROR 合計（CI 讀取 GOV_Errors；含 G 與 H 節）"
+    return h1, h2
+
+
+# ---------------------------------------------------------------- L1 rows (Answers 1–9 and three external comparisons; B6)
+def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
+    """R: the existing L1 row tuples (key, lab, cond, base, lo, hi, unit, rdef, read, drv, weak, sid, elo, ehi, nmref, where, gap).
+    Returns the new tuples. Answers 4–9 only link existing names (no new calculation)."""
+    at = {row[0]: i + 5 for i, row in enumerate(R)}        # L1 row of each existing key (rows start at 5)
+    out = []
+    A = "OpenAI；2025 穩態年度；基準輸入見 Alloc_In"
+    def ans(n, q, cond, base, lo, hi, unit, rdef, read, drv, weak, nmref, where, gap):
+        out.append((f"Ans{n}", f"問 {n}：{q}", cond, base, lo, hi, unit, rdef, read, drv, weak, DASH, None, None, nmref, where, gap))
+    ans(1, "研發算力占比 Q1（R1）", A + "；R1＝研發 GW ÷（研發 GW＋服務 GW）", "=IF_AllocQ1",
+        '=IF(ISNUMBER(IF_AllocQ1),MIN(AL_SensQ1),"—")', '=IF(ISNUMBER(IF_AllocQ1),MAX(AL_SensQ1),"—")', "%",
+        "Alloc G 節：一次動一個輸入（區間低與高）的最小與最大 Q1（R1）；R2（免費服務算作產品改良）見 IF_AllocQ1_R2",
+        "物理部分只給下限（家族＋改版計畫的 GW 年）；實際占比由策略變數決定（N、k）。R2 另列於 IF_AllocQ1_R2（A7）",
+        "k、N_refresh、每則提示 token 數、API 全年平均比例", "每則提示 token 數（Assumed，A10）", "IF_AllocQ1", "Alloc 第 D 節；Interface F 節",
+        "R3（內部使用）無參數（A7）；本題為單一實驗室（OpenAI）、2025 穩態年度；成長情境見 Alloc D 節")
+    ans(2, "研發算力成本占比 Q2", A + "；已裝 GW × 各世代每 GW 年持有成本；利用率不進入（A5）", "=IF_AllocQ2",
+        '=IF(ISNUMBER(IF_AllocQ2),MIN(AL_SensQ2),"—")', '=IF(ISNUMBER(IF_AllocQ2),MAX(AL_SensQ2),"—")', "%",
+        "Alloc G 節：一次動一個輸入的最小與最大 Q2",
+        "研發 GW × 訓練世代持有成本 ÷（同＋Σ 各世代服務 GW × 各世代持有成本）；雲端與自有的差異留在下游",
+        "k、N_refresh、每則提示 token 數、服務世代組合", "每則提示 token 數（Assumed，A10）", "IF_AllocQ2", "Alloc 第 D 節；Interface F 節",
+        "雲端租用與自有的成本差異在下游（A5）")
+    ans(3, "研發占整體成本 Q3（算力部分）", A, "=AL_RDCost", '=IF(ISNUMBER(AL_RDCost),MIN(AL_SensCost),"—")',
+        '=IF(ISNUMBER(AL_RDCost),MAX(AL_SensCost),"—")', "$B/年",
+        "Alloc G 節：一次動一個輸入的研發算力成本最小與最大值",
+        "D 欄＝研發 GW × 訓練世代每 GW 年經濟持有成本（算力部分）；整體成本需加非算力成本",
+        "k、N_major、N_refresh", "計畫規模 k：Assumed（A3）", "AL_RDCost", "Alloc 第 C 節",
+        "未能回答：非算力成本（人事、資料、評測、非 GPU 費用）不在第 0 層，歸 OpenAI 模型 v0.6")
+    ans(4, "各層級每 M token 成本（VR200；本列為 Sol decode 含思考，Luna、Astra 在另兩列）",
+        "VR200；經濟口徑、100% 利用率、SLO 下；decode（含思考）",
+        "=L1_CostDec_Sol_VR200", "=L1_CostDec_Sol_VR200_Lo", "=L1_CostDec_Sol_VR200_Hi", "$/M", COST_RNG,
+        f"本列為 Sol；Luna 見 L1 第 {at['CostDec_Luna_VR200']} 列（L1_CostDec_Luna_VR200）、Astra 見第 {at['CostDec_Astra_VR200']} 列（L1_CostDec_Astra_VR200）。"
+        "新鮮輸入與快取輸入見 IF_CostPre_*、IF_CostCache_*",
+        "η_d、每層延遲、SLO、生產折減", "生產折減 1.0：Assumed（K11）；VR200 η_d：Analogy", "L1_CostDec_Sol_VR200", f"L1 第 {at['CostDec_Sol_VR200']} 列",
+        "VR200 無實測，η_d 沿用 GB300；本題只連結既有 L1 列，未新增計算")
+    ans(5, "每 GW 理論營收（Sol，VR200）與理論毛利率", "OpenAI 有效單價、基準成本、基準利用率；單一層級滿載的上限",
+        "=L1_RevGW_Sol_VR200", "=L1_RevGW_Sol_VR200_Lo", "=L1_RevGW_Sol_VR200_Hi", "$B/GW/年", UTIL_RNG,
+        "連結 L1_RevGW_*（Luna、Sol、Astra、機隊各一列）；全成本 $/M 見 IF_FullCost_*", "利用率、折扣、快取命中 χ、單價快照",
+        "利用率 60%：Assumed（K11）", "IF_RevGW_Sol", f"L1 第 {at['RevGW_Sol_VR200']} 列；Interface D 節",
+        "未能回答：理論毛利率。Interface 沒有毛利率列（IF_FullCost* 為 $/M、IF_RevGW* 為 $B/GW/年，單位不同），需新增計算，待 Project 判斷（工作單 B10）")
+    ans(6, "後訓練占比（Sol；訓練世代＝IF_TrainGenDefault）：FLOPs 口徑 對 GPU 小時口徑", "單一模型最終訓練；Block 3 基準",
+        "=INDEX(IF_PostShareFLOP_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "%",
+        "無區間：D＝FLOPs 口徑，E、F＝GPU 小時口徑（兩種口徑並列，不是低高）",
+        "RL 以推論型運算計價，兩種口徑的後訓練占比不同；Luna、Astra 見 IF_PostShare*_Luna／_Astra",
+        "RL rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "IF_PostShareFLOP_Sol", "Interface C 節",
+        "本題只連結既有名稱")
+    ans(7, "單價前緣與 OpenAI 單價差距（Sol；參考請求混合 $/M）", "OpenAI 有效單價 對 前緣有效單價；2026-09／10 快照",
+        "=IF_PriceRef_Sol", "=IF_FrontRef_Sol", "=IF_FrontRef_Sol", "$/M", "無區間：D＝OpenAI 有效，E、F＝前緣有效（兩者並列，不是低高）",
+        "前緣＝能力指數不低於 OpenAI 該層級模型的最便宜模型（K2 (i)）；Luna、Astra 見 IF_PriceRef_*、IF_FrontRef_*",
+        "能力指數、中國廠商單價、前緣定義（K2）", "AA 指數：2 級、改版頻繁", "IF_PriceRef_Sol", "Interface D 節",
+        "本題只連結既有名稱；差距比值未另設列")
+    ans(8, "harness 是否降低每成功任務成本（Coding agent，Sol）：每次嘗試成本 對 成功任務成本前緣",
+        "VR200；現行 harness；任務＝Coding agent（長程，第 5 欄）",
+        "=INDEX(IF_CostAttVR_Sol,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "$",
+        "無區間：D＝Sol 每次嘗試成本，E、F＝前緣每成功任務成本（口徑不同，不可直接相除）",
+        "每成功任務成本＝每次嘗試成本 ÷ p（L5）；前緣只比成功率 ≥ p_min 者（M1 (b)）。harness 選定對標準的直接對照為 IF_HarR_*（既有名稱，工作單未指定）",
+        "任務 token、成功率 p、harness 檔案", "harness 成功率：Assumed 或 3 級", "IF_CostAttVR_Sol", "Interface E 節",
+        "待 Project 判斷：是否改連 IF_HarR_*（選定 ÷ 標準）以直接回答；任務欄（目前取 Coding agent）未由工作單指定")
+    ans(9, "成功任務成本前緣（p ≥ p_min；Coding agent；VR200）",
+        "VR200；任務＝Coding agent（第 5 欄）；層級與 harness 檔案見 IF_FrontSuccVRName",
+        "=INDEX(IF_FrontSuccVR,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "$", "無區間（單一前緣值）",
+        "前緣組合名稱見 IF_FrontSuccVRName、成功率見 IF_FrontSuccVRP；『無合格』表示無組合達 p_min", "p_min、任務成功率、單價",
+        "p_min 50%：Assumed", "IF_FrontSuccVR", "Interface E 節", "任務欄（目前取 Coding agent）未由工作單指定；其他任務見 IF_FrontSuccVR 各欄")
+    out.append(("ExtServeGW", "服務 GW：token 路線 對 支出路線", "OpenAI 2025；token 路線＝需求 D ÷ 每 GW 產能；支出路線＝推論支出 ÷ 持有成本",
+                "=IF_AllocServeGW", "=IF_AllocServeGW", "=IF_AllocServeGW", "GW", "無區間（單一對照值）",
+                "兩路線差距指出需求 D、每 GW 產能或支出口徑之一偏離；對照列落在 ±20% 外是預期結果之一，不調整輸入",
+                "每則提示 token 數、服務世代組合、每 GW 產能", "每則提示 token 數（Assumed，A10）", "SRC_DEM_004",
+                "=AL_ServeGWSpend", "=AL_ServeGWSpend", "IF_AllocServeGW", "Alloc F 節",
+                "支出路線以經濟持有成本換算 GW，與外部揭露的 GW 口徑（D1）無關"))
+    out.append(("ExtFreeShare", "免費服務算力占比：token 路線 對 支出口徑（SRC_DEM_005 ÷ SRC_DEM_004）", "OpenAI 2025",
+                "=AL_FreeServeShare", "=AL_FreeServeShare", "=AL_FreeServeShare", "%", "無區間（單一對照值）",
+                "token 路線＝免費服務 GW ÷ 服務 GW；支出口徑＝免費推論支出 ÷ 推論支出", "免費占比、層級組合（Cap_In）", "免費用戶占比：Assumed",
+                "SRC_DEM_005", "=SRC_DEM_005/SRC_DEM_004", "=SRC_DEM_005/SRC_DEM_004", "AL_FreeServeShare", "Alloc F 節", "兩口徑不同（算力 vs 支出）"))
+    out.append(("ExtDaily", "每日 token 合計 對 Epoch 估計（SRC_DEM_013 低、高）", "OpenAI 2025；API＋ChatGPT", "=AL_DDaily", "=AL_DDaily", "=AL_DDaily", "T tok/日",
+                "無區間（單一對照值）", "基準約 11.5T，只略高於 Epoch 下限 10T；每則 token 數與 API 比例同取低端時約 7.7T，落在區間外（預期，不是錯誤）",
+                "每則提示 token 數、API 全年平均比例", "每則提示 token 數（Assumed，A10）", "SRC_DEM_013", "=SRC_DEM_013_Lo", "=SRC_DEM_013_Hi",
+                "AL_DDaily", "Alloc A、F 節", "Epoch 為由算力推估的區間"))
+    return out
+```
+
 ## preserve.py
 
 ```python
@@ -2907,7 +3345,7 @@ BLUE = "FF0000FF"
 REBUILT = ["Spec_Rack", "Arch", "Serving", "Workload", "Calib", "Energy", "NonNV", "Tech_Registry", "Perf",
            "Sens_Perf", "Unit_Cost", "Train_In", "Perf_Batch", "Training", "Sens_Train",
            "Cap_In", "Capability", "Price_Frontier", "Cache_Store", "Fleet_1GW", "Amortize", "Theory_Rev", "Sens_Rev",
-           "Har_In", "Harness", "Sens_Har"]
+           "Har_In", "Harness", "Sens_Har", "Alloc_In"]
 
 def _is_input(cell):
     v = cell.value
@@ -18520,6 +18958,95 @@ DEC_UPD = {'D1': {'J': ('是', '否')},
          'G': ('生效（待 Andy 確認）', '生效')}}
 ```
 
+## gov_seed3.py
+
+```python
+# v5.15 (Block 6) seeds, all Excel-owned once written (same rule as gov_seed2): SRC_Demand +4 records, DB_Evidence +4 rows,
+# Decisions A9／A10 (+ A1–A8 status), Gov_Map rows for the Alloc_In inputs. Work order docs/workorders/20261004_v5.15.md (B1–B3).
+V = "U-V515"
+_STANCE = "OpenAI 管理層公開宣示（經媒體報導）：有呈現成長的誘因"
+
+SRC_RECORDS3 = [
+ {'id': 'SRC_DEM_010', 'sheet': 'SRC_Demand', 's': V, 'metric': 'OpenAI API 處理量', 'val': 6, 'lo': None, 'hi': None, 'unit': 'B tok/min',
+  'basis': '時點值；API 全部', 'applies': 'OpenAI', 'date': '2025-10-06',
+  'src': 'Altman，DevDay 2025（TechCrunch 2025-10-06 報導；Epoch usage reports 收錄）', 'grade': 2, 'stance': '利害關係方',
+  'stance_note': _STANCE, 'hand': '二手', 'status': 'Active', 'use': 'Alloc!A 節（AL_DAPI）｜換算', 'note': '10 月時點值；全年平均由 Alloc_In「API 全年平均 ÷ 10 月時點值」換算（A9）', 'ev': 'E166'},
+ {'id': 'SRC_DEM_011', 'sheet': 'SRC_Demand', 's': V, 'metric': 'OpenAI API 處理量', 'val': 15, 'lo': None, 'hi': None, 'unit': 'B tok/min',
+  'basis': '時點值；「超過」；API 全部', 'applies': 'OpenAI', 'date': '2026-03-31',
+  'src': 'OpenAI 融資公告（$122B）；TechRadar、Business Analytics 2026-04 轉述', 'grade': 2, 'stance': '利害關係方',
+  'stance_note': 'OpenAI 融資公告：有呈現成長的誘因', 'hand': '二手', 'status': 'Active', 'use': '（備查；Alloc 基準年為 2025，A1；不在模型內使用）',
+  'note': '2026 時點值，晚於 2025 穩態基準年（A1）；與 SRC_DEM_010 口徑不同（「超過」；日期不同），不構成 E7 重複', 'ev': 'E167'},
+ {'id': 'SRC_DEM_012', 'sheet': 'SRC_Demand', 's': V, 'metric': 'ChatGPT 每日提示數', 'val': 2.5, 'lo': None, 'hi': None, 'unit': 'B 則/日',
+  'basis': '全球；其中美國約 0.33B', 'applies': 'OpenAI', 'date': '2025-07-21',
+  'src': 'OpenAI 告知 Axios（TechCrunch 2025-07-21 報導）', 'grade': 2, 'stance': '利害關係方',
+  'stance_note': _STANCE, 'hand': '二手', 'status': 'Active', 'use': 'Alloc!A 節（AL_DChat）｜換算',
+  'note': '2025-07 年中時點值；年內近似線性成長下視同全年平均（A9，Assumed）', 'ev': 'E168'},
+ {'id': 'SRC_DEM_013', 'sheet': 'SRC_Demand', 's': V, 'metric': '前沿實驗室（OpenAI）每日 token', 'val': None, 'lo': 10, 'hi': 100, 'unit': 'T tok/日',
+  'basis': '由算力推估', 'applies': 'OpenAI（前沿實驗室）', 'date': '2025',
+  'src': 'Epoch AI（tokensperday.com 引用）', 'grade': 2, 'stance': '中立',
+  'stance_note': 'Epoch AI：獨立研究機構，由算力推估，無銷售誘因', 'hand': '二手', 'status': 'Active', 'use': 'L1 外部對照、Alloc F 節',
+  'note': '低 10、高 100 T tok/日（由算力推估的區間）', 'ev': 'E169'},
+]
+_ROW = lambda eid, claim, src, loc, new, note, sid, stance: [eid, '2026-10-04', claim, src, '二手（待查原文）', loc, '—', new, '補登（G2；2 級）', 'v5.15', note,
+                                                              '已處理', sid, '', 'IF_Alloc*、L1_Ans1–9', '2', stance]
+EVID_MIG3 = [
+ _ROW('E166', 'OpenAI API 處理量 6B tok/min（DevDay 2025-10-06，Altman）', 'TechCrunch 2025-10-06；Epoch usage reports', 'Alloc!A 節', '6 B tok/min',
+      '10 月時點值；工作單 v5.15 B2 登錄；原文未直接讀取', 'SRC_DEM_010', '利害關係方'),
+ _ROW('E167', 'OpenAI API 處理量「超過」15B tok/min（融資公告，2026-03-31）', 'OpenAI 融資公告（$122B）；TechRadar、Business Analytics 轉述', '（備查）', '15 B tok/min',
+      '工作單 v5.15 B2 登錄；CC 2026-10-04 以網路搜尋交叉確認「15 billion tokens per minute」見於多家轉述（pulse2、CoinDesk 2026-04-01 等）；openai.com 原文未能直接讀取，仍為二手', 'SRC_DEM_011', '利害關係方'),
+ _ROW('E168', 'ChatGPT 每日提示數 2.5B（2025-07-21；美國約 0.33B）', 'OpenAI 告知 Axios（TechCrunch 2025-07-21）', 'Alloc!A 節', '2.5 B 則/日',
+      '年中時點值視同全年平均（A9）；工作單 v5.15 B2 登錄', 'SRC_DEM_012', '利害關係方'),
+ _ROW('E169', '前沿實驗室每日 token 10–100T（Epoch AI 由算力推估）', 'Epoch AI（tokensperday.com 引用）', 'L1 外部對照', '10–100 T tok/日',
+      '工作單 v5.15 B2 登錄；CC 2026-10-04 搜尋未找到 tokensperday.com 或 Epoch 原始頁，數值未查核，仍為二手', 'SRC_DEM_013', '中立'),
+]
+
+DECISIONS_V515 = [
+ ['A9', 'Block 6', '需求 D 的來源',
+  'token 路線為基準，支出路線並列為外部對照（選項 (c)）。API：SRC 原始值（每分鐘 token）× 全年平均比例 × 525,600 分鐘。ChatGPT：SRC 每日提示數 × 每則提示 token 數 × 365。'
+  'OpenAI 模型 v0.5 的 FY2025 2,628T 是下游推導值，不進 Source，也不連結。年化：API 為 10 月時點值，乘「全年平均比例」；ChatGPT 的 2025-07 每日提示數視同全年平均（年內近似線性成長），不另設輸入',
+  '2026-10-04', '「D: 先做網路搜索，看看有沒有新的資訊，若無:(c)」；「我沒意見，請繼續」；年化處理：「(a) 保留，Gov_Map 写明理由（建议）」', 'v5.15 已建',
+  'Alloc_In、Alloc A 節；SRC_DEM_010–013', '工作單 v5.15 B1', '否'],
+ ['A10', 'Block 6', '每則提示 token 數',
+  '基準 2,000，區間 1,000–6,000，Assumed。包含輸入、上下文、推理與輸出 token。上限 6,000 為 chat 端依推理模型與長對話酌定，沒有直接來源。標為 Q1 的最弱輸入',
+  '2026-10-04', '「我沒意見，請繼續」（工作單 v5.15 B1 新決定 A10）', 'v5.15 已建', 'Alloc_In 每則提示 token 數；L1_Ans1、L1_Ans2', '工作單 v5.15 B1', '否'],
+]
+# A1–A8: status "生效（v5.13 建置）" → "v5.15 已建" (applied once, only while the cell still holds the v5.13 value)
+DEC_STATUS_V515 = {f"A{i}": {'G': ('生效（v5.14 建置；版號調整見交接第 0 節）', 'v5.15 已建')} for i in range(1, 9)}
+
+_SC = '切片三（v5.15 Block 6）'
+_N = 'Alloc_In'
+_LAB = {'Nmajor': '家族計畫數 N_major（個／年）', 'Nrefresh': '改版計畫數 N_refresh（個／年）', 'k': '計畫規模倍數 k（相對 Block 3）',
+        'g': '機隊年成長率 g', 'APIratio': 'API 全年平均 ÷ 10 月時點值', 'TokPerPrompt': '每則提示 token 數', 'FreeShare': 'ChatGPT token 中免費用戶占比'}
+_ROWS = {'Nmajor': 6, 'Nrefresh': 7, 'k': 8, 'g': 13, 'APIratio': 14, 'TokPerPrompt': 15, 'FreeShare': 16}   # Alloc_In row numbers (labels are re-checked at build)
+_REASON = {
+ 'Nmajor': '8f 驅動表：前沿實驗室每年約 1–2 個旗艦家族（基準 1）',
+ 'Nrefresh': '8f 驅動表、A2：改版計畫計入（基準 2，區間 0–4）',
+ 'k': 'A3：不以 59% 校準 k；基準 k＝1，校準值只反推隱含 N × k 並列 J8 落差（區間 0.5–7）',
+ 'g': 'A6：成長只作情境；基準為穩態年度（A1）；成長情境下研發計畫依未來需求定規模',
+ 'APIratio': 'A9：API 處理量為 2025-10 時點值，乘全年平均比例換成全年平均（Assumed）',
+ 'TokPerPrompt': 'A10：含輸入、上下文、推理與輸出 token；上限 6,000 為 chat 端依推理模型與長對話酌定，沒有直接來源；Q1 最弱輸入。'
+                 'A9 年化：SRC_DEM_012 的 2025-07 每日提示數為年中時點值，在年內近似線性成長下約等於全年平均，因此直接視同全年平均，不另設輸入（Assumed）',
+ 'FreeShare': '新增；以 L1 外部對照（免費服務算力占比對 SRC_DEM_005 ÷ SRC_DEM_004）檢查',
+}
+_SRC = {'APIratio': ('SRC_DEM_010', '換算（時點值→全年平均）'), 'TokPerPrompt': ('SRC_DEM_012', '換算（每日提示數 × 每則 token；2025-07 視同全年平均）'),
+        'FreeShare': ('SRC_DEM_005', '外部對照（免費推論支出占比，支出口徑）')}
+
+GOV_MAP_V515 = [{'scope': _SC, 'sheet': _N, 'cell': 'C5', 'label': '實驗室', 'cls': 'Decision', 'role': '單值', 'src': '', 'rel': '', 'dec': 'A8',
+                 'lo': None, 'hi': None, 'rtext': '結構選擇（無數值區間）', 'reason': 'A8：建「實驗室」選擇器，只放 OpenAI 一組；Anthropic 待來源查核後加入', 'retag': '', 'seg': '—'}]
+for _k, _r in _ROWS.items():
+    _s = _SRC.get(_k, ('', ''))
+    GOV_MAP_V515.append({'scope': _SC, 'sheet': _N, 'cell': f'C{_r}', 'label': _LAB[_k], 'cls': 'Assumed', 'role': '基準', 'src': _s[0], 'rel': _s[1], 'dec': '',
+                         'lo': f'=Alloc_In!D{_r}', 'hi': f'=Alloc_In!E{_r}', 'rtext': '', 'reason': _REASON[_k], 'retag': '', 'seg': '—'})
+    GOV_MAP_V515.append({'scope': _SC, 'sheet': _N, 'cell': f'D{_r}:E{_r}', 'label': _LAB[_k], 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '',
+                         'lo': None, 'hi': None, 'rtext': f'C{_r} 的低、高端點', 'reason': _REASON[_k], 'retag': '', 'seg': '—'})
+GOV_MAP_V515 += [
+ {'scope': _SC, 'sheet': _N, 'cell': 'C9:C12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '群組', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+  'rtext': '各 0–100%，合計 100%（Checks H1）', 'reason': '8f 驅動表：服務機隊的世代組合（Hopper／GB200／GB300／VR200 基準 0%／40%／40%／20%；補充 2：2025 機隊 Hopper 60%／GB200 40%）；四者合計須為 100%', 'retag': '', 'seg': '—'},
+ {'scope': _SC, 'sheet': _N, 'cell': 'D9:E12', 'label': '服務世代組合：Hopper', 'cls': 'Assumed', 'role': '低／高', 'src': '', 'rel': '', 'dec': '', 'lo': None, 'hi': None,
+  'rtext': 'C9:C12 的低、高端點（各 0–100%）', 'reason': '8f 驅動表：服務機隊的世代組合', 'retag': '', 'seg': '—'},
+]
+```
+
 ## gov_decisions.py
 
 ```python
@@ -18865,8 +19392,9 @@ from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_TITLE, F_NOTE, FILL_SEC,
 from gov_seed import SRC_RECORDS, PERF_ATTR, EVID_MIG, EVID_UPD, FORMULA_MAP, GOV_MAP
 from gov_decisions import DECISIONS
 from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP_UPD, GOV_MAP_V513C, GOV_MAP_UPD_E, DEC_UPD
+from gov_seed3 import SRC_RECORDS3, EVID_MIG3, DECISIONS_V515, DEC_STATUS_V515, GOV_MAP_V515
 
-ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2
+ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
 
@@ -18928,7 +19456,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2:
+    for rec in SRC_RECORDS2 + SRC_RECORDS3:
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -18985,7 +19513,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2:
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3:
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -19017,11 +19545,22 @@ def dec_update(wb):
     """v5.13 E: Andy's review results written to Decisions (Excel-owned), each field only while it still holds the v5.12 value."""
     ws = wb["Decisions"]; col = {"D": 4, "F": 6, "G": 7, "J": 10}; n = 0
     for r in range(5, ws.max_row + 1):
-        f = DEC_UPD.get(ws.cell(r, 1).value)
+        f = {**DEC_UPD, **DEC_STATUS_V515}.get(ws.cell(r, 1).value)     # v5.15: A1–A8 status "v5.15 已建"
         if not f: continue
         for k, (old, new) in f.items():
             c = ws.cell(r, col[k])
             if c.value == old: c.value = new; n += 1
+    return n
+
+
+def dec_append(wb):
+    """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
+    ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
+    for row in DECISIONS_V515:
+        if row[0] in have: continue
+        for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
     return n
 
 
@@ -19165,7 +19704,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C:
+    for g in GOV_MAP_V513C + GOV_MAP_V515:
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -19340,6 +19879,8 @@ def _rows_l1():
               "=Training!$N$31*Training!$N$34*1E21", "=Training!$N$31*Training!$N$34*1E21", "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
               "訓練 FLOPs/token × token；與前沿錨點 2e26–2e27 的差距即 J8 缺口", "Astra 啟用參數、預訓練 token", "Astra 架構：Assumed", "SRC_MOD_033",
               "=SRC_MOD_033", "=SRC_MOD_033", DASH, "Training 第 31、34 列；Checks 第 38 列", "外部為 Grok-3 的 Epoch 估計；GPT-6 Astra 實際算力未揭露"))
+    from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
+    R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     return R
 
 def l1_sheet(wb):
@@ -19349,7 +19890,7 @@ def l1_sheet(wb):
     ws = wb.create_sheet("L1")
     title(ws, "L1 — 第 1 層常用推算值（G9；即時公式、不貼值；附條件、區間與外部對照）",
           "下游取標準推算值時引用 L1_ 名稱；完整構件仍在 Interface（IF_）。外部值一律連結 SRC。判讀：外部為區間時看是否落在區間內；外部為單一值時以 ±20% 判讀。"
-          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；Block 6 的 9 題於 v5.15 補入。")
+          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；v5.15 補入 Block 6 的 9 題（L1_Ans1–9）與 3 列外部對照。")
     widths = [22, 38, 26, 10, 10, 10, 10, 24, 30, 24, 26, 12, 10, 10, 9, 14, 18, 18, 30]
     for i, h in enumerate(L1_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]
@@ -19507,6 +20048,7 @@ def gov_all(wb):
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
     dec_made = decisions_sheet(wb)
+    dec_made2 = dec_append(wb)
     dec_upd = dec_update(wb)
     n_fm, fm_log = apply_formula_map(wb)
     n_f14 = f14(wb)
@@ -19517,7 +20059,7 @@ def gov_all(wb):
     n_l1, nonf, l1_at = l1_sheet(wb)
     ck3_log = checks_to_l1(wb, l1_at)
     checks_gov(wb, n_l1, nonf, hard, SI["spans"])
-    return dict(src_made=made, src_appended=appended, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made,
+    return dict(src_made=made, src_appended=appended, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made, decisions_appended=dec_made2,
                 src_index_rows=SI["rows"], src_index_src_rows=SI["src_rows"], src_index_spans=SI["spans"],
                 formula_map_changed=n_fm, f14_changed=n_f14, gov_rows=n_gm, gov_raw_hardcoded=hard, l1_rows=n_l1, l1_nonformula=nonf,
                 fm_log=fm_log + ck2_log + ck3_log)
@@ -19565,7 +20107,7 @@ RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
           "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train",
           "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
-          "Har_In","Harness","Sens_Har"]:
+          "Har_In","Harness","Sens_Har","Alloc_In","Alloc"]:
     if n in wb.sheetnames: del wb[n]
 def clear(ws, r0, c1=1, c2=30):
     for r in range(r0, ws.max_row + 1):
@@ -19622,6 +20164,11 @@ R5 = harness(wb, U, S4, WL)
 SH5 = sens_har(wb, U, S4, WL, H5, R5)
 interface_b5(wb, last_row(wb["Interface"]) + 2, R5)
 checks_b5(wb, R5, H5, SH5)
+# ---- v5.15: Block 6 (Alloc_In inputs, Alloc derivation, Interface F) ----
+from block6 import alloc_in, alloc, interface_b6, checks_h
+AIN = alloc_in(wb)
+AL6 = alloc(wb, AIN)
+interface_b6(wb, last_row(wb["Interface"]) + 2)
 sources(wb)
 sources_b4(wb)
 sources_b5(wb)
@@ -19681,6 +20228,7 @@ nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
 # ---- v5.11: Stage 1 slice one (Source layer, Evidence upgrade, Decisions, Gov_Map, L1, governance Checks, F14); v5.13: slice two ----
 from gov import gov_all
 GOV = gov_all(wb)
+checks_h(wb)        # v5.15: Checks H section (after the G section; counted in GOV_Errors)
 GOV["snap_retired"] = len(RETIRED)
 GOV["fm_log"] = GOV["fm_log"] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
@@ -19688,7 +20236,7 @@ print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
-         "Har_In","Harness","Sens_Har","Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
+         "Har_In","Harness","Sens_Har","Alloc_In","Alloc","Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
          "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Price","SRC_Cap","SRC_Harness","SRC_Demand","SRC_Index","Sources_Legacy","DB_Evidence"]]
 assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)
 wb._sheets = [wb[n] for n in order]

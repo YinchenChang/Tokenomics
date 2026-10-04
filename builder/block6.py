@@ -7,7 +7,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 SLO = "SLO 不可達"
-GENS = [("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
+GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
 TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
 
 
@@ -29,7 +29,8 @@ IN_ROWS = [
     ("家族計畫數 N_major（個／年）", "個／年", 1, 1, 2, "Assumed", "8f 驅動表：前沿實驗室每年約 1–2 個旗艦家族", "Nmajor"),
     ("改版計畫數 N_refresh（個／年）", "個／年", 2, 0, 4, "Assumed", "8f 驅動表、A2：改版計畫計入", "Nrefresh"),
     ("計畫規模倍數 k（相對 Block 3）", "x", 1, 0.5, 7, "Assumed", "A3：不以 59% 校準 k；校準值只反推隱含 N × k（E 節）", "k"),
-    ("服務世代組合：GB200", "%", 0.4, 0, 1, "Assumed", "8f 驅動表：服務機隊的世代組合（三者合計 100%）", "MixGB200"),
+    ("服務世代組合：Hopper", "%", 0, 0, 1, "Assumed", "補充 2：2025 機隊含 Hopper（基準 0；h_alloc_mix_2025 情境為 Hopper 60%／GB200 40%）", "MixHopper"),
+    ("服務世代組合：GB200", "%", 0.4, 0, 1, "Assumed", "8f 驅動表：服務機隊的世代組合（四者合計 100%）", "MixGB200"),
     ("服務世代組合：GB300", "%", 0.4, 0, 1, "Assumed", "同上", "MixGB300"),
     ("服務世代組合：VR200", "%", 0.2, 0, 1, "Assumed", "同上", "MixVR200"),
     ("機隊年成長率 g", "%", 0, 0, 1, "Assumed（情境）", "A6：成長只作情境；基準為穩態年度（A1）", "g"),
@@ -60,7 +61,7 @@ def alloc_in(wb):
         nm(wb, f"AL_{stem}", f"Alloc_In!$C${r}")
         if lo is not None:
             nm(wb, f"AL_{stem}_Lo", f"Alloc_In!$D${r}"); nm(wb, f"AL_{stem}_Hi", f"Alloc_In!$E${r}")
-    nm(wb, "AL_MixGen", f"Alloc_In!$C${R['MixGB200']}:$C${R['MixVR200']}")
+    nm(wb, "AL_MixGen", f"Alloc_In!$C${R['MixHopper']}:$C${R['MixVR200']}")
     dv = DataValidation(type="list", formula1='"OpenAI"', allow_blank=False); ws.add_data_validation(dv); dv.add(f"C{R['Lab']}")
     r = 5 + len(IN_ROWS) + 1
     put(ws, f"A{r}", "服務世代組合合計（應為 100%；Checks H1）", F_BOLD)
@@ -115,32 +116,32 @@ def alloc(wb, AIN):
     r += 1
 
     # ---------------- B. serving GW
-    hdr("B. 服務 GW（token 路線；欄 C–E＝服務世代 GB200／GB300／VR200）")
+    hdr("B. 服務 GW（token 路線；欄 C–F＝服務世代 Hopper／GB200／GB300／VR200）")
     put(ws, f"A{r}", "世代", F_BOLD)
-    for c, (g, gi) in zip("CDE", GENS): put(ws, f"{c}{r}", f"=INDEX(Spec_Rack!$C$4:$G$4,{c}{r+1})", F_HLINK)
+    for c, (g, gi) in zip("CDEF", GENS): put(ws, f"{c}{r}", f"=INDEX(Spec_Rack!$C$4:$G$4,{c}{r+1})", F_HLINK)
     R["gen"] = r; r += 1
-    line("genidx", "世代索引（Spec_Rack 順序）", "索引", {c: gi for c, (g, gi) in zip("CDE", GENS)}, "0")
-    for c in "CDE": ws[f"{c}{R['genidx']}"].font = F_CALC
+    line("genidx", "世代索引（Spec_Rack 順序）", "索引", {c: gi for c, (g, gi) in zip("CDEF", GENS)}, "0")
+    for c in "CDEF": ws[f"{c}{R['genidx']}"].font = F_CALC
     line("col", "Interface 欄索引（基準成本欄；與 L1 第 5–8 列 INDEX 用法一致）", "索引",
-         {c: f"=3*({c}{R['genidx']}-1)+2" for c in "CDE"}, "0", "AL_GenCol", span=("C", "E"))
+         {c: f"=3*({c}{R['genidx']}-1)+2" for c in "CDEF"}, "0", "AL_GenCol", span=("C", "F"))
     line("share", "世代占比（Alloc_In）", "%",
-         {"C": "=AL_MixGB200", "D": "=AL_MixGB300", "E": "=AL_MixVR200"}, "0%", "AL_ShareGen", span=("C", "E"))
+         {"C": "=AL_MixHopper", "D": "=AL_MixGB200", "E": "=AL_MixGB300", "F": "=AL_MixVR200"}, "0%", "AL_ShareGen", span=("C", "F"))
     mp, mf = "B4_MixPaid", "B4_MixFree"
     def reach(mix, c):
         return "AND(" + ",".join(f"OR(INDEX({mix},1,{t})=0,INDEX(IF_TokGW_{tn},1,{c}${R['col']})>0)" for t, (tn, _) in enumerate(TIERS, 1)) + ")"
     line("ok", "可服務（付費與免費組合內各層級皆 SLO 可達＝1；同 Fleet_1GW 第 18 列）", "旗標",
-         {c: f"=IF(AND({reach(mp, c)},{reach(mf, c)}),1,0)" for c in "CDE"}, "0", "AL_GenOK", span=("C", "E"))
+         {c: f"=IF(AND({reach(mp, c)},{reach(mf, c)}),1,0)" for c in "CDEF"}, "0", "AL_GenOK", span=("C", "F"))
     def invsum(mix, c):
         return "+".join(f"INDEX({mix},1,{t})/INDEX(IF_TokGW_{tn},1,{c}${R['col']})" for t, (tn, _) in enumerate(TIERS, 1))
-    line("ip", "Σ（付費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mp, c)},"{SLO}")' for c in "CDE"}, "0.00E+00",
+    line("ip", "Σ（付費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mp, c)},"{SLO}")' for c in "CDEF"}, "0.00E+00",
          note="付費 token 的層級組合（Cap_In）依各層級每 GW 總產出（IF_TokGW_*）加權：每 M tok 佔用的 GW·年（100% 利用率）")
-    line("if", "Σ（免費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mf, c)},"{SLO}")' for c in "CDE"}, "0.00E+00")
+    line("if", "Σ（免費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mf, c)},"{SLO}")' for c in "CDEF"}, "0.00E+00")
     line("capp", "每 GW 年產能（付費；基準利用率）", "M tok/GW/年",
-         {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["ip"]},"{SLO}")' for c in "CDE"}, "#,##0", "AL_CapPaid", "利用率 IF_Util ÷ Σ；與 Fleet_1GW 第 19 列同式（每 GW）", span=("C", "E"))
+         {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["ip"]},"{SLO}")' for c in "CDEF"}, "#,##0", "AL_CapPaid", "利用率 IF_Util ÷ Σ；與 Fleet_1GW 第 19 列同式（每 GW）", span=("C", "F"))
     line("capf", "每 GW 年產能（免費；基準利用率）", "M tok/GW/年",
-         {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["if"]},"{SLO}")' for c in "CDE"}, "#,##0", "AL_CapFree", "與 Fleet_1GW 第 20 列同式（每 GW）", span=("C", "E"))
+         {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["if"]},"{SLO}")' for c in "CDEF"}, "#,##0", "AL_CapFree", "與 Fleet_1GW 第 20 列同式（每 GW）", span=("C", "F"))
     def blend(caprow, sharecells=("C", "D", "E")):
-        ss = [f"{c}${R['share']}" for c in "CDE"]; cc = [f"{c}${caprow}" for c in "CDE"]
+        ss = [f"{c}${R['share']}" for c in "CDEF"]; cc = [f"{c}${caprow}" for c in "CDEF"]
         bad = "OR(" + ",".join(f"AND({s}>0,NOT(ISNUMBER({k})))" for s, k in zip(ss, cc)) + ")"
         return f'=IF({bad},"{SLO}",' + "+".join(f"IF({s}>0,{s}*{k},0)" for s, k in zip(ss, cc)) + ")"
     line("bp", "世代組合後每 GW 年產能（付費）＝Σ 世代占比 × 各世代產能", "M tok/GW/年", blend(R["capp"]), "#,##0", "AL_BlendPaid")
@@ -149,9 +150,9 @@ def alloc(wb, AIN):
     line("sgf", "服務 GW（免費）＝免費 D ÷ 免費產能", "GW", f'=IF(AND(ISNUMBER(AL_BlendFree),AL_DFree>=0),IF(AL_BlendFree>0,AL_DFree/AL_BlendFree,"{SLO}"),"{SLO}")', "0.0000", "AL_ServeGWFree")
     line("sg", "服務 GW 合計", "GW", f'=IF(AND(ISNUMBER(AL_ServeGWPaid),ISNUMBER(AL_ServeGWFree)),AL_ServeGWPaid+AL_ServeGWFree,"{SLO}")', "0.0000", "AL_ServeGW", key_fill=True)
     line("sgg", "各世代服務 GW＝合計 × 世代占比", "GW",
-         {c: f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGW*{c}{R["share"]},"{SLO}")' for c in "CDE"}, "0.0000", "AL_ServeGen", span=("C", "E"))
+         {c: f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGW*{c}{R["share"]},"{SLO}")' for c in "CDEF"}, "0.0000", "AL_ServeGen", span=("C", "F"))
     line("hold", "各世代每 GW 年經濟持有成本（IF_HoldEcon，基準成本）", "$B/GW/年",
-         {c: f"=INDEX(IF_HoldEcon,1,{c}{R['col']})" for c in "CDE"}, "0.000", "AL_HoldGen", span=("C", "E"))
+         {c: f"=INDEX(IF_HoldEcon,1,{c}{R['col']})" for c in "CDEF"}, "0.000", "AL_HoldGen", span=("C", "F"))
     r += 1
 
     # ---------------- C. R&D GW-years (physical floor)
@@ -220,32 +221,32 @@ def alloc(wb, AIN):
 
     # ---------------- G. sensitivity table (closed-form; one input at a time; self-check block)
     hdr("G. 敏感度表（一次動一個輸入，取區間低與高；每列以閉式公式重寫 A–D 節推導鏈；端點值引用 Alloc_In 的區間格）")
-    put(ws, f"A{r}", "左側 C–K 為該列輸入；L–U 為推導鏈；V 為自我檢查（同一公式、輸入全改回基準，須等於 D 節 Q1、Q2；容差 1e-12；0＝通過）。"
+    put(ws, f"A{r}", "左側 C–L 為該列輸入；M–V 為推導鏈；W 為自我檢查（同一公式、輸入全改回基準，須等於 D 節 Q1、Q2；容差 1e-12；0＝通過）。"
                      "不使用運算列表，也不在 Python 端計算。", F_NOTE); r += 1
-    heads_in = ["N_major", "N_refresh", "k", "API 比例", "每則 token", "免費占比", "GB200", "GB300", "VR200"]
+    heads_in = ["N_major", "N_refresh", "k", "API 比例", "每則 token", "免費占比", "Hopper", "GB200", "GB300", "VR200"]
     heads_ch = ["付費 D", "免費 D", "付費產能", "免費產能", "服務 GW", "研發 GW", "Q1（R1）", "Q2", "研發算力成本 $B", "每日 T tok"]
     put(ws, f"A{r}", "情境", F_BOLD); put(ws, f"B{r}", "動的輸入", F_BOLD)
     for i, h in enumerate(heads_in + heads_ch + ["自我檢查"]): put(ws, f"{L(3+i)}{r}", h, F_BOLD, wrap=True)
     for i in range(3, 3 + len(heads_in) + len(heads_ch) + 1): ws.column_dimensions[L(i)].width = max(ws.column_dimensions[L(i)].width or 0, 13)
     R["gh"] = r; r += 1
     base = {"Nmaj": "AL_Nmajor", "Nref": "AL_Nrefresh", "k": "AL_k", "ratio": "AL_APIratio", "tok": "AL_TokPerPrompt", "free": "AL_FreeShare",
-            "m1": "AL_MixGB200", "m2": "AL_MixGB300", "m3": "AL_MixVR200"}
+            "m0": "AL_MixHopper", "m1": "AL_MixGB200", "m2": "AL_MixGB300", "m3": "AL_MixVR200"}
     # (label, input key varied, end label, replacement names (key->name))
     def endp(stem, side): return f"AL_{stem}_{side}"
     scen = [("基準", "—", {})]
     for lab, key, stem in (("N_major", "Nmaj", "Nmajor"), ("N_refresh", "Nref", "Nrefresh"), ("k", "k", "k"), ("每則提示 token 數", "tok", "TokPerPrompt"),
                            ("API 全年平均比例", "ratio", "APIratio"), ("免費占比", "free", "FreeShare")):
         scen.append((f"{lab} 低", lab, {key: endp(stem, "Lo")})); scen.append((f"{lab} 高", lab, {key: endp(stem, "Hi")}))
-    scen.append(("服務世代組合：全 GB200", "世代組合", {"m1": "AL_MixGB200_Hi", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Lo"}))
-    scen.append(("服務世代組合：全 VR200", "世代組合", {"m1": "AL_MixGB200_Lo", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Hi"}))
-    keys = ["Nmaj", "Nref", "k", "ratio", "tok", "free", "m1", "m2", "m3"]
-    capp = [f"$C${R['capp']}", f"$D${R['capp']}", f"$E${R['capp']}"]
-    capf = [f"$C${R['capf']}", f"$D${R['capf']}", f"$E${R['capf']}"]
-    holds = [f"$C${R['hold']}", f"$D${R['hold']}", f"$E${R['hold']}"]
+    scen.append(("服務世代組合：全 GB200", "世代組合", {"m0": "AL_MixHopper_Lo", "m1": "AL_MixGB200_Hi", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Lo"}))
+    scen.append(("服務世代組合：全 VR200", "世代組合", {"m0": "AL_MixHopper_Lo", "m1": "AL_MixGB200_Lo", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Hi"}))
+    keys = ["Nmaj", "Nref", "k", "ratio", "tok", "free", "m0", "m1", "m2", "m3"]
+    capp = [f"${c}${R['capp']}" for c in "CDEF"]
+    capf = [f"${c}${R['capf']}" for c in "CDEF"]
+    holds = [f"${c}${R['hold']}" for c in "CDEF"]
 
     def chain(rr, ic):
         """chain formulas for row rr; ic maps input key -> column letter (the row's own input cells)"""
-        m = [f"{ic['m1']}{rr}", f"{ic['m2']}{rr}", f"{ic['m3']}{rr}"]
+        m = [f"{ic['m0']}{rr}", f"{ic['m1']}{rr}", f"{ic['m2']}{rr}", f"{ic['m3']}{rr}"]
         dchat = f"SRC_DEM_012*1E9*{ic['tok']}{rr}*365/1E6"
         dapi = f"SRC_DEM_010*1E9*525600*{ic['ratio']}{rr}/1E6"
         out = {}
@@ -272,7 +273,7 @@ def alloc(wb, AIN):
             for i, k in enumerate(keys):
                 col = L(3 + i); ic[k] = col
                 src = rep.get(k) if blk == "main" else None
-                fmt = {"m1": "0%", "m2": "0%", "m3": "0%", "free": "0%", "ratio": "0.00", "tok": "#,##0", "k": "0.0"}.get(k, "0.0")
+                fmt = {"m0": "0%", "m1": "0%", "m2": "0%", "m3": "0%", "free": "0%", "ratio": "0.00", "tok": "#,##0", "k": "0.0"}.get(k, "0.0")
                 put(ws, f"{col}{rr}", f"={src or base[k]}", fmt=fmt, fill=FILL_KEY if src else None)
             m, ch = chain(rr, ic)
             base_c = 3 + len(keys)                      # first chain column
@@ -340,7 +341,7 @@ def checks_h(wb):
     for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]): put(ws, f"{L(i+1)}{r}", h, F_BOLD)
     r += 1
     h1 = r
-    put(ws, f"A{r}", "H1"); put(ws, f"B{r}", "服務世代組合 GB200＋GB300＋VR200 合計 ≠ 100%（容差 1e-9）"); put(ws, f"C{r}", "ERROR", F_BOLD)
+    put(ws, f"A{r}", "H1"); put(ws, f"B{r}", "服務世代組合 Hopper＋GB200＋GB300＋VR200 合計 ≠ 100%（容差 1e-9）"); put(ws, f"C{r}", "ERROR", F_BOLD)
     put(ws, f"D{r}", "=IF(ABS(SUM(AL_MixGen)-1)>1E-9,1,0)", fmt="0"); put(ws, f"E{r}", "Alloc_In 世代組合三格", F_NOTE); r += 1
     h2 = r
     put(ws, f"A{r}", "H2"); put(ws, f"B{r}", "Alloc G 節自我檢查不等於基準的列數（兩邊皆為文字時不報錯）"); put(ws, f"C{r}", "ERROR", F_BOLD)

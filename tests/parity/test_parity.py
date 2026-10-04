@@ -180,7 +180,7 @@ def test_interface_d_e_shapes(model):
                | {f"IF_{p}_{t}" for p in ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR") for t in TIERS})
     assert len(v59_new) == 41 and v59_new <= set(single_num + single_txt + wide + task), "v5.9 新增的 41 個下游名稱須全數涵蓋形狀檢查"
     v510_new = {f"IF_{p}_{t}" for p in ("CostAttVR", "HzEff") for t in TIERS} | {"IF_PFloor"} | set(front)
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) == 113   # v5.8 的下游名稱數；v5.10 新增 10 個
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
@@ -314,10 +314,28 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     assert abs(base.get_name("AL_RefGWyr") - 0.01808) < 5e-6                              # 工作單 r3 更正 2
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
-    for inputs in ({"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1},):
+    for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
+                              ("b_prod_derate", {"Serving!C18": 0.7}, False)):
         eng = _clone(template_engine)
         for k, v in inputs.items():
             eng.set_key(k, v)
         eng.evaluate_all()
-        assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達"
-        assert eng.get_name("GOV_Errors") == 0
+        for n in ALLOC_IF:                                                                  # 每個 IF_Alloc*：數值或文字「SLO 不可達」，不得為錯誤值
+            v = eng.get_name(n)
+            assert (isinstance(v, (int, float)) and not isinstance(v, bool)) or v == "SLO 不可達", (sid, n, v)
+        assert eng.get_name("GOV_Errors") == 0, sid
+        if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
+            assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
+        else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 48.8%）
+            assert abs(eng.get_name("IF_AllocQ1") - 0.4876) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
+
+
+def test_alloc_mix_2025_expected_values(model, template_engine):
+    """補充 2：2025 機隊 Hopper 60%／GB200 40%（h_alloc_mix_2025）的期望值（chat 端獨立重算）。"""
+    eng = _clone(template_engine)
+    for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
+        eng.set_key(k, v)
+    eng.evaluate_all()
+    for n, want in (("IF_AllocServeGW", 0.13724), ("AL_ServeGWSpend", 0.86022), ("IF_AllocQ1", 0.36945), ("IF_AllocQ2", 0.41972)):
+        assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
+    assert eng.get_name("GOV_Errors") == 0

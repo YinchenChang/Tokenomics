@@ -2,6 +2,7 @@
 
 比對範圍：全部公式格；具名範圍名稱與 attr_text；17 個情境（含 v5.11 兩個治理情境）各以獨立引擎實例重算。
 """
+import os
 import time
 from pathlib import Path
 
@@ -27,16 +28,20 @@ def model():
 
 @pytest.fixture(scope="module")
 def base_engine(model):
-    """基準引擎（只讀）：供防空轉統計與公式格清單，避免每個情境重複建圖。"""
-    eng = new_engine(model)
+    """基準引擎（只讀）：供防空轉統計與公式格清單，避免每個情境重複建圖。一律重建（不經快取）。"""
+    eng = new_engine(model, fresh=True)
     return eng, eng.evaluate_all()
 
 
-def new_engine(model):
-    """回傳全新的引擎實例（每次建圖並重算，約 50 秒）。
+def new_engine(model, fresh=False):
+    """回傳全新的引擎實例。預設（無快取）每次建圖並重算，約 50 秒。
+    CI 設定 TOKENOMICS_ENGINE_CACHE 時改由 pycel 序列化檔載入（ExcelCompiler.from_file，約數秒），每次載入都是獨立實例；
+    載入後仍強制全簿重算。第 14 輪評估：18 情境與重建逐格比對不符 0（2026-10-04 提速報告）。
+    fresh=True 一律重建：效能門檻測試（兩條重算）量的是真正建出來的引擎，不經快取。
     曾評估以 deepcopy 範本共用建圖結果（第 12 輪第 7 點）：總時長可由約 37 分降至約 10 分，但複本偶發
     'NoneType' has no attribute 'get_range'，且複本的重算變慢（4.9–6.2 秒），不採用。"""
-    return Engine(model)
+    cache = None if fresh else os.environ.get("TOKENOMICS_ENGINE_CACHE")
+    return Engine(model, cache=cache or None)
 
 
 @pytest.fixture(scope="module")
@@ -44,8 +49,8 @@ def template_engine(model):
     return model
 
 
-def _clone(model):
-    return new_engine(model)
+def _clone(model, fresh=False):
+    return new_engine(model, fresh=fresh)
 
 
 def test_model_current_pointer(model):
@@ -219,6 +224,9 @@ def test_named_ranges_vs_libreoffice(model, tmp_path):
     assert lo == ours
 
 
+FRESH_STATE = {}   # 情境 id → (全部公式格值, 全部具名範圍值)；由 test_scenario_parity 的重建實例填入
+
+
 @pytest.mark.parametrize("sc", SCENARIOS, ids=[s["id"] for s in SCENARIOS])
 def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, results_store):
     """情境：改寫輸入 → LibreOffice 重算（基準）→ 與引擎全部公式格比對。"""
@@ -226,12 +234,13 @@ def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, resu
     set_inputs(model, scen_xlsx, sc["inputs"])
     ref = excel_values(lo_recalc(scen_xlsx, tmp_path / "lo"), base_engine[0].formula_cells)
 
-    eng = _clone(template_engine)               # 每個情境獨立實例（deepcopy 範本），不受前一情境影響
+    eng = _clone(template_engine, fresh=True)   # 每個情境獨立的重建實例；核心斷言不依賴快取（快取等價另見 test_cache_matches_fresh）
     for key, v in sc["inputs"].items():
         eng.set_key(key, v)
     t0 = time.perf_counter()
     got = eng.evaluate_all()
     elapsed = time.perf_counter() - t0
+    FRESH_STATE[sc["id"]] = (got, {n: eng.get_name(n) for n in eng.names})   # 供 test_cache_matches_fresh 取用（同一個重建實例的結果）
 
     res = compare(got, ref)
     base = base_engine[1]                        # 防空轉：統計相對基準改變的格數（其中屬 Interface 者）
@@ -244,6 +253,46 @@ def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, resu
     if sc["id"] != "base":
         assert changed, f"[{sc['id']}] 未改變任何公式格（測試空轉）"
     assert not res["mismatches"], f"[{sc['id']}] " + format_mismatches(res["mismatches"])
+
+
+@pytest.fixture(scope="session")
+def cache_path(tmp_path_factory):
+    """快取檔：CI 由 TOKENOMICS_ENGINE_CACHE 提供；本機未設定時建一次（約 75 秒）。"""
+    env = os.environ.get("TOKENOMICS_ENGINE_CACHE")
+    if env:
+        return env
+    p = tmp_path_factory.mktemp("cache") / "engine.pkl"
+    Engine(current_model_path()).save_cache(p)
+    return str(p)
+
+
+@pytest.mark.parametrize("sc", SCENARIOS, ids=[s["id"] for s in SCENARIOS])
+def test_cache_matches_fresh(sc, model, cache_path, results_store):
+    """快取等價（2026-10-04 審查第 2 點）：同一組輸入，快取載入的實例與重建的實例，
+    全部公式格與全部具名範圍精確比對（不用容差；型別也要相同），不符即失敗。
+    重建實例即同片 test_scenario_parity 剛算完的那一個（同檔、同行程）；單獨執行本測試時才另建。"""
+    if sc["id"] in FRESH_STATE:
+        want_cells, want_names = FRESH_STATE[sc["id"]]
+    else:
+        fresh = new_engine(model, fresh=True)
+        for key, v in sc["inputs"].items():
+            fresh.set_key(key, v)
+        want_cells = fresh.evaluate_all()
+        want_names = {n: fresh.get_name(n) for n in fresh.names}
+    t0 = time.perf_counter()
+    eng = Engine(model, cache=cache_path)       # 每個情境獨立載入的實例
+    load_s = time.perf_counter() - t0
+    for key, v in sc["inputs"].items():
+        eng.set_key(key, v)
+    got_cells = eng.evaluate_all()
+    bad_cells = [k for k in want_cells if want_cells[k] != got_cells[k] or type(want_cells[k]) is not type(got_cells[k])]
+    bad_names = [n for n in want_names if want_names[n] != eng.get_name(n)]
+    results_store.setdefault("_cache_equiv", {})[sc["id"]] = {
+        "cells": len(want_cells), "names": len(want_names), "cell_mismatch": len(bad_cells),
+        "name_mismatch": len(bad_names), "load_seconds": round(load_s, 1)}
+    assert not bad_cells and not bad_names, (
+        f"[{sc['id']}] 快取與重建不符：公式格 {len(bad_cells)}、具名範圍 {len(bad_names)}；"
+        f"前 10 格 {[(k, want_cells[k], got_cells[k]) for k in bad_cells[:10]]}；前 5 名 {bad_names[:5]}")
 
 
 def test_scenarios_actually_change_outputs(model, base_engine, template_engine, tmp_path):
@@ -267,7 +316,7 @@ INCREMENTAL_LIMIT_S = 2.0
 
 def test_incremental_recalc_matches_fresh_and_is_fast(model):
     """同一實例連續改輸入再還原：結果須與全新實例相同；(a) 每個情境增量重算 < 2 秒（硬性）。"""
-    eng = new_engine(model)
+    eng = new_engine(model, fresh=True)
     base = eng.evaluate_all()
     names = eng.names
     base_orig = {a: eng.get(*resolve_key(names, a)) for sc in SCENARIOS[1:] for a in sc["inputs"]}   # 改動前的原值
@@ -287,7 +336,7 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
 
 def test_full_recalc_time(model, results_store):
     """(b) 全簿強制重算 < 2 秒（v5.12 恢復）。"""
-    eng = new_engine(model)
+    eng = new_engine(model, fresh=True)
     eng.evaluate_all()
     t0 = time.perf_counter()
     eng._xl.recalculate()                      # 強制全簿（全部公式格）重算

@@ -2,6 +2,29 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261004_Tokenomics_v5.14.xlsx（取代 v5.13；第 13 輪續：L1 錯誤值修正）
+
+- Commit：見本輪 PR #13 的合併提交（合併後補上雜湊）。報告：`docs/reports/20261004_v5.14_sync.md`。
+- **v5.13 未單獨合併**：v5.13 的 parity 有 2 個情境因 `L1!O35`、`L1!P35` 出現錯誤值而未通過，改由 v5.14 修正；v5.13 與 v5.14 在同一個 PR #13 合併（下方 v5.13 一節保留）。
+- Excel（chat 端產生，CC 未改任何數值或公式）：SHA-256 `dc4ef406…2b56`；公式格 33,480、具名範圍 736、工作表 46，皆與 v5.13 相同。`L1` 的 O、P 欄在推算值非數字（SLO 不可達情境）時顯示「—」與「推算值非數字（本情境）」；SRC 各頁 X 欄的比對範圍縮小。
+- builder：依 md 的 15 個區塊逐字覆寫（只有 `gov.py`、`finish.py` 有變動）。以 v5.13 為底稿重建，LibreOffice 重算後與 v5.14 逐格一致（61,184 格不符 0、錯誤 0、46 張工作表同序）；`restore_log` matched 936／Excel 值保留 0／unmatched 0。冪等：以 v5.14 為底稿重建，兩邊都經 LibreOffice 存檔後比對，公式文字 0 不符、重算值 0 不符、具名範圍 736 個逐一相同（61,715 格）。
+- 檔案：v5.13 以 `git mv` 移入 `model/archive/`；`model/CURRENT` 改為 v5.14；`model/` 只留一份 xlsx。
+- 測試：期望值不變（33,480／736／46）；沒有改情境、比對範圍或容差。parity 127 項全過，含 `b_prod_derate`、`f_registry_t07_t09_on` 的「錯誤值 0」閘門；18 個情境數值不符 0（最大相對誤差約 5e-15）。網站測試 13 項全過；網站沒有寫死 L1 P 欄判讀文字，無需改動。
+- 重算時間：本機全簿強制重算 1.44 秒、增量最大 0.59 秒（第 13 輪本機為 1.76／0.86 秒）。GitHub Actions 上 parity 127 項全過（2,534 秒）。
+- CI：`.github/workflows/parity.yml` 新增一步，把情境數、不符格數、增量與全簿重算秒數寫入 job summary（只改輸出，不改斷言）。
+- 治理：GOV_Errors 0、GOV_Warnings 238、GOV_Info 99。export_csv：GOV_Errors 0；SRC_HW 61、DC 14、Model 54、Perf 52、Price 45、Cap 22、Harness 16、Demand 10 列（含表頭各 1 列）、Interface 186 列。
+
+## 20261003_Tokenomics_v5.13.xlsx（取代 v5.12；第 13 輪：切片二同步）
+
+- Commit：見本輪 PR 的合併提交（合併後補上雜湊）。報告：`docs/reports/20261003_v5.13_sync.md`。v5.12 的合併提交為 `a466307`（第 12 輪 PR #12）。
+- Excel（chat 端產生，CC 未改任何數值或公式）：SHA-256 `9b76f1e5…6540`；公式 30,158 → 33,480；具名範圍 611 → 736（`SRC_` 220 → 324、`L1_` 75 → 96，其餘前綴不變）；工作表 42 → 46（新增 `SRC_Price` 44、`SRC_Cap` 21、`SRC_Harness` 15、`SRC_Demand` 9 列）。Arch 第 21–23 列、Arch C9:C10、Cap_In N46:N58 改為公式；L1 由 25 列增為 32 列。Checks G 節：GOV_Errors 0、GOV_Warnings 238、GOV_Info 99。
+- builder：依 md 的 15 個區塊逐字覆寫（新增 `gov_seed2.py`；`block4.py`、`build.py`、`finish.py`、`gov.py`、`inputs.py` 有變動）。以 v5.12 為底稿重建，LibreOffice 重算後與 v5.13 逐格一致（61,184 格不符 0、錯誤 0、46 張工作表同序）；`restore_log` matched 1,008／Excel 值保留 0／unmatched 0；`gov_log` 「retired input (now formula)」22 格。以 v5.13 為底稿重建（冪等）：matched 936／unmatched 0，重算值 61,184 格不符 0，具名範圍 736 個相同（公式原始文字寫法差異 3,895 格，數值不受影響）。
+- 檔案：v5.12 以 `git mv` 移入 `model/archive/`；`model/CURRENT` 改為 v5.13。
+- 測試：期望值改為 33,480 格、736 個具名範圍（`SRC_` 324、`L1_` 96）、46 張工作表。沒有情境把 KV bytes（Arch 第 21–23 列）、Arch C9:C10、Cap_In N46:N58 當輸入，故情境檔未改；比對範圍與容差未動。parity 127 項：125 過、2 失敗（見下）；網站測試 13 項全過（證據頁 67 → 85 筆、L1 25 → 32 列、SRC_Perf 40 → 51 筆，並加 SRC 八頁列數檢查）。
+- **（已由 v5.14 修正；v5.13 未單獨合併，與 v5.14 同一 PR #13）未通過：2 個情境（Excel 問題，未在 Python 修補）**：`b_prod_derate`、`f_registry_t07_t09_on`。兩者數值不符 0 格（最大相對誤差約 4.9e-15），失敗的是「任何情境不得出現錯誤值」閘門：`L1!O35`、`L1!P35`（OpenAI 2025 對帳列）在 SLO 不可達情境下，`D35`（連 `Checks!B43`）為文字「SLO 不可達」，公式只檢查 M35、N35 是否為數字，造成 #VALUE!。需 Project 端改 Excel。
+- 重算時間（本機）：全簿強制重算 1.76 秒（< 2 秒）、增量最大 0.86 秒（< 2 秒）。GitHub Actions 實測秒數見 PR comment。
+- 工具與網站：`tools/export_csv.py` 匯出 SRC 八頁（Price 44、Cap 21、Harness 15、Demand 9；Model 53、Perf 51；CSV 含表頭列各多 1 列）並檢查 GOV_Errors（0）；`tools/stage0_inventory.py` 治理頁清單加 4 頁；`app/common.py` SRC 頁前綴加 4 個（`IDX_`、`CST_` 仍不顯示為下游名稱）。數值與機制未改。
+
 ## 20261003_Tokenomics_v5.12.xlsx（取代 v5.11；第 12 輪：工程基礎）
 
 - Commit：見本輪 PR 的合併提交（合併後補上雜湊）。報告：`docs/reports/20261003_v5.12_sync.md`。v5.11 的合併提交為 `a9bc106`（第 11 輪 PR #11）。

@@ -137,7 +137,7 @@ def cap_in(wb):
             if v is None: continue
             fmt = "#,##0.000" if i in (4, 5, 6) else ("0" if i in (7, 8) else None)
             put(ws, f"{L(i+1)}{r}", v, F_IN if i < 12 else F_NOTE, fmt=fmt, wrap=(i == 12))
-        put(ws, f"N{r}", 1 if row[2] == "中國" else 0, F_IN, fmt="0")   # v5.9：中國廠商旗標（CC 第 7 輪）
+        put(ws, f"N{r}", f'=IF($C{r}="中國",1,0)', F_CALC, fmt="0")   # v5.9 旗標；v5.13 (D) 改為由國別欄計算（值不變）
         r += 1
     K["tab1"] = r - 1
     put(ws, f"A{r}", "註：前 3 列為 OpenAI 層級模型，其能力指數即各層級門檻。快取價空白者以新鮮輸入價計。能力指數空白者不參與前緣（不代表能力不足）。"

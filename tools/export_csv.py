@@ -15,7 +15,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 from engine import Engine  # noqa: E402
 
-SRC_SHEETS = ("SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf")
+SRC_SHEETS = ("SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand")
 
 
 def main():

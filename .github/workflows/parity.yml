@@ -25,6 +25,21 @@ jobs:
       - name: Parity（全部公式格＋具名範圍＋基準與 15 個情境＋函數語意）
         # 不符時，測試訊息會列出前 20 個不符格：頁名、座標、引擎值、Excel 值
         run: python -m pytest tests/parity -v --tb=short -p no:cacheprovider
+      - name: 重算秒數與 parity 統計寫入 job summary（只改輸出，不改斷言）
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          p = "tests/parity/_results.json"
+          if os.path.exists(p):
+              d = json.load(open(p))
+              sc = {k: v for k, v in d.items() if isinstance(v, dict)}
+              print("## Parity 統計")
+              print(f"- 情境數：{len(sc)}（含基準）")
+              print(f"- 不符格數合計：{sum(v['n_mismatch'] for v in sc.values())}；含錯誤值的情境：{[k for k, v in sc.items() if v['error_value_cells']]}")
+              print(f"- 增量重算最大秒數：{max(v['eval_all_seconds_after_change'] for v in sc.values())}")
+              print(f"- 全簿強制重算秒數：{d.get('_full_recalc_seconds')}")
+          PY
       - name: 治理檢查（GOV_Errors 必須為 0）並匯出 SRC_／Interface CSV
         run: python tools/export_csv.py --out data/export
       - name: 上傳匯出 CSV

@@ -935,7 +935,7 @@ def impact(xlsx: Path, targets):
 
 # ───────────────────────── 7. Gate 1 驗收（第 11 輪；唯讀） ─────────────────────────
 
-GOVERNANCE_SHEETS = {"Gov_Map", "Decisions", "SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "L1", "Checks", "Sources_Legacy", "SRC_Index",
+GOVERNANCE_SHEETS = {"Gov_Map", "Decisions", "SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand", "L1", "Checks", "Sources_Legacy", "SRC_Index",
                      "DB_Evidence", "README"}
 UNIT_CONSTS = {0, 1, 2, 3, 4, 8, 10, 12, 24, 60, 100, 168, 365, 1000, 3600, 8760,
                1e3, 1e6, 1e9, 1e12, 1e15, 1e18}               # 單位換算常數（指令第 3.2 節；0 為本工具加入的空值）
@@ -1052,7 +1052,7 @@ def gate1(xlsx: Path, prev: Path, out: Path, workdir: Path, log=print):
     # —— 3.3 Evidence
     ev_ids = {str(c.value) for c in wb["DB_Evidence"]["A"][4:] if c.value}
     missing, n_active = [], 0
-    for s in ("SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf"):
+    for s in ("SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"):
         ws = wb[s]
         for r in range(5, ws.max_row + 1):
             if ws.cell(r, 1).value is None or ws.cell(r, 15).value != "Active":

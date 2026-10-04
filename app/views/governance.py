@@ -1,4 +1,4 @@
-"""治理（v5.11）：Checks G 節、第 1 層 L1、第 0 層 Source（唯讀）。資料只來自 Excel 的 GOV_／L1_／SRC_ 具名範圍與其所在工作表。"""
+"""治理（v5.11；v5.13 起 SRC 八頁）：Checks G 節、第 1 層 L1、第 0 層 Source（唯讀）。資料只來自 Excel 的 GOV_／L1_／SRC_ 具名範圍與其所在工作表。"""
 import streamlit as st
 
 from app.common import get_engine, gov_status, gov_table, l1_table, src_tables

@@ -204,10 +204,10 @@ def test_evidence_page_readonly_table():
     at = AppTest.from_string(HEAD + "from app.views import evidence; evidence.render()", default_timeout=180).run()
     assert not at.exception
     df = at.dataframe[0].value
-    assert df.shape == (67, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
+    assert df.shape == (85, 11) and {"ID", "主張（摘要）", "標記", "判定", "處理版本"} <= set(df.columns)
     assert df["ID"].tolist()[:2] == ["E001", "E002"] and df["ID"].is_unique
     at.multiselect[0].set_value([df["判定"].iloc[0]]).run()                # 篩選可用且不拋例外
-    assert not at.exception and 0 < len(at.dataframe[0].value) <= 67
+    assert not at.exception and 0 < len(at.dataframe[0].value) <= 85
 
 
 def test_no_label_lookup_in_app_and_engine():
@@ -224,10 +224,14 @@ def test_governance_page_and_overview_status():
     assert m["GOV_Errors"] == "0" and set(m) == {"GOV_Errors", "GOV_Warnings", "GOV_Info"}
     assert len(at.table) == 1 and len(at.table[0].value) == 23         # Checks G 節 23 項（E13＋W2＋I8；v5.12 新增 E13）
     l1, src = at.dataframe[0].value, at.dataframe[1].value
-    assert len(l1) == 25 and "L1_ID" in l1.columns
+    assert len(l1) == 32 and "L1_ID" in l1.columns                  # v5.13：25 → 32（第 30–36 列為 Checks 移入的外部比對）
     assert len(src) == 60                                              # 預設顯示 SRC_HW 60 筆
     at.radio[0].set_value("SRC_Perf").run()
-    assert not at.exception and len(at.dataframe[1].value) == 40
+    assert not at.exception and len(at.dataframe[1].value) == 51      # v5.13：SRC_Perf 40 → 51（補登 SRC_PERF_041–051）
+    assert list(at.radio[0].options) == ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]
+    for sheet, n in (("SRC_Price", 44), ("SRC_Cap", 21), ("SRC_Harness", 15), ("SRC_Demand", 9)):
+        at.radio[0].set_value(sheet).run()
+        assert not at.exception and len(at.dataframe[1].value) == n
     at = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()
     assert not at.exception and {x.label: x.value for x in at.metric}["GOV_Errors"] == "0"
     assert len(at.dataframe) == 1                                      # Block 1 表仍只有一張 dataframe

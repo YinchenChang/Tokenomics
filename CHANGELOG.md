@@ -2,6 +2,14 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261004_Tokenomics_v5.16.xlsx（取代 v5.15；L1 Answers 修正；判斷類，依工作單 `docs/workorders/20261004_v5.16.md` r1 執行）
+
+- Commit：見本輪 PR（合併後補上雜湊）。報告：`docs/reports/20261004_v5.16.md`。**依賴 PR #15**（底稿為 PR #15 分支 `claude/dreamy-fermat-x5o30w` 最新提交 `86dd4bc`，其上併入 master 的工作單提交；PR #15 合併後本 PR 併入 master）。
+- Excel（CC 以 `builder/` 自 v5.15 產生，經 LibreOffice 重算存檔）：L1 第 41–44 列改公式與標籤（毛利率移出、第 6 題 FLOPs 口徑、第 7 題比值、第 8 題改連 `IF_HarR_Sol`）；新增第 49–51 列 `L1_Ans5_GM`、`L1_Ans5_FullMargin`、`L1_Ans6_GPUh`；L1 欄位約定寫入說明；Checks 新增 H3（WARN，計入 `GOV_Warnings`）。公式格 34,534 → 34,552；具名範圍 865 → 874（L1_ 132 → 141）；工作表 48 不變。模型頁、Interface、SRC、Gov_Map 數值與公式逐格不變。
+- builder：`block6.py`（`l1_rows_b6`、`checks_h`）、`finish.py`（README）；`docs/builder/Tokenomics_builder_v5.md` 重新產生。以 v5.15 重建 `restore_log` matched 970／Excel 值保留 0／unmatched 0；冪等（以 v5.16 重建）0 不符。
+- 測試：期望值 34,534 → 34,552 格、865 → 874 名稱、`l1_names` 132 → 141；網站 L1 44 → 47 列、問答頁 9 → 12 個小標題；新增 `test_l1_v516_expected_values_and_h3`。情境、比對範圍、容差、斷言未動。
+- 治理：GOV_Errors 0、GOV_Warnings 241（不變；H3＝0）、GOV_Info 102 → 103（I3 +1：毛利率對 2025 隱含值）。
+
 ## 20261004_Tokenomics_v5.15.xlsx（取代 v5.14；Block 6 Alloc；判斷類，依工作單 `docs/workorders/20261004_v5.15.md` r3 執行）
 
 - Commit：見本輪 PR（合併後補上雜湊）。報告：`docs/reports/20261004_v5.15.md`。底稿：master `7402b3e`（含 PR #13、#14）。

@@ -392,3 +392,19 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
     for n, want in (("IF_AllocServeGW", 0.13724), ("AL_ServeGWSpend", 0.86022), ("IF_AllocQ1", 0.36945), ("IF_AllocQ2", 0.41972)):
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
+
+
+def test_l1_v516_expected_values_and_h3(model):
+    """v5.16：L1 毛利率兩列、GPU 小時口徑、第 7、8 題的基準期望值（工作單第 1 節；chat 端計算，精度到小數第 5 位故容差 5e-6），H3＝0。"""
+    eng = new_engine(model)
+    want = {"L1_Ans5_GM": (0.95589, 0.92435, 0.96810), "L1_Ans5_FullMargin": (0.93485, 0.88826, 0.95289),
+            "L1_Ans6_GPUh": (0.25576, 0.25576, 0.25576), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47934, 0.47934, 0.47934)}
+    for n, (d, lo, hi) in want.items():
+        for suffix, v in (("", d), ("_Lo", lo), ("_Hi", hi)):
+            got = eng.get_name(n + suffix)
+            assert abs(got - v) < 5e-6, (n + suffix, got, v)
+        assert lo <= d <= hi
+    assert abs(eng.get_name("L1_Ans5_GM") - 0.95589) < 5e-6
+    h3 = [r for r in eng.get("Checks", "A100:D120") if r[0] == "H3"]
+    assert len(h3) == 1 and h3[0][3] == 0 and h3[0][2] == "WARN"
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 241 and eng.get_name("GOV_Info") == 103

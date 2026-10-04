@@ -224,7 +224,7 @@ def test_governance_page_and_overview_status():
     assert m["GOV_Errors"] == "0" and set(m) == {"GOV_Errors", "GOV_Warnings", "GOV_Info"}
     assert len(at.table) == 1 and len(at.table[0].value) == 23         # Checks G 節 23 項（E13＋W2＋I8；v5.12 新增 E13）
     l1, src = at.dataframe[0].value, at.dataframe[1].value
-    assert len(l1) == 44 and "L1_ID" in l1.columns                  # v5.15：32 → 44（Block 6：Answers 9＋外部對照 3）；v5.13：25 → 32（第 30–36 列為 Checks 移入的外部比對）
+    assert len(l1) == 47 and "L1_ID" in l1.columns                  # v5.16：44 → 47（毛利率兩列、GPU 小時口徑）；v5.15：32 → 44（Block 6：Answers 9＋外部對照 3）；v5.13：25 → 32（第 30–36 列為 Checks 移入的外部比對）
     assert len(src) == 60                                              # 預設顯示 SRC_HW 60 筆
     at.radio[0].set_value("SRC_Perf").run()
     assert not at.exception and len(at.dataframe[1].value) == 51      # v5.13：SRC_Perf 40 → 51（補登 SRC_PERF_041–051）
@@ -244,4 +244,4 @@ def test_alloc_and_qa_pages():
     flat = " ".join(" ".join(map(str, t.value.iloc[:, 0])) for t in at.table)
     assert "Q1（R1）" in flat and "服務 GW 合計" in flat and "研發 GW 年" in flat
     at = AppTest.from_string(HEAD + "from app.views import qa; qa.render()", default_timeout=300).run()
-    assert not at.exception and len(at.subheader) == 9
+    assert not at.exception and len(at.subheader) == 12        # v5.16：9 題＋子項 3（Ans5_GM、Ans5_FullMargin、Ans6_GPUh）

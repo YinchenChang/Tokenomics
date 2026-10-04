@@ -514,7 +514,7 @@ def l1_sheet(wb):
     ws = wb.create_sheet("L1")
     title(ws, "L1 — 第 1 層常用推算值（G9；即時公式、不貼值；附條件、區間與外部對照）",
           "下游取標準推算值時引用 L1_ 名稱；完整構件仍在 Interface（IF_）。外部值一律連結 SRC。判讀：外部為區間時看是否落在區間內；外部為單一值時以 ±20% 判讀。"
-          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；v5.15 補入 Block 6 的 9 題（L1_Ans1–9）與 3 列外部對照。")
+          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；v5.15 補入 Block 6 的 9 題（L1_Ans1–9）與 3 列外部對照；v5.16 補毛利率兩列與 GPU 小時口徑一列。欄位約定（v5.16）：D＝基準、E＝低、F＝高；無區間時 E＝F＝D，H 欄寫「無區間」；不同口徑或對照量一律另列一列，不放在 E／F。")
     widths = [22, 38, 26, 10, 10, 10, 10, 24, 30, 24, 26, 12, 10, 10, 9, 14, 18, 18, 30]
     for i, h in enumerate(L1_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]

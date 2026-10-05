@@ -1,4 +1,4 @@
-# Tokenomics v5 建檔程式（v5.15 產生器：Block 2＋Block 3＋Block 4＋Block 5＋Block 6 Alloc＋治理 Stage 1 切片一＋切片二（B–E 包）＋SRC_Index；Excel 優先）
+# Tokenomics v5 建檔程式（v5.16 產生器：Block 2＋Block 3＋Block 4＋Block 5＋Block 6 Alloc＋治理 Stage 1 切片一＋切片二（B–E 包）＋SRC_Index；Excel 優先）
 
 用途：Block 2、Block 3、Block 4、Block 5 的公式頁由程式產生，確保公式一致、可重建。**v5.7 起輸入值由 Excel 擁有**：要改輸入，直接改 Excel（藍字格）；builder 重建時會讀回所有藍字輸入。程式內的數值只是「新增輸入列時的預設值」。
 
@@ -32,6 +32,7 @@
 - v5.13 E 包（2026-10-03）：Andy 對 v5.11 審閱檔「all OK」（全部依 Claude 建議）：`gov_seed2.GOV_MAP_UPD_E`（95 列、114 欄位）與 `DEC_UPD`（83 項原話＋A1–A8 狀態與 G10 文字，98 欄位），由 `gov.gm_update`、`gov.dec_update` 只在仍為 v5.12 原值時寫入。內容：74 格提議區間改為已確認；R12 輪數下限 max(1, ×0.5)；R17 χ 分任務（聊天 30–70%、代理 70–95%）；R19 Calib C69 改為 Derived（待改公式）；標記變更 25 格註記 Andy 同意；Decisions 原話 83 項 J 欄改否，G0-9 文字修正（PUE 改標 Assumed），CV1 維持 4×HGX，K1、K2、K13 補原話。v5.13 交付檔（以 v5.12 為底稿）：公式 33,480 格、LibreOffice 零錯誤；具名範圍 736（SRC 324、L1 96）；對 v5.12 逐格比較 71,141 格：模型頁、Interface 與既有 L1 25 列數值全部一致。Checks G 節 ERROR 0、WARN 238、INFO 99。restore 1,008 格全數對應、22 格改公式記入 gov_log；冪等 74,711 格不符 0；pycel 33,480 格不符 0；全簿強制重算本機 1.34–1.50 秒。
 - v5.14（2026-10-04，以 v5.13 為底稿；工程類，chat 端）：(1) CC 第 13 輪發現 v5.13 在 SLO 不可達情境（b_prod_derate、f_registry_t07_t09_on）下 L1!O35、P35 出現錯誤值（D35 連 Checks!B43，該情境為文字「SLO 不可達」，O、P 只檢查 M、N）。`gov.l1_sheet`：L1 全部 32 列 O 欄改為 D、M、N 皆為數字才計算，否則「—」；P 欄 D 非數字時回傳「推算值非數字（本情境）」；L1 標題的 Block 6 版號改 v5.15。(2) 重算時間：SRC 各頁 X 欄的比對範圍由第 5–400 列改為第 5 列到最後一筆紀錄＋IDX_HEAD（與 SRC_Index 共用 `gov._span_end`）；超出範圍的紀錄已由 Checks E13 報錯，故計數不變。`finish.py` README。公式 33,480 格、LibreOffice 零錯誤；具名範圍 736。對 v5.13 逐格比較 74,711 格：數值差異只有 README!B5 與 L1!A2（說明文字）；公式文字差異 332 格（L1 O、P 64 格、SRC 各頁 X 266 格與上述 2 格）。restore：以 v5.13 為底稿 936 格全數對應、unmatched 0；冪等 74,711 格數值與公式文字不符 0。E7 測試：把 SRC_HW 第 6 列的指標、口徑、對象改成與第 5 列相同，X5、X6＝2、E7＝2、GOV_Errors＝2（偵測不變）。全簿強制重算（repo engine／pycel，同一台機器）：v5.13 2.44–2.71 秒 → v5.14 1.68–1.76 秒；剩餘最大項為 Gov_Map AF 欄（574 個 MATCH，約 0.44 秒），日後若需再降，從此處著手。（備註：以 builder 直接輸出、未經 LibreOffice 存檔的檔案與交付檔比較公式原始文字時，約 3,900 格因 LibreOffice 把 1E9 等數字常數展開而寫法不同，數值不受影響；冪等應比較兩邊皆經 LibreOffice 重算存檔的檔案。）無新函數。
 - v5.15（2026-10-04，以 v5.14 為底稿；判斷類，依 docs/workorders/20261004_v5.15.md r3 執行）：Block 6 Alloc。新增 block6.py（Alloc_In 輸入頁、Alloc 推導頁、Interface F 節 IF_Alloc* 7 名、Checks H 節、L1 的 Answers 9 題與外部對照 3 列）、gov_seed3.py（SRC_DEM_010–013、E166–E169、Decisions A9／A10 與 A1–A8 狀態、Gov_Map 列）；build.py、gov.py、preserve.py、finish.py 接上。補充 1（支出路線不乘 1e9）、補充 2（Hopper 世代欄；h_alloc_mix_2025）。對既有頁數值逐格不變。
+- v5.16（2026-10-04，以 v5.15 為底稿；判斷類，依 docs/workorders/20261004_v5.16.md r1 執行）：L1 Answers 修正。`block6.l1_rows_b6`：第 5 題改讀法與缺口，新增 L1_Ans5_GM（毛利口徑）、L1_Ans5_FullMargin（全成本口徑）；第 6 題拆為 FLOPs 口徑與 L1_Ans6_GPUh；第 7 題改為 OpenAI ÷ 前緣；第 8 題改連 IF_HarR_Sol；L1 欄位約定寫入 L1 說明；`block6.checks_h` 新增 H3（WARN，計入 GOV_Warnings）；finish.py README。模型頁、Interface、SRC、Gov_Map 不動。
 
 ## common.py
 
@@ -1561,7 +1562,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261004_Tokenomics_v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", "20261004_Tokenomics_v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -3238,7 +3239,7 @@ def interface_b6(wb, start):
 def checks_h(wb):
     ws = wb["Checks"]
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
-    section(ws, r, "H. Alloc 輸入檢查（Block 6，v5.15）：ERROR 計入 GOV_Errors", 6); r += 1
+    section(ws, r, "H. Alloc 與 L1 檢查（Block 6，v5.15；H3 v5.16）：H1、H2 為 ERROR 計入 GOV_Errors；H3 為 WARN 計入 GOV_Warnings", 6); r += 1
     for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]): put(ws, f"{L(i+1)}{r}", h, F_BOLD)
     r += 1
     h1 = r
@@ -3247,12 +3248,24 @@ def checks_h(wb):
     h2 = r
     put(ws, f"A{r}", "H2"); put(ws, f"B{r}", "Alloc G 節自我檢查不等於基準的列數（兩邊皆為文字時不報錯）"); put(ws, f"C{r}", "ERROR", F_BOLD)
     put(ws, f"D{r}", "=SUM(AL_SensCheck)", fmt="0"); put(ws, f"E{r}", f"Alloc 敏感度表 {wb.defined_names['AL_SensCheck'].attr_text.split('$')[1]} 欄（容差 1e-12）", F_NOTE); r += 1
+    # v5.16 H3 (WARN): L1 rows (from row 5) whose D, E, F are all numbers but E <= D <= F fails (tolerance 1e-12); baseline expected 0
+    h3 = r
+    D, E, F = (f"L1!${c}$5:${c}$200" for c in "DEF")
+    put(ws, f"A{r}", "H3"); put(ws, f"B{r}", "L1 的 D、E、F 皆為數字，但不滿足 E ≤ D ≤ F 的列數"); put(ws, f"C{r}", "WARN", F_BOLD)
+    put(ws, f"D{r}", f"=SUMPRODUCT(ISNUMBER({D})*ISNUMBER({E})*ISNUMBER({F})*((({E}>{D})+({D}>{F}))>0))", fmt="0")
+    put(ws, f"E{r}", "L1 D、E、F 欄（D＝基準、E＝低、F＝高；只用比較、不做算術，故含文字的列不會產生錯誤值，也不套容差）；情境下利用率或成本參數改變時可能合理翻轉，不計入 GOV_Errors", F_NOTE); r += 1
+    nm(wb, "CHK_L1Order", f"Checks!$D${h3}")        # v5.16: named so tests read H3 without a label lookup (the engine cache holds no constant labels)
+    # GOV_Warnings (G section WARN total) also counts H3
+    wref = wb.defined_names["GOV_Warnings"].attr_text.split("!")[1].replace("$", "")
+    wc = ws[wref]
+    if f"D{h3}" not in str(wc.value): wc.value = f"{wc.value}+D{h3}"
+    ws[f"B{int(wref[1:])}"].value = "WARN 合計（含 H3）"
     # GOV_Errors (G section total) now also counts H1 and H2
     ref = wb.defined_names["GOV_Errors"].attr_text.split("!")[1].replace("$", "")
     cell = ws[ref]
     if f"D{h1}" not in str(cell.value): cell.value = f"{cell.value}+D{h1}+D{h2}"
     ws[f"B{int(ref[1:])}"].value = "ERROR 合計（CI 讀取 GOV_Errors；含 G 與 H 節）"
-    return h1, h2
+    return h1, h2, h3
 
 
 # ---------------------------------------------------------------- L1 rows (Answers 1–9 and three external comparisons; B6)
@@ -3291,27 +3304,27 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
         "VR200 無實測，η_d 沿用 GB300；本題只連結既有 L1 列，未新增計算")
     ans(5, "每 GW 理論營收（Sol，VR200）", "OpenAI 有效單價、基準成本、基準利用率；單一層級滿載的上限",
         "=L1_RevGW_Sol_VR200", "=L1_RevGW_Sol_VR200_Lo", "=L1_RevGW_Sol_VR200_Hi", "$B/GW/年", UTIL_RNG,
-        "連結 L1_RevGW_*（Luna、Sol、Astra、機隊各一列）；全成本 $/M 見 IF_FullCost_*", "利用率、折扣、快取命中 χ、單價快照",
-        "利用率 60%：Assumed（K11）", "IF_RevGW_Sol", f"L1 第 {at['RevGW_Sol_VR200']} 列；Interface D 節",
-        "未能回答：理論毛利率（Andy／chat 2026-10-04：本題標籤暫去「毛利率」，毛利率留 v5.16）。Interface 沒有毛利率列（IF_FullCost* 為 $/M、IF_RevGW* 為 $B/GW/年，單位不同），需新增計算")
-    ans(6, "後訓練占比（Sol；訓練世代＝IF_TrainGenDefault）：FLOPs 口徑 對 GPU 小時口徑", "單一模型最終訓練；Block 3 基準",
-        "=INDEX(IF_PostShareFLOP_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "%",
-        "無區間：D＝FLOPs 口徑，E、F＝GPU 小時口徑（兩種口徑並列，不是低高）",
-        "RL 以推論型運算計價，兩種口徑的後訓練占比不同；Luna、Astra 見 IF_PostShare*_Luna／_Astra",
+        "連結 L1_RevGW_*（Luna、Sol、Astra、機隊各一列）；毛利率見 L1_Ans5_GM、L1_Ans5_FullMargin；全成本 $/M 見 IF_FullCost_*",
+        "利用率、折扣、快取命中 χ、單價快照",
+        "利用率 60%：Assumed（K11）", "IF_RevGW_Sol", f"L1 第 {at['RevGW_Sol_VR200']} 列；Interface D 節", DASH)
+    ans(6, "後訓練占比（FLOPs 口徑；Sol；訓練世代＝IF_TrainGenDefault）", "單一模型最終訓練；Block 3 基準",
+        "=INDEX(IF_PostShareFLOP_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareFLOP_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareFLOP_Sol,1,AL_TrainCol)", "%",
+        "無區間",
+        "GPU 小時口徑見 L1_Ans6_GPUh；RL 以推論型運算計價，兩種口徑的後訓練占比不同；Luna、Astra 見 IF_PostShare*_Luna／_Astra",
         "RL rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "IF_PostShareFLOP_Sol", "Interface C 節",
         "本題只連結既有名稱")
-    ans(7, "單價前緣與 OpenAI 單價差距（Sol；參考請求混合 $/M）", "OpenAI 有效單價 對 前緣有效單價；2026-09／10 快照",
-        "=IF_PriceRef_Sol", "=IF_FrontRef_Sol", "=IF_FrontRef_Sol", "$/M", "無區間：D＝OpenAI 有效，E、F＝前緣有效（兩者並列，不是低高）",
-        "前緣＝能力指數不低於 OpenAI 該層級模型的最便宜模型（K2 (i)）；Luna、Astra 見 IF_PriceRef_*、IF_FrontRef_*",
+    ans(7, "OpenAI 單價 ÷ 前緣單價（Sol；參考請求混合）", "OpenAI 有效單價 ÷ 前緣有效單價；2026-09／10 快照",
+        '=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER(IF_FrontRef_Sol)),IF_PriceRef_Sol/IF_FrontRef_Sol,"—")',
+        '=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER(IF_FrontRef_Sol)),IF_PriceRef_Sol/IF_FrontRef_Sol,"—")',
+        '=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER(IF_FrontRef_Sol)),IF_PriceRef_Sol/IF_FrontRef_Sol,"—")', "x", "無區間",
+        "> 1 表示 OpenAI 高於前緣；兩個單價見 IF_PriceRef_Sol、IF_FrontRef_Sol（$/M）。前緣＝能力指數不低於 OpenAI 該層級模型的最便宜模型（K2 (i)）；Luna、Astra 見 IF_PriceRef_*、IF_FrontRef_*",
         "能力指數、中國廠商單價、前緣定義（K2）", "AA 指數：2 級、改版頻繁", "IF_PriceRef_Sol", "Interface D 節",
-        "本題只連結既有名稱；差距比值未另設列")
-    ans(8, "harness 是否降低每成功任務成本（Coding agent，Sol）：每次嘗試成本 對 成功任務成本前緣",
-        "VR200；現行 harness；任務＝Coding agent（長程，第 5 欄）",
-        "=INDEX(IF_CostAttVR_Sol,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "$",
-        "無區間：D＝Sol 每次嘗試成本，E、F＝前緣每成功任務成本（口徑不同，不可直接相除）",
-        "每成功任務成本＝每次嘗試成本 ÷ p（L5）；前緣只比成功率 ≥ p_min 者（M1 (b)）。harness 選定對標準的直接對照為 IF_HarR_*（既有名稱，工作單未指定）",
-        "任務 token、成功率 p、harness 檔案", "harness 成功率：Assumed 或 3 級", "IF_CostAttVR_Sol", "Interface E 節",
-        "待 Project 判斷：是否改連 IF_HarR_*（選定 ÷ 標準）以直接回答；任務欄（目前取 Coding agent）未由工作單指定")
+        "本題只連結既有名稱")
+    ans(8, "harness 是否降低每成功任務成本：選定 ÷ 標準（Coding agent，Sol，VR200）",
+        "VR200；任務＝Coding agent（長程，第 5 欄）；選定 harness 檔案全採用 對 標準 harness",
+        "=INDEX(IF_HarR_Sol,1,5)", "=INDEX(IF_HarR_Sol,1,5)", "=INDEX(IF_HarR_Sol,1,5)", "x", "無區間",
+        "< 1 表示 harness 降低每成功任務成本；各任務見 IF_HarR_Sol 各欄、其他層級見 IF_HarR_Luna／_Astra",
+        "任務 token、成功率 p、harness 檔案", "harness 成功率：Assumed 或 3 級", "IF_HarR_Sol", "Interface E 節", DASH)
     ans(9, "成功任務成本前緣（p ≥ p_min；Coding agent；VR200）",
         "VR200；任務＝Coding agent（第 5 欄）；層級與 harness 檔案見 IF_FrontSuccVRName",
         "=INDEX(IF_FrontSuccVR,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "=INDEX(IF_FrontSuccVR,1,5)", "$", "無區間（單一前緣值）",
@@ -3331,6 +3344,31 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
                 "無區間（單一對照值）", "基準約 11.5T，只略高於 Epoch 下限 10T；每則 token 數與 API 比例同取低端時約 7.7T，落在區間外（預期，不是錯誤）",
                 "每則提示 token 數、API 全年平均比例", "每則提示 token 數（Assumed，A10）", "SRC_DEM_013", "=SRC_DEM_013_Lo", "=SRC_DEM_013_Hi",
                 "AL_DDaily", "Alloc A、F 節", "Epoch 為由算力推估的區間"))
+    # ---- v5.16 (U1, U2, U4): gross margin (two caliber rows) and the GPU-hour share; columns 10／11／12 = VR200 low／base／high cost
+    fc = lambda c: f"INDEX(IF_FullCost_Sol,1,{c})"; ab = lambda c: f"INDEX(IF_AmortBU_Sol,1,{c})"; fd = lambda c: f"INDEX(IF_FullCostDefault_Sol,1,{c})"
+    def gm_formula(c):                 # 毛利口徑：服務＋快取儲存，不含訓練攤提＝IF_FullCost − IF_AmortBU
+        return (f'=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER({fc(c)}),ISNUMBER({ab(c)})),1-({fc(c)}-{ab(c)})/IF_PriceRef_Sol,"{DASH}")')
+    def fm_formula(c):                 # 全成本口徑：含 K6 預設攤提
+        return (f'=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER({fd(c)})),1-{fd(c)}/IF_PriceRef_Sol,"{DASH}")')
+    cond = "OpenAI 有效單價；VR200；Sol；基準利用率；SLO 下單一層級滿載（理想上限）"
+    rdef = "成本角落情境（高成本／低成本欄；毛利率隨成本反向）"
+    out.append(("Ans5_GM", "問 5：理論毛利率（毛利口徑：服務＋快取儲存，不含訓練攤提；Sol，VR200）", cond,
+                gm_formula(11), gm_formula(12), gm_formula(10), "%", rdef,
+                "1 −（IF_FullCost_Sol − IF_AmortBU_Sol）÷ IF_PriceRef_Sol：推論算力計入營業成本、訓練計入研發（不含攤提）。理論毛利率是 SLO 下單一層級滿載、基準利用率的上限；"
+                "與 2025 隱含值約 36% 的差距，與「兩路線差約 15 倍」同源（物理產能上限 對 實際營運），屬預期，不調整輸入。E＝高成本欄、F＝低成本欄",
+                "機架價格、IT 折舊年限、WACC、利用率、單價快照", "利用率 60%：Assumed（K11）", "SRC_DEM_004；SRC_DEM_007",
+                "=1-SRC_DEM_004/SRC_DEM_007", "=1-SRC_DEM_004/SRC_DEM_007", "L1_Ans5_GM", "Interface D 節（IF_FullCost_Sol、IF_AmortBU_Sol、IF_PriceRef_Sol）",
+                "外部為 2025 推論毛利隱含值＝1 − 推論支出 ÷ 營收（Derived；兩者皆 Interested-party），與本列的物理上限口徑不同"))
+    out.append(("Ans5_FullMargin", "問 5：理論毛利率（全成本口徑：含 K6 預設訓練攤提；Sol，VR200）", cond,
+                fm_formula(11), fm_formula(12), fm_formula(10), "%", rdef,
+                "1 − IF_FullCostDefault_Sol ÷ IF_PriceRef_Sol：含 K6 預設攤提（自下而上總額 × 權重）的全成本口徑，為第二列。E＝高成本欄、F＝低成本欄",
+                "機架價格、IT 折舊年限、WACC、利用率、訓練攤提（K6）", "利用率 60%：Assumed（K11）", DASH, None, None,
+                "L1_Ans5_FullMargin", "Interface D 節（IF_FullCostDefault_Sol、IF_PriceRef_Sol）", DASH))
+    out.append(("Ans6_GPUh", "問 6：後訓練占比（GPU 小時口徑；Sol；訓練世代＝IF_TrainGenDefault）", "單一模型最終訓練；Block 3 基準",
+                "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "=INDEX(IF_PostShareGPUh_Sol,1,AL_TrainCol)", "%",
+                "無區間", "FLOPs 口徑見 L1_Ans6；Luna、Astra 見 IF_PostShareGPUh_Luna／_Astra",
+                "RL rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", DASH, None, None,
+                "IF_PostShareGPUh_Sol", "Interface C 節", DASH))
     return out
 ```
 
@@ -19890,7 +19928,7 @@ def l1_sheet(wb):
     ws = wb.create_sheet("L1")
     title(ws, "L1 — 第 1 層常用推算值（G9；即時公式、不貼值；附條件、區間與外部對照）",
           "下游取標準推算值時引用 L1_ 名稱；完整構件仍在 Interface（IF_）。外部值一律連結 SRC。判讀：外部為區間時看是否落在區間內；外部為單一值時以 ±20% 判讀。"
-          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；v5.15 補入 Block 6 的 9 題（L1_Ans1–9）與 3 列外部對照。")
+          "v5.13 D 起 Checks 的外部比對移入本頁（第 30 列以下）；v5.15 補入 Block 6 的 9 題（L1_Ans1–9）與 3 列外部對照；v5.16 補毛利率兩列與 GPU 小時口徑一列。欄位約定（v5.16）：D＝基準、E＝低、F＝高；無區間時 E＝F＝D，H 欄寫「無區間」；不同口徑或對照量一律另列一列，不放在 E／F。")
     widths = [22, 38, 26, 10, 10, 10, 10, 24, 30, 24, 26, 12, 10, 10, 9, 14, 18, 18, 30]
     for i, h in enumerate(L1_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]

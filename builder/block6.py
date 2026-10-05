@@ -415,7 +415,7 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
         '=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER(IF_FrontRef_Sol)),IF_PriceRef_Sol/IF_FrontRef_Sol,"—")',
         '=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER(IF_FrontRef_Sol)),IF_PriceRef_Sol/IF_FrontRef_Sol,"—")',
         '=IF(AND(ISNUMBER(IF_PriceRef_Sol),ISNUMBER(IF_FrontRef_Sol)),IF_PriceRef_Sol/IF_FrontRef_Sol,"—")', "x", "無區間",
-        "> 1 表示 OpenAI 高於前緣；兩個單價見 IF_PriceRef_Sol、IF_FrontRef_Sol（$/M）。前緣＝能力指數不低於 OpenAI 該層級模型的最便宜模型（K2 (i)）；Luna、Astra 見 IF_PriceRef_*、IF_FrontRef_*",
+        "依定義 ≥ 1（前緣＝能力指數不低於 OpenAI 該層級模型的最便宜模型，集合含 OpenAI 本身，K2 (i)）；＝1 表示 OpenAI 該層級即在前緣上，> 1 表示 OpenAI 高於前緣；兩個單價見 IF_PriceRef_Sol、IF_FrontRef_Sol（$/M）。Luna、Astra 見 IF_PriceRef_*、IF_FrontRef_*",
         "能力指數、中國廠商單價、前緣定義（K2）", "AA 指數：2 級、改版頻繁", "IF_PriceRef_Sol", "Interface D 節",
         "本題只連結既有名稱")
     ans(8, "harness 是否降低每成功任務成本：選定 ÷ 標準（Coding agent，Sol，VR200）",

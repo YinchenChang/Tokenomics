@@ -23,10 +23,11 @@ workbook_expectations:            # 版本升級時必須有意識地更新（CL
   trn_names: 15                   # TRN_*：Training 推導鏈（含表頭 TRN_Gen、TRN_Tier）；僅供網站顯示
   sheets: [README, Inputs, Spec_Rack, Arch, Serving, Workload, Calib, Tech_Registry, Perf, Sens_Perf, Unit_Cost, DC_Cost, Train_In, Perf_Batch, Training, Sens_Train, Cap_In, Capability, Price_Frontier, Cache_Store, Fleet_1GW, Amortize, Theory_Rev, Sens_Rev, Har_In, Harness, Sens_Har, Alloc_In, Alloc, Interface, L1, Energy, NonNV, Sensitivity, Checks, Gov_Map, Decisions, SRC_HW, SRC_DC, SRC_Model, SRC_Perf, SRC_Price, SRC_Cap, SRC_Harness, SRC_Demand, SRC_Index, Sources_Legacy, DB_Evidence]
   src_names: 330                  # v5.13：SRC_*（第 0 層 Source 具名範圍；v5.11 為 220）
-  l1_names: 141                    # v5.13：L1_*（第 1 層推算值；v5.11 為 75）
+  l1_names: 141                    # v5.16：L1_*（v5.13 為 132；v5.16 新增 9）
   al_names: 80                    # v5.15：AL_*（Alloc_In 輸入與 Alloc 推導鏈；僅供顯示，下游不得連結）
   cst_names: 4                    # v5.12：CST_*（成本參數具名範圍；下游不得連結）
   idx_names: 3                    # v5.12：IDX_*（SRC_Index 查找；下游不得連結）
+  chk_names: 1                    # v5.17：CHK_*（目前只 CHK_L1Order；下游不得連結）
   gov_names: 4                    # v5.11：GOV_*
   evidence_columns: 11            # DB_Evidence 純輸入、無公式；表頭列 A4:K4
   tr_names: 23                    # TR_*：Tech_Registry 唯讀表（登錄表 20 個、各 12 格；掛鉤彙總 3 個、各 11 格）

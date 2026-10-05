@@ -144,7 +144,7 @@ def train_in(wb):
     T["mfug"] = r
     put(ws, f"A{r}", "預訓練 MFU 世代倍數"); put(ws, f"B{r}", "x")
     for c, v in zip("CDEFG", [0.8, 1, 1, 0.9, 0.9]): put(ws, f"{c}{r}", v, fmt="0.00")
-    put(ws, f"H{r}", "Hopper 0.8 使 MFU＝20%，對應 V3 推導值 [Derived]；VR200 峰值 3.5 倍而 HBM 頻寬 2.75 倍，取 0.9 [Assumed，區間 0.7–1.1]；RU 同 VR [Assumed]", F_NOTE, wrap=True)
+    put(ws, f"H{r}", "Hopper：v5.18 E1 基準 1.0（區間 0.8–1.2，Assumed；原 0.8 使 MFU＝20%，對應 V3 推導值，MegaScale-MoE 方向性證據與此相反，已讀未採用）；VR200 峰值 3.5 倍而 HBM 頻寬 2.75 倍，取 0.9 [Assumed，區間 0.7–1.1]；RU 同 VR [Assumed]", F_NOTE, wrap=True)
     r += 2
     section(ws, r, "各層級", 8); r += 1
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)

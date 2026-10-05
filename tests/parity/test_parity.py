@@ -206,12 +206,12 @@ def test_floor_scenarios_expected_values(model, template_engine):
     names = base.get_name("IF_HdrTask")
     assert base.get_name("IF_PFloor") == 0.5                                              # 基準 p_min＝50%
     assert base.get_name("IF_FrontSuccVRName") == ["Luna｜標準", "Luna｜標準", "Luna｜選定", "Luna｜選定", "Sol｜選定"]
-    assert abs(base.get_name("IF_FrontSuccVR")[4] - 0.0209) < 5e-5 and abs(base.get_name("IF_FrontSuccVRP")[4] - 0.627) < 5e-4
+    assert abs(base.get_name("IF_FrontSuccVR")[4] - 0.0222) < 5e-5 and abs(base.get_name("IF_FrontSuccVRP")[4] - 0.627) < 5e-4
     f0 = _floor_engine(template_engine, 0)                                                          # 不設下限：前緣＝「對照（不設下限）」列
     cols = "CDEFG"
     assert [f0.get("Harness", f"{c}151") for c in cols] == [f0.get("Harness", f"{c}147") for c in cols]
     assert [f0.get("Harness", f"{c}152") for c in cols] == [f0.get("Harness", f"{c}148") for c in cols]
-    assert f0.get_name("IF_FrontSuccVRName")[4] == "Luna｜選定" and abs(f0.get_name("IF_FrontSuccVR")[4] - 0.0125) < 5e-4
+    assert f0.get_name("IF_FrontSuccVRName")[4] == "Luna｜選定" and abs(f0.get_name("IF_FrontSuccVR")[4] - 0.0135) < 5e-4
     f8 = _floor_engine(template_engine, 0.8)                                                        # 下限 80%：Coding agent 無合格
     assert f8.get_name("IF_FrontSuccVR")[4] == f8.get_name("IF_FrontSuccVRName")[4] == f8.get_name("IF_FrontSuccVRP")[4] == "無合格"
     assert f8.get_name("IF_FrontSuccVRName")[2:4] == ["Sol｜選定", "Sol｜選定"]            # 單代理、多代理研究
@@ -371,8 +371,8 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
     base = new_engine(model)
     assert abs(base.get_name("AL_DDaily") - 11.48) < 0.01                                 # 每日 token 約 11.5T
-    assert abs(base.get_name("AL_ServeGWSpend") - 0.751) < 5e-4                           # 工作單 r3 更正 1
-    assert abs(base.get_name("AL_RefGWyr") - 0.01808) < 5e-6                              # 工作單 r3 更正 2
+    assert abs(base.get_name("AL_ServeGWSpend") - 0.74266) < 5e-5                        # v5.18：0.751→0.74266（LibreOffice 重算值）
+    assert abs(base.get_name("AL_RefGWyr") - 0.018153) < 5e-6                             # v5.18：0.01808→0.018153（LibreOffice 重算值）
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
     for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
@@ -388,7 +388,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
         if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
             assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
         else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 48.8%）
-            assert abs(eng.get_name("IF_AllocQ1") - 0.4876) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
+            assert abs(eng.get_name("IF_AllocQ1") - 0.4845) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
 
 
 def test_alloc_mix_2025_expected_values(model, template_engine):
@@ -397,7 +397,7 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
     for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
         eng.set_key(k, v)
     eng.evaluate_all()
-    for n, want in (("IF_AllocServeGW", 0.13724), ("AL_ServeGWSpend", 0.86022), ("IF_AllocQ1", 0.36945), ("IF_AllocQ2", 0.41972)):
+    for n, want in (("IF_AllocServeGW", 0.140315), ("AL_ServeGWSpend", 0.863676), ("IF_AllocQ1", 0.365056), ("IF_AllocQ2", 0.430013)):
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
 
@@ -405,12 +405,12 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
 def test_l1_v516_expected_values_and_h3(model):
     """v5.16：L1 毛利率兩列、GPU 小時口徑、第 7、8 題的基準期望值（工作單第 1 節；chat 端計算，精度到小數第 5 位故容差 5e-6），H3＝0。"""
     eng = new_engine(model)
-    want = {"L1_Ans5_GM": (0.95589, 0.92435, 0.96810), "L1_Ans5_FullMargin": (0.93485, 0.88826, 0.95289),
-            "L1_Ans6_GPUh": (0.25576, 0.25576, 0.25576), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47934, 0.47934, 0.47934)}
+    want = {"L1_Ans5_GM": (0.95308, 0.92398, 0.96383), "L1_Ans5_FullMargin": (0.93057, 0.88752, 0.94648),     # v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）
+            "L1_Ans6_GPUh": (0.25575, 0.25575, 0.25575), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47928, 0.47928, 0.47928)}
     for n, (d, lo, hi) in want.items():
         for suffix, v in (("", d), ("_Lo", lo), ("_Hi", hi)):
             got = eng.get_name(n + suffix)
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 241 and eng.get_name("GOV_Info") == 103
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 212 and eng.get_name("GOV_Info") == 107

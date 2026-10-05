@@ -17,10 +17,12 @@ from gov_seed import SRC_RECORDS, PERF_ATTR, EVID_MIG, EVID_UPD, FORMULA_MAP, GO
 from gov_decisions import DECISIONS
 from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP_UPD, GOV_MAP_V513C, GOV_MAP_UPD_E, DEC_UPD
 from gov_seed3 import SRC_RECORDS3, EVID_MIG3, DECISIONS_V515, DEC_STATUS_V515, GOV_MAP_V515
+import v518                       # v5.18: Stage 2 first write batch (Excel-owned writes with old-value guards; see v518.py)
 
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
+def _fm(): return v518.formula_map(ALL_FORMULA_MAP)     # v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links
 
 SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]   # v5.13: +4
 SRC_LAST = 400                      # record rows 5..SRC_LAST (formula ranges)
@@ -80,7 +82,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3:
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records():
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -137,7 +139,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3:
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -181,7 +183,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515:
+    for row in DECISIONS_V515 + v518.decisions_rows():
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -191,7 +193,7 @@ def dec_append(wb):
 # ---------------------------------------------------------------- 4. Model-page links (builder-owned)
 def apply_formula_map(wb):
     n = 0; log = []
-    for key, f in ALL_FORMULA_MAP.items():
+    for key, f in _fm().items():
         sh, co = key.split("!")
         c = wb[sh][co]
         if c.value != f:
@@ -378,7 +380,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws)
+    n_upd = gm_update(ws) + v518.gov_update(ws)      # v5.18: judgement columns, P (B method), D5 ranges
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -392,7 +394,7 @@ def gov_map(wb, src_index):
         if isinstance(sid, str) and sid in src_index:
             s2, rr = src_index[sid]
             # value field: the one the model cell links to, else the record value, else its low end
-            fm = ALL_FORMULA_MAP.get(f"{sh}!{cell}", "")
+            fm = _fm().get(f"{sh}!{cell}", "")
             m = re.search(re.escape(sid) + r"(_Lo|_Hi|_Spd|_ISL|_OSL|_MTP)?\b", fm)
             suf = m.group(1) if m and m.group(1) else ("" if wb[s2][f"C{rr}"].value is not None else "_Lo")
             put(ws, f"R{r}", f"={sid}{suf}", F_LINK)
@@ -469,8 +471,10 @@ def _rows_l1():
     for tier, c in (("Luna", "IF_RevGW_Luna"), ("Sol", "IF_RevGW_Sol"), ("Astra", "IF_RevGW_Astra"), ("機隊", "IF_RevGWFleet")):
         key = "RevGW_" + ("Fleet" if tier == "機隊" else tier) + "_VR200"
         lab = f"每 GW 理論營收（理想上限）— {tier}（VR200）" if tier != "機隊" else "1 GW 參考機隊付費營收（理想上限，VR200）"
-        R.append((key, lab, "OpenAI 有效單價、基準成本、基準利用率", f"=INDEX({c},1,11)", f"=INDEX({c},1,11)*Sens_Rev!$B$6/IF_Util",
-                  f"=INDEX({c},1,11)*Sens_Rev!$B$7/IF_Util", "$B/GW/年", UTIL_RNG, "單一層級滿載的上限；實際營收（需求、市占）在下游",
+        # v5.18 (engineering): the ratio is grouped, D*(u/IF_Util), so that u = IF_Util gives F = D exactly; D*u/IF_Util can land 1 ulp off D
+        # (scenario e_util_08), which the H3 strict comparison counted for the engine but not for LibreOffice. Same math, values equal to 1e-15.
+        R.append((key, lab, "OpenAI 有效單價、基準成本、基準利用率", f"=INDEX({c},1,11)", f"=INDEX({c},1,11)*(Sens_Rev!$B$6/IF_Util)",
+                  f"=INDEX({c},1,11)*(Sens_Rev!$B$7/IF_Util)", "$B/GW/年", UTIL_RNG, "單一層級滿載的上限；實際營收（需求、市占）在下游",
                   "利用率、折扣、快取命中 χ（Sens_Rev）", "利用率 60%：Assumed（K11）；生產折減 1.0：Assumed",
                   DASH, None, None, c, "Interface D 節", "需求與市占不在第 0 層（D7）"))
     # ---- v5.13 (D): external comparisons moved from Checks (G9); each row's external columns link SRC
@@ -495,9 +499,9 @@ def _rows_l1():
               "研發倍數（J10）", "研發倍數：Analogy（由外部區間設定，故本列只驗算一致）", "SRC_DEM_001",
               "=MIN(SRC_DEM_001,SRC_DEM_002,SRC_DEM_003)", "=MAX(SRC_DEM_001,SRC_DEM_002,SRC_DEM_003)", DASH, "Train_In 第 13 列；Checks 第 37 列",
               "外部為支出口徑（Epoch 推估三家），本模型為 GPU 小時口徑"))
-    R.append(("RevGWFleet_OAI2025", "OpenAI 2025 對帳：每 GW 機隊付費營收（Hopper／GB200 加權）", "OpenAI 有效單價（2026 快照）；Hopper 占機隊 60%（Checks 對帳常數，Assumed）",
+    R.append(("RevGWFleet_OAI2025", "OpenAI 2025 對帳：每 GW 機隊付費營收（Hopper／GB200 加權）", ("OpenAI 有效單價（2026 快照）；Hopper 占機隊 57%（Checks 對帳常數，Analogy；v5.18 D4，區間 50–60%）" if v518.step_on("D4") else "OpenAI 有效單價（2026 快照）；Hopper 占機隊 60%（Checks 對帳常數，Assumed）"),
               "=Checks!$B${rev}", "=Checks!$B${rev}", "=Checks!$B${rev}", "$B/GW/年", "無區間（單一對帳值）", "同量級即機隊配置與單價可閉合；2025 實際單價高於 2026 快照",
-              "OpenAI 有效單價、機隊配置（K7）", "Hopper 占機隊：Assumed", "SRC_DEM_007", "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)",
+              "OpenAI 有效單價、機隊配置（K7）", ("Hopper 占機隊：Analogy（Epoch 轉述 NVIDIA 出貨 4/7；全球口徑）" if v518.step_on("D4") else "Hopper 占機隊：Assumed"), "SRC_DEM_007", "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)",
               "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)", DASH, "Checks 第 43 列", "外部 GW 口徑未明（D1）"))
     R.append(("PretrainFLOP_Astra", "Astra 預訓練算力", "J8 基準（啟用參數 × 預訓練 token）", "=Training!$N$31*Training!$N$34*1E21",
               "=Training!$N$31*Training!$N$34*1E21", "=Training!$N$31*Training!$N$34*1E21", "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
@@ -669,6 +673,7 @@ def checks_to_l1(wb, l1_at):
 def gov_all(wb):
     made = src_sheets(wb)
     appended = src_append(wb)
+    n_src_upd, src_upd_log = v518.src_update(wb)      # v5.18: SRC grades, values, notes (old-value guards)
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
     dec_made = decisions_sheet(wb)
@@ -683,7 +688,7 @@ def gov_all(wb):
     n_l1, nonf, l1_at = l1_sheet(wb)
     ck3_log = checks_to_l1(wb, l1_at)
     checks_gov(wb, n_l1, nonf, hard, SI["spans"])
-    return dict(src_made=made, src_appended=appended, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made, decisions_appended=dec_made2,
+    return dict(src_made=made, src_appended=appended, src_updated_v518=n_src_upd, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made, decisions_appended=dec_made2,
                 src_index_rows=SI["rows"], src_index_src_rows=SI["src_rows"], src_index_spans=SI["spans"],
                 formula_map_changed=n_fm, f14_changed=n_f14, gov_rows=n_gm, gov_raw_hardcoded=hard, l1_rows=n_l1, l1_nonformula=nonf,
-                fm_log=fm_log + ck2_log + ck3_log)
+                fm_log=fm_log + ck2_log + ck3_log + [f"v518 {x}" for x in src_upd_log])

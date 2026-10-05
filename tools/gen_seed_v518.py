@@ -130,7 +130,7 @@ add_upd("SRC_HW_014", {"K": (3, 1), "Q": ("+", f"；{e1}"), "S": ("—", TODAY),
 e = eid()
 evid.append([e, TODAY, "GB200 NVL72 機架功率：TDP 132 kW nominal（HPE QuickSpecs V6，2026-09-08）；120 kW（SemiAnalysis）", "HPE QuickSpecs V6（2026-09-08）；https://newsletter.semianalysis.com/p/gb200-hardware-architecture-and-component",
              "一手（已讀原文）", "Spec_Rack D8（低 120）、D9（基準 132）", "120–130 kW/架（基準 130）", "132 kW（TDP nominal）；120 kW", "採納（工作單 v5.18 G2；升 1 級）", "v5.18",
-             "讀取者：HPE QuickSpecs＝chat 端（工作單 r2 第 2.2 節 G2 所述；CC 未獨立讀，hpe.com 被出口政策擋）；SemiAnalysis 120／123.6 kW＝CC 於 1d 讀取（二手，2 級）｜"
+             "讀取者：chat 端（HPE QuickSpecs V6；工作單 r2 第 2.2 節 G2 所述；CC 未獨立讀，hpe.com 被出口政策擋）；CC（SemiAnalysis 120／123.6 kW，1d 讀取，二手 2 級）｜"
              "EDPp 192 kW 為電氣設計尖峰口徑，只登錄不採用（見 DB_Evidence「已讀，未採用」列）｜立場：HPE 為系統廠（利害關係方）",
              "已處理", "SRC_HW_004", "—", "IF_*、L1_*（D9 基準 130→132）", "1", "利害關係方"])
 add_upd("SRC_HW_004", {"K": (3, 1), "Q": ("+", f"；{e}"), "S": ("—", TODAY), "N": ("二手", "一手（已讀）"),
@@ -139,8 +139,14 @@ add_upd("SRC_HW_004", {"K": (3, 1), "Q": ("+", f"；{e}"), "S": ("—", TODAY), 
 add_upd("SRC_HW_004", {"E": (130, 132)}, step="G2")
 
 # HW_005／HW_003／HW_006／HW_010／HW_015：G1 規則（2 級）
+e_gph = eid()
+evid.append([e_gph, "2026-10-06", "HGX H100 8 GPU 伺服器價格：SemiAnalysis 估計約 190K（僅伺服器）、約 250K（含儲存與網路）；Newegg HGX 掛牌 306,672（SRC_HW_003）", "https://gpuperhour.com/blog/nvidia-h100-price",
+             "二手（已讀）", "Spec_Rack C11:C13（Hopper 機架價格；C12 基準 1.1 M＝275 K×4）", "220,000–320,000 $/台", "約 190K（僅伺服器）；約 250K（含儲存與網路）；306,672（Newegg 掛牌）",
+             "採納（G1 規則 (ii) 成立；維持 2 級）", "v5.18",
+             "讀取者：chat 端（2026-10-06；頁面日期 2026-09-21）；CC 未獨立讀｜二手彙整頁，網站有聯盟行銷利益（利害關係方）｜已讀範圍 190K–312K（含 SHI 德州政府合約標價 $311,624），基準 275K 落在其內 → G1 規則 (ii) 成立｜口徑：伺服器本體、含儲存與網路、掛牌價，各不相同",
+             "已處理", "SRC_HW_003", "—", "—", "2", "利害關係方"])
 G1_NOTES = {
- "SRC_HW_003": " ｜G1 規則：(i) 上限有 SHI 德州政府合約標價 $311,624 一手佐證（chat 端讀取，工作單 r2；CC 的搜尋摘錄見 $311,599.87，差 0.01%，頁面未讀）；(ii) 基準 C12＝1.1 M（275 K×4）；下限 220,000 未讀 [Assumed]。僅一個已讀值，(ii) 的「範圍」為單點",
+ "SRC_HW_003": " ｜G1 規則：(i) 上限有 SHI 德州政府合約標價 $311,624 一手佐證（chat 端讀取；CC 的搜尋摘錄見 $311,599.87，差 0.01%，頁面未讀）；(ii) 基準 C12＝1.1 M（275 K×4）落在已讀範圍 190K–312K 內（" + e_gph + "：gpuperhour 彙整，SemiAnalysis 估計約 190K 僅伺服器、約 250K 含儲存與網路；Newegg 掛牌 306,672；chat 端 2026-10-06 讀取）；下限 220,000 未讀 [Assumed]",
  "SRC_HW_005": " ｜G1 規則：(i) wing.vc 讀到 132–140 kW（二手已讀）；(ii) 基準 E9 136（中點，Derived）落在 132–140；上緣 142 未讀，v5.18 改為 140（步驟 G3）",
  "SRC_HW_006": " ｜G1 規則：(i) wccftech 讀到 3.1 M（引自 X 貼文 @firstadopter，非 Morgan Stanley；出處更正）；(ii) 基準 D12＝3.1 與其相同；2.8、3.4 端未讀 [Assumed]（3.4 的搜尋摘要實指「72 GPU 模組合計」，口徑不同）",
  "SRC_HW_010": " ｜G1 規則：(i) wing.vc 讀到採購單「just under $5.0M」（不含機架內 CDU；原文 datagravity.dev 被出口政策擋）；(ii) 基準 E12＝5.0 與其相符（值非逐字相同）",
@@ -292,19 +298,70 @@ E_IX = ev_row("OpenAI 單位 token 需求、harness 殘差倍數、Alloc 家族�
               "—", "區間依據＝Gov_Map 理由欄（Claude 提議，Andy 2026-10-03 確認）；無外部來源", "完成檢查 6.2 逐列列出三項；無外部來源者列為『已搜尋：（無）／候選：（無）／區間依據：Andy 確認』，三項不齊處在報告標出", effect="—", grade="—", stance="—")
 
 # ----- W2 殘餘 3 格的候選證據（不寫入等級；S1 (a) 候選，交 chat 端審查；狀態＝待判定）
-E_C022 = ev_row("SRC_HW_022 候選升級：GB200（Blackwell）NVFP4 dense 10 PF/GPU（NVIDIA Blackwell Ultra 技術部落格規格表）", "https://developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-the-ai-factory-era/", "一手（已讀原文）",
-                "Spec_Rack D23、D24", "10 PF/GPU（3 級）", "10 PF（dense）", "候選（未寫入等級）", "讀取者：CC（1b，2026-10-05）｜“NVFP4 dense | sparse performance … 10 | 20 PetaFLOPS 15 | 20 PetaFLOPS”（左欄 Blackwell＝10、右欄 Blackwell Ultra＝15）；值相同、已讀原文，符合 S1 (a)，但不在工作單 1 級清單；寫入後 W2 −1（GM106）",
-                status="待判定", sid="SRC_HW_022", grade="1（建議）", stance="利害關係方")
-E_C027 = ev_row("SRC_HW_027 候選升級：Rubin NVFP4 推論 50 PF/GPU（NVIDIA Rubin 平台技術部落格 Table 2；DGX VR 頁 3,600÷72＝50）", "https://developer.nvidia.com/blog/inside-the-nvidia-rubin-platform-six-new-chips-one-ai-supercomputer/；https://www.nvidia.com/en-us/data-center/dgx-vera-rubin-nvl72/", "一手（已讀原文）",
-                "Spec_Rack F24", "50 PF/GPU（3 級）", "50 PF（註腳 Transformer Engine compute；DGX VR 頁註 Sparse specification）", "候選（未寫入等級）", "讀取者：CC（1b、1c，2026-10-05）｜口徑與 SRC 的『含自適應壓縮』一致；值相同、已讀原文，符合 S1 (a)，但不在工作單 1 級清單；寫入後 W2 −1（GM108）",
-                status="待判定", sid="SRC_HW_027", grade="1（建議）", stance="利害關係方")
-E_C053 = ev_row("SRC_HW_053 候選升級：HGX H100 8 GPU 板（DGX H100/H200 使用手冊）", "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html", "一手（已讀原文）",
-                "Spec_Rack C28（Hopper Scale-up 域 GPU 數）", "8（3 級）", "8 x NVIDIA H100 GPUs；4 x 4th generation NVLinks 900 GB/s GPU-to-GPU", "候選（未寫入等級）", "讀取者：CC（2026-10-05，WebFetch）｜“8 x NVIDIA H100 GPUs that provide 640 GB total GPU memory”；“4 x 4th generation NVLinks that provide 900 GB/s GPU-to-GPU bandwidth”（兩句分列，頁面未以單句寫『8 GPU 同一 NVLink 域』，域大小由 NVSwitch 拓撲推得 [Derived]）；寫入後 W2 −1（GM125）",
-                status="待判定", sid="SRC_HW_053", grade="1（建議，Derived 一環）", stance="利害關係方")
+E_C022 = ev_row("SRC_HW_022 升 1 級：GB200（Blackwell）NVFP4 dense 10 PF/GPU（NVIDIA Blackwell Ultra 技術部落格規格表）", "https://developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-the-ai-factory-era/", "一手（已讀原文）",
+                "Spec_Rack D23、D24", "10 PF/GPU（3 級）", "10 PF（dense）", "採納（S1 (a)；chat 端已查證）", "讀取者：CC（1b，2026-10-05）｜“NVFP4 dense | sparse performance … 10 | 20 PetaFLOPS 15 | 20 PetaFLOPS”（左欄 Blackwell＝10、右欄 Blackwell Ultra＝15）；值相同、已讀原文，符合 S1 (a)，但不在工作單 1 級清單；W2 −1（GM106）；chat 端已查證（PR #19 審查）",
+                status="已處理", sid="SRC_HW_022", grade="1", stance="利害關係方")
+E_C027 = ev_row("SRC_HW_027 升 1 級：Rubin NVFP4 推論 50 PF/GPU（NVIDIA Rubin 平台技術部落格 Table 2；DGX VR 頁 3,600÷72＝50）", "https://developer.nvidia.com/blog/inside-the-nvidia-rubin-platform-six-new-chips-one-ai-supercomputer/；https://www.nvidia.com/en-us/data-center/dgx-vera-rubin-nvl72/", "一手（已讀原文）",
+                "Spec_Rack F24", "50 PF/GPU（3 級）", "50 PF（註腳 Transformer Engine compute；DGX VR 頁註 Sparse specification）", "採納（S1 (a)；chat 端已查證）", "讀取者：CC（1b、1c，2026-10-05）｜口徑與 SRC 的『含自適應壓縮』一致；值相同、已讀原文，符合 S1 (a)，但不在工作單 1 級清單；W2 −1（GM108）；chat 端已查證（PR #19 審查）",
+                status="已處理", sid="SRC_HW_027", grade="1", stance="利害關係方")
+E_C053 = ev_row("SRC_HW_053 升 1 級：HGX H100 8 GPU 板（DGX H100/H200 使用手冊）", "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html", "一手（已讀原文）",
+                "Spec_Rack C28（Hopper Scale-up 域 GPU 數）", "8（3 級）", "8 x NVIDIA H100 GPUs；4 x 4th generation NVLinks 900 GB/s GPU-to-GPU", "採納（S1 (a)；chat 端已查證）", "讀取者：CC（2026-10-05，WebFetch）｜“8 x NVIDIA H100 GPUs that provide 640 GB total GPU memory”；“4 x 4th generation NVLinks that provide 900 GB/s GPU-to-GPU bandwidth”（兩句分列，頁面未以單句寫『8 GPU 同一 NVLink 域』，域大小由 NVSwitch 拓撲推得 [Derived]）；W2 −1（GM125）；NVLink 域＝8 由拓撲推得（Derived 一步）；chat 端已查證（PR #19 審查）",
+                status="已處理", sid="SRC_HW_053", grade="1", stance="利害關係方")
 
+for _sid, _e, _x in (("SRC_HW_022", E_C022, " ｜NVIDIA Blackwell Ultra 技術部落格寫明基本架構 NVFP4 dense 10 PF（chat 端已查證）"),
+                     ("SRC_HW_027", E_C027, " ｜NVIDIA 寫明 Rubin NVFP4 推論 50 PF，Transformer Engine 口徑（含自適應壓縮），對應 Spec_Rack F24 高情境（chat 端已查證）"),
+                     ("SRC_HW_053", E_C053, " ｜DGX H100 使用手冊列出 8 GPU 與 4 NVSwitch；NVLink 域＝8 由拓撲推得，Derived 一步（chat 端已查證）")):
+    add_upd(_sid, grade_fields(_sid, 1, _e, hand_new="一手（已讀）", extra=_x))
+# SRC_HW_011：Schneider MaxQ 188（CC 於 1d 已讀，值相同）→ 1 級；SRC_HW_012（230）不動
+E_C011 = ev_row("SRC_HW_011 升 1 級：VR NVL72 參考設計 MaxQ 188 kW/rack（Schneider Electric 部落格，2026-05-08）", "https://blog.se.com/datacenter/2026/05/08/nvidia-and-schneider-electric-get-in-sync-at-nvidia-gtc-2026-to-deliver-vera-rubin-ai-factories/", "一手（已讀原文）",
+                "Spec_Rack F8（VR200 機架功率低）", "190 kW（二手）", "188 kW（MaxQ）", "採納（S1 (a)；值相同；chat 端審查 PR #19）", "讀取者：CC（1d，curl HTTP 200 自讀）｜逐字：“supports operation at MaxQ 188 kw/rack and MaxP 227 kw/rack”｜SRC_HW_011 值由 190 改為 188（F1）後與原文相同；SRC_HW_012（230，MaxP）不動，與 Schneider MaxP 227 差 +1.3%｜立場：Interested-party（供電與冷卻設備商）",
+                sid="SRC_HW_011", effect="—（等級；數值見 F1）", grade="1", stance="利害關係方")
+add_upd("SRC_HW_011", grade_fields("SRC_HW_011", 1, E_C011, hand_new="一手（已讀）", extra=" ｜v5.18 F1：190→188（MaxQ）；Schneider MaxQ 188 CC 於 1d 已讀，值相同（PR #19 審查：升 1 級）；SRC_HW_012（230）不動"))
 E_RUP = ev_row("Rubin Ultra 單架價格：以查詢詞搜尋，無一手報價", "搜尋引擎（無頁面可指定）", "找不到原始出處（R6）", "Spec_Rack G11:G13（Rubin Ultra 機架價格）", "23.4／31.2／39（144 封裝）",
                "11.7／15.6／19.5（72 封裝；Assumed）", "已搜尋，無候選（以 VR 每 GPU 價外推）", "查詢詞：「Rubin Ultra rack price」「Rubin Ultra price per GPU」；結果：僅見推估，無公開報價，未入帳｜價格＝VR 每 GPU 價（SRC_HW_015 BOM 7.8÷72＝0.108 M）× 1.5／2.0／2.5 × 72，倍數本身為 Assumed；"
                "與封裝數線性，單架改定義不新增資訊｜讀取者：CC（1c，2026-10-05）", effect="IF_*（Rubin Ultra 欄）", grade="Assumed", stance="—")
+
+# ----- 6.2 補搜（唯讀；不改任何數值）：查詢詞、候選、判定、理由（J1：已搜尋＋判定無可比對象＋理由 視為齊備）
+D6 = "2026-10-06"
+def ev6(claim, source, hand, loc, cur, new, verdict, note, effect="—", grade="Analogy", stance="—"):
+    e = eid()
+    evid.append([e, D6, short(claim, 200), short(source, 250), hand, short(loc, 120), short(cur, 60), short(new, 160), verdict, "v5.18", short(note, 900), "已處理", "—", "—", effect, grade, stance])
+    return e
+E6 = {}
+E6["E7"] = ev6("Arch E7 Astra 啟用參數（現 180B；區間 60–250B）：封閉前沿模型的啟用參數量", "搜尋引擎（towardsdatascience、digitalapplied、mindstudio 等；mindstudio 被出口政策擋，未讀）", "找不到原始出處（R6）",
+               "Arch E7", "180 B（區間 60–250 B）", "無封閉模型揭露值；開權重對照：GLM-5.2 744 B 總／約 40 B 啟用（搜尋摘要，未讀）", "已搜尋，判定無可比對象（封閉模型未揭露）；開權重對照列出、不改",
+               "查詢詞：「frontier language model active parameters estimate mixture of experts closed models GPT-5 Claude estimated active parameters」｜結果：GPT-5、Claude 等封閉模型未揭露總參數與啟用參數，搜尋結果只給『數百 B 至逾 1 T』的泛稱；Claude 系列被稱為非 MoE｜"
+               "開權重對照：DeepSeek V4-Pro 49 B 啟用（SRC_MOD_002，已為 Sol 代表）、GLM-5.2 約 40 B 啟用（僅搜尋摘要）——皆低於區間下限 60 B，但屬開權重而非 Astra 封閉前沿代理，只列出、不改（待 Project 判斷）｜判定：無可比對象，區間依據＝Gov_Map『60–250B（原註）』",
+               effect="—", grade="Assumed", stance="—")
+E6["C28"] = ev6("Cap_In C28 對外服務占機隊（現 0.41；區間 30–60%）：OpenAI 算力在研發與推論間的分配", "https://epoch.ai/data-insights/openai-compute-spend（2025-10-10）", "一手（已讀原文）",
+               "Cap_In C28、D28:E28（K7）", "0.41（30–60%）", "2024：R&D $5B／推論 $1.8B（推論占約 26%）；2025：約各半（搜尋摘要，未讀）", "採用為可比對象（Analogy；支出比代 GW 比為 Derived）；區間不改",
+               "查詢詞：「OpenAI compute split inference vs research training share of compute 2025 Epoch AI」｜讀取者：CC（WebFetch，2026-10-06）｜逐字：“around $5 billion in research and development compute … around $2 billion in inference compute”；R&D 中最終訓練僅 $480M｜"
+               "2024 推論占比約 26% 低於區間下限 30%，2025 約 50% 在區間內；只列出、不改（Gov_Map 已註『支出比代 GW 比為 Derived』）｜立場：Epoch AI（中立；由報導與推估）",
+               effect="—", grade="Analogy", stance="中立")
+E6["C29"] = ev6("Cap_In C29 其中免費服務占服務（現 0.46；區間 35–60%）：ChatGPT 免費用戶占比", "搜尋引擎（wisernotify、gradually.ai、sqmagazine 等彙整頁；未讀）", "找不到原始出處（R6）",
+               "Cap_In C29、D29:E29（K7）", "0.46（35–60%）", "免費用戶約占週活躍用戶 95%（5.6% 付費轉換；用戶數口徑，聚合部落格摘要）", "已搜尋，判定無可比對象（口徑不同：用戶數占比不是服務算力或 token 占比）",
+               "查詢詞：「ChatGPT free users share of weekly active users paying subscribers percent 2026」｜結果：約 5 千萬付費訂閱對 9 億週活躍（Q1 2026）＝付費約 5.6%、免費約 95%，皆為聚合部落格轉述，未讀 OpenAI 原文｜"
+               "模型欄位是『免費服務占服務（算力／token）』，免費用戶多為輕度使用且上限較低，用戶占比不能直接當 token 占比；因此不作可比對象，也不改區間｜區間依據＝Gov_Map『K7：免費占服務 35–60%』",
+               effect="—", grade="Assumed", stance="利害關係方（彙整頁有廣告與聯盟行銷誘因）")
+E6["E25"] = ev6("Train_In E25 Astra 預訓練 token（現 60T；區間 30–100T）：已揭露的最大預訓練 token 數", "https://epoch.ai/data/frontier_ai_models.csv", "一手（已讀原文）",
+               "Train_In E25", "60 T（30–100 T）", "已揭露最大：Llama 4 Behemoth 30 T tokens（2025-04）；GPT-6 Astra、Grok 4 等未揭露", "採用為可比對象（Analogy）；區間不改",
+               "查詢詞：「Epoch AI largest frontier pretraining run tokens trillion tokens 2026 dataset size」｜讀取者：CC（WebFetch，2026-10-06；Epoch 前沿模型資料表）｜Llama 4 Behemoth 30 T tokens（“more than double the Llama 3 pre-training mixture”）、Llama 3.1 約 15 T；GPT-6 Astra 資料集大小未揭露（約 1e27 FLOP）｜"
+               "已揭露最大值 30 T 恰在區間下限；Astra 為閉源前沿代理，60 T 為 Assumed；只列出、不改｜立場：Epoch AI（中立）",
+               effect="—", grade="Analogy", stance="中立")
+E6["C6"] = ev6("Alloc_In C6 家族計畫數 N_major（現 1；區間 1–2 個／年）：前沿實驗室每年旗艦家族數", "搜尋摘要（theregister.com、scriptbyai.com 時間線；scriptbyai 被出口政策擋，未讀）", "二手（只見摘錄）",
+               "Alloc_In C6", "1（1–2）", "OpenAI：GPT-5（2025-08）、GPT-5.5（2026-04-23）、GPT-5.6（2026-07-09）、GPT-6 Astra（2026-09-03）", "採用為可比對象（Analogy）；區間不改",
+               "查詢詞：「OpenAI frontier model release cadence number of flagship models per year GPT-5 GPT-5.5 GPT-6 timeline」｜結果：2025-08 至 2026-09 間旗艦家族約 2 個（GPT-5、GPT-6），其間 5.1–5.6 為點版本（屬改版計畫 N_refresh）｜每年約 1–2 個旗艦家族，落在區間內｜讀取者：CC（搜尋摘要；頁面未讀）",
+               effect="—", grade="Analogy", stance="利害關係方（產業時間線彙整）")
+E6["C8"] = ev6("Alloc_In C8 計畫規模倍數 k（現 1；區間 0.5–7）：計畫規模相對 Block 3 的倍數", "https://epoch.ai/gradient-updates/r-and-d-vs-training-compute（已讀，見 E219）", "找不到原始出處（R6）",
+               "Alloc_In C8", "1（0.5–7）", "無直接對應量；Epoch：最終訓練占 R&D 算力 9.6%／22.6%／12.3%（倍數 10.4／4.4／8.1）為另一個量", "已搜尋，判定無可比對象（k 為模型內部規模倍數，外部無對應揭露）",
+               "查詢詞：「frontier lab compute for experiments and failed runs versus final training run ratio total R&D compute multiple of final run」｜結果：Epoch 的 R&D÷最終訓練倍數（SRC_DEM_001–003，Train_In 13）是『研發算力÷最終訓練算力』，而 k 是『單一計畫規模÷Block 3 基準計畫』，定義不同；"
+               "搜尋另見『總算力約為最終訓練的 1.2–4 倍、中位 2.2 倍』（摘要，出處未讀、口徑為歷史模型）｜判定：無可比對象｜理由：k 的區間 0.5–7 取自 A3（不以 59% 校準 k，校準值只反推隱含 N×k），無外部對應量｜區間依據＝Gov_Map A3",
+               effect="—", grade="Assumed", stance="—")
+E6["T"] = ev6("Workload C5／D5 輪數 T（現 1／1；區間 max(1,×0.5)–×2＝1–2）：對話資料集的每段對話平均輪數", "https://arxiv.org/html/2309.11998v4（LMSYS-Chat-1M Table 1）；https://arxiv.org/pdf/2405.01470（WildChat；PDF 超過讀取上限，未讀）", "一手（已讀原文：LMSYS）；WildChat 只見摘要",
+              "Workload C5（一般聊天）、D5（推理聊天）", "1／1（1–2）", "LMSYS-Chat-1M 2.0 輪／段；WildChat 2.52 輪／段（搜尋摘要；41% 為多輪）；Chatbot Arena 1.2；Anthropic HH 2.3", "採用為可比對象（Analogy）；LMSYS 2.0 在區間上緣內，WildChat 2.52 超出區間上緣——只列出、不改，待 Project 判斷",
+              "查詢詞：「LMSYS-Chat-1M average number of turns per conversation 2.0」「WildChat dataset average number of turns per conversation」｜讀取者：CC（LMSYS 以 WebFetch 讀 Table 1，2026-10-06；WildChat 的 arXiv PDF 因超過 10 MB 讀取上限而未讀，2.52 為搜尋摘要，另見 ICLR 2024 版）｜"
+              "單位對應：Workload T 以『每次新輸入計一輪』，對話資料集的『turn』為使用者輪，兩者可比（一般聊天）；推理聊天（D5）無專屬資料集，沿用同一組（可比度較低）｜C5、D5 現值 1 低於兩資料集的平均（2.0、2.52）；區間 1–2 涵蓋 LMSYS，未涵蓋 WildChat｜待 Project 判斷：是否把 C5／D5 區間高端擴至 ≥2.52（或基準改為 2）",
+              effect="—（只列出；若改區間／基準，影響 L1_Ans8／9）", grade="Analogy", stance="中立（學術資料集）")
 
 # ----- Decisions（Excel 擁有；只在 ID 不存在時附加）
 DEC = [
@@ -318,6 +375,10 @@ DEC = [
  ["G15", "Stage 2", "區間型紀錄的等級（工作單 v5.18 稱『G1 規則』）",
   "區間型紀錄（分析師或經銷商估計）同時符合 (i) 至少一個值讀到原文、(ii) 基準落在已讀證據範圍內，即不為 3 級；未讀端點在備註標 Assumed；等級依讀到的最好來源記 1 或 2。編號 G15：Decisions 既有 G1 為另一條規則（原始數據須連結 SRC）",
   TODAY, "「G1–G4: all ok」", "生效（v5.18）", "SRC_HW_003、005、006、010、015", "工作單 v5.18 第 1 節", "否"],
+ ["C2", "Stage 2", "完成檢查 6.2 第 (b) 項的定義（工作單稱 J1）", "6.2 的『候選來源或可比對象』一項：已搜尋（查詢詞列明）＋判定無可比對象＋理由，視為齊備。適用：Calib C68:G68（GM346–350）、GM094（Rubin Ultra 尚未定價，外部報價不存在），以及補搜後仍無候選的列。編號 C2：Decisions 既有 J1 為另一條決策",
+  "2026-10-06", "Andy 2026-10-06 決定（J1；經 chat 端於 PR #19 審查回覆轉達）", "生效（v5.18）", "Checks／報告第 6.2 節；docs/stage2_source_check_rules.md", "工作單 v5.18 PR #19 審查回覆 4", "是"],
+ ["C3", "Stage 2", "Rubin Ultra 機架價格公式（工作單稱 J2）", "Spec_Rack G11／G12／G13 改為公式 =F12*1.5、=F12*2、=F12*2.5（VR200 機架價格〔售價口徑，I2〕× 1.5／2.0／2.5＝12.6／16.8／21.0）；倍數為 Assumed、價格為 Derived。取代 v5.18 初版的『VR 每 GPU 價 × 倍數 × 72』常數 11.7／15.6／19.5。編號 C3：Decisions 既有 J2 為另一條決策",
+  "2026-10-06", "Andy 2026-10-06 決定（J2；經 chat 端於 PR #19 審查回覆轉達）", "生效（v5.18）", "Spec_Rack G11:G13；Gov_Map GM089、GM094、GM099", "工作單 v5.18 PR #19 審查回覆 5", "是"],
  ["C1", "Stage 2", "Tokenomics 完成條件（讀法 A）", "完成＝工作單 v5.18 第 6 節三項檢查全數通過：W2（P＝高且所連 SRC 為 3 級）＝0；高段 Assumed 參數逐列三項齊備；H1 規則記 2 級者三點齊備",
   TODAY, "「同意把「完成」定為讀法 A。」；「同意」（Assumed 參數完成標準）", "生效（v5.18）", "Checks G 節 W2；報告第 6 節", "工作單 v5.18 第 0、6 節", "否"],
 ]
@@ -346,7 +407,7 @@ for r in rv["P欄候選（B法）"].iter_rows(min_row=2, values_only=True):
 out = {
     "EVID_MIG4": evid, "SRC_UPD": src_upd, "NEWREC": NEWREC, "DEC": DEC, "P_UPD": p_upd, "IF_FLAG": flag,
     "EV": dict(T=E_T, CHI=E_CHI, CHI2=E_CHI2, ISL=E_ISL, OSL=E_OSL, MFU=E_MFU, EDP=E_EDP, SMC=E_SMC, FLEET=E_FLEET, IX21=E_192, KV=E_KV, BOM=E_BOM,
-               EPOCH=E_EPOCH, LAT=E_SEARCH_LAT, J=E_J, ASSUMED=E_IX, RUP=E_RUP, C022=E_C022, C027=E_C027, C053=E_C053, H1=e_h1, RU=e_ru, DGX=e_dgx, SCHNEIDER=e1, SUPERMICRO=e2),
+               EPOCH=E_EPOCH, LAT=E_SEARCH_LAT, J=E_J, ASSUMED=E_IX, S6=E6, C011=E_C011, GPH=e_gph, RUP=E_RUP, C022=E_C022, C027=E_C027, C053=E_C053, H1=e_h1, RU=e_ru, DGX=e_dgx, SCHNEIDER=e1, SUPERMICRO=e2),
 }
 hdr = ('# v5.18 種子資料（工作單 docs/workorders/20261005_v5.18.md）：由 tools/gen_seed_v518.py 自審查用 Excel（docs/reports/20261005_stage2-1_查核.xlsx）與 v5.17 舊值產生；\n'
        '# 全部寫入皆 Excel 擁有、只在格仍為舊值時才寫（見 builder/v518.py）。手動修改請改產生器後重跑。\n')

@@ -59,7 +59,7 @@ def spec_rack(wb):
       ("tfp8", "FP8 dense PF/GPU（訓練基準，J7）", [1.979, 5, 5, 17.5, 34.7],
        "Interested-party（NVIDIA）：H100 1,979 TF；GB200／GB300 FP8 5 PF（B300 未提升 FP8）；VR NVL72 1,260 PF ÷ 72＝17.5（S36）；RU＝2×VR 17.5（1,260 PF÷72，Dense）＝35.0 [Derived；v5.18，舊 5 EF÷144＝34.7]"),
       ("tfp4", "NVFP4 訓練 dense PF/GPU（Tech_Registry 情境）", [1.979, 10, 15, 35, 73],
-       "Hopper 無 FP4，取 FP8；GB200 10（NVIDIA：Rubin 為 Blackwell 3.5 倍）；GB300 15 [Assumed，區間 10–15]；VR 2,520 PF ÷ 72＝35（S36）；RU＝VR × 104/50 [Derived]"),
+       "Hopper 無 FP4，取 FP8；GB200 10（NVIDIA：Rubin 為 Blackwell 3.5 倍）；GB300 15 [Assumed，區間 10–15]；VR 2,520 PF ÷ 72＝35（S36）；RU＝2×VR 35＝70 [Derived；v5.18，舊 VR×104/50＝73]"),
     ]
     for key, lab, vals, note in trows:
         put(ws, f"A{r}", lab)

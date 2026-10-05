@@ -12,7 +12,7 @@ from openpyxl.styles import PatternFill
 from common import put, F_IN, F_CALC, F_NOTE, L
 import gov_seed4 as S4
 
-ALL_STEPS = ["C44", "C69", "D1", "D3E4", "D4", "E1", "E3", "F1", "G2", "G3", "G4", "RU", "D5"]
+ALL_STEPS = ["C44", "C69", "D1", "D3E4", "D4", "E1", "E3", "F1", "G2", "G3", "G4", "RU", "J2", "D5"]
 
 def step_on(step):
     v = os.environ.get("V518_STEPS")
@@ -43,6 +43,9 @@ INPUT_UPD = [
     ("RU", "Spec_Rack", "G8", 550, 300), ("RU", "Spec_Rack", "G9", "=SRC_HW_013", 340), ("RU", "Spec_Rack", "G10", 650, 454),
     ("RU", "Spec_Rack", "G11", 23.4, 11.7), ("RU", "Spec_Rack", "G12", 31.2, 15.6), ("RU", "Spec_Rack", "G13", 39, 19.5),
     ("RU", "Spec_Rack", "G23", 73, 70), ("RU", "Spec_Rack", "G24", 104, 100), ("RU", "Spec_Rack", "G40", 34.7, 35.0),
+    ("RU", "Spec_Rack", "G41", 73, 70),                                    # PR #19 審查 3：與 G23 同步（同為 Rubin Ultra NVFP4 訓練 dense）
+    # J2（Andy 2026-10-06）：Rubin Ultra 機架價格＝VR200 機架價格（F12，售價口徑 I2）× 1.5／2.0／2.5（倍數 Assumed、價格 Derived）
+    ("J2", "Spec_Rack", "G11", 11.7, "=F12*1.5"), ("J2", "Spec_Rack", "G12", 15.6, "=F12*2"), ("J2", "Spec_Rack", "G13", 19.5, "=F12*2.5"),
 ]
 # Labels and notes on the Block 1 part of Spec_Rack (Excel-owned rows 1–19): (cell, old, new), always on
 TEXT_UPD = [
@@ -54,7 +57,7 @@ TEXT_UPD = [
      "Max-Q 188、Max-P 227 kW（Schneider Electric 的 NVIDIA VR NVL72 參考設計 MaxQ 188／MaxP 227，2026-05-08；S7）；Supermicro 產品頁 DLC-2 冷卻 sized for 227 kW per rack（SRC_HW_064，口徑不同）"),
     ("F16", "MS $7.8M（自購記憶體 $6.7M）；Bernstein $9.09M；報價 $5–7M（S9）",
      "MS 物料成本 BOM $7.8M（自購記憶體 $6.7M）；Bernstein $9.09M；報價 $5–7M（S9）；v5.18：基準 8.4＝MS BOM 7.8 ×（1＋代工毛利約 7.5%，區間 5–10%，Assumed）；低 7.8（零毛利 BOM 下限）、高 9.1（不變，Bernstein）"),
-    ("G14", "144 封裝；價格＝VR 每 GPU 價 × 1.5／2.0／2.5（推估）", "72 封裝（單架）；價格＝VR 每 GPU 價 × 1.5／2.0／2.5 × 72（Assumed）"),
+    ("G14", "144 封裝；價格＝VR 每 GPU 價 × 1.5／2.0／2.5（推估）", "72 封裝（單架）；價格＝VR200 機架價格（F12，售價口徑）× 1.5／2.0／2.5（公式；倍數 Assumed；J2）"),
     ("G15", "約 600 kW（S7）",
      "單架 300／340／454 kW（Derived：低＝舊路線圖 600 kW 依封裝數等比；基準＝72×3.6 kW＋VR 機架非 GPU 功率 61–97 kW 取 340；高＝VR 整架／GPU 功率比值等比；NVIDIA 未公布單架 kW）"),
     ("G17", "Assumed", "Derived／Assumed"),
@@ -67,6 +70,8 @@ def _set_input(ws, cell, val):
     c.value = val
     if isinstance(val, (int, float)):
         c.font = copy(F_IN); c.fill = PatternFill(fill_type=None)
+    elif isinstance(val, str) and val.startswith("="):
+        c.font = copy(F_CALC); c.fill = PatternFill(fill_type=None)
 
 def inputs_update(wb):
     """Called after restore() and before gov_all(): numeric inputs (Excel-owned) and Spec_Rack text, each only while at its v5.17 value."""
@@ -125,9 +130,12 @@ GOV_UPD = [
        N=("連結 SRC（G1）", "v5.18 RU：基準 340＝72×3.6 kW ＋ (227 − 72×1.8–2.3 kW)＝320–357 取 340 [Derived]；SRC_HW_013（單架 600 kW）已 Superseded"),
        O=("—", "原始數據→Derived（v5.18 RU）")),
     _G("Spec_Rack", "G10", F=("Assumed", "Derived"), N=("Rubin Ultra 為推估欄（D2），不進基準比較；600 kW ± 50", "v5.18 RU：454＝259 kW（72×3.6）× VR 整架／GPU 功率比值 227/(72×1.8)＝1.75 [Derived／Analogy]")),
-    _G("Spec_Rack", "G11", N=("Rubin Ultra 為推估欄（D2），不進基準比較；VR 每 GPU 價 × 1.5", "v5.18 RU：單架 72 封裝；VR 每 GPU 價 × 1.5 × 72＝11.7（Assumed）")),
-    _G("Spec_Rack", "G12", N=("Rubin Ultra 為推估欄（D2），不進基準比較；VR 每 GPU 價 × 2.0", "v5.18 RU：單架 72 封裝；VR 每 GPU 價 × 2.0 × 72＝15.6（Assumed）")),
-    _G("Spec_Rack", "G13", N=("Rubin Ultra 為推估欄（D2），不進基準比較；VR 每 GPU 價 × 2.5", "v5.18 RU：單架 72 封裝；VR 每 GPU 價 × 2.5 × 72＝19.5（Assumed）")),
+    _G("Spec_Rack", "G11", N=("Rubin Ultra 為推估欄（D2），不進基準比較；VR 每 GPU 價 × 1.5", "v5.18 J2：VR200 機架價格（售價口徑，I2）× 1.5；公式 =F12*1.5＝12.6（倍數 Assumed、價格 Derived）"),
+       O=("—", "Assumed（倍數）＋Derived（以 F12 為底；v5.18 J2）")),
+    _G("Spec_Rack", "G12", N=("Rubin Ultra 為推估欄（D2），不進基準比較；VR 每 GPU 價 × 2.0", "v5.18 J2：VR200 機架價格（售價口徑，I2）× 1.5／2.0／2.5；G12 公式 =F12*2＝16.8（倍數 Assumed、價格 Derived）；Rubin Ultra 尚未定價，無外部報價（DB_Evidence 已記查詢詞）"),
+       O=("—", "Assumed（倍數）＋Derived（以 F12 為底；v5.18 J2）")),
+    _G("Spec_Rack", "G13", N=("Rubin Ultra 為推估欄（D2），不進基準比較；VR 每 GPU 價 × 2.5", "v5.18 J2：VR200 機架價格（售價口徑，I2）× 2.5；公式 =F12*2.5＝21.0（倍數 Assumed、價格 Derived）"),
+       O=("—", "Assumed（倍數）＋Derived（以 F12 為底；v5.18 J2）")),
     _G("Spec_Rack", "G23", F=("Assumed", "Derived"), H=("—", "SRC_HW_063"), I=("—", "Derived：2 × VR NVFP4 訓練 dense 35（2,520 PF ÷ 72，註 Dense）＝70；Rubin Ultra 4 die 對 Rubin 2 die"),
        N=("Rubin Ultra 為推估欄（D2），不進基準比較", "v5.18 RU：70＝2 × 35 [Derived]；NVIDIA 未直接公布 Rubin Ultra 每封裝 NVFP4 dense"), O=("—", "Assumed→Derived（v5.18 RU）")),
     _G("Spec_Rack", "G24", F=("原始數據（G0-2 保留）", "Derived"), H=("SRC_HW_031", "SRC_HW_063"), I=("取整（15,000 ÷ 144＝104.2 → 104）", "Derived：2 × VR NVFP4 推論 50（Sparse；3,600 PF ÷ 72）＝100"),

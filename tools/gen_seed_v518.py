@@ -329,9 +329,9 @@ def ev6(claim, source, hand, loc, cur, new, verdict, note, effect="—", grade="
     return e
 E6 = {}
 E6["E7"] = ev6("Arch E7 Astra 啟用參數（現 180B；區間 60–250B）：封閉前沿模型的啟用參數量", "搜尋引擎（towardsdatascience、digitalapplied、mindstudio 等；mindstudio 被出口政策擋，未讀）", "找不到原始出處（R6）",
-               "Arch E7", "180 B（區間 60–250 B）", "無封閉模型揭露值；開權重對照：GLM-5.2 744 B 總／約 40 B 啟用（搜尋摘要，未讀）", "已搜尋，判定無可比對象（封閉模型未揭露）；開權重對照列出、不改",
+               "Arch E7", "180 B（區間 60–250 B）", "無封閉模型揭露值；開權重對照：GLM-5.2 744 B 總／約 40 B 啟用（搜尋摘要，未讀）", "已讀，未採用：GLM-5.2 約 40B、DeepSeek V4-Pro 49B 屬 Sol 層級（Arch D7＝49），與 Astra 層級不同",
                "查詢詞：「frontier language model active parameters estimate mixture of experts closed models GPT-5 Claude estimated active parameters」｜結果：GPT-5、Claude 等封閉模型未揭露總參數與啟用參數，搜尋結果只給『數百 B 至逾 1 T』的泛稱；Claude 系列被稱為非 MoE｜"
-               "開權重對照：DeepSeek V4-Pro 49 B 啟用（SRC_MOD_002，已為 Sol 代表）、GLM-5.2 約 40 B 啟用（僅搜尋摘要）——皆低於區間下限 60 B，但屬開權重而非 Astra 封閉前沿代理，只列出、不改（待 Project 判斷）｜判定：無可比對象，區間依據＝Gov_Map『60–250B（原註）』",
+               "開權重對照：DeepSeek V4-Pro 49 B 啟用（SRC_MOD_002，已為 Sol 代表）、GLM-5.2 約 40 B 啟用（僅搜尋摘要）——屬開權重、Sol 層級（Arch D7＝49 即 V4-Pro），與 Astra 層級（封閉前沿代理）不同，已讀未採用｜此列依 6.2 原定義即為齊備（候選＝本列 E229），不適用 J1｜區間依據＝Gov_Map『60–250B（原註）』",
                effect="—", grade="Assumed", stance="—")
 E6["C28"] = ev6("Cap_In C28 對外服務占機隊（現 0.41；區間 30–60%）：OpenAI 算力在研發與推論間的分配", "https://epoch.ai/data-insights/openai-compute-spend（2025-10-10）", "一手（已讀原文）",
                "Cap_In C28、D28:E28（K7）", "0.41（30–60%）", "2024：R&D $5B／推論 $1.8B（推論占約 26%）；2025：約各半（搜尋摘要，未讀）", "採用為可比對象（Analogy；支出比代 GW 比為 Derived）；區間不改",
@@ -341,7 +341,7 @@ E6["C28"] = ev6("Cap_In C28 對外服務占機隊（現 0.41；區間 30–60%�
 E6["C29"] = ev6("Cap_In C29 其中免費服務占服務（現 0.46；區間 35–60%）：ChatGPT 免費用戶占比", "搜尋引擎（wisernotify、gradually.ai、sqmagazine 等彙整頁；未讀）", "找不到原始出處（R6）",
                "Cap_In C29、D29:E29（K7）", "0.46（35–60%）", "免費用戶約占週活躍用戶 95%（5.6% 付費轉換；用戶數口徑，聚合部落格摘要）", "已搜尋，判定無可比對象（口徑不同：用戶數占比不是服務算力或 token 占比）",
                "查詢詞：「ChatGPT free users share of weekly active users paying subscribers percent 2026」｜結果：約 5 千萬付費訂閱對 9 億週活躍（Q1 2026）＝付費約 5.6%、免費約 95%，皆為聚合部落格轉述，未讀 OpenAI 原文｜"
-               "模型欄位是『免費服務占服務（算力／token）』，免費用戶多為輕度使用且上限較低，用戶占比不能直接當 token 占比；因此不作可比對象，也不改區間｜區間依據＝Gov_Map『K7：免費占服務 35–60%』",
+               "模型欄位是『免費服務占服務（算力／token）』，免費用戶多為輕度使用且上限較低，用戶占比不能直接當 token 占比；因此不作可比對象，也不改區間｜適用 J1／K1（Decisions C2；Andy 2026-10-06 追認）｜區間依據＝Gov_Map『K7：免費占服務 35–60%』",
                effect="—", grade="Assumed", stance="利害關係方（彙整頁有廣告與聯盟行銷誘因）")
 E6["E25"] = ev6("Train_In E25 Astra 預訓練 token（現 60T；區間 30–100T）：已揭露的最大預訓練 token 數", "https://epoch.ai/data/frontier_ai_models.csv", "一手（已讀原文）",
                "Train_In E25", "60 T（30–100 T）", "已揭露最大：Llama 4 Behemoth 30 T tokens（2025-04）；GPT-6 Astra、Grok 4 等未揭露", "採用為可比對象（Analogy）；區間不改",
@@ -355,13 +355,13 @@ E6["C6"] = ev6("Alloc_In C6 家族計畫數 N_major（現 1；區間 1–2 個�
 E6["C8"] = ev6("Alloc_In C8 計畫規模倍數 k（現 1；區間 0.5–7）：計畫規模相對 Block 3 的倍數", "https://epoch.ai/gradient-updates/r-and-d-vs-training-compute（已讀，見 E219）", "找不到原始出處（R6）",
                "Alloc_In C8", "1（0.5–7）", "無直接對應量；Epoch：最終訓練占 R&D 算力 9.6%／22.6%／12.3%（倍數 10.4／4.4／8.1）為另一個量", "已搜尋，判定無可比對象（k 為模型內部規模倍數，外部無對應揭露）",
                "查詢詞：「frontier lab compute for experiments and failed runs versus final training run ratio total R&D compute multiple of final run」｜結果：Epoch 的 R&D÷最終訓練倍數（SRC_DEM_001–003，Train_In 13）是『研發算力÷最終訓練算力』，而 k 是『單一計畫規模÷Block 3 基準計畫』，定義不同；"
-               "搜尋另見『總算力約為最終訓練的 1.2–4 倍、中位 2.2 倍』（摘要，出處未讀、口徑為歷史模型）｜判定：無可比對象｜理由：k 的區間 0.5–7 取自 A3（不以 59% 校準 k，校準值只反推隱含 N×k），無外部對應量｜區間依據＝Gov_Map A3",
+               "搜尋另見『總算力約為最終訓練的 1.2–4 倍、中位 2.2 倍』（摘要，出處未讀、口徑為歷史模型）｜判定：無可比對象｜理由：k 的區間 0.5–7 取自 A3（不以 59% 校準 k，校準值只反推隱含 N×k），無外部對應量｜適用 J1／K1（Decisions C2；Andy 2026-10-06 追認）｜區間依據＝Gov_Map A3",
                effect="—", grade="Assumed", stance="—")
 E6["T"] = ev6("Workload C5／D5 輪數 T（現 1／1；區間 max(1,×0.5)–×2＝1–2）：對話資料集的每段對話平均輪數", "https://arxiv.org/html/2309.11998v4（LMSYS-Chat-1M Table 1）；https://arxiv.org/pdf/2405.01470（WildChat；PDF 超過讀取上限，未讀）", "一手（已讀原文：LMSYS）；WildChat 只見摘要",
-              "Workload C5（一般聊天）、D5（推理聊天）", "1／1（1–2）", "LMSYS-Chat-1M 2.0 輪／段；WildChat 2.52 輪／段（搜尋摘要；41% 為多輪）；Chatbot Arena 1.2；Anthropic HH 2.3", "採用為可比對象（Analogy）；LMSYS 2.0 在區間上緣內，WildChat 2.52 超出區間上緣——只列出、不改，待 Project 判斷",
+              "Workload C5（一般聊天）、D5（推理聊天）", "1／1（1–2）", "LMSYS-Chat-1M 2.0 輪／段；WildChat 2.52 輪／段（搜尋摘要；41% 為多輪）；Chatbot Arena 1.2；Anthropic HH 2.3", "已讀，單位不同：資料集量的是整段對話的輪數；本模型的任務＝單次請求，前幾輪歷史已含在初始上下文 S（Workload 第 6 列）。",
               "查詢詞：「LMSYS-Chat-1M average number of turns per conversation 2.0」「WildChat dataset average number of turns per conversation」｜讀取者：CC（LMSYS 以 WebFetch 讀 Table 1，2026-10-06；WildChat 的 arXiv PDF 因超過 10 MB 讀取上限而未讀，2.52 為搜尋摘要，另見 ICLR 2024 版）｜"
-              "單位對應：Workload T 以『每次新輸入計一輪』，對話資料集的『turn』為使用者輪，兩者可比（一般聊天）；推理聊天（D5）無專屬資料集，沿用同一組（可比度較低）｜C5、D5 現值 1 低於兩資料集的平均（2.0、2.52）；區間 1–2 涵蓋 LMSYS，未涵蓋 WildChat｜待 Project 判斷：是否把 C5／D5 區間高端擴至 ≥2.52（或基準改為 2）",
-              effect="—（只列出；若改區間／基準，影響 L1_Ans8／9）", grade="Analogy", stance="中立（學術資料集）")
+              "單位：資料集的『turn』是整段對話的使用者輪數；本模型的任務＝單次請求（T＝每任務的輪數），前幾輪歷史已含在初始上下文 S（Workload 第 6 列）。整段對話的每任務指標約 ×2–2.5（LMSYS 2.0、WildChat 2.52），故不直接比對區間｜K2（Andy 2026-10-06，Decisions C4）：C5／D5 數值與區間都不動；推理聊天（D5）無專屬資料集，沿用同一組",
+              effect="—（數值與區間皆不動）", grade="Analogy", stance="中立（學術資料集）")
 
 # ----- Decisions（Excel 擁有；只在 ID 不存在時附加）
 DEC = [
@@ -375,10 +375,12 @@ DEC = [
  ["G15", "Stage 2", "區間型紀錄的等級（工作單 v5.18 稱『G1 規則』）",
   "區間型紀錄（分析師或經銷商估計）同時符合 (i) 至少一個值讀到原文、(ii) 基準落在已讀證據範圍內，即不為 3 級；未讀端點在備註標 Assumed；等級依讀到的最好來源記 1 或 2。編號 G15：Decisions 既有 G1 為另一條規則（原始數據須連結 SRC）",
   TODAY, "「G1–G4: all ok」", "生效（v5.18）", "SRC_HW_003、005、006、010、015", "工作單 v5.18 第 1 節", "否"],
- ["C2", "Stage 2", "完成檢查 6.2 第 (b) 項的定義（工作單稱 J1）", "6.2 的『候選來源或可比對象』一項：已搜尋（查詢詞列明）＋判定無可比對象＋理由，視為齊備。適用：Calib C68:G68（GM346–350）、GM094（Rubin Ultra 尚未定價，外部報價不存在），以及補搜後仍無候選的列。編號 C2：Decisions 既有 J1 為另一條決策",
-  "2026-10-06", "Andy 2026-10-06 決定（J1；經 chat 端於 PR #19 審查回覆轉達）", "生效（v5.18）", "Checks／報告第 6.2 節；docs/stage2_source_check_rules.md", "工作單 v5.18 PR #19 審查回覆 4", "是"],
+ ["C2", "Stage 2", "完成檢查 6.2 第 (b) 項的定義（工作單稱 J1；K1 追認）", "6.2 的『候選來源或可比對象』一項：已搜尋（查詢詞列明）＋判定無可比對象＋理由，視為齊備。適用範圍僅限下列列名：Calib C68:G68（GM346–350）、GM094（Andy 2026-10-06，J1）；GM456（Cap_In D29:E29）、GM580（Alloc_In C8）（Andy 2026-10-06 追認，K1）。不作概括適用；之後若有新的列要適用，須逐列列名並經 Andy 決定。編號 C2：Decisions 既有 J1 為另一條決策",
+  "2026-10-06", "Andy 2026-10-06 決定（J1）；Andy 2026-10-06 追認（K1）（皆經 chat 端於 PR #19 審查回覆轉達）", "生效（v5.18）", "Checks／報告第 6.2 節；docs/stage2_source_check_rules.md", "工作單 v5.18 PR #19 審查回覆 4；第二輪審查回覆 1（K1）", "是"],
  ["C3", "Stage 2", "Rubin Ultra 機架價格公式（工作單稱 J2）", "Spec_Rack G11／G12／G13 改為公式 =F12*1.5、=F12*2、=F12*2.5（VR200 機架價格〔售價口徑，I2〕× 1.5／2.0／2.5＝12.6／16.8／21.0）；倍數為 Assumed、價格為 Derived。取代 v5.18 初版的『VR 每 GPU 價 × 倍數 × 72』常數 11.7／15.6／19.5。編號 C3：Decisions 既有 J2 為另一條決策",
   "2026-10-06", "Andy 2026-10-06 決定（J2；經 chat 端於 PR #19 審查回覆轉達）", "生效（v5.18）", "Spec_Rack G11:G13；Gov_Map GM089、GM094、GM099", "工作單 v5.18 PR #19 審查回覆 5", "是"],
+ ["C4", "Stage 2", "Workload C5／D5（輪數 T）與對話資料集的單位（工作單稱 K2）", "Workload C5／D5 的數值與區間都不動。對話資料集（LMSYS-Chat-1M 2.0、WildChat 2.52）量的是整段對話的輪數；本模型的任務＝單次請求，前幾輪歷史已含在初始上下文 S（Workload 第 6 列），單位不同，不與區間 max(1,×0.5)–×2 比對。整段對話的每任務指標約 ×2–2.5，記於 Workload H5。編號 C4（對應 K2）",
+  "2026-10-06", "Andy 2026-10-06 決定（K2；經 chat 端於 PR #19 第二輪審查回覆轉達）", "生效（v5.18）", "Workload C5:D5（Gov_Map GM251、GM252）；Workload H5；DB_Evidence E235", "PR #19 第二輪審查回覆 3", "是"],
  ["C1", "Stage 2", "Tokenomics 完成條件（讀法 A）", "完成＝工作單 v5.18 第 6 節三項檢查全數通過：W2（P＝高且所連 SRC 為 3 級）＝0；高段 Assumed 參數逐列三項齊備；H1 規則記 2 級者三點齊備",
   TODAY, "「同意把「完成」定為讀法 A。」；「同意」（Assumed 參數完成標準）", "生效（v5.18）", "Checks G 節 W2；報告第 6 節", "工作單 v5.18 第 0、6 節", "否"],
 ]

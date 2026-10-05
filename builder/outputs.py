@@ -133,7 +133,7 @@ def workload(wb, U):
     for c, t in zip("CDEFG", tasks): put(ws, f"{c}4", t, F_BOLD, wrap=True)
     put(ws, "H4", "說明", F_BOLD); ws.row_dimensions[4].height = 30
     ins = [
-      (5, "輪數 T", "輪", [1, 1, 4, 4, 30], "#,##0", "Assumed"),
+      (5, "輪數 T", "輪", [1, 1, 4, 4, 30], "#,##0", "Assumed；整段對話的每任務指標約 ×2–2.5（LMSYS 2.0、WildChat 2.52；E235）"),
       (6, "初始上下文 S（系統提示、歷史、工具定義）", "tok", [2000, 2000, 3000, 3000, 12000], "#,##0", "Assumed"),
       (7, "每輪新輸入 u（使用者或工具結果）", "tok", [500, 500, 1200, 1200, 2000], "#,##0", "Assumed"),
       (8, "每輪思考 token h", "tok", [0, 3000, 400, 400, 600], "#,##0", "Assumed；服務端思考占比待查"),

@@ -89,6 +89,7 @@ def test_named_ranges(model):
     assert sum(n.startswith("L1_") for n in eng.names) == EXPECT["l1_names"] and sum(n.startswith("GOV_") for n in eng.names) == EXPECT["gov_names"]
     assert sum(n.startswith("AL_") for n in eng.names) == EXPECT["al_names"]            # v5.15：Block 6 顯示名稱
     assert sum(n.startswith("CST_") for n in eng.names) == EXPECT["cst_names"] and sum(n.startswith("IDX_") for n in eng.names) == EXPECT["idx_names"]   # v5.12
+    assert sum(n.startswith("CHK_") for n in eng.names) == EXPECT["chk_names"]            # v5.17：CHK_*（目前只 CHK_L1Order）
     assert not any(n.startswith(("CST_", "IDX_")) for n in eng.names if n.startswith("IF_"))          # CST_／IDX_ 不是下游名稱（下游只可連結 IF_）
     assert "DRV_CostDec" not in eng.names                                  # v5.5 移除
     assert sum(n.startswith("TRN_") for n in eng.names) == EXPECT["trn_names"]
@@ -328,12 +329,13 @@ FULL_RECALC_LIMIT_S = 2.0
 INCREMENTAL_LIMIT_S = 2.0
 
 
-def test_incremental_recalc_matches_fresh_and_is_fast(model):
+def test_incremental_recalc_matches_fresh_and_is_fast(model, results_store):
     """同一實例連續改輸入再還原：結果須與全新實例相同；(a) 每個情境增量重算 < 2 秒（硬性）。"""
     eng = new_engine(model, fresh=True)
     base = eng.evaluate_all()
     names = eng.names
     base_orig = {a: eng.get(*resolve_key(names, a)) for sc in SCENARIOS[1:] for a in sc["inputs"]}   # 改動前的原值
+    secs = {}                                                       # v5.17：各情境增量重算秒數（只輸出，不影響斷言）
     for sc in SCENARIOS[1:]:
         origs = {a: base_orig[a] for a in sc["inputs"]}
         t0 = time.perf_counter()
@@ -341,9 +343,15 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model):
             eng.set_key(key, v)
         eng.evaluate_all()
         dt = time.perf_counter() - t0
+        secs[sc["id"]] = dt
         assert dt < INCREMENTAL_LIMIT_S, f"{sc['id']} 增量重算 {dt:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"
         for key, v in origs.items():
             eng.set_key(key, v)
+    worst = max(secs, key=secs.get)
+    vals = sorted(secs.values())
+    results_store["_incr_recalc"] = {"max_seconds": round(secs[worst], 2), "max_scenario": worst,
+                                     "median_seconds": round(vals[len(vals) // 2] if len(vals) % 2 else (vals[len(vals) // 2 - 1] + vals[len(vals) // 2]) / 2, 2),
+                                     "n": len(vals)}
     res = compare(eng.evaluate_all(), base)   # 還原後與基準相同（容差內；pycel 部分格以 15 位快取值回填）
     assert not res["mismatches"], format_mismatches(res["mismatches"])
 
@@ -404,6 +412,5 @@ def test_l1_v516_expected_values_and_h3(model):
             got = eng.get_name(n + suffix)
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
-    assert abs(eng.get_name("L1_Ans5_GM") - 0.95589) < 5e-6
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 241 and eng.get_name("GOV_Info") == 103

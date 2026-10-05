@@ -36,6 +36,9 @@ def job(name, junit, results):
             print(f"- 增量重算（改輸入後）最大 {max(v['eval_all_seconds_after_change'] for v in sc.values())} 秒")
         if "_full_recalc_seconds" in d:
             print(f"- 全簿強制重算 {d['_full_recalc_seconds']} 秒")
+        if "_incr_recalc" in d:
+            i = d["_incr_recalc"]
+            print(f"- 增量重算 最大 {i['max_seconds']} 秒（{i['max_scenario']}）／中位數 {i['median_seconds']} 秒（{i['n']} 個情境）")
         if sc:
             print("\n| 情境 | 不符格 | 增量重算（秒） | 改變格數 |\n|---|---|---|---|")
             for k, v in sc.items():

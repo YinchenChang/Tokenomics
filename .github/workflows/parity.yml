@@ -106,7 +106,7 @@ jobs:
         run: python -m pytest tests/parity -k "not test_scenario_parity and not test_cache_matches_fresh and not test_scenarios_actually_change_outputs" -v --tb=short -p no:cacheprovider --junitxml=junit.xml
       - name: job summary
         if: always()
-        run: python tools/ci_summary.py job "structure-recalc" junit.xml "$PARITY_RESULTS" >> "$GITHUB_STEP_SUMMARY"
+        run: python tools/ci_summary.py job "structure-recalc" junit.xml "$PARITY_RESULTS" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 上傳 parity 統計
         if: always()
         uses: actions/upload-artifact@v4

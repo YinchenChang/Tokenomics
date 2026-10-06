@@ -593,10 +593,13 @@ def checks_b4(wb, P, F, A, T, U):
     r = r0 + 2
     # constants (blue) for the OpenAI reconciliation
     put(ws, f"H{r0+1}", "對帳常數", F_BOLD)
-    consts = [("OpenAI 2025 營收 $B", 13.07), ("2024 年底 GW", 0.6), ("2025 年底 GW", 1.9), ("2025 Hopper 占機隊", 0.6)]
+    import v518
+    # v5.18 D4: Hopper 占機隊 0.6→0.57（Analogy；區間 0.5–0.6；Epoch 轉述 NVIDIA 出貨：至 2025-10 累計 Hopper 4 M、Blackwell 3 M＝4/7，全球口徑）
+    consts = [("OpenAI 2025 營收 $B", 13.07), ("2024 年底 GW", 0.6), ("2025 年底 GW", 1.9), ("2025 Hopper 占機隊", 0.57 if v518.step_on("D4") else 0.6)]
     cr = {}
     for i, (lab, v) in enumerate(consts):
         put(ws, f"H{r0+2+i}", lab, F_NOTE); put(ws, f"I{r0+2+i}", v, F_IN, fmt="0.00"); cr[i] = f"$I${r0+2+i}"
+    put(ws, f"J{r0+5}", "Analogy（v5.18 D4）：區間 0.5–0.6；Epoch 轉述 NVIDIA 揭露，至 2025-10 累計出貨 Hopper 4 M、Blackwell 3 M＝4/7；全球口徑，非 OpenAI 機隊；證據見 DB_Evidence", F_NOTE)
     ucd = lambda t, key: f"Unit_Cost!D{U[(t, key)]}"
     pf = lambda j: f"INDEX(B4_MktOut,{j},1)"
     rows = [

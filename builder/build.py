@@ -106,6 +106,9 @@ readme(wb)
 # ---- v5.7: write back Excel-owned inputs, then the evidence register (created only if absent) ----
 _m, _c, _d = restore(wb, SNAP, os.path.join(OUTDIR, "restore_log.txt"))
 print(f"restore: matched {_m}, Excel kept over code {_c}, unmatched {len(_d)}")
+import v518
+V518_LOG = v518.inputs_update(wb)       # v5.18: Excel-owned input writes, each only while the cell still holds its v5.17 value
+print("v518 inputs:", len(V518_LOG))
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -160,7 +163,7 @@ from gov import gov_all
 GOV = gov_all(wb)
 checks_h(wb)        # v5.15: Checks H section (after the G section; counted in GOV_Errors)
 GOV["snap_retired"] = len(RETIRED)
-GOV["fm_log"] = GOV["fm_log"] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
+GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
 print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",

@@ -2,9 +2,20 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261005_Tokenomics_v5.18.xlsx（取代 v5.17；Stage 2 第一批寫入；判斷類，依工作單 `docs/workorders/20261005_v5.18.md` r3 執行）
+
+- Commit：見本輪 PR（合併後補上雜湊）。報告：`docs/reports/20261005_v5.18.md`。底稿：master `efe1765`（含 PR #18 合併 `5b8dc44`）；`model/CURRENT` 原為 v5.17。**依 r3**（r2 開工後改 r3：G4 低改 7.8、F13 維持 9.1；D5 只改 Serving D23、E23 高值）。
+- Excel（CC 以 `builder/` 自 v5.17 產生，經 LibreOffice 重算存檔）：SRC 等級依 S1 (a)、G15、H1 規則寫入並登錄 DB_Evidence E170–E226；新增 SRC_HW_061–064、SRC_MOD_054（SRC_ 名稱 330 → 335，具名範圍 875 → 880）；`Train_In!C44`、`Calib!C69` 改公式；SRC_PERF_009／010 改為內插值；`Spec_Rack` 的 VR200（F8、F11、F12）、GB200（D9）、GB300（E9、E10）機架功率與價格、Rubin Ultra 欄（單架 72 封裝）；`Arch!D16`（SRC_MOD_054）、`Train_In!C21`、`Checks!I46`；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述；Decisions 新增 S1、S2、H1、G15、C1。W2 33 → 3。
+- builder：新增 `v518.py`（舊值守衛寫入、步驟開關 `V518_STEPS`）、`gov_seed4.py`（由 `tools/gen_seed_v518.py` 產生）；`gov.py`、`build.py`、`block4.py`、`finish.py`、`inputs.py`、`training.py` 接上；`docs/builder/Tokenomics_builder_v5.md` 重新產生（19 個檔）。以 v5.17 重建 `restore_log` matched 970／Excel 值保留 0／unmatched 0；冪等（以 v5.18 重建）公式文字與數值不符 0。
+- 測試：期望值 34,552 → 34,590 格、875 → 880 名稱、`src_names` 330 → 335；`test_parity.py` 內依 Excel 輸出的硬編期望值改為 v5.18 的 LibreOffice 重算值（`IF_FrontSuccVR`、`AL_*`、`IF_Alloc*`、`L1_Ans5_*`、`L1_Ans6_GPUh`、`L1_Ans8`、GOV_Warnings 241 → 212、GOV_Info 103 → 107）。情境、比對範圍、容差未動。
+- 工程類修正（工作單外，報告表 2 列出）：`gov.py` 的 L1 四列 RevGW 的 E、F 公式改為 `INDEX(…)*(Sens_Rev!$B$6/IF_Util)` 形式（8 格；數學相同、差 ≤1e-15），修正情境 `e_util_08` 下 Checks H3 因 1 ulp 平手使引擎與 LibreOffice 不一致（v5.16 起的潛在缺口）。
+- CI：`parity.yml` 的 structure-recalc 摘要步驟改 `| tee -a "$GITHUB_STEP_SUMMARY"`，兩個重算秒數同時出現在 job 日誌。
+- 規則：查核紀錄規則（R5／R6 網址須為摘要實際所在頁面）寫入 `docs/stage2_source_check_rules.md`（CLAUDE.md 屬 Project 端維護）。
+- 治理：GOV_Errors 0、GOV_Warnings 212（W1 209＋W2 3）、GOV_Info 107。
+
 ## 20261005_Tokenomics_v5.17.xlsx（取代 v5.16；收尾小項；工程類，依工作單 `docs/workorders/20261005_v5.17_stage2-1.md` r1 PR A 執行）
 
-- Commit：見本輪 PR（合併後補上雜湊）。報告：`docs/reports/20261005_v5.17.md`。底稿：master `0fe187f`（含 `f2b3492`）。
+- Commit：合併雜湊 `1b36811`（PR #17）。報告：`docs/reports/20261005_v5.17.md`。底稿：master `0fe187f`（含 `f2b3492`）。
 - Excel（CC 以 `builder/` 自 v5.16 產生，經 LibreOffice 重算存檔）：僅 `L1!I43`（L1_Ans7 讀法欄文字，A1）與 `README!B5`（版本文字）兩格不同。數值、公式、具名範圍（875）、工作表（48）逐格不變。
 - builder：`block6.py`（`l1_rows_b6` 第 7 題讀法文字）、`finish.py`（README）；`docs/builder/Tokenomics_builder_v5.md` 重新產生。以 v5.16 重建 `restore_log` matched 970／Excel 值保留 0／unmatched 0；冪等（以 v5.17 重建）公式文字與數值不符 0。
 - 測試與 CI：`scenarios.yaml` 的 `l1_names` 註解更正（A2；值 141 不變）；新增 `chk_names: 1` 與對應斷言（A5）；刪除 `test_l1_v516_expected_values_and_h3` 中重複的 `L1_Ans5_GM` 斷言（A3）；增量重算秒數（最大值、所屬情境、中位數）寫入 `results_store`，`tools/ci_summary.py` 的摘要同時輸出全簿與增量兩個秒數（A6；門檻與斷言不變）。本機受影響子集一律先以 `tools/build_engine_cache.py` 建快取並設 `TOKENOMICS_ENGINE_CACHE`（A4）。

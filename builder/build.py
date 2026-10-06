@@ -111,6 +111,8 @@ print(f"restore: matched {_m}, Excel kept over code {_c}, unmatched {len(_d)}")
 import v518
 V518_LOG = v518.inputs_update(wb)       # v5.18: Excel-owned input writes, each only while the cell still holds its v5.17 value
 print("v518 inputs:", len(V518_LOG))
+import v520
+V518_LOG += v520.inputs_update(wb)       # v5.20 X3: Alloc_In!E7 4 -> 6 (old-value guard)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",

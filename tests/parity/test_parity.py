@@ -21,6 +21,10 @@ BLOCK3_PREFIX = ("TrainGPUh", "TrainCost", "PostShareFLOP", "PostShareGPUh", "RL
 BLOCK2_PREFIX = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
 
 
+PROD_IF = tuple(f"{b}_Prod" for b in ("IF_FullCost_Luna", "IF_FullCost_Sol", "IF_FullCost_Astra", "IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet"))   # v5.19 X1
+# 相對基準列的變動（LibreOffice 重算值；欄序 Hopper、GB200、GB300、VR200、Rubin Ultra 的基準成本欄；0.85 預設、0.7 區間下限）
+EXPECT_PROD_085 = {"sol": (0.4900, 0.2776, 0.2775, 0.2551, 0.2497), "astra": (1.0400, 0.3938, 0.4444, 0.3313, 0.3119), "fleet": (-0.4399, -0.2424, -0.2678, -0.2177, -0.2105)}
+EXPECT_PROD_070 = {"sol": (0.7763, 0.7805, 0.6901, 0.6703), "astra": (1.2922, 1.6333, 0.9923, 0.9098)}      # 欄序 GB200、GB300、VR200、Rubin Ultra（Hopper 為文字）
 ALLOC_IF = ("IF_AllocQ1", "IF_AllocQ1_R2", "IF_AllocQ2", "IF_AllocServeGW", "IF_AllocRDGW", "IF_AllocDemand", "IF_AllocImpliedNk")
 
 
@@ -259,6 +263,9 @@ def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, resu
             assert any(base[(s_, r_)] != got[(s_, r_)] for s_, r_ in sheet_ref if (s_, r_) in base), f"[{sc['id']}] Interface F 節未改變"
         else:
             assert any(s_ == "Alloc" for s_, _ in changed), f"[{sc['id']}] Alloc 頁未改變"
+    if sc["id"] == "h_prod_derate_070":          # v5.19 X1 防空轉：至少一個 _Prod 列改變；基準列（IF_FullCost_*、IF_RevGW_*）一格都不變
+        assert any(base_engine[0].get_name(n) != eng.get_name(n) for n in PROD_IF), f"[{sc['id']}] _Prod 列未改變"
+        assert all(base_engine[0].get_name(n[:-5]) == eng.get_name(n[:-5]) for n in PROD_IF), f"[{sc['id']}] 基準列被改動（Serving!C18 未動，基準列不得變）"
     assert elapsed < INCREMENTAL_LIMIT_S, f"[{sc['id']}] 改輸入後重算 {elapsed:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"   # (a) 增量重算硬性門檻
     assert res["error_value_cells"] == 0, f"[{sc['id']}] 錯誤值 {res['error_value_cells']} 格（v5.9 起任何情境皆不得出現錯誤值；兩邊錯誤代碼不同亦視為不符）"
     if sc["id"] != "base":
@@ -414,3 +421,30 @@ def test_l1_v516_expected_values_and_h3(model):
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 209 and eng.get_name("GOV_Info") == 107
+
+
+def _pct(eng, n, k):
+    """_Prod 相對基準列的變動（第 k 欄，0 起算）；任一邊為文字時回傳 None"""
+    p, b = eng.get_name(n)[k], eng.get_name(n[:-5])[k]
+    return p / b - 1 if all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in (p, b)) else None
+
+
+def test_prod_derate_expected_values(model, template_engine):
+    """v5.19 X1（工作單 1.5 節；LibreOffice 重算值）：CTL_ProdDerate 預設 0.85 與 0.7 下，_Prod 列相對基準列的變動；自我檢查 X1＝0。
+    欄序：5 世代 × 3 成本情境（低／基準／高），基準欄索引 1、4、7、10、13＝Hopper、GB200、GB300、VR200、Rubin Ultra。"""
+    base = new_engine(model)
+    assert base.get_name("CTL_ProdDerate") == 0.85 and base.get("Serving", "C18") == 1.0   # C18 維持 1.0（G0-11）
+    assert base.get_name("GOV_Errors") == 0                                               # 含 Checks X1（替代值改回 C18 時七列等於基準列）
+    want = {"IF_FullCost_Sol_Prod": EXPECT_PROD_085["sol"], "IF_FullCost_Astra_Prod": EXPECT_PROD_085["astra"], "IF_RevGWFleet_Prod": EXPECT_PROD_085["fleet"]}
+    for n, vals in want.items():
+        for k, v in zip((1, 4, 7, 10, 13), vals):
+            assert abs(_pct(base, n, k) - v) < 5e-4, (n, k, _pct(base, n, k), v)
+    eng = _clone(template_engine)
+    eng.set_key("CTL_ProdDerate", 0.7)
+    eng.evaluate_all()
+    assert eng.get_name("GOV_Errors") == 0
+    for n in ("IF_FullCost_Luna_Prod", "IF_FullCost_Sol_Prod", "IF_FullCost_Astra_Prod"):
+        assert eng.get_name(n)[1] == "SLO 不可達", n                                      # Hopper：Astra 層 SLO 不可達 → 機隊不可服務 → 全成本為文字
+    for n, vals in (("IF_FullCost_Sol_Prod", EXPECT_PROD_070["sol"]), ("IF_FullCost_Astra_Prod", EXPECT_PROD_070["astra"])):
+        for k, v in zip((4, 7, 10, 13), vals):
+            assert abs(_pct(eng, n, k) - v) < 5e-4, (n, k, _pct(eng, n, k), v)

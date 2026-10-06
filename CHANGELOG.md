@@ -2,9 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261006_Tokenomics_v5.19.xlsx（取代 v5.18；X1 生產折減並列輸出、X2 P 欄升段；判斷類，依工作單 `docs/workorders/20261006_v5.19.md` r1 執行）
+
+- Commit：見本輪分支 `claude/ecstatic-galileo-ue0ggt`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.19.md`。底稿：master `a9adc7a`；`model/CURRENT` 原為 v5.18。
+- Excel（CC 以 `builder/` 自 v5.18 產生，經 LibreOffice 重算存檔）：**X1** 新輸入格 `CTL_ProdDerate`（Serving!C28，0.85，情境值）；8 個 `*_Prod` 鏡像頁（Perf、Perf_Batch、Training、Unit_Cost、Interface、Fleet_1GW、Amortize、Theory_Rev；從 Serving!C18 進入模型的兩處起到 Theory_Rev 七個輸出列，1,575 格，同位置鏡像，右側 S:AG 為檢查副本）；Interface G 節七列 `IF_FullCost_*_Prod`、`IF_RevGW_*_Prod`、`IF_RevGWFleet_Prod`；Checks X 節 X1（計入 GOV_Errors）。Serving!C18 維持 1.0（G0-11）。**X2** Gov_Map P 欄 11 格升為高段（GM205、586、578、104、270、459、275、304、290、203、354），新增 Gov_Map GM592（CTL_ProdDerate）。Decisions 新增 X1、X2。公式格 34,593 → 38,933（+12.6%）、具名範圍 880 → 888、工作表 48 → 56。
+- builder：新增 `v519.py`（鏈由活頁簿公式於建置時自動求出：Serving!C18 讀取格的前向相依 ∩ 七個輸出列的後向相依）；`gov.py`、`build.py`、`inputs.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v519.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生。以 v5.19 重建冪等 0 不符。
+- 測試：期望值 34,593 → 38,933 格、880 → 888 名稱、`downstream_names` 171 → 178、sheets 48 → 56；新增情境 `h_prod_derate_070` 與 `test_prod_derate_expected_values`。既有情境與期望值未動。
+- 其他：`docs/reports/20261005_v5.18.md` 第七節第 4 項證據編號 E212 → E213；`docs/reports/20261006_v5.19_查核.xlsx`（第 3 節唯讀查核，不入 DB_Evidence）。
+- 治理：GOV_Errors 0、GOV_Warnings 209、GOV_Info 107（不變）。
+
 ## 20261005_Tokenomics_v5.18.xlsx（取代 v5.17；Stage 2 第一批寫入；判斷類，依工作單 `docs/workorders/20261005_v5.18.md` r3 執行）
 
-- Commit：見本輪 PR（合併後補上雜湊）。報告：`docs/reports/20261005_v5.18.md`。底稿：master `efe1765`（含 PR #18 合併 `5b8dc44`）；`model/CURRENT` 原為 v5.17。**依 r3**（r2 開工後改 r3：G4 低改 7.8、F13 維持 9.1；D5 只改 Serving D23、E23 高值）。
+- Commit：合併雜湊 `a9adc7a`（PR #19）。報告：`docs/reports/20261005_v5.18.md`。底稿：master `efe1765`（含 PR #18 合併 `5b8dc44`）；`model/CURRENT` 原為 v5.17。**依 r3**（r2 開工後改 r3：G4 低改 7.8、F13 維持 9.1；D5 只改 Serving D23、E23 高值）。
 - Excel（CC 以 `builder/` 自 v5.17 產生，經 LibreOffice 重算存檔）：SRC 等級依 S1 (a)、G15、H1 規則寫入並登錄 DB_Evidence E170–E226；新增 SRC_HW_061–064、SRC_MOD_054（SRC_ 名稱 330 → 335，具名範圍 875 → 880）；`Train_In!C44`、`Calib!C69` 改公式；SRC_PERF_009／010 改為內插值；`Spec_Rack` 的 VR200（F8、F11、F12）、GB200（D9）、GB300（E9、E10）機架功率與價格、Rubin Ultra 欄（單架 72 封裝）；`Arch!D16`（SRC_MOD_054）、`Train_In!C21`、`Checks!I46`；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述；Decisions 新增 S1、S2、H1、G15、C1。W2 33 → 3。
 - builder：新增 `v518.py`（舊值守衛寫入、步驟開關 `V518_STEPS`）、`gov_seed4.py`（由 `tools/gen_seed_v518.py` 產生）；`gov.py`、`build.py`、`block4.py`、`finish.py`、`inputs.py`、`training.py` 接上；`docs/builder/Tokenomics_builder_v5.md` 重新產生（19 個檔）。以 v5.17 重建 `restore_log` matched 970／Excel 值保留 0／unmatched 0；冪等（以 v5.18 重建）公式文字與數值不符 0。
 - 測試：期望值 34,552 → 34,590 格、875 → 880 名稱、`src_names` 330 → 335；`test_parity.py` 內依 Excel 輸出的硬編期望值改為 v5.18 的 LibreOffice 重算值（`IF_FrontSuccVR`、`AL_*`、`IF_Alloc*`、`L1_Ans5_*`、`L1_Ans6_GPUh`、`L1_Ans8`、GOV_Warnings 241 → 212、GOV_Info 103 → 107）。情境、比對範圍、容差未動。

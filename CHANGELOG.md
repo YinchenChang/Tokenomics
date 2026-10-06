@@ -2,9 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261006_Tokenomics_v5.21.xlsx（取代 v5.20；X6：X4 結案、MLPerf v6.1 一手結果寫入；判斷類＋工程小項，依工作單 `docs/workorders/20261006_v5.21.md` r1 執行）
+
+- Commit：見本輪分支 `claude/new-session-by13ws`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.21.md`。底稿：master `6c2bc89`（含 v5.20 合併 `0b4808e`）；`model/CURRENT` 原為 v5.20。
+- Excel：**X6** 一手來源 MLCommons `inference_results_v6.1/summary.csv`（repo HEAD `4bb63cd`，SHA-256 `87980a2d…065a`，CC 已讀並逐列核對）。SRC_Perf：`SRC_PERF_027`／`028` 由 2 級二手升為 1 級一手（已讀）；新增 `SRC_PERF_052`–`059`（Nebius VR200／GB300 的 Offline、Server 各 2 筆，NVIDIA Vera Rubin／GB300 的 Offline、Server 各 2 筆；1 級、利害關係方、不連結任何模型格）。DB_Evidence 新增 E245（取代 E244，連 GM344）；Gov_Map GM344 理由欄加註；Decisions 新增 X6、X4 狀態改「v5.21 結案（X6）」。Calib F67 維持 1.0／0.5–1.5。`Alloc_In!G7` 備註補「；區間 0–6（v5.20 X3）」。SRC_ 具名範圍 335 → 343、公式格 38,933 → 38,989、具名範圍 888 → 896。Interface、L1、所有模型頁數值逐格不變。
+- builder：新增 `v521.py`（版本字串的唯一來源，`finish.py` 的 README!A1／B5 改讀它）；`gov.py`、`build.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v521.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生。以 v5.21 重建冪等 0 不符。
+- 測試：期望值 `formula_cells` 38,933 → 38,989、`defined_names` 888 → 896、`src_names` 335 → 343、`GOV_Warnings` 209 → 217；新增 `test_readme_version_consistency`（README!A1 版本號、README!B5 檔名、`model/CURRENT` 三者一致）。
+- 治理：GOV_Errors 0、GOV_Warnings 217（W1 217＋W2 0；較 v5.20 +8，為新增 8 筆利害關係方 Active 紀錄的第二來源欄依規則留空）、GOV_Info 107。
+
 ## 20261006_Tokenomics_v5.20.xlsx（取代 v5.19；X3 新高段 8 列補齊、X4 F67 衝突證據、X5 攤提耦合註記；判斷類，依工作單 `docs/workorders/20261006_v5.20.md` r1 執行）
 
-- Commit：見本輪分支 `claude/affectionate-euler-bdacy2`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.20.md`。底稿：master `f02d418`；`model/CURRENT` 原為 v5.19。v5.19 合併雜湊 `ef9a12e`（PR #20）。
+- Commit：合併雜湊 `0b4808e`（PR #21）；分支 `claude/affectionate-euler-bdacy2`。報告：`docs/reports/20261006_v5.20.md`。底稿：master `f02d418`；`model/CURRENT` 原為 v5.19。v5.19 合併雜湊 `ef9a12e`（PR #20）。
 - Excel：**X3** DB_Evidence E236–E243（Analogy、摘要級、原文未讀）；Gov_Map GM205／203／459／270／290／578 判 6.2 齊備、GM275／354 為「已搜尋、無可比對象」；`Alloc_In!E7`（AL_Nrefresh_Hi）4 → 6，GM578 區間文字更新；Decisions 新增 X3，C2 追加 GM275／GM354。**X4** DB_Evidence E244、GM344 理由欄加註（F67 數值與區間不改）。**X5** Interface A3 與 README 新列加註攤提耦合。Alloc G 節 N_refresh 高端列連動（Q1 0.693→0.747、Q2 0.718→0.769、RDGW 0.117→0.153）；L1 數值逐格不變。
 - builder：新增 `v520.py`；`gov.py`、`finish.py`、`build.py` 接上；`docs/builder/Tokenomics_builder_v5.md` 重新產生。`docs/stage2_source_check_rules.md` 同步 C2 列名。
 - 治理：GOV_Errors 0、GOV_Warnings 209（W1 209＋W2 0）、GOV_Info 107（不變）。

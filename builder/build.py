@@ -113,6 +113,8 @@ V518_LOG = v518.inputs_update(wb)       # v5.18: Excel-owned input writes, each 
 print("v518 inputs:", len(V518_LOG))
 import v520
 V518_LOG += v520.inputs_update(wb)       # v5.20 X3: Alloc_In!E7 4 -> 6 (old-value guard)
+import v521
+V518_LOG += v521.text_update(wb)         # v5.21: Alloc_In!G7 note tail (old-text guard)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",

@@ -65,6 +65,21 @@ def test_model_current_pointer(model):
     assert (model.parent / "CURRENT").read_text(encoding="utf-8").strip() == model.name
 
 
+def test_readme_version_consistency(model):
+    """v5.21：README!A1 的版本號（"Tokenomics vX.YY —"）、README!B5 開頭的檔名、model/CURRENT 的檔名三者一致。"""
+    import re
+    import openpyxl
+    cur = (model.parent / "CURRENT").read_text(encoding="utf-8").strip()
+    m_cur = re.fullmatch(r"(\d{8}_Tokenomics_)(v\d+\.\d+)\.xlsx", cur)
+    assert m_cur, f"model/CURRENT 檔名格式不符：{cur}"
+    ws = openpyxl.load_workbook(model, read_only=True)["README"]
+    a1, b5 = ws["A1"].value, ws["B5"].value
+    m_a1 = re.match(r"Tokenomics (v\d+\.\d+) —", a1)
+    assert m_a1, f"README!A1 版本格式不符：{a1[:40]}"
+    assert m_a1.group(1) == m_cur.group(2), f"README!A1 版本 {m_a1.group(1)} ≠ model/CURRENT 版本 {m_cur.group(2)}"
+    assert b5.startswith(cur[: -len(".xlsx")]), f"README!B5 開頭應為 {cur[:-5]}，實際：{b5[:40]}"
+
+
 def test_workbook_expectations(model):
     eng = new_engine(model)
     assert len(eng.formula_cells) == EXPECT["formula_cells"]
@@ -425,7 +440,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 209 and eng.get_name("GOV_Info") == 107
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 217 and eng.get_name("GOV_Info") == 107
 
 
 def _pct(eng, n, k):

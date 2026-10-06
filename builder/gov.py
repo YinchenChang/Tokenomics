@@ -19,6 +19,7 @@ from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP
 from gov_seed3 import SRC_RECORDS3, EVID_MIG3, DECISIONS_V515, DEC_STATUS_V515, GOV_MAP_V515
 import v518                       # v5.18: Stage 2 first write batch (Excel-owned writes with old-value guards; see v518.py)
 import v519                       # v5.19: X1 mirrors (Prod sheets) and X2 Gov_Map P promotions; its Gov_Map row and Decisions are registered here
+import v520                       # v5.20: X3 evidence rows, GM578 range, C2 list; X4 F67 evidence; X5 note
 
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
@@ -140,7 +141,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -184,7 +185,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -381,7 +382,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text)      # v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text)      # v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -679,7 +680,7 @@ def gov_all(wb):
     ev_added = evidence_upgrade(wb)
     dec_made = decisions_sheet(wb)
     dec_made2 = dec_append(wb)
-    dec_upd = dec_update(wb)
+    dec_upd = dec_update(wb) + v520.decisions_update(wb["Decisions"], v518._append_text)
     n_fm, fm_log = apply_formula_map(wb)
     n_f14 = f14(wb)
     checks_block1(wb)

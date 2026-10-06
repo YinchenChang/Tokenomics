@@ -2,9 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261006_Tokenomics_v5.20.xlsx（取代 v5.19；X3 新高段 8 列補齊、X4 F67 衝突證據、X5 攤提耦合註記；判斷類，依工作單 `docs/workorders/20261006_v5.20.md` r1 執行）
+
+- Commit：見本輪分支 `claude/affectionate-euler-bdacy2`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.20.md`。底稿：master `f02d418`；`model/CURRENT` 原為 v5.19。v5.19 合併雜湊 `ef9a12e`（PR #20）。
+- Excel：**X3** DB_Evidence E236–E243（Analogy、摘要級、原文未讀）；Gov_Map GM205／203／459／270／290／578 判 6.2 齊備、GM275／354 為「已搜尋、無可比對象」；`Alloc_In!E7`（AL_Nrefresh_Hi）4 → 6，GM578 區間文字更新；Decisions 新增 X3，C2 追加 GM275／GM354。**X4** DB_Evidence E244、GM344 理由欄加註（F67 數值與區間不改）。**X5** Interface A3 與 README 新列加註攤提耦合。Alloc G 節 N_refresh 高端列連動（Q1 0.693→0.747、Q2 0.718→0.769、RDGW 0.117→0.153）；L1 數值逐格不變。
+- builder：新增 `v520.py`；`gov.py`、`finish.py`、`build.py` 接上；`docs/builder/Tokenomics_builder_v5.md` 重新產生。`docs/stage2_source_check_rules.md` 同步 C2 列名。
+- 治理：GOV_Errors 0、GOV_Warnings 209（W1 209＋W2 0）、GOV_Info 107（不變）。
+
 ## 20261006_Tokenomics_v5.19.xlsx（取代 v5.18；X1 生產折減並列輸出、X2 P 欄升段；判斷類，依工作單 `docs/workorders/20261006_v5.19.md` r1 執行）
 
-- Commit：見本輪分支 `claude/ecstatic-galileo-ue0ggt`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.19.md`。底稿：master `a9adc7a`；`model/CURRENT` 原為 v5.18。
+- Commit：合併雜湊 `ef9a12e`（PR #20）；分支 `claude/ecstatic-galileo-ue0ggt`。報告：`docs/reports/20261006_v5.19.md`。底稿：master `a9adc7a`；`model/CURRENT` 原為 v5.18。
 - Excel（CC 以 `builder/` 自 v5.18 產生，經 LibreOffice 重算存檔）：**X1** 新輸入格 `CTL_ProdDerate`（Serving!C28，0.85，情境值）；8 個 `*_Prod` 鏡像頁（Perf、Perf_Batch、Training、Unit_Cost、Interface、Fleet_1GW、Amortize、Theory_Rev；從 Serving!C18 進入模型的兩處起到 Theory_Rev 七個輸出列，1,575 格，同位置鏡像，右側 S:AG 為檢查副本）；Interface G 節七列 `IF_FullCost_*_Prod`、`IF_RevGW_*_Prod`、`IF_RevGWFleet_Prod`；Checks X 節 X1（計入 GOV_Errors）。Serving!C18 維持 1.0（G0-11）。**X2** Gov_Map P 欄 11 格升為高段（GM205、586、578、104、270、459、275、304、290、203、354），新增 Gov_Map GM592（CTL_ProdDerate）。Decisions 新增 X1、X2。公式格 34,593 → 38,933（+12.6%）、具名範圍 880 → 888、工作表 48 → 56。
 - builder：新增 `v519.py`（鏈由活頁簿公式於建置時自動求出：Serving!C18 讀取格的前向相依 ∩ 七個輸出列的後向相依）；`gov.py`、`build.py`、`inputs.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v519.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生。以 v5.19 重建冪等 0 不符。
 - 測試：期望值 34,593 → 38,933 格、880 → 888 名稱、`downstream_names` 171 → 178、sheets 48 → 56；新增情境 `h_prod_derate_070` 與 `test_prod_derate_expected_values`。既有情境與期望值未動。

@@ -1460,12 +1460,14 @@ def sens_train(wb, SP, AR, TI, PB, TR):
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
 from outputs import COLS15
+import v520
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
     for r in range(17, 23):
         for c in range(1, 19): ws.cell(row=r, column=c).value = None
     put(ws, "A2", "每一列為一個具名範圍（IF_…），欄＝世代 × 成本情境；Block 2 產出依層級分區（物理量不隨成本情境變動）", F_NOTE)
+    put(ws, "A3", v520.X5_NOTE, F_NOTE)     # v5.20 X5: row 3 was empty, no row moves
     section(ws, 17, "B. Block 2 產出（依層級；100%＝理想上限；下游以自身利用率換算）", 17)
     r = 18; names = []
     tiers = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
@@ -1565,7 +1567,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261006_Tokenomics_v5.19（X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v520.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1590,11 +1592,12 @@ def readme(wb):
       ("來源原則", "SemiAnalysis（含 InferenceX）資料一律須有第二來源佐證並標記 Interested-party；目前第二來源為 MLPerf（MLCommons 稽核，NVIDIA 提交）與 DeepSeek 自揭（待查）。"),
       ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取儲存成本已於 v5.8 Cache_Store 加入（儲存層與保留時間為 Assumed）。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。(11) v5.8：K6 下游攤提預設於 v5.9 定為 (c)；Claude Opus 5.5、Kimi K3、MiniMax M3 的能力指數未取得，不參與前緣；Anthropic、Moonshot、Alibaba、MiniMax 價格為二手；METR 檢查未入表；Google 未列入候選。(12) v5.9：METR 尚未發布 GPT-6 各層級時間範圍（以 GPT-5.6 Sol、Mythos Preview 類比）；任務長度為 Assumed；ARC 金額衝突與 Opus 5 harness 歸屬待核；harness 用於 RL rollout 與非 GPU 成本延後。"),
       ("生產折減並列輸出（v5.19 X1）", "Serving!C18（J15）維持 1.0（G0-11），模型的基準輸出不變。Interface G 節並列七列 _Prod 輸出，以 CTL_ProdDerate（Serving!C28，預設 0.85＝區間 0.7–1.0 的中點，情境值）重算：從 Serving!C18 進入模型的兩處（Perf、Perf_Batch 第 50 列）起，到 Theory_Rev 七個輸出列為止的公式鏈，逐格鏡像到 *_Prod 頁（同位置；只改兩處：鏈上參照改讀 *_Prod、第 50 列改讀 CTL_ProdDerate）。右側 S:AG 為檢查副本（第 50 列＝Serving!C18），Checks X1 比對七列是否等於基準列。_Prod 輸出的口徑同 D 節對應列；SLO 不可達時為文字。"),
+      ("Interface 攤提耦合（v5.20 X5）", v520.X5_NOTE),
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics v5.11 — Block 1＋2＋3＋4＋5＋第 0 層 Source（切片一）：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣、harness 與每成功任務成本", F_TITLE)
+    put(ws, "A1", "Tokenomics " + v520.README_TITLE, F_TITLE)     # v5.20: version from v520.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -19678,6 +19681,161 @@ DECISIONS_V519 = [
 ]
 ```
 
+## v520.py
+
+```python
+# v5.20 (work order docs/workorders/20261006_v5.20.md): X3 eight X2 high-segment rows completed (DB_Evidence E236–E243, GM578 range 0–6,
+# C2 list +GM275/GM354), X4 Calib F67 conflict evidence (E244), X5 amortisation-coupling note (Interface A3, README).
+# Every write is guarded by the old value / presence, like gov.gm_update, so a rebuild never overwrites a later Excel edit.
+from openpyxl.styles import PatternFill
+from copy import copy
+from common import F_IN
+
+VERSION = "20261006_Tokenomics_v5.20"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-06"
+READ = "摘要級，原文未讀"
+CHECK = "docs/reports/20261006_v5.19_查核.xlsx「2.3 八列搜尋」"
+WHO = "讀取者：CC（v5.19 查核）＋chat 端（2026-10-06 搜尋）；不得標為已讀"
+SRC = f"WebSearch 摘要（{CHECK}）；原文網址未取得"
+
+# ------------------------------------------------------------------ Alloc_In E7 (AL_Nrefresh_Hi): 4 -> 6
+INPUT_UPD = [("Alloc_In", "E7", 4, 6)]
+
+def inputs_update(wb):
+    log = []
+    for sh, cell, old, new in INPUT_UPD:
+        c = wb[sh][cell]
+        if c.value == old and type(c.value) is not bool:
+            c.value = new; c.font = copy(F_IN); c.fill = PatternFill(fill_type=None)
+            log.append(f"{sh}!{cell}: {old!r} -> {new!r} (v5.20 X3 A3)")
+    return log
+
+# ------------------------------------------------------------------ DB_Evidence (17 columns A..Q; same layout as v518.evidence_rows)
+def _ev(i, gm, param, claim, now, then, verdict, note, grade="Analogy", stance="中立", affected="—"):
+    return [f"E{236 + i}", DATE, claim, SRC, READ, param, then, now, verdict, "v5.20",
+            f"{WHO}。工作單 v5.20 {gm}。{note}", "已處理", "—", "—", affected, grade, stance]
+
+EVIDENCE_V520 = [
+    _ev(0, "X3 1.1（GM205）", "Arch E8 層數（GM205）",
+        "Llama 3.1 405B 126 層；DeepSeek-V3 61 層（開放權重，架構不同）",
+        "126 層（稠密）／61 層（MoE）", "100（區間 80–160）",
+        "已讀摘要，作為區間依據；區間不改",
+        "不得寫入「405B 為 80 層」（誤植，80 層為 70B）。"),
+    _ev(1, "X3 1.1（GM203）", "Arch E6 總參數（GM203）",
+        "Kimi K3 2.8T（2026-07-16，開放權重）；Llama 4 Behemoth 2T（288B 啟用）；xAI 約 2T（另有 4–6T 估計）；Anthropic、OpenAI 旗艦未揭露",
+        "約 2–2.8T（xAI 另有 4–6T 估計，Interested-party）", "基準值（區間 2,000–10,000 B）",
+        "已讀摘要，支持區間下端；上端 10T 無可比；區間不改",
+        "xAI 數字出自 xAI 宣傳，屬 Interested-party；4–6T 為估計。", stance="混合（xAI 為 Interested-party）"),
+    _ev(2, "X3 1.1（GM459）", "Cap_In C36 儲存層代碼（GM459）",
+        "公開快取條款保留時間（5 分鐘至 1 小時、延長至 24 小時）與推測的 HBM／DRAM／NVMe 分層一致；分層實作非官方揭露",
+        "保留時間 5 分鐘–24 小時；分層為推測", "基準值（區間 D36–E36）",
+        "已讀摘要，支持現值；不改",
+        "分層實作非官方揭露（報導推測）。"),
+    _ev(3, "X3 1.1（GM270）", "Workload G8 每輪思考 token h（GM270）",
+        "SWE-bench Verified 每條軌跡推理 token 平均 19.5k（Qwen3-235B-A22B-Thinking；arXiv 2606.24820）；以 Workload G5 輪數 T＝30 換算約 650／輪（chat 端換算）",
+        "約 650 token／輪（Derived：19.5k ÷ 30，chat 端換算）", "基準值 600（區間 ×0.5–×2）",
+        "已讀摘要，支持基準 600；不改",
+        "原文來源 arXiv 2606.24820（摘要）；模型與 harness 與本模型不同（Analogy）。"),
+    _ev(4, "X3 1.1（GM290）", "Workload G12 並行子代理數 m（GM290）",
+        "Claude Code subagent 同時最多 10、workflow 同時 16（產品上限）；Kimi 300 agent（宣傳數字）；典型使用平均並行數無統計",
+        "上限 10–16（Claude Code）；300（Kimi 宣傳）", "基準 0（區間 0 到 max(1, 2×基準)）",
+        "上限有可比、典型值無；不改",
+        "理由加註：基準 0＝標準 harness 為單代理，屬定義。Kimi 300 為 Interested-party 宣傳數字。"),
+    _ev(5, "X3 1.1／1.2（GM578）", "Alloc_In C7 改版計畫數 N_refresh（GM578）",
+        "OpenAI GPT-5.x 點版本：5.1（2025-11）、5.2（2025-12）、5.4（2026-03-05）、5.5（2026-04-23）、5.6（約 2026-07）；過去 12 個月約 5 個",
+        "約 5 個／12 個月（對外點版本）", "基準 2；區間 0–4（個／年）",
+        "只作上界參考；區間上限 4 → 6（Andy 2026-10-06，X3 A3），基準 2 不變",
+        "「改版計畫」為相對家族計畫的研發運算當量，不等於對外版本號。",
+        affected="AL_Nrefresh、Alloc G 節 N_refresh 高端列；L1_Ans3_Hi（預期不變）"),
+    _ev(6, "X3 1.1（GM275）", "Workload G9 每輪可見輸出 o（GM275）",
+        "已搜尋（查詢詞：agentic coding average output tokens per turn visible response tokens OpenRouter）；只得「agentic coding 輸出約占總 token 0.5%」單一工作階段樣本（5,300／996,500）",
+        "輸出占總 token 約 0.5%（單一樣本）；無每輪分布", "基準值（區間 ×0.5–×2）",
+        "無可比對象（已搜尋；Andy 2026-10-06 核准，C2）", "查詢詞照 v5.19 查核檔。"),
+    _ev(7, "X3 1.1（GM354）", "Calib F69 η_p 倍數（GM354）",
+        "已搜尋（查詢詞：Vera Rubin NVL72 MLPerf Inference v6.1 prefill throughput）；MLPerf v6.1 VR200 只有整體吞吐，無 prefill 拆分",
+        "整體吞吐（DeepSeek-R1）；無 prefill 專屬數據", "1（區間 0.5–1.5）",
+        "無可比對象（現有資料無法分離；Andy 2026-10-06 核准，C2）",
+        "「不可從現有資料分離」是主題的性質，非「不存在」。"),
+    _ev(8, "X4 2（GM344／Calib F67）", "Calib F67 η_d 倍數（GM344）",
+        "Nebius 公布之 MLPerf Inference v6.1 DeepSeek-R1 數據，第三方換算 VR200 每 GPU 約 GB300 的 1.6–2×；Nebius 量測 VR200 36 GPU、GB300 72 GPU；情境（offline／server／interactive）未讀到",
+        "VR200／GB300 每 GPU 約 1.6–2×（第三方換算；Nebius 36／72 GPU）", "1.0（區間 0.5–1.5）；模型 interactive 2.525×，MLPerf v6.1 interactive 2.575×（Calib 第 150／151 列）",
+        "待查證；指向 F67 低端；與模型內 MLPerf v6.1 interactive（Calib 第 151 列 2.575×，模型 2.525×）衝突未解",
+        "F67 數值與區間不改；GM345（Rubin Ultra G67）不動。原文補查：Andy 手動下載 MLCommons v6.1 結果表後另開工作單。"
+        " 36 與 72 GPU 兩個數字為 chat 端補入，不在 v5.19 查核檔內。",
+        stance="混合（NVIDIA 宣稱為 Interested-party）", affected="Calib F67；IF_ 各世代 η_d 相關列（數值不改）"),
+]
+
+def evidence_rows():
+    return EVIDENCE_V520
+
+# ------------------------------------------------------------------ Gov_Map (guarded text appends; GM578 M)
+def _ev_id(i): return f"E{236 + i}"
+GOV_NOTES = [   # (GM_ID, text appended to N)
+    ("GM205", f" ｜v5.20 X3：6.2 齊備（DB_Evidence {_ev_id(0)}；摘要級）"),
+    ("GM203", f" ｜v5.20 X3：6.2 齊備（DB_Evidence {_ev_id(1)}；摘要級）"),
+    ("GM459", f" ｜v5.20 X3：6.2 齊備（DB_Evidence {_ev_id(2)}；摘要級）"),
+    ("GM270", f" ｜v5.20 X3：6.2 齊備（DB_Evidence {_ev_id(3)}；摘要級）"),
+    ("GM290", f" ｜v5.20 X3：6.2 齊備（DB_Evidence {_ev_id(4)}；摘要級）；基準 0＝標準 harness 為單代理，屬定義"),
+    ("GM578", f" ｜v5.20 X3：6.2 齊備（DB_Evidence {_ev_id(5)}；摘要級）；區間上限 4→6（Andy 2026-10-06，X3）"),
+    ("GM275", " ｜v5.20 X3：已搜尋、無可比對象（Andy 2026-10-06 核准，C2）"),
+    ("GM354", " ｜v5.20 X3：已搜尋、無可比對象（Andy 2026-10-06 核准，C2）"),
+    ("GM344", f" ｜v5.20 X4：低端有一筆未查證第三方換算（DB_Evidence {_ev_id(8)}），原文補查中"),
+]
+GM578_M = ("—", "0–6（上限依 GPT-5.x 點版本節奏，Andy 2026-10-06，X3）")
+
+def gov_update(ws, append_text):
+    rows = {ws[f"A{r}"].value: r for r in range(5, ws.max_row + 1) if ws[f"A{r}"].value}
+    n = 0
+    for gm, txt in GOV_NOTES:
+        r = rows[gm]
+        if append_text(ws[f"N{r}"], txt): n += 1
+    r = rows["GM578"]
+    if ws[f"M{r}"].value == GM578_M[0]:
+        ws[f"M{r}"].value = GM578_M[1]; n += 1
+    return n
+
+# ------------------------------------------------------------------ Decisions
+C2_APPEND = "；v5.20 追加：GM275（Workload G9）、GM354（Calib F69）（Andy 2026-10-06 核准，X3）"
+C2_ORIGIN = "；Andy 2026-10-06 核准（X3，經 chat 端轉達）"
+
+DECISIONS_V520 = [
+    ['X3', 'v5.20', 'X2 新高段 8 列補齊（6.2）、GM578 區間上限 4 → 6、C2 追加 GM275／GM354',
+     'A1 GM205、GM203、GM459、GM270 判齊備；A2 GM290 判齊備（基準 0＝標準 harness 為單代理，屬定義）；A3 GM578（Alloc_In C7）區間上限 4 → 6，基準 2 不變（Alloc_In!E7＝AL_Nrefresh_Hi）；'
+     'A4 GM275、GM354 核准為「已搜尋、無可比對象」，併入 Decisions C2 適用列名。證據 DB_Evidence E236–E243（全部 Analogy、摘要級、原文未讀）。',
+     '2026-10-06', '「all ok」（回覆 chat 端 A1–A4 建議）', 'v5.20 已建',
+     'DB_Evidence E236–E243；Gov_Map GM205／203／459／270／290／578／275／354；Alloc_In!E7；Decisions C2；docs/stage2_source_check_rules.md', '工作單 v5.20 第 0、1 節', '否'],
+    ['X4', 'v5.20', 'Calib F67 維持，記錄衝突證據',
+     'Calib F67 維持基準 1.0 與區間 0.5–1.5；記錄 Nebius 第三方換算（VR200 每 GPU 約 GB300 的 1.6–2×）與模型內 MLPerf v6.1 interactive（2.575×）的衝突未解（DB_Evidence E244）；'
+     '原文補查由 Andy 手動下載 MLCommons v6.1 結果表後另開工作單；GM345（Rubin Ultra G67）不動。',
+     '2026-10-06', '「all ok」（回覆 chat 端 B (a)＋(c)）', 'v5.20 已建',
+     'DB_Evidence E244；Gov_Map GM344（N 欄）', '工作單 v5.20 第 0、2 節', '否'],
+    ['X5', 'v5.20', 'Hopper 攤提耦合維持，加註說明',
+     'IF_FullCost_* 含自下而上攤提，攤提分母為層級組合的機隊 token；同一世代任一層級 SLO 不可達時，該世代所有層級的 FullCost 均回傳文字（例：Hopper 在 C18 或 CTL_ProdDerate ≤ 約 0.72）；'
+     'IF_RevGW_* 只依自身層級，可能仍為數值。設計不改，只在 Interface A3 與 README 加註。',
+     '2026-10-06', '「all ok」（回覆 chat 端 C (a)）', 'v5.20 已建',
+     'Interface!A3；README（Interface 攤提耦合）', '工作單 v5.20 第 0、3 節', '否'],
+]
+
+def decisions_update(ws, append_text):
+    """Append the GM275／GM354 clause to Decisions C2 (D = decision text, F = Andy's words); guarded by presence."""
+    n = 0
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value == "C2":
+            if append_text(ws.cell(r, 4), C2_APPEND): n += 1
+            if append_text(ws.cell(r, 6), C2_ORIGIN): n += 1
+    return n
+
+# ------------------------------------------------------------------ X5 note (Interface A3, README row)
+X5_NOTE = ("IF_FullCost_* 含自下而上攤提，攤提分母為層級組合的機隊 token；同一世代任一層級 SLO 不可達時，該世代所有層級的 FullCost 均回傳文字"
+           "（例：Hopper 在 C18 或 CTL_ProdDerate ≤ 約 0.72）。IF_RevGW_* 只依自身層級，可能仍為數值（X5，Andy 2026-10-06 維持此設計）")
+README_VERSION = (VERSION + "（X3：X2 新高段 8 列補齊——DB_Evidence E236–E243、Gov_Map GM205／203／459／270／290／578 判 6.2 齊備、GM275／354 併入 Decisions C2；"
+                  "Alloc_In E7（N_refresh 區間上限）4 → 6；X4：DB_Evidence E244 記錄 Calib F67 衝突證據（F67 不改）；X5：Interface A3 與 README 加註攤提耦合；"
+                  "工作單 docs/workorders/20261006_v5.20.md）。以下為 v5.19（")
+
+README_TITLE = (VERSION.split("_")[-1] + " — Block 1＋2＋3＋4＋5＋6＋第 0 層 Source：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、"
+                "理論營收與單價前緣、harness 與每成功任務成本、研發與服務算力配置（Alloc）、L1 常用推算值、Interface 下游介面")
+```
+
 ## gov_decisions.py
 
 ```python
@@ -20026,6 +20184,7 @@ from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP
 from gov_seed3 import SRC_RECORDS3, EVID_MIG3, DECISIONS_V515, DEC_STATUS_V515, GOV_MAP_V515
 import v518                       # v5.18: Stage 2 first write batch (Excel-owned writes with old-value guards; see v518.py)
 import v519                       # v5.19: X1 mirrors (Prod sheets) and X2 Gov_Map P promotions; its Gov_Map row and Decisions are registered here
+import v520                       # v5.20: X3 evidence rows, GM578 range, C2 list; X4 F67 evidence; X5 note
 
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
@@ -20147,7 +20306,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -20191,7 +20350,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -20388,7 +20547,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text)      # v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text)      # v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -20686,7 +20845,7 @@ def gov_all(wb):
     ev_added = evidence_upgrade(wb)
     dec_made = decisions_sheet(wb)
     dec_made2 = dec_append(wb)
-    dec_upd = dec_update(wb)
+    dec_upd = dec_update(wb) + v520.decisions_update(wb["Decisions"], v518._append_text)
     n_fm, fm_log = apply_formula_map(wb)
     n_f14 = f14(wb)
     checks_block1(wb)
@@ -20818,6 +20977,8 @@ print(f"restore: matched {_m}, Excel kept over code {_c}, unmatched {len(_d)}")
 import v518
 V518_LOG = v518.inputs_update(wb)       # v5.18: Excel-owned input writes, each only while the cell still holds its v5.17 value
 print("v518 inputs:", len(V518_LOG))
+import v520
+V518_LOG += v520.inputs_update(wb)       # v5.20 X3: Alloc_In!E7 4 -> 6 (old-value guard)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",

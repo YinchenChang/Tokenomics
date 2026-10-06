@@ -5,6 +5,7 @@
 快取只存 pycel 的計算圖與重算後的值，不含任何另寫的公式；載入時仍強制全簿重算（見 engine/core.py）。
 指紋（活頁簿、engine 原始碼、pycel／Python 版本）不符時載入會直接報錯。
 """
+import platform
 import sys
 import time
 from pathlib import Path
@@ -16,7 +17,7 @@ out = Path(sys.argv[1])
 out.parent.mkdir(parents=True, exist_ok=True)
 t = time.perf_counter()
 eng = Engine()
-print(f"{eng.path.name}: 建圖＋重算 {time.perf_counter() - t:.1f} 秒")
+print(f"{eng.path.name}: 建圖＋重算 {time.perf_counter() - t:.1f} 秒；Python {platform.python_version()}（快取指紋只比對主、次版號 {'.'.join(platform.python_version_tuple()[:2])}）")
 t = time.perf_counter()
 eng.save_cache(out)
 print(f"序列化 {time.perf_counter() - t:.1f} 秒 → {out}（{out.stat().st_size / 1e6:.1f} MB）")

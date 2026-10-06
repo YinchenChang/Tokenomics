@@ -6,6 +6,7 @@
   python3 tools/ci_summary.py gate <結果目錄>                              # 彙總：各片情境聯集必須恰為 scenarios.yaml 全部情境
 """
 import json
+import platform
 import sys
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -21,6 +22,7 @@ def job(name, junit, results):
     skipped = [c for c in cases if c.find("skipped") is not None]
     wall = sum(float(c.get("time", 0)) for c in cases)
     print(f"## {name}")
+    print(f"- Python {platform.python_version()}（本 job 的 runner；v5.22 起快取指紋只比對主、次版號）")
     print(f"- 測試：{len(cases)} 項；失敗 {len(bad)}；略過 {len(skipped)}；pytest 內計時合計 {wall:.0f} 秒")
     if results and Path(results).exists():
         d = json.loads(Path(results).read_text())

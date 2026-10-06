@@ -79,12 +79,15 @@ write_checks_b3(wb, _r, _rows, SP)
 # ---- v5.8: Block 4 ----
 from block4 import cap_in, price_frontier, capability, cache_store, fleet, amortize, theory_rev, sens_rev, interface_b4, checks_b4, sources_b4, evidence_b4
 K4 = cap_in(wb)
+import v522
+v522.cap_in_g(wb)      # v5.22 X7: CTL_PriceLife／CTL_Monetize (Cap_In G section, after the existing content)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
 F4 = fleet(wb, K4)
 A4 = amortize(wb, F4, P4, S4)
 T4 = theory_rev(wb, F4, A4, S4, WL)
+v522.theory_rev_life(wb)      # v5.22 X7: Theory_Rev D section (base row x L x m) and self-check rows
 K4["_capf"] = P4["capf"]
 sens_rev(wb, K4, T4, A4)
 interface_b4(wb, last_row(wb["Interface"]) + 2, P4, S4, A4, T4)
@@ -171,6 +174,9 @@ checks_h(wb)        # v5.15: Checks H section (after the G section; counted in G
 import v519
 X1 = v519.x1(wb)    # v5.19 X1: *_Prod mirror sheets, Interface G, Checks I1 (after gov_all: reads the final formulas of the chain)
 print("x1 chain cells:", X1['cells'], "sheets:", X1['sheets'])
+X7 = v522.interface_h(wb)      # v5.22 X7: Interface H section (after G; IF_*_Life names)
+X7["check_row"] = v522.checks_y(wb)
+print("x7 interface rows from:", X7["start"], "check row:", X7["check_row"])
 GOV["snap_retired"] = len(RETIRED)
 GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))

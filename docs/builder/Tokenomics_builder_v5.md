@@ -1597,7 +1597,7 @@ def readme(wb):
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics v5.11 — Block 1＋2＋3＋4＋5＋第 0 層 Source（切片一）：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣、harness 與每成功任務成本", F_TITLE)
+    put(ws, "A1", "Tokenomics " + v520.README_TITLE, F_TITLE)     # v5.20: version from v520.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -19691,6 +19691,7 @@ from openpyxl.styles import PatternFill
 from copy import copy
 from common import F_IN
 
+VERSION = "20261006_Tokenomics_v5.20"      # single source of the version string: README!B5 and README!A1 (finish.readme)
 DATE = "2026-10-06"
 READ = "摘要級，原文未讀"
 CHECK = "docs/reports/20261006_v5.19_查核.xlsx「2.3 八列搜尋」"
@@ -19827,9 +19828,12 @@ def decisions_update(ws, append_text):
 # ------------------------------------------------------------------ X5 note (Interface A3, README row)
 X5_NOTE = ("IF_FullCost_* 含自下而上攤提，攤提分母為層級組合的機隊 token；同一世代任一層級 SLO 不可達時，該世代所有層級的 FullCost 均回傳文字"
            "（例：Hopper 在 C18 或 CTL_ProdDerate ≤ 約 0.72）。IF_RevGW_* 只依自身層級，可能仍為數值（X5，Andy 2026-10-06 維持此設計）")
-README_VERSION = ("20261006_Tokenomics_v5.20（X3：X2 新高段 8 列補齊——DB_Evidence E236–E243、Gov_Map GM205／203／459／270／290／578 判 6.2 齊備、GM275／354 併入 Decisions C2；"
+README_VERSION = (VERSION + "（X3：X2 新高段 8 列補齊——DB_Evidence E236–E243、Gov_Map GM205／203／459／270／290／578 判 6.2 齊備、GM275／354 併入 Decisions C2；"
                   "Alloc_In E7（N_refresh 區間上限）4 → 6；X4：DB_Evidence E244 記錄 Calib F67 衝突證據（F67 不改）；X5：Interface A3 與 README 加註攤提耦合；"
                   "工作單 docs/workorders/20261006_v5.20.md）。以下為 v5.19（")
+
+README_TITLE = (VERSION.split("_")[-1] + " — Block 1＋2＋3＋4＋5＋6＋第 0 層 Source：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、"
+                "理論營收與單價前緣、harness 與每成功任務成本、研發與服務算力配置（Alloc）、L1 常用推算值、Interface 下游介面")
 ```
 
 ## gov_decisions.py

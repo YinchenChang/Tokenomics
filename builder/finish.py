@@ -138,7 +138,7 @@ def readme(wb):
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics v5.11 — Block 1＋2＋3＋4＋5＋第 0 層 Source（切片一）：機架規格、每 GW 成本、各層級產出與每 token 成本、訓練與研發計畫、理論營收與單價前緣、harness 與每成功任務成本", F_TITLE)
+    put(ws, "A1", "Tokenomics " + v520.README_TITLE, F_TITLE)     # v5.20: version from v520.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)

@@ -201,7 +201,7 @@ jobs:
             echo "| scenario-guard | ${{ needs.scenario-guard.result }} |"
             echo "| governance | ${{ needs.governance.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: 情境覆蓋（scenarios.yaml 全部情境恰各跑一次；v5.22 起 24 個）
+      - name: 情境覆蓋（scenarios.yaml 全部情境恰各跑一次）
         run: python tools/ci_summary.py gate results/ | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 全部 job 必須通過
         if: needs.engine-cache.result != 'success' || needs.scenarios.result != 'success' || needs.structure-recalc.result != 'success' || needs.scenario-guard.result != 'success' || needs.governance.result != 'success'

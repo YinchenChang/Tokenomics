@@ -190,7 +190,12 @@ def test_interface_d_e_shapes(model):
                | {f"IF_{p}_{t}" for p in ("TaskSucc", "TaskSuccSel", "CostSuccVR", "CostSuccGB", "RevSucc", "HarR") for t in TIERS})
     assert len(v59_new) == 41 and v59_new <= set(single_num + single_txt + wide + task), "v5.9 新增的 41 個下游名稱須全數涵蓋形狀檢查"
     v510_new = {f"IF_{p}_{t}" for p in ("CostAttVR", "HzEff") for t in TIERS} | {"IF_PFloor"} | set(front)
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個
+    v519_new = set(PROD_IF)                                                                   # v5.19 X1：Interface G 節 7 個 _Prod 名稱（15 欄；數值或「SLO 不可達」）
+    assert len(v519_new) == 7 and v519_new <= set(eng.names)
+    for n in v519_new:
+        v = eng.get_name(n)
+        assert isinstance(v, list) and len(v) == 15 and all((isinstance(x, (int, float)) and not isinstance(x, bool)) or x == "SLO 不可達" for x in v), f"{n}: {v!r}"
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長

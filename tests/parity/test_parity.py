@@ -210,7 +210,12 @@ def test_interface_d_e_shapes(model):
     for n in v519_new:
         v = eng.get_name(n)
         assert isinstance(v, list) and len(v) == 15 and all((isinstance(x, (int, float)) and not isinstance(x, bool)) or x == "SLO 不可達" for x in v), f"{n}: {v!r}"
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個
+    v522_new = {f"{n}_Life" for n in ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet")}   # v5.22 X7：Interface H 節 4 個 _Life 名稱（15 欄；數值或「SLO 不可達」）
+    assert len(v522_new) == 4 and v522_new <= set(eng.names)
+    for n in v522_new:
+        v = eng.get_name(n)
+        assert isinstance(v, list) and len(v) == 15 and all((isinstance(x, (int, float)) and not isinstance(x, bool)) or x == "SLO 不可達" for x in v), f"{n}: {v!r}"
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
@@ -440,7 +445,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 217 and eng.get_name("GOV_Info") == 107
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 209 and eng.get_name("GOV_Info") == 107
 
 
 def _pct(eng, n, k):
@@ -468,3 +473,39 @@ def test_prod_derate_expected_values(model, template_engine):
     for n, vals in (("IF_FullCost_Sol_Prod", EXPECT_PROD_070["sol"]), ("IF_FullCost_Astra_Prod", EXPECT_PROD_070["astra"])):
         for k, v in zip((4, 7, 10, 13), vals):
             assert abs(_pct(eng, n, k) - v) < 5e-4, (n, k, _pct(eng, n, k), v)
+
+
+LIFE_IF = ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet")                  # v5.22 X7：各自的 _Life 並列列
+
+
+def test_price_life_expected_values(model, template_engine):
+    """v5.22 X7（工作單 1.3、1.4 節）：基準 L＝m＝1 時四個 _Life 列＝基準列；h_price_life_050（L＝0.5、m＝0.8）時 60 格 _Life＝基準 × 0.4，
+    基準列、L1、Interface 第 1–210 列不變；錯誤值 0；Checks X7（GOV_Errors）＝0。基準列為文字時 _Life 為相同文字。"""
+    import re
+    base = new_engine(model)
+    assert base.get_name("CTL_PriceLife") == 1 and base.get_name("CTL_Monetize") == 1
+    for n in LIFE_IF:
+        assert base.get_name(n + "_Life") == base.get_name(n), n
+    assert base.get_name("GOV_Errors") == 0
+    base_vals = base.evaluate_all()
+    eng = _clone(template_engine)
+    eng.set_key("CTL_PriceLife", 0.5)
+    eng.set_key("CTL_Monetize", 0.8)
+    cur = eng.evaluate_all()
+    assert eng.get_name("GOV_Errors") == 0
+    changed = 0
+    for n in LIFE_IF:
+        b, life = eng.get_name(n), eng.get_name(n + "_Life")
+        assert len(b) == len(life) == 15, n
+        for k, (x, y) in enumerate(zip(b, life)):
+            if isinstance(x, (int, float)) and not isinstance(x, bool):
+                assert abs(y - x * 0.4) <= 1e-9 * max(1.0, abs(x)), (n, k, x, y)
+                changed += y != x
+            else:
+                assert y == x, (n, k, x, y)          # 基準列為文字（SLO 不可達）→ 相同文字
+    assert changed > 0                               # 防空轉：至少一格 _Life 改變
+    for (sh, coord), v in cur.items():               # 基準列、L1、Interface 第 1–210 列、其他模型頁：數值不變（只允許 Theory_Rev D 節、Interface H 節、Checks X7 與其彙總）
+        row = int(re.sub(r"[A-Z]+", "", coord))
+        if sh == "L1" or (sh == "Interface" and row <= 210):
+            assert v == base_vals[(sh, coord)], (sh, coord, base_vals[(sh, coord)], v)
+    assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values())

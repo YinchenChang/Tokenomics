@@ -132,12 +132,14 @@ PLUGINS = ["engine.excel_semantics"]
 
 
 def _cache_fingerprint(path: Path) -> dict:
-    """序列化快取的有效條件：活頁簿內容、引擎原始碼、pycel 與 Python 版本任一改變即失效。"""
+    """序列化快取的有效條件：活頁簿內容、引擎原始碼、pycel 版本與 Python 主、次版號任一改變即失效。
+    v5.22（工程類）：Python 欄只比對主、次版號（例 3.11）。parity.yml 的 setup-python 指定 "3.11"（修訂號浮動），同一個 run 內
+    engine-cache job 與各 shard 可能落在不同 runner 映像（3.11.16 ≠ 3.11.17）而被拒載；快取與重建相等的實質保證仍是 test_cache_matches_fresh。"""
     import pycel
     here = Path(__file__).resolve().parent
     h = lambda p: hashlib.sha256(Path(p).read_bytes()).hexdigest()   # noqa: E731
     return {"xlsx": h(path), "core": h(here / "core.py"), "semantics": h(here / "excel_semantics.py"),
-            "pycel": getattr(pycel, "__version__", "?"), "python": platform.python_version()}
+            "pycel": getattr(pycel, "__version__", "?"), "python": ".".join(platform.python_version_tuple()[:2])}
 
 
 class Engine:

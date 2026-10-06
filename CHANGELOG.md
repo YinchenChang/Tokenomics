@@ -2,9 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261006_Tokenomics_v5.22.xlsx（取代 v5.21；X7 壽命期價格係數 L、變現率 m 並列輸出；X8 補充；X9 Q2 第二來源；CI 工程兩項；判斷類＋工程類，依工作單 `docs/workorders/20261006_v5.22.md` r4 執行）
+
+- Commit：見本輪分支 `claude/new-session-mtq0pj`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.22.md`。底稿：master `4b70496`（含 v5.21 合併 `fef9bfd`）；`model/CURRENT` 原為 v5.21。
+- Excel（CC 以 `builder/` 自 v5.21 產生，經 LibreOffice 重算存檔）：**X7** 新輸入格 `CTL_PriceLife`（L）與 `CTL_Monetize`（m）（Cap_In!C63、C64，基準 1，藍字，Gov_Map GM593／GM594，區間 0.3–1.0，P 欄＝高）；Theory_Rev D 節新增四列 _Life（第 90–93 列）與自我檢查旗標（第 96–99 列）；Interface H 節（第 212–216 列）新增 `IF_RevGW_Luna／Sol／Astra_Life`、`IF_RevGWFleet_Life`（＝基準列 × L × m；文字列輸出相同文字）；Checks Y 節 X7（ERROR，計入 GOV_Errors）。既有 IF_RevGW_*、IF_RevGWFleet、L1 與 `_Prod` 列公式與數值逐格不變。**X8 補充** DB_Evidence E246（產業租金指數，L 的 Analogy 證據，摘要級、原文未讀；不新增任何 SRC 紀錄）。**X9 Q2** SRC_Perf 第 056–059 與 052–055 互填第二來源（R 欄）、備註欄附加說明。Decisions 新增 X7、X8、X9。
+- 敏感度（只報告，不改模型）：Perf_Batch 側 VR200 效率 k＝0.70／0.75／0.84 的唯讀對照見報告第 3 節；任一 Interface 輸出變動 ≥ 10% 已列入「待 Project 判斷」。
+- builder：新增 `v522.py`（版本字串的唯一來源）；`build.py`、`gov.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v522.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生。
+- 工程類（CI）：(1) `engine/core.py` 快取指紋的 Python 欄只比對主、次版號（修正 PR #22 run 177／178 因 runner 映像修訂號不同〔3.11.16 ≠ 3.11.17〕而在 `test_cache_matches_fresh` 失敗）；(2) 新 job `ci-status`（`parity.yml` 末尾）與 `tools/ci_status.py`：把每次 run 的結果寫進孤立分支 `ci-status`（`<sha>/<run_number>-a<attempt>-<event>.json`），`on.push` 加 `branches-ignore: [ci-status]`，scenario-guard 加上傳 `junit-scenario-guard`；合併門檻 `parity` 不變。
+- 測試：期望值 `formula_cells` 38,989 → 39,198、`defined_names` 896 → 902、`downstream_names` 178 → 182、`GOV_Warnings` 217 → 209；新增情境 `h_price_life_050`、`test_price_life_expected_values`、`tests/parity/test_ci_status.py`（6 項，只用 fixture）。既有情境與期望值未動。
+- 治理：GOV_Errors 0、GOV_Warnings 209（W1 209＋W2 0＋H3 0；W1 −8）、GOV_Info 107（不變）。
+
 ## 20261006_Tokenomics_v5.21.xlsx（取代 v5.20；X6：X4 結案、MLPerf v6.1 一手結果寫入；判斷類＋工程小項，依工作單 `docs/workorders/20261006_v5.21.md` r1 執行）
 
-- Commit：見本輪分支 `claude/new-session-by13ws`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.21.md`。底稿：master `6c2bc89`（含 v5.20 合併 `0b4808e`）；`model/CURRENT` 原為 v5.20。
+- Commit：合併雜湊 `fef9bfd`（PR #22）；分支 `claude/new-session-by13ws`。報告：`docs/reports/20261006_v5.21.md`。底稿：master `6c2bc89`（含 v5.20 合併 `0b4808e`）；`model/CURRENT` 原為 v5.20。
 - Excel：**X6** 一手來源 MLCommons `inference_results_v6.1/summary.csv`（repo HEAD `4bb63cd`，SHA-256 `87980a2d…065a`，CC 已讀並逐列核對）。SRC_Perf：`SRC_PERF_027`／`028` 由 2 級二手升為 1 級一手（已讀）；新增 `SRC_PERF_052`–`059`（Nebius VR200／GB300 的 Offline、Server 各 2 筆，NVIDIA Vera Rubin／GB300 的 Offline、Server 各 2 筆；1 級、利害關係方、不連結任何模型格）。DB_Evidence 新增 E245（取代 E244，連 GM344）；Gov_Map GM344 理由欄加註；Decisions 新增 X6、X4 狀態改「v5.21 結案（X6）」。Calib F67 維持 1.0／0.5–1.5。`Alloc_In!G7` 備註補「；區間 0–6（v5.20 X3）」。SRC_ 具名範圍 335 → 343、公式格 38,933 → 38,989、具名範圍 888 → 896。Interface、L1、所有模型頁數值逐格不變。
 - builder：新增 `v521.py`（版本字串的唯一來源，`finish.py` 的 README!A1／B5 改讀它）；`gov.py`、`build.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v521.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生。以 v5.21 重建冪等 0 不符。
 - 測試：期望值 `formula_cells` 38,933 → 38,989、`defined_names` 888 → 896、`src_names` 335 → 343、`GOV_Warnings` 209 → 217；新增 `test_readme_version_consistency`（README!A1 版本號、README!B5 檔名、`model/CURRENT` 三者一致）。

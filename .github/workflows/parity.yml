@@ -5,8 +5,12 @@ name: parity
 # engine 計算圖由 engine-cache job 建一次、以 pycel 序列化檔分給 scenario-guard 與 structure-recalc 使用；
 # scenarios 的核心斷言用重建引擎，另以 test_cache_matches_fresh 每次 CI 驗證快取與重建精確相等（比對範圍、容差、情境、斷言皆不變）。
 # 合併門檻＝名為 parity 的最後一個 job（needs 全部 job，任一未通過即失敗）。
+# v5.22（工程類）：on.push 加 branches-ignore: [ci-status]（防循環；GITHUB_TOKEN 推送本就不觸發 workflow，雙重保險）；
+# 加 tags: ["**"] 保留「推標籤也跑」的原行為（只寫 branches-ignore 時，標籤推送不再觸發）。
 on:
   push:
+    branches-ignore: [ci-status]
+    tags: ["**"]
   pull_request:
 
 env:
@@ -139,6 +143,13 @@ jobs:
       - name: job summary
         if: always()
         run: python tools/ci_summary.py job "scenario-guard" junit.xml >> "$GITHUB_STEP_SUMMARY"
+      - name: 上傳 junit（供 ci-status 讀取；名稱不得以 parity-results- 開頭，以免改變 parity job 的情境覆蓋彙總）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-scenario-guard
+          path: junit.xml
+          if-no-files-found: ignore
 
   governance:
     name: governance（GOV_Errors 必須為 0；匯出 CSV）
@@ -190,10 +201,31 @@ jobs:
             echo "| scenario-guard | ${{ needs.scenario-guard.result }} |"
             echo "| governance | ${{ needs.governance.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: 情境覆蓋（23 個情境恰各跑一次）
+      - name: 情境覆蓋（scenarios.yaml 全部情境恰各跑一次；v5.22 起 24 個）
         run: python tools/ci_summary.py gate results/ | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 全部 job 必須通過
         if: needs.engine-cache.result != 'success' || needs.scenarios.result != 'success' || needs.structure-recalc.result != 'success' || needs.scenario-guard.result != 'success' || needs.governance.result != 'success'
         run: |
           echo "有 job 未通過" >&2
           exit 1
+
+  # v5.22（工程類）：把本次 run 的結果寫進孤立分支 ci-status，供 chat 端 git fetch 讀取（未登入 API 次數不足、讀不到 log）。
+  # 只在此 job 提高權限；失敗不得使 run 或 parity 失敗（continue-on-error）；合併門檻仍為 job parity。
+  ci-status:
+    name: ci-status（結果寫回 ci-status 分支）
+    needs: [engine-cache, scenarios, structure-recalc, scenario-guard, governance, parity]
+    if: always()
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: 蒐集本次 run 的 job、失敗測試、失敗 job 的 log 摘錄與重算秒數，寫入 ci-status 分支
+        continue-on-error: true      # fork PR 的 GITHUB_TOKEN 唯讀，推送失敗可容忍
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OVERALL: ${{ needs.parity.result }}
+        run: python3 tools/ci_status.py --out status-out --push | tee -a "$GITHUB_STEP_SUMMARY"

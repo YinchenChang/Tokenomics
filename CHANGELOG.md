@@ -20,7 +20,7 @@
 - 工程類修正（工作單外，報告表 2 列出）：`gov.py` 的 L1 四列 RevGW 的 E、F 公式改為 `INDEX(…)*(Sens_Rev!$B$6/IF_Util)` 形式（8 格；數學相同、差 ≤1e-15），修正情境 `e_util_08` 下 Checks H3 因 1 ulp 平手使引擎與 LibreOffice 不一致（v5.16 起的潛在缺口）。
 - CI：`parity.yml` 的 structure-recalc 摘要步驟改 `| tee -a "$GITHUB_STEP_SUMMARY"`，兩個重算秒數同時出現在 job 日誌。
 - 規則：查核紀錄規則（R5／R6 網址須為摘要實際所在頁面）寫入 `docs/stage2_source_check_rules.md`（CLAUDE.md 屬 Project 端維護）。
-- 治理：GOV_Errors 0、GOV_Warnings 212（W1 209＋W2 3）、GOV_Info 107。
+- 治理：GOV_Errors 0、GOV_Warnings 209（W1 209＋W2 0）、GOV_Info 107。
 
 ## 20261005_Tokenomics_v5.17.xlsx（取代 v5.16；收尾小項；工程類，依工作單 `docs/workorders/20261005_v5.17_stage2-1.md` r1 PR A 執行）
 

@@ -202,6 +202,8 @@ def serving(wb):
         for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
         put(ws, f"F{r}", note, F_NOTE)
     for c in "CDE": ws[f"{c}21"].fill = FILL_KEY
+    import v519
+    v519.serving_input(ws)        # v5.19 X1: CTL_ProdDerate on row 28 (after the existing content; nothing moves)
     return ws
 
 def energy_inputs(wb):

@@ -286,6 +286,8 @@ def serving(wb):
         for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
         put(ws, f"F{r}", note, F_NOTE)
     for c in "CDE": ws[f"{c}21"].fill = FILL_KEY
+    import v519
+    v519.serving_input(ws)        # v5.19 X1: CTL_ProdDerate on row 28 (after the existing content; nothing moves)
     return ws
 
 def energy_inputs(wb):
@@ -1563,11 +1565,11 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", "20261005_Tokenomics_v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", "20261006_Tokenomics_v5.19（X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
-      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Alloc_In → Alloc → Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand、SRC_Index（builder 擁有的查找索引）、Sources_Legacy（v5.12 起凍結）、DB_Evidence。"),
+      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Alloc_In → Alloc → Perf_Prod → Perf_Batch_Prod → Training_Prod → Unit_Cost_Prod → Interface_Prod → Fleet_1GW_Prod → Amortize_Prod → Theory_Rev_Prod（v5.19 X1 鏡像頁）→ Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand、SRC_Index（builder 擁有的查找索引）、Sources_Legacy（v5.12 起凍結）、DB_Evidence。"),
       ("Block 6 推導（v5.15）", "實驗室年度算力＝研發需求＋服務需求。需求 D（token 路線，A9）：API＝SRC_DEM_010 × 525,600 × 全年平均比例；ChatGPT＝SRC_DEM_012 × 每則提示 token 數 × 365。服務 GW＝D ÷ 世代組合後每 GW 年產能（依 Cap_In 層級組合與 IF_TokGW_*、IF_Util，寫法同 Fleet_1GW 第 19–29 列）。研發 GW 年＝k ×（N_major × 家族計畫＋N_refresh × 改版計畫），家族計畫＝IF_ProgGWyr 三層級合計，改版計畫＝後訓練 GPU 小時 × 研發倍數換算 GW 年（訓練世代＝IF_TrainGenDefault）。Q1＝研發 GW ÷（研發＋服務 GW）；Q2 以各世代 IF_HoldEcon 加權，利用率不進入。研發占比的物理部分只給下限，實際占比由策略變數決定。隱含 N × k 由 2025 支出比反推（A3）。SLO 不可達時回傳文字。決策 A1–A10 見 Decisions。"),
       ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
       ("Block 3 決策", "J7 訓練精度 FP8（NVFP4 預訓練在 Tech_Registry）；J8 Astra 預訓練與 Arch 一致，前沿錨點列 Checks；J9 RL 由下而上，基準校到 RL÷預訓練 GPU 小時 Luna／Sol 0.3、Astra 1.0；J10 研發倍數 8，家族合計、依最終訓練比例分攤；J11 用途 × 型態只列單一計畫；J12 rollout NVFP4（FP8 為情境）；J13 下游預設 VR200、GB300 並列；J14 主流＝至少兩家實驗室公開採用，可覆寫。"),
@@ -1587,6 +1589,7 @@ def readme(wb):
       ("Block 5 決策", "L1 參數組取代單一 token 倍數；L2 METR 型成功率＋覆寫欄；L3 增強檔不入基準（w＝0）；L4 harness 不影響每 GW 營收；L5 每成功任務成本＝每次嘗試 ÷ p；L6 非 GPU 成本不入第 0 層；L7 情境值只採中立方同條件實測；M1 (b) 成功任務成本前緣只比較成功率 ≥ 可靠度下限 p_min（基準 50%）者，無合格時回傳「無合格」，不設下限的前緣列為對照。"),
       ("來源原則", "SemiAnalysis（含 InferenceX）資料一律須有第二來源佐證並標記 Interested-party；目前第二來源為 MLPerf（MLCommons 稽核，NVIDIA 提交）與 DeepSeek 自揭（待查）。"),
       ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取儲存成本已於 v5.8 Cache_Store 加入（儲存層與保留時間為 Assumed）。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。(11) v5.8：K6 下游攤提預設於 v5.9 定為 (c)；Claude Opus 5.5、Kimi K3、MiniMax M3 的能力指數未取得，不參與前緣；Anthropic、Moonshot、Alibaba、MiniMax 價格為二手；METR 檢查未入表；Google 未列入候選。(12) v5.9：METR 尚未發布 GPT-6 各層級時間範圍（以 GPT-5.6 Sol、Mythos Preview 類比）；任務長度為 Assumed；ARC 金額衝突與 Opus 5 harness 歸屬待核；harness 用於 RL rollout 與非 GPU 成本延後。"),
+      ("生產折減並列輸出（v5.19 X1）", "Serving!C18（J15）維持 1.0（G0-11），模型的基準輸出不變。Interface G 節並列七列 _Prod 輸出，以 CTL_ProdDerate（Serving!C28，預設 0.85＝區間 0.7–1.0 的中點，情境值）重算：從 Serving!C18 進入模型的兩處（Perf、Perf_Batch 第 50 列）起，到 Theory_Rev 七個輸出列為止的公式鏈，逐格鏡像到 *_Prod 頁（同位置；只改兩處：鏈上參照改讀 *_Prod、第 50 列改讀 CTL_ProdDerate）。右側 S:AG 為檢查副本（第 50 列＝Serving!C18），Checks X1 比對七列是否等於基準列。_Prod 輸出的口徑同 D 節對應列；SLO 不可達時為文字。"),
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
@@ -19336,6 +19339,345 @@ def decisions_rows():
     return S4.DEC
 ```
 
+## v519.py
+
+```python
+# v5.19 (work order docs/workorders/20261006_v5.19.md): X1 production-derate side-by-side outputs; X2 Gov_Map P promotions.
+#
+# X1 mirrors the dependency chain that starts where Serving!C18 enters the model (Perf row 50 and Perf_Batch row 50; Sens_Perf
+# row 50 also reads it but feeds none of the targets) and ends at the seven Theory_Rev rows behind IF_FullCost_* /
+# IF_RevGW_* / IF_RevGWFleet. The chain is found from the workbook's own
+# formulas at build time (forward cone of the seed cells ∩ backward cone of the target cells); it is not a hand-kept list.
+# Each mirrored cell sits at the SAME address as its source on a *_Prod sheet, with two rewrites only:
+#   (1) a reference to a cell that is in the chain points to the mirror sheet; every other reference is unchanged (made explicit
+#       with its original sheet name); defined names whose range is in the chain are replaced by the mirror range;
+#   (2) the seed cell (Perf row 50) reads CTL_ProdDerate instead of Serving!C18.
+# A second copy to the right (columns +17) has the seed cell on Serving!C18 and feeds the self-check (Checks X1): with the
+# substitute set back to C18 the seven Prod rows must equal the baseline rows. No Python-side arithmetic anywhere.
+import re
+import collections
+from openpyxl.formula import Tokenizer
+from openpyxl.utils import range_boundaries, get_column_letter as L
+from openpyxl.workbook.defined_name import DefinedName
+from copy import copy
+from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_NOTE, FILL_KEY, FILL_SEC, WRAP, title, section
+
+C18 = "=Serving!$C$18"
+SEED_COLS = range(3, 18)                                   # C:Q (5 generations x 3 columns); also the span of the Theory_Rev targets
+PROD_SHEETS = ["Perf_Prod", "Perf_Batch_Prod", "Training_Prod", "Unit_Cost_Prod", "Interface_Prod", "Fleet_1GW_Prod", "Amortize_Prod", "Theory_Rev_Prod"]
+SRC_SHEETS = [x[:-len("_Prod")] for x in PROD_SHEETS]
+# (Theory_Rev row, Interface name of the baseline row, new name)
+TARGETS = [(18, "IF_FullCost_Luna"), (36, "IF_FullCost_Sol"), (54, "IF_FullCost_Astra"),
+           (11, "IF_RevGW_Luna"), (29, "IF_RevGW_Sol"), (47, "IF_RevGW_Astra"), (67, "IF_RevGWFleet")]
+SHIFT = 16                                                 # check copy: columns S:AG (C+16 … Q+16)
+SUFFIX = "_Prod"
+NEW_INPUT_ROW = 28                                         # Serving row of CTL_ProdDerate (after the existing content, no shifts)
+CTL_DEFAULT = 0.85
+TAG = re.compile(r"　\[[A-Za-z0-9_]+\]\s*$")
+
+_CELL = re.compile(r"^(\$?)([A-Z]{1,3})(\$?)(\d+)$")
+
+
+def _qs(sh):
+    return f"'{sh}'" if re.search(r"[^A-Za-z0-9_]", sh) else sh
+
+
+def _parse(tok, cur):
+    if "!" in tok:
+        sh, rg = tok.rsplit("!", 1)
+        return sh.strip("'"), rg, True
+    return cur, tok, False
+
+
+def _bounds(rg):
+    try:
+        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+    except Exception:
+        return None
+    if None in (c1, r1, c2, r2):
+        return None
+    return c1, r1, c2, r2
+
+
+def _formula_cells(wb):
+    return {(ws.title, c.column, c.row): c.value for ws in wb for row in ws.iter_rows() for c in row
+            if isinstance(c.value, str) and c.value.startswith("=")}
+
+
+def _refs(wb, names, cells):
+    """formula cell -> list of (sheet, c1, r1, c2, r2) it reads (defined names expanded)."""
+    sheets = set(wb.sheetnames)
+    out = {}
+    for key, f in cells.items():
+        refs = []
+        for t in Tokenizer(f).items:
+            if t.type == "OPERAND" and t.subtype == "RANGE":
+                parts = names[t.value].split(",") if t.value in names else [t.value]
+                for p in parts:
+                    sh, rg, _ = _parse(p, key[0])
+                    b = _bounds(rg)
+                    if b and sh in sheets:
+                        refs.append((sh, *b))
+        out[key] = refs
+    return out
+
+
+def chain_cells(wb):
+    """The mirrored cell set: forward cone of the seed ∩ backward cone of the targets."""
+    names = {n: wb.defined_names[n].attr_text for n in wb.defined_names}
+    cells = _formula_cells(wb)
+    refs = _refs(wb, names, cells)
+    by_sheet = collections.defaultdict(list)
+    for key, rl in refs.items():
+        for (sh, c1, r1, c2, r2) in rl:
+            by_sheet[sh].append((key, c1, r1, c2, r2))
+    seeds = [k for k, rl in refs.items() if any(sh == "Serving" and c1 <= 3 <= c2 and r1 <= 18 <= r2 for (sh, c1, r1, c2, r2) in rl)]
+    assert seeds and all(cells[k] == C18 for k in seeds if k[0] != "Gov_Map"), "unexpected reader of Serving!C18"
+    fwd, frontier = set(seeds), list(seeds)
+    while frontier:
+        nxt = []
+        grid = collections.defaultdict(set)
+        for sh, c, r in frontier:
+            grid[sh].add((c, r))
+        for sh, pts in grid.items():
+            for key, c1, r1, c2, r2 in by_sheet[sh]:
+                if key not in fwd and any(c1 <= c <= c2 and r1 <= r <= r2 for c, r in pts):
+                    fwd.add(key); nxt.append(key)
+        frontier = nxt
+    targets = [("Theory_Rev", c, r) for r, _ in TARGETS for c in SEED_COLS]
+    bwd, stack = set(targets), list(targets)
+    while stack:
+        key = stack.pop()
+        for (sh, c1, r1, c2, r2) in refs.get(key, []):
+            for c in range(c1, c2 + 1):
+                for r in range(r1, r2 + 1):
+                    k = (sh, c, r)
+                    if k in cells and k not in bwd:
+                        bwd.add(k); stack.append(k)
+    S = fwd & bwd
+    seeds = {k for k in seeds if k in S}
+    return S, cells, names, seeds
+
+
+def _shift_ref(rg, shift):
+    """shift the column of an A1 reference or range, keeping $ markers"""
+    def one(x):
+        m = _CELL.match(x)
+        return f"{m.group(1)}{L(openpyxl_col(m.group(2)) + shift)}{m.group(3)}{m.group(4)}"
+    return ":".join(one(x) for x in rg.split(":"))
+
+
+def openpyxl_col(letters):
+    from openpyxl.utils import column_index_from_string
+    return column_index_from_string(letters)
+
+
+def mirror_formula(f, cur, S, names, shift):
+    """rewrite one formula (see header); asserts that no range is split between chain and non-chain cells"""
+    out = ["="]
+    for t in Tokenizer(f).items:
+        v = t.value
+        if t.type == "OPERAND" and t.subtype == "RANGE":
+            parts = names[v].split(",") if v in names else [v]
+            hit, miss = 0, 0
+            for p in parts:
+                sh, rg, _ = _parse(p, cur)
+                b = _bounds(rg)
+                assert b, f"unparseable reference {v!r} in {f!r}"
+                c1, r1, c2, r2 = b
+                n = sum((sh, c, r) in S for c in range(c1, c2 + 1) for r in range(r1, r2 + 1))
+                hit += n > 0; miss += n < (c2 - c1 + 1) * (r2 - r1 + 1)
+            assert not (hit and miss), f"range split between chain and non-chain cells: {v!r} in {f!r}"
+            if hit:                                                  # entirely inside the chain -> mirror range
+                new = []
+                for p in parts:
+                    sh, rg, _ = _parse(p, cur)
+                    new.append(f"{_qs(sh + SUFFIX)}!{_shift_ref(rg, shift)}")
+                v = ",".join(new)
+            elif v in names:
+                pass                                                 # a name outside the chain stays a name
+            else:
+                sh, rg, explicit = _parse(v, cur)
+                v = v if explicit else f"{_qs(sh)}!{rg}"
+        out.append(v)
+    return "".join(out)
+
+
+def build_chain(wb):
+    """Create the *_Prod sheets; returns info for the report (cell counts, sheets, rows)."""
+    S, cells, names, seeds = chain_cells(wb)
+    assert S and all(3 <= c <= 17 for (_, c, _) in S), "chain must live in columns C:Q"
+    for key in S:
+        assert mirror_formula(cells[key], key[0], set(), names, 0) is not None
+    # tokenizer round trip must reproduce every formula (guards the rewrite)
+    for key in S:
+        assert "=" + "".join(t.value for t in Tokenizer(cells[key]).items) == cells[key], f"tokenizer round trip {key}"
+    sheets = [s for s in SRC_SHEETS if any(k[0] == s for k in S)]
+    assert sorted({k[0] for k in S}) == sorted(sheets) == sorted(SRC_SHEETS), sorted({k[0] for k in S})
+    rows_of = {s: sorted({r for (sh, _, r) in S if sh == s}) for s in sheets}
+    for s in sheets:
+        src = wb[s]; ws = wb.create_sheet(s + SUFFIX)
+        title(ws, f"{s}{SUFFIX} — {s} 的鏡像（v5.19 X1：生產折減並列輸出）",
+              "同位置鏡像：公式逐格同 " + s + "，只改兩處——(1) 讀到鏈上其他格者改讀本組 *_Prod 頁；(2) Perf_Prod 與 Perf_Batch_Prod 第 50 列改讀 CTL_ProdDerate（Serving!C28），"
+              "其餘仍讀原頁。右側 S:AG 為自我檢查副本（第 50 列＝Serving!C18，Checks X1）。只含從 Serving!C18 的進入點（兩個第 50 列）算到七個 _Prod 輸出所需的列。")
+        for c in "ABCDEFGHIJKLMNOPQ":
+            if src.column_dimensions[c].width: ws.column_dimensions[c].width = src.column_dimensions[c].width
+        for i in range(19, 34): ws.column_dimensions[L(i)].width = src.column_dimensions["C"].width or 12
+        ws.freeze_panes = src.freeze_panes
+        for blk, shift in (("主", 0), ("檢查副本", SHIFT)):
+            for r in (4, 5, 6, 7):                                    # header band (links; copies of the source header rows)
+                for c in SEED_COLS:
+                    sc = src.cell(r, c)
+                    if sc.value is not None:
+                        put(ws, f"{L(c + shift)}{r}", f"={_qs(s)}!{L(c)}{r}", fmt=sc.number_format, fill=copy(sc.fill) if sc.fill.fill_type else None)
+            if shift:
+                put(ws, f"{L(3 + shift)}3", "自我檢查副本（第 50 列＝Serving!C18；Checks X1 比對）", F_BOLD)
+        for r in (4, 5, 6, 7): put(ws, f"A{r}", f"={_qs(s)}!A{r}"); put(ws, f"B{r}", f"={_qs(s)}!B{r}") if src.cell(r, 2).value is not None else None
+        for r in rows_of[s]:
+            for c in (1, 2):
+                v = src.cell(r, c).value
+                if v is None: continue
+                put(ws, f"{L(c)}{r}", f"={_qs(s)}!{L(c)}{r}" if isinstance(v, str) and v.startswith("=") else v,
+                    F_NOTE if c == 2 else None)
+            for c in SEED_COLS:
+                key = (s, c, r)
+                if key not in S: continue
+                sc = src.cell(r, c)
+                for blk, shift in (("主", 0), ("檢查", SHIFT)):
+                    if key in seeds:
+                        f = "=CTL_ProdDerate" if shift == 0 else C18
+                    else:
+                        f = mirror_formula(cells[key], s, S, names, shift)
+                    put(ws, f"{L(c + shift)}{r}", f, fmt=sc.number_format, fill=copy(sc.fill) if sc.fill.fill_type else None)
+    return dict(S=S, sheets=sheets, rows=rows_of, cells=len(S), seeds=len(seeds))
+
+
+def interface_x1(wb, start, info):
+    """Interface G: seven rows, C:Q, one per target; named IF_*_Prod. Labels, units, formats follow the baseline rows."""
+    ws = wb["Interface"]; r = start
+    section(ws, r, "G. 生產折減並列輸出（X1，v5.19）：C18（Serving）維持 1.0；本節以 CTL_ProdDerate（Serving!C28，情境值，預設 0.85）"
+                   "重算同一條推導鏈（Perf_Prod → Unit_Cost_Prod → Interface_Prod → Fleet_1GW_Prod → Amortize_Prod → Theory_Rev_Prod）。"
+                   "口徑同 D 節對應列；SLO 不可達時為文字", 17); r += 1
+    made = []
+    for trow, base in TARGETS:
+        nm = wb.defined_names[base].attr_text
+        m = re.match(r"Interface!\$C\$(\d+):\$Q\$(\d+)", nm); brow = int(m.group(1))
+        lab = TAG.sub("", ws.cell(brow, 1).value)
+        put(ws, f"A{r}", f"{lab}（生產折減 CTL_ProdDerate）　[{base}{SUFFIX}]"); put(ws, f"B{r}", ws.cell(brow, 2).value)
+        for c in SEED_COLS:
+            bc = ws.cell(brow, c)
+            put(ws, f"{L(c)}{r}", f"=Theory_Rev{SUFFIX}!{L(c)}{trow}", fmt=bc.number_format, fill=copy(bc.fill) if bc.fill.fill_type else None)
+        made.append((f"{base}{SUFFIX}", f"Interface!$C${r}:$Q${r}", trow, r)); r += 1
+    for n, ref, _, _ in made:
+        if n in wb.defined_names: del wb.defined_names[n]
+        wb.defined_names[n] = DefinedName(n, attr_text=ref)
+    return made
+
+
+def checks_x1(wb, made):
+    """Theory_Rev_Prod self-check flags (rows 90–96) and Checks X1 (ERROR, counted in GOV_Errors)."""
+    tr = wb["Theory_Rev" + SUFFIX]
+    put(tr, "A89", "自我檢查（v5.19 X1）：檢查副本（第 50 列＝Serving!C18）對基準列；0＝相同（容差 1e-12；兩邊皆為文字時不報錯）", F_BOLD)
+    flag_rows = []
+    for i, (trow, base) in enumerate(TARGETS):
+        rr = 90 + i
+        put(tr, f"A{rr}", f"{base}：檢查副本 vs 原 Theory_Rev 第 {trow} 列", F_NOTE)
+        for c in SEED_COLS:
+            a, b = f"{L(c + SHIFT)}{trow}", f"Theory_Rev!{L(c)}{trow}"
+            put(tr, f"{L(c)}{rr}", f"=IF(AND(ISNUMBER({a}),ISNUMBER({b})),IF(ABS({a}-{b})<=1E-12*MAX(1,ABS({b})),0,1),"
+                                   f"IF(AND(NOT(ISNUMBER({a})),NOT(ISNUMBER({b}))),0,1))", fmt="0")
+        flag_rows.append(rr)
+    ws = wb["Checks"]
+    r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r, "X. 生產折減並列輸出檢查（工作單 X1，v5.19）：X1 為 ERROR 計入 GOV_Errors", 6); r += 1
+    for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]): put(ws, f"{L(i+1)}{r}", h, F_BOLD)
+    r += 1
+    put(ws, f"A{r}", "X1"); put(ws, f"B{r}", "生產折減並列輸出的自我檢查：替代值改回 Serving!C18 時，七個 _Prod 列不等於對應基準列的格數"); put(ws, f"C{r}", "ERROR", F_BOLD)
+    put(ws, f"D{r}", f"=SUM(Theory_Rev{SUFFIX}!C{flag_rows[0]}:Q{flag_rows[-1]})", fmt="0")
+    put(ws, f"E{r}", f"Theory_Rev_Prod 第 {flag_rows[0]}–{flag_rows[-1]} 列 × C:Q（7 × 15＝105 格；檢查副本在 S:AG，不需手動改輸入）", F_NOTE)
+    ref = wb.defined_names["GOV_Errors"].attr_text.split("!")[1].replace("$", "")
+    cell = ws[ref]
+    if f"D{r}" not in str(cell.value): cell.value = f"{cell.value}+D{r}"
+    ws[f"B{int(ref[1:])}"].value = "ERROR 合計（CI 讀取 GOV_Errors；含 G、H、X 節）"
+    return r
+
+
+def serving_input(ws):
+    """Serving row 28: CTL_ProdDerate (blue input, new row after the existing content, nothing moves)."""
+    put(ws, f"A{NEW_INPUT_ROW}", "並列輸出用生產折減（情境值，X1；非估計值）"); put(ws, f"B{NEW_INPUT_ROW}", "x")
+    put(ws, f"C{NEW_INPUT_ROW}", CTL_DEFAULT, fmt="0.00")
+    put(ws, f"D{NEW_INPUT_ROW}", "情境值", F_NOTE)
+    put(ws, f"F{NEW_INPUT_ROW}", "v5.19 X1：只驅動 Interface G 節的 _Prod 並列輸出（Perf_Prod 第 50 列）；Serving!C18 維持 1.0（G0-11），不受影響。"
+                                 "0.85＝C18 區間 0.7–1.0 的中點，不是估計值；Andy 日後給 C18 值時，本格可保留作並列情境", F_NOTE)
+    ws[f"C{NEW_INPUT_ROW}"].fill = copy(ws["C18"].fill)
+    wb = ws.parent
+    if "CTL_ProdDerate" in wb.defined_names: del wb.defined_names["CTL_ProdDerate"]
+    wb.defined_names["CTL_ProdDerate"] = DefinedName("CTL_ProdDerate", attr_text=f"Serving!$C${NEW_INPUT_ROW}")
+
+
+def x1(wb):
+    info = build_chain(wb)
+    made = interface_x1(wb, max(c.row for row in wb["Interface"].iter_rows() for c in row if c.value is not None) + 2, info)
+    info["made"] = made
+    info["check_row"] = checks_x1(wb, made)
+    return info
+
+
+# ------------------------------------------------------------------ X2 (Gov_Map P column; promotions only, never demotions)
+# (GM_ID, sheet, cell, old P, swing text for the note column)   — chat-side scan 2026-10-06, work order 2.2
+X2 = [
+    ("GM205", "Arch", "E8", "中", "−14.8%／+82.4%（低／高端；IF_FullCost_Astra VR200）"),
+    ("GM586", "Alloc_In", "C15", "中", "−15.1%／+60.2%（低／高端；IF_AllocServeGW）"),
+    ("GM578", "Alloc_In", "C7", "中", "−45.0%／+45.0%（低／高端；IF_AllocRDGW）"),
+    ("GM104", "Spec_Rack", "G23", "中", "+43.5%／−23.3%（低／高端；IF_FullCost_Sol Rubin Ultra）"),
+    ("GM270", "Workload", "G8", "中", "−21.5%／+43.0%（低／高端；L1_Ans9）"),
+    ("GM459", "Cap_In", "C36", "低", "−0.7%／+39.5%（低／高端；L1_Ans9）"),
+    ("GM275", "Workload", "G9", "中", "−17.9%／+35.9%（低／高端；L1_Ans9）"),
+    ("GM304", "Calib", "C5", "中", "−33.0%／+11.1%（低／高端；L1_Ans4）"),
+    ("GM290", "Workload", "G12", "無", "+0.0%／+100.0%（低／高端；L1_Ans9）"),
+    ("GM203", "Arch", "E6", "中", "+6.8%／+24.3%（低／高端；IF_RevGW_Astra VR200）"),
+    ("GM354", "Calib", "F69", "中", "+23.0%／−7.7%（低／高端；L1_Ans9）"),
+]
+
+
+def x2_note(swing):
+    return f" ｜v5.19 X2 升段：單變數擺動 {swing}；chat 端掃描 2026-10-06"
+
+
+def gov_update(ws, append_text):
+    """Promote P to 高 (only while the cell still holds the v5.18 value, same rule as gov.gm_update) and append the note to N."""
+    loc = {(ws[f"C{r}"].value, ws[f"D{r}"].value): r for r in range(5, ws.max_row + 1) if ws[f"C{r}"].value}
+    n = 0
+    for gm, sh, cell, old, swing in X2:
+        r = loc.get((sh, cell))
+        assert r is not None and ws[f"A{r}"].value == gm, f"X2: {gm} {sh}!{cell} not at the expected Gov_Map row"
+        if ws[f"P{r}"].value == old:
+            ws[f"P{r}"].value = "高"; n += 1
+            append_text(ws[f"N{r}"], x2_note(swing))
+    return n
+
+
+# ------------------------------------------------------------------ Gov_Map row, Decisions
+GOV_MAP_V519 = [{'scope': '切片三（v5.19 X1）', 'sheet': 'Serving', 'cell': f'C{NEW_INPUT_ROW}',
+                 'label': '並列輸出用生產折減（CTL_ProdDerate）', 'check': '並列輸出用生產折減（情境值，X1；非估計值）',
+                 'cls': '情境值', 'role': '單值', 'src': '', 'rel': '', 'dec': 'X1', 'lo': 0.7, 'hi': 1.0,
+                 'rtext': '區間 0.7–1.0（同 Serving!C18 的區間）',
+                 'reason': 'X1：C18 區間中點，非估計值；C18 依 G0-11 維持 1.0', 'retag': '', 'seg': '高'}]
+
+DECISIONS_V519 = [
+    ['X1', 'v5.19', 'Serving C18 凍結並列輸出（生產折減）',
+     'Serving C18（J15 生產折減）維持凍結（G0-11 不變），交接檔揭露擺動；v5.19 在 Interface G 節新增七列並列輸出（IF_FullCost_*_Prod、IF_RevGW_*_Prod、IF_RevGWFleet_Prod），'
+     '由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85，區間 0.7–1.0，情境值）驅動；推導鏈以 *_Prod 鏡像頁重算，自我檢查 Checks X1',
+     '2026-10-06', '「both OK」（回覆 chat 端 D1 建議：先 (a)，v5.19 做 (b)）', 'v5.19 已建',
+     'Serving!C28（CTL_ProdDerate）；Interface G 節；Perf_Prod、Unit_Cost_Prod、Interface_Prod、Fleet_1GW_Prod、Amortize_Prod、Theory_Rev_Prod；Checks X1', '工作單 v5.19 第 0、1 節', '否'],
+    ['X2', 'v5.19', 'Gov_Map P 欄升段規則（只升不降、不追溯）',
+     'Gov_Map 數值區間端點單變數擺動 ≥20% 的非高段格升為高段（輸出範圍與排除見工作單 v5.19 第 2.1 節）；類別為 Decision 的格不適用；現為高段者不降；v5.17／v5.18 完成判定維持有效。'
+     'v5.19 升段 11 格：GM205、GM586、GM578、GM104、GM270、GM459、GM275、GM304、GM290、GM203、GM354；未升：GM480（Decision）、GM443（19.9%）',
+     '2026-10-06', '「both OK」（回覆 chat 端 D2 建議 (b)，門檻 20%）', 'v5.19 已建',
+     'Gov_Map P 欄（11 格）；Checks G 節 W2', '工作單 v5.19 第 0、2 節', '否'],
+]
+```
+
 ## gov_decisions.py
 
 ```python
@@ -19683,6 +20025,7 @@ from gov_decisions import DECISIONS
 from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP_UPD, GOV_MAP_V513C, GOV_MAP_UPD_E, DEC_UPD
 from gov_seed3 import SRC_RECORDS3, EVID_MIG3, DECISIONS_V515, DEC_STATUS_V515, GOV_MAP_V515
 import v518                       # v5.18: Stage 2 first write batch (Excel-owned writes with old-value guards; see v518.py)
+import v519                       # v5.19: X1 mirrors (Prod sheets) and X2 Gov_Map P promotions; its Gov_Map row and Decisions are registered here
 
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
@@ -19848,7 +20191,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows():
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -19995,7 +20338,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515:
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519:
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -20045,7 +20388,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws)      # v5.18: judgement columns, P (B method), D5 ranges
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text)      # v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -20378,6 +20721,7 @@ from finish import interface, checks, sources, readme, interface_b3, checks_b3, 
 from training import tech_registry, train_in, perf_batch, training_sheet, sens_train
 from finish import evidence_sheet
 from preserve import snapshot, restore
+from v519 import PROD_SHEETS
 
 wb = openpyxl.load_workbook(BASE)
 # ---- v5.12 (A): the pre-Source register is frozen as Sources_Legacy (no formula or name refers to it) ----
@@ -20401,7 +20745,8 @@ RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
           "Tech_Registry","Train_In","Perf_Batch","Training","Sens_Train",
           "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
-          "Har_In","Harness","Sens_Har","Alloc_In","Alloc"]:
+          "Har_In","Harness","Sens_Har","Alloc_In","Alloc",
+          *PROD_SHEETS]:
     if n in wb.sheetnames: del wb[n]
 def clear(ws, r0, c1=1, c2=30):
     for r in range(r0, ws.max_row + 1):
@@ -20526,6 +20871,9 @@ nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
 from gov import gov_all
 GOV = gov_all(wb)
 checks_h(wb)        # v5.15: Checks H section (after the G section; counted in GOV_Errors)
+import v519
+X1 = v519.x1(wb)    # v5.19 X1: *_Prod mirror sheets, Interface G, Checks I1 (after gov_all: reads the final formulas of the chain)
+print("x1 chain cells:", X1['cells'], "sheets:", X1['sheets'])
 GOV["snap_retired"] = len(RETIRED)
 GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
@@ -20533,7 +20881,7 @@ print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
-         "Har_In","Harness","Sens_Har","Alloc_In","Alloc","Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
+         "Har_In","Harness","Sens_Har","Alloc_In","Alloc",*PROD_SHEETS,"Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
          "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Price","SRC_Cap","SRC_Harness","SRC_Demand","SRC_Index","Sources_Legacy","DB_Evidence"]]
 assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)
 wb._sheets = [wb[n] for n in order]

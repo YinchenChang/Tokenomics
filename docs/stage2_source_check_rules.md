@@ -22,6 +22,7 @@
 
 - Calib C68:G68（GM346–350）、GM094（Andy 2026-10-06，J1）；
 - GM456（Cap_In D29:E29）、GM580（Alloc_In C8）（Andy 2026-10-06 追認，K1）。
+- GM275（Workload G9）、GM354（Calib F69）（Andy 2026-10-06 核准，X3；工作單 v5.20）。
 
 之後若有新的列要適用，須逐列列名並經 Andy 決定；查詢詞、判定與理由須寫入 DB_Evidence。
 

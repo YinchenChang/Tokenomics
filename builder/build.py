@@ -69,6 +69,8 @@ U = unit_cost(wb, PR)
 WL = workload(wb, U)
 nonnv(wb)
 interface(wb, PR, U)
+import v520 as _v520
+_v520.interface_note(wb)   # v5.20 X5: amortization-coupling note on Interface A2
 def last_row(ws):
     return max(c.row for row in ws.iter_rows() for c in row if c.value is not None)
 ifr = last_row(wb["Interface"]) + 2
@@ -111,6 +113,9 @@ print(f"restore: matched {_m}, Excel kept over code {_c}, unmatched {len(_d)}")
 import v518
 V518_LOG = v518.inputs_update(wb)       # v5.18: Excel-owned input writes, each only while the cell still holds its v5.17 value
 print("v518 inputs:", len(V518_LOG))
+import v520
+V520_LOG = v520.inputs_update(wb)       # v5.20 X3 A3: Alloc_In!E7 4 -> 6, only while the cell still holds 4
+print("v520 inputs:", len(V520_LOG))
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -168,7 +173,7 @@ import v519
 X1 = v519.x1(wb)    # v5.19 X1: *_Prod mirror sheets, Interface G, Checks I1 (after gov_all: reads the final formulas of the chain)
 print("x1 chain cells:", X1['cells'], "sheets:", X1['sheets'])
 GOV["snap_retired"] = len(RETIRED)
-GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
+GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"v520 input {x}" for x in V520_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
 print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",

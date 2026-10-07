@@ -22,9 +22,10 @@ BLOCK2_PREFIX = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache",
 
 
 PROD_IF = tuple(f"{b}_Prod" for b in ("IF_FullCost_Luna", "IF_FullCost_Sol", "IF_FullCost_Astra", "IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet"))   # v5.19 X1
+# v5.23 X10：VR200 欄（第 4 個）因 Perf_Batch 側 η_d 倍數 0.75 而改變（0.85：sol 0.2551→0.2567、astra 0.3313→0.3373；0.7：sol 0.6901→0.6955、astra 0.9923→1.0135），其餘欄不變
 # 相對基準列的變動（LibreOffice 重算值；欄序 Hopper、GB200、GB300、VR200、Rubin Ultra 的基準成本欄；0.85 預設、0.7 區間下限）
-EXPECT_PROD_085 = {"sol": (0.4900, 0.2776, 0.2775, 0.2551, 0.2497), "astra": (1.0400, 0.3938, 0.4444, 0.3313, 0.3119), "fleet": (-0.4399, -0.2424, -0.2678, -0.2177, -0.2105)}
-EXPECT_PROD_070 = {"sol": (0.7763, 0.7805, 0.6901, 0.6703), "astra": (1.2922, 1.6333, 0.9923, 0.9098)}      # 欄序 GB200、GB300、VR200、Rubin Ultra（Hopper 為文字）
+EXPECT_PROD_085 = {"sol": (0.4900, 0.2776, 0.2775, 0.2567, 0.2497), "astra": (1.0400, 0.3938, 0.4444, 0.3373, 0.3119), "fleet": (-0.4399, -0.2424, -0.2678, -0.2177, -0.2105)}
+EXPECT_PROD_070 = {"sol": (0.7763, 0.7805, 0.6955, 0.6703), "astra": (1.2922, 1.6333, 1.0135, 0.9098)}      # 欄序 GB200、GB300、VR200、Rubin Ultra（Hopper 為文字）
 ALLOC_IF = ("IF_AllocQ1", "IF_AllocQ1_R2", "IF_AllocQ2", "IF_AllocServeGW", "IF_AllocRDGW", "IF_AllocDemand", "IF_AllocImpliedNk")
 
 
@@ -404,7 +405,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     base = new_engine(model)
     assert abs(base.get_name("AL_DDaily") - 11.48) < 0.01                                 # 每日 token 約 11.5T
     assert abs(base.get_name("AL_ServeGWSpend") - 0.74266) < 5e-5                        # v5.18：0.751→0.74266（LibreOffice 重算值）
-    assert abs(base.get_name("AL_RefGWyr") - 0.018153) < 5e-6                             # v5.18：0.01808→0.018153（LibreOffice 重算值）
+    assert abs(base.get_name("AL_RefGWyr") - 0.0210207) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
     for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
@@ -419,8 +420,8 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
         assert eng.get_name("GOV_Errors") == 0, sid
         if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
             assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
-        else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 48.8%）
-            assert abs(eng.get_name("IF_AllocQ1") - 0.4845) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
+        else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 52.1%；v5.23 X10 前為 48.5%）
+            assert abs(eng.get_name("IF_AllocQ1") - 0.5213) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
 
 
 def test_alloc_mix_2025_expected_values(model, template_engine):
@@ -429,7 +430,7 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
     for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
         eng.set_key(k, v)
     eng.evaluate_all()
-    for n, want in (("IF_AllocServeGW", 0.140315), ("AL_ServeGWSpend", 0.863676), ("IF_AllocQ1", 0.365056), ("IF_AllocQ2", 0.430013)):
+    for n, want in (("IF_AllocServeGW", 0.140315), ("AL_ServeGWSpend", 0.863676), ("IF_AllocQ1", 0.392575), ("IF_AllocQ2", 0.458889)):
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
 
@@ -437,8 +438,8 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
 def test_l1_v516_expected_values_and_h3(model):
     """v5.16：L1 毛利率兩列、GPU 小時口徑、第 7、8 題的基準期望值（工作單第 1 節；chat 端計算，精度到小數第 5 位故容差 5e-6），H3＝0。"""
     eng = new_engine(model)
-    want = {"L1_Ans5_GM": (0.95308, 0.92398, 0.96383), "L1_Ans5_FullMargin": (0.93057, 0.88752, 0.94648),     # v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）
-            "L1_Ans6_GPUh": (0.25575, 0.25575, 0.25575), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47928, 0.47928, 0.47928)}
+    want = {"L1_Ans5_GM": (0.95308, 0.92398, 0.96383), "L1_Ans5_FullMargin": (0.93031, 0.88710, 0.94628),     # v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）；v5.23 X10：FullMargin 與 GPUh 改為 k＝0.75 暫存複本的 LibreOffice 重算值
+            "L1_Ans6_GPUh": (0.28231, 0.28231, 0.28231), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47928, 0.47928, 0.47928)}
     for n, (d, lo, hi) in want.items():
         for suffix, v in (("", d), ("_Lo", lo), ("_Hi", hi)):
             got = eng.get_name(n + suffix)

@@ -15,6 +15,11 @@ name: parity
 # 依 GitHub 文件（Workflow syntax → on.push.paths-ignore）：(1) branches-ignore 與 paths-ignore 並存時兩者都須滿足才執行；
 # (2)「Path filters are not evaluated for pushes of tags」：推標籤不評估路徑篩選，tags: ["**"] 照常觸發；(3) 只要有一個檔不符 paths-ignore 即執行。
 # pull_request 不加 paths-ignore：合併門檻 job parity 必須在每個 PR 上出現。
+# v5.27（工程類，工作單 3.1）：兩個 LibreOffice 安裝步驟加 shell: bash。GitHub 文件（Workflow syntax → jobs.<job_id>.steps[*].shell）：未指定 shell 時為
+# 「bash -e {0}」，明示 shell: bash 時為「bash --noprofile --norc -eo pipefail {0}」；「When shell: bash is specified, -o pipefail is also applied」。
+# 原本 `bash tools/install_libreoffice.sh | tee …` 的結束碼取自 tee（0），安裝失敗仍繼續到測試才因找不到 soffice 失敗（v5.25 run 207／208、v5.26 run 214）。
+# 腳本另在成功分支以 command -v soffice 驗證；apt 單次逾時 90／180 → 180／420 秒、嘗試次數 2 → 3。
+# v5.27（工作單 3.2）：ci-status 的 failures 只彙整本次嘗試（GITHUB_RUN_ATTEMPT）上傳的 artifact，不再列出前次嘗試的失敗。
 on:
   push:
     branches-ignore: [ci-status]
@@ -79,7 +84,8 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - name: 安裝 LibreOffice Calc（headless 重算基準）
-        timeout-minutes: 10      # v5.23：只裝 libreoffice-calc（--no-install-recommends）、apt 重試與逾時、失敗重試一次（tools/install_libreoffice.sh）
+        timeout-minutes: 25      # v5.27：3 次嘗試 ×（update 180＋install 420 秒）＝最多 30 分鐘的命令逾時由步驟 25 分鐘封頂（job 30 分鐘）；v5.23：只裝 libreoffice-calc（--no-install-recommends）、apt 重試與逾時（tools/install_libreoffice.sh）
+        shell: bash              # v5.27：明示 shell: bash → bash --noprofile --norc -eo pipefail；腳本失敗時管線不被 tee 的結束碼 0 遮蓋，job 在本步驟失敗
         run: bash tools/install_libreoffice.sh | tee -a "$GITHUB_STEP_SUMMARY"
       - run: pip install -r requirements-dev.txt
       - uses: actions/download-artifact@v7
@@ -127,7 +133,8 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - name: 安裝 LibreOffice Calc（headless 重算基準）
-        timeout-minutes: 10      # v5.23：只裝 libreoffice-calc（--no-install-recommends）、apt 重試與逾時、失敗重試一次（tools/install_libreoffice.sh）
+        timeout-minutes: 25      # v5.27：3 次嘗試 ×（update 180＋install 420 秒）＝最多 30 分鐘的命令逾時由步驟 25 分鐘封頂（job 30 分鐘）；v5.23：只裝 libreoffice-calc（--no-install-recommends）、apt 重試與逾時（tools/install_libreoffice.sh）
+        shell: bash              # v5.27：明示 shell: bash → bash --noprofile --norc -eo pipefail；腳本失敗時管線不被 tee 的結束碼 0 遮蓋，job 在本步驟失敗
         run: bash tools/install_libreoffice.sh | tee -a "$GITHUB_STEP_SUMMARY"
       - run: pip install -r requirements-dev.txt
       - uses: actions/download-artifact@v7

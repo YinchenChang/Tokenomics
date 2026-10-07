@@ -16,6 +16,7 @@ v5.23：jobs 每一筆加 python 欄（完整版本，例 3.11.16）：各 job �
 log_excerpts、recalc_seconds、generated_at（另有 github_sha、errors 兩個輔助欄位）。
 檔名：<sha>/<run_number>-a<run_attempt>-<event>.json（每次 run、每次重跑各一檔，不覆寫）；pull_request 的 sha 取 PR 分支頭（GITHUB_SHA 是合併提交）。
 不輸出環境變數或任何 secret；GitHub 已遮蔽的內容（***）照原樣保留遮蔽。本程式不影響任何數值，也不改 model/。
+v5.27：重跑後 failures 只彙整本次嘗試：同名 artifact 只取最新一筆（latest_per_name）；overall 判定不變。
 """
 import argparse
 import datetime
@@ -146,6 +147,19 @@ def _zip_members(data):
     return {Path(n).name: z.read(n) for n in z.namelist() if not n.endswith("/")}
 
 
+def latest_per_name(arts):
+    """v5.27（工作單 3.2）：同一 run 的 artifacts API 會列出每次嘗試上傳的檔（重跑失敗 job 後，同名 artifact 有兩筆以上；回應沒有嘗試編號欄）。
+    重跑只重跑失敗 job，未重跑的 job 沿用前次嘗試的結果與 artifact，因此「每個名稱取最新一筆」恰為本次嘗試各 job 的結果檔。
+    依 created_at（ISO 8601，可直接比字串）再依 id 取最大者；保持原順序。"""
+    best = {}
+    for a in arts:
+        k = (a.get("created_at") or "", a.get("id") or 0)
+        if a["name"] not in best or k > best[a["name"]][0]:
+            best[a["name"]] = (k, a)
+    keep = {id(v[1]) for v in best.values()}
+    return [a for a in arts if id(a) in keep]
+
+
 def collect(api, env, event=None):
     """回傳要寫入的 dict；任何一段取不到都記入 errors，不中斷。"""
     repo, run_id, attempt = env["GITHUB_REPOSITORY"], env["GITHUB_RUN_ID"], env.get("GITHUB_RUN_ATTEMPT", "1")
@@ -165,7 +179,7 @@ def collect(api, env, event=None):
         raw_jobs = []; errors.append(f"jobs: {e}")
     results, pyvers = {}, []
     try:
-        arts = api.get_json(f"/repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100").get("artifacts", [])
+        arts = latest_per_name(api.get_json(f"/repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100").get("artifacts", []))     # v5.27：只取本次嘗試
         for a in arts:
             if a["name"].startswith("pyver-"):                  # v5.23：各 job 的 Python 版本記錄
                 try:

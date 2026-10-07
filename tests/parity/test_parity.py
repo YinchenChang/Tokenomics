@@ -509,3 +509,71 @@ def test_price_life_expected_values(model, template_engine):
         if sh == "L1" or (sh == "Interface" and row <= 210):
             assert v == base_vals[(sh, coord)], (sh, coord, base_vals[(sh, coord)], v)
     assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values())
+
+
+# ── v5.23 X10：Perf_Batch 側 VR200 批次口徑 η_d 倍數（工作單 1.3、1.4 節） ──
+BATCH_PREV = HERE.parent.parent / "model" / "archive" / "20261006_Tokenomics_v5.22.xlsx"        # v5.22（LibreOffice 重算存檔）：X10 之前的口徑
+# v5.22 報告第三節 k＝0.75 的結果（VR200 欄相對 k＝1 的變動；報告取兩位小數，容差 6e-5＝0.006 個百分點）
+EXPECT_BATCH_075 = {"IF_TrainCost_Luna": {10: 0.1434, 11: 0.1434, 12: 0.1434}, "IF_TrainCost_Sol": {10: 0.1082, 11: 0.1082, 12: 0.1082},
+                    "IF_TrainCost_Astra": {10: 0.0921, 11: 0.0921, 12: 0.0921}, "TRN_GPUhRL": {10: 0.1426, 11: 0.1459, 12: 0.1596},
+                    "IF_FullCost_Luna": {11: 0.0020}, "IF_FullCost_Sol": {11: 0.0055}, "IF_FullCost_Astra": {11: 0.0287}}
+EXPECT_BATCH_075_SCALAR = {"L1_Ans1": 0.0452, "L1_Ans3": 0.1241, "L1_Ans6_GPUh": 0.1039, "L1_Ans5_FullMargin": -0.0003,
+                           "L1_RLshare_Sol_VR200": 0.1459, "L1_RLshare_Astra_VR200": 0.1596}
+EXPECT_BATCH_075_RATIO = (1.762, 1.811, 1.923)      # Perf_Batch 第 88 列 VR200（L、M、N）÷ GB300（I、J、K）；k＝1 時為 2.350、2.414、2.564
+
+
+def _flat(v):
+    if isinstance(v, list):
+        return [x for r in v for x in _flat(r)]
+    return [v]
+
+
+def _same(a, b):
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool) and not isinstance(b, bool):
+        return abs(a - b) <= 1e-12 or abs(a - b) <= 1e-9 * max(abs(a), abs(b))
+    return (a in (None, "") and b in (None, "")) or a == b
+
+
+def test_batch_etad_expected_values(model):
+    """v5.23 X10：基準 CAL_BatchEtaD＝[1,1,1,0.75,1]；h_batch_etad_100（VR200 設回 1）時，v5.22 的全部具名範圍（除 IDX_SrcID：SRC_Index 新增哨兵列）逐格相等
+    ——只有 X10 造成改變；k＝0.75 相對 k＝1 的變動等於 v5.22 報告第三節；改變的具名範圍恰為 85 個（報告 82 個＋3 個對應的 _Prod）；
+    IF_TrainGenDefault 仍為 4；TR_*、IF_RevGW_*、IF_RevGWFleet、_Life 不變；GOV_Errors＝0（Checks X1 的 _Prod 自我檢查維持 0）。"""
+    import openpyxl
+    from openpyxl.utils import range_boundaries
+    base = new_engine(model)
+    assert base.get_name("CAL_BatchEtaD") == [1, 1, 1, 0.75, 1]
+    assert base.get_name("GOV_Errors") == 0 and base.get_name("IF_TrainGenDefault") == 4
+    eng = _clone(model)
+    eng.set_key("CAL_BatchEtaD[4]", 1.0)
+    cur = eng.evaluate_all()
+    assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values()) and eng.get_name("GOV_Errors") == 0
+    prev = openpyxl.load_workbook(BATCH_PREV, data_only=True)
+    bad = []
+    for n, dn in prev.defined_names.items():
+        if n == "IDX_SrcID":
+            continue
+        sh, rg = dn.attr_text.rsplit("!", 1)
+        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+        want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
+        got = _flat(eng.get_name(n))
+        if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
+            bad.append(n)
+    assert not bad, f"k＝1 時與 v5.22 不符的具名範圍：{bad[:20]}"
+    changed = [n for n in base.names if n != "IDX_SrcID" and n in prev.defined_names
+               and not all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n))))]
+    assert len(changed) == 85, len(changed)
+    by = {p: sum(n.startswith(p) for n in changed) for p in ("IF_", "L1_", "AL_", "TRN_")}
+    assert by == {"IF_": 41, "L1_": 21, "AL_": 15, "TRN_": 8} and sum(n.endswith("_Prod") for n in changed) == 3, by       # 82＝IF 38＋L1 21＋TRN 8＋AL 15
+    assert not [n for n in changed if n.startswith(("TR_", "IF_RevGW")) or n.endswith("_Life") or n == "IF_TrainGenDefault"]
+    for n, idx in EXPECT_BATCH_075.items():
+        a, b = base.get_name(n), eng.get_name(n)
+        for k, v in idx.items():
+            assert abs(a[k - 1] / b[k - 1] - 1 - v) < 6e-5, (n, k, a[k - 1] / b[k - 1] - 1, v)
+    for n, v in EXPECT_BATCH_075_SCALAR.items():
+        a, b = base.get_name(n), eng.get_name(n)
+        a, b = (a[0], b[0]) if isinstance(a, list) else (a, b)
+        assert abs(a / b - 1 - v) < 6e-5, (n, a / b - 1, v)
+    for col_vr, col_gb, want in zip("LMN", "IJK", EXPECT_BATCH_075_RATIO):
+        assert abs(base.get("Perf_Batch", f"{col_vr}88") / base.get("Perf_Batch", f"{col_gb}88") - want) < 6e-4
+    for n in ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet"):          # 營收不經 Perf_Batch 第 53 列
+        assert all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n)))), n

@@ -21,6 +21,7 @@ import v518                       # v5.18: Stage 2 first write batch (Excel-owne
 import v519                       # v5.19: X1 mirrors (Prod sheets) and X2 Gov_Map P promotions; its Gov_Map row and Decisions are registered here
 import v520                       # v5.20: X3 evidence rows, GM578 range, C2 list; X4 F67 evidence; X5 note
 import v521                       # v5.21: X6 (X4 closed; MLPerf v6.1 primary results: SRC_Perf, E245, GM344 note, Decisions X6)
+import v523                       # v5.23: X10 (Gov_Map row, Decisions), SRC_Perf note wording
 import v522                       # v5.22: X7 (L, m side-by-side outputs: Gov_Map rows, Decisions), X8 evidence E246, X9 Q2 second sources
 
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
@@ -187,7 +188,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -334,7 +335,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522:
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523:
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -682,6 +683,8 @@ def gov_all(wb):
     n_src_upd += _n521; src_upd_log += _log521
     _n522, _log522 = v522.src_second_sources(wb)      # v5.22 X9 Q2: SRC_Perf R／W for 052–059 (guarded: only while R is empty)
     n_src_upd += _n522; src_upd_log += _log522
+    _n523, _log523 = v523.src_note_fix(wb)            # v5.23: SRC_Perf W wording on rows 56–63 (guarded: only while the old wording is present)
+    n_src_upd += _n523; src_upd_log += _log523
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
     v521.evidence_update(wb)                          # v5.21 X6: E244 replacement column (guarded)

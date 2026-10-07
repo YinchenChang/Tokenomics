@@ -1,4 +1,4 @@
-"""tools/ci_status.py 的測試（工作單 v5.22 第 5 節第 6 項）：只用 fixture，不連網；推送測試用本機 bare repo。
+"""tools/ci_status.py 的測試（工作單 v5.22 第 5 節第 6 項；v5.23 第 3 節第 2 項加 jobs[].python）：只用 fixture，不連網；推送測試用本機 bare repo。
 由 structure-recalc 執行（parity.yml 的 -k 篩選不排除本檔）。不涉及模型與任何數值。"""
 import io
 import json
@@ -11,6 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import ci_status as cs  # noqa: E402
+import ci_summary  # noqa: E402
 
 ENV = {"GITHUB_REPOSITORY": "o/r", "GITHUB_RUN_ID": "900", "GITHUB_RUN_NUMBER": "180", "GITHUB_RUN_ATTEMPT": "2", "GITHUB_SHA": "mergesha000",
        "GITHUB_REF": "refs/pull/22/merge", "GITHUB_EVENT_NAME": "pull_request", "OVERALL": "failure"}
@@ -154,3 +155,32 @@ def test_main_writes_file(tmp_path, monkeypatch):
     d = json.loads(p.read_text(encoding="utf-8"))
     assert d["pr_number"] == 22 and d["run_attempt"] == 2 and d["schema_version"] == 1
     assert "GITHUB_TOKEN" not in p.read_text(encoding="utf-8")
+
+
+def _pyver(match, version):
+    return {"pyver.json": json.dumps({"match": match, "python": version}, ensure_ascii=False)}
+
+
+def test_python_version_recorded_per_job(tmp_path):
+    """v5.23 第 3 節第 2 項：jobs 每一筆有 python 欄；同一 run 內修訂號不同（3.11.16 與 3.11.17）要看得出來；對不到者為 null；ci-status 取自身直譯器。"""
+    import platform
+    arts = dict(ARTS, **{"pyver-engine-cache": _pyver("engine-cache", "3.11.16"),
+                         "pyver-scenarios-3": _pyver("scenarios（第 3 片", "3.11.17"),
+                         "pyver-scenarios-2": _pyver("scenarios（第 2 片", "3.11.16")})
+    d = cs.collect(FakeApi(JOBS, arts, LOGS), ENV, EVENT)
+    py = {j["name"]: j["python"] for j in d["jobs"]}
+    assert py["engine-cache（建一次計算圖）"] == "3.11.16" and py["scenarios（第 3 片／共 6）"] == "3.11.17"        # 同一 run 內修訂號不同
+    assert py["governance（GOV_Errors 必須為 0；匯出 CSV）"] is None                                              # 沒有 pyver 記錄 → null
+    assert py["ci-status"] == platform.python_version()
+    assert d["errors"] == [] and all("python" in j for j in d["jobs"])
+    d = cs.collect(FakeApi(JOBS, dict(ARTS, **{"pyver-x": {"pyver.json": "{壞掉"}}), LOGS), ENV, EVENT)             # 壞掉的記錄：記入 errors，其餘照常
+    assert any(e.startswith("pyver pyver-x") for e in d["errors"]) and len(d["failures"]) == 2
+    assert cs.attach_python([{"name": "scenarios（第 3 片／共 6）"}], [{"match": "scenarios", "python": "a"}, {"match": "scenarios（第 3 片", "python": "b"}])[0]["python"] == "b"   # 最長前綴優先
+
+
+def test_ci_summary_pyver_writes_json(tmp_path):
+    """tools/ci_summary.py pyver：寫出 {"match", "python"}（完整 x.y.z），供各 job 上傳。"""
+    import platform
+    out = tmp_path / "pyver.json"
+    ci_summary.pyver("scenarios（第 0 片", str(out))
+    assert json.loads(out.read_text(encoding="utf-8")) == {"match": "scenarios（第 0 片", "python": platform.python_version()}

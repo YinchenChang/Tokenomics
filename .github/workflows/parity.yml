@@ -7,6 +7,10 @@ name: parity
 # 合併門檻＝名為 parity 的最後一個 job（needs 全部 job，任一未通過即失敗）。
 # v5.22（工程類）：on.push 加 branches-ignore: [ci-status]（防循環；GITHUB_TOKEN 推送本就不觸發 workflow，雙重保險）；
 # 加 tags: ["**"] 保留「推標籤也跑」的原行為（只寫 branches-ignore 時，標籤推送不再觸發）。
+# v5.23（工程類，工作單 3）：(1) LibreOffice 安裝改走 tools/install_libreoffice.sh（--no-install-recommends、apt 重試與逾時、失敗重試一次；
+# run 189 的 scenarios 第 4 片因 libreoffice-core 下載約 19 分鐘而逾時）；(2) 每個 job 末尾記錄完整 Python 版本並上傳 pyver-* artifact，由 ci-status 寫入 jobs[].python；
+# (3) actions/checkout v4→v5、setup-python v5→v6、upload-artifact v4→v6、download-artifact v4→v7（皆為首個以 Node.js 24 為預設的主版本；download 的 name／pattern 行為不變）。
+# 合併門檻（job parity 的名稱、needs、斷言）與任何測試的斷言都沒有改。
 on:
   push:
     branches-ignore: [ci-status]
@@ -22,8 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -31,11 +35,20 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: 建圖、重算並序列化
         run: python tools/build_engine_cache.py engine-cache/engine.pkl | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: engine-cache
           path: engine-cache/
           retention-days: 1
+      - name: 記錄 Python 版本（v5.23：供 ci-status 寫入 jobs[].python）
+        if: always()
+        run: python tools/ci_summary.py pyver "engine-cache" pyver.json
+      - name: 上傳 Python 版本記錄
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pyver-engine-cache
+          path: pyver.json
 
   scenarios:
     name: scenarios（第 ${{ matrix.shard }} 片／共 6）
@@ -50,18 +63,17 @@ jobs:
       PARITY_SHARD: ${{ matrix.shard }}/6
       PARITY_RESULTS: tests/parity/_results_shard${{ matrix.shard }}.json
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - name: 安裝 LibreOffice Calc（headless 重算基準）
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y -q libreoffice-calc
+        timeout-minutes: 10      # v5.23：只裝 libreoffice-calc（--no-install-recommends）、apt 重試與逾時、失敗重試一次（tools/install_libreoffice.sh）
+        run: bash tools/install_libreoffice.sh | tee -a "$GITHUB_STEP_SUMMARY"
       - run: pip install -r requirements-dev.txt
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: engine-cache
           path: engine-cache/
@@ -74,13 +86,22 @@ jobs:
         run: python tools/ci_summary.py job "scenarios 第 ${{ matrix.shard }} 片" junit.xml "$PARITY_RESULTS" >> "$GITHUB_STEP_SUMMARY"
       - name: 上傳 parity 統計
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: parity-results-scenarios-${{ matrix.shard }}
           path: |
             tests/parity/_results_shard${{ matrix.shard }}.json
             junit.xml
           if-no-files-found: ignore
+      - name: 記錄 Python 版本（v5.23：供 ci-status 寫入 jobs[].python）
+        if: always()
+        run: python tools/ci_summary.py pyver "scenarios（第 ${{ matrix.shard }} 片" pyver.json
+      - name: 上傳 Python 版本記錄
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pyver-scenarios-${{ matrix.shard }}
+          path: pyver.json
 
   structure-recalc:
     name: structure-recalc（結構性測試＋函數語意＋兩條重算）
@@ -90,18 +111,17 @@ jobs:
     env:
       PARITY_RESULTS: tests/parity/_results_structure.json
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - name: 安裝 LibreOffice Calc（headless 重算基準）
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y -q libreoffice-calc
+        timeout-minutes: 10      # v5.23：只裝 libreoffice-calc（--no-install-recommends）、apt 重試與逾時、失敗重試一次（tools/install_libreoffice.sh）
+        run: bash tools/install_libreoffice.sh | tee -a "$GITHUB_STEP_SUMMARY"
       - run: pip install -r requirements-dev.txt
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: engine-cache
           path: engine-cache/
@@ -113,13 +133,22 @@ jobs:
         run: python tools/ci_summary.py job "structure-recalc" junit.xml "$PARITY_RESULTS" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 上傳 parity 統計
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: parity-results-structure
           path: |
             tests/parity/_results_structure.json
             junit.xml
           if-no-files-found: ignore
+      - name: 記錄 Python 版本（v5.23：供 ci-status 寫入 jobs[].python）
+        if: always()
+        run: python tools/ci_summary.py pyver "structure-recalc" pyver.json
+      - name: 上傳 Python 版本記錄
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pyver-structure-recalc
+          path: pyver.json
 
   scenario-guard:
     name: scenario-guard（防空轉：每個情境至少改變一格）
@@ -127,14 +156,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - run: pip install -r requirements-dev.txt
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: engine-cache
           path: engine-cache/
@@ -145,19 +174,28 @@ jobs:
         run: python tools/ci_summary.py job "scenario-guard" junit.xml >> "$GITHUB_STEP_SUMMARY"
       - name: 上傳 junit（供 ci-status 讀取；名稱不得以 parity-results- 開頭，以免改變 parity job 的情境覆蓋彙總）
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: junit-scenario-guard
           path: junit.xml
           if-no-files-found: ignore
+      - name: 記錄 Python 版本（v5.23：供 ci-status 寫入 jobs[].python）
+        if: always()
+        run: python tools/ci_summary.py pyver "scenario-guard" pyver.json
+      - name: 上傳 Python 版本記錄
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pyver-scenario-guard
+          path: pyver.json
 
   governance:
     name: governance（GOV_Errors 必須為 0；匯出 CSV）
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -166,11 +204,20 @@ jobs:
       - name: 治理檢查（GOV_Errors 必須為 0）並匯出 SRC_／Interface CSV
         run: python tools/export_csv.py --out data/export | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 上傳匯出 CSV
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: export-csv
           path: data/export/*.csv
           if-no-files-found: ignore
+      - name: 記錄 Python 版本（v5.23：供 ci-status 寫入 jobs[].python）
+        if: always()
+        run: python tools/ci_summary.py pyver "governance" pyver.json
+      - name: 上傳 Python 版本記錄
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pyver-governance
+          path: pyver.json
 
   # 合併閘門：沿用原 job 名稱 parity，既有的必要狀態檢查不必改。
   parity:
@@ -180,12 +227,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - run: pip install pyyaml
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           pattern: parity-results-*
           path: results/
@@ -208,6 +255,15 @@ jobs:
         run: |
           echo "有 job 未通過" >&2
           exit 1
+      - name: 記錄 Python 版本（v5.23：供 ci-status 寫入 jobs[].python）
+        if: always()
+        run: python tools/ci_summary.py pyver "parity" pyver.json
+      - name: 上傳 Python 版本記錄
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pyver-parity
+          path: pyver.json
 
   # v5.22（工程類）：把本次 run 的結果寫進孤立分支 ci-status，供 chat 端 git fetch 讀取（未登入 API 次數不足、讀不到 log）。
   # 只在此 job 提高權限；失敗不得使 run 或 parity 失敗（continue-on-error）；合併門檻仍為 job parity。
@@ -222,7 +278,7 @@ jobs:
       contents: write
       actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: 蒐集本次 run 的 job、失敗測試、失敗 job 的 log 摘錄與重算秒數，寫入 ci-status 分支
         continue-on-error: true      # fork PR 的 GITHUB_TOKEN 唯讀，推送失敗可容忍
         env:

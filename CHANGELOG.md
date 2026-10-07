@@ -2,9 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261007_Tokenomics_v5.23.xlsx（取代 v5.22；X10 Perf_Batch 側 VR200 批次口徑 η_d 倍數；SRC_Perf 備註文字修正；CI 穩定性三項；判斷類＋工程類，依工作單 `docs/workorders/20261007_v5.23.md` r0 執行）
+
+- Commit：見本輪分支 `claude/new-session-ma4p0u`（合併後補上雜湊）。報告：`docs/reports/20261007_v5.23.md`。底稿：master `a8ad27f`（含 v5.22 合併 `a5931f0`）；`model/CURRENT` 原為 v5.22。舊分支 `claude/new-session-mtq0pj` 上的 `bb2b707` 未沿用，v5.22 合併雜湊依工作單改在本版補記。
+- Excel（CC 以 `builder/` 自 v5.22 產生，經 LibreOffice 重算存檔）：**X10** 新增 `CAL_BatchEtaD`（Calib 第 156 列 C:G，Calib I 節；VR200 格 F156＝0.75 藍字 Derived，其餘四格常數 1）；`Perf_Batch` 第 53 列 C:Q 與 `Perf_Batch_Prod` 第 53 列（主 C:Q 與自我檢查副本 S:AG）乘上 `INDEX(CAL_BatchEtaD,1,世代)`；Gov_Map GM595（Calib!F156，區間 0.70–1.0，P 欄高）；Decisions X10。訓練相關輸出數值改變（85 個具名範圍：IF 41、L1 21、AL 15、TRN 8），與 v5.22 報告第三節 k＝0.75 逐項相符；`IF_TrainGenDefault` 仍為 4；`TR_*`、`IF_RevGW_*`、`IF_RevGWFleet`、`_Life` 不變。`SRC_Perf` 第 56–63 列 W 欄備註文字修正（8 格）。
+- builder：新增 `v523.py`（版本字串的唯一來源）；`build.py`、`gov.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v523.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生。
+- 工程類（CI）：(1) `tools/install_libreoffice.sh`：只裝 `libreoffice-calc`（`--no-install-recommends`）、apt 重試與逾時、失敗重試一次（run 189 因 libreoffice-core 下載約 19 分鐘逾時）；(2) `ci-status` 的 `jobs` 每筆加 `python` 欄（各 job 上傳 `pyver-*` artifact，`tools/ci_summary.py pyver`）；(3) actions 升級：checkout v4→v5、setup-python v5→v6、upload-artifact v4→v6、download-artifact v4→v7（皆為首個以 Node.js 24 為預設的主版本）。
+- 測試：期望值 `formula_cells` 39,198 → 39,218、`defined_names` 902 → 903、`display_only_names` 139 → 140、`cal_names` 19 → 20；新增情境 `h_batch_etad_100`（情境總數 25 → 26）與 `test_batch_etad_expected_values`、`test_ci_status.py` 2 項。
+- 治理：GOV_Errors 0、GOV_Warnings 209、GOV_Info 107（皆與 v5.22 相同）。
+
 ## 20261006_Tokenomics_v5.22.xlsx（取代 v5.21；X7 壽命期價格係數 L、變現率 m 並列輸出；X8 補充；X9 Q2 第二來源；CI 工程兩項；判斷類＋工程類，依工作單 `docs/workorders/20261006_v5.22.md` r4 執行）
 
-- Commit：見本輪分支 `claude/new-session-mtq0pj`（合併後補上雜湊）。報告：`docs/reports/20261006_v5.22.md`。底稿：master `4b70496`（含 v5.21 合併 `fef9bfd`）；`model/CURRENT` 原為 v5.21。
+- Commit：合併雜湊 `a5931f0`（PR #23）；分支 `claude/new-session-mtq0pj`。報告：`docs/reports/20261006_v5.22.md`。底稿：master `4b70496`（含 v5.21 合併 `fef9bfd`）；`model/CURRENT` 原為 v5.21。
 - Excel（CC 以 `builder/` 自 v5.21 產生，經 LibreOffice 重算存檔）：**X7** 新輸入格 `CTL_PriceLife`（L）與 `CTL_Monetize`（m）（Cap_In!C63、C64，基準 1，藍字，Gov_Map GM593／GM594，區間 0.3–1.0，P 欄＝高）；Theory_Rev D 節新增四列 _Life（第 90–93 列）與自我檢查旗標（第 96–99 列）；Interface H 節（第 212–216 列）新增 `IF_RevGW_Luna／Sol／Astra_Life`、`IF_RevGWFleet_Life`（＝基準列 × L × m；文字列輸出相同文字）；Checks Y 節 X7（ERROR，計入 GOV_Errors）。既有 IF_RevGW_*、IF_RevGWFleet、L1 與 `_Prod` 列公式與數值逐格不變。**X8 補充** DB_Evidence E246（產業租金指數，L 的 Analogy 證據，摘要級、原文未讀；不新增任何 SRC 紀錄）。**X9 Q2** SRC_Perf 第 056–059 與 052–055 互填第二來源（R 欄）、備註欄附加說明。Decisions 新增 X7、X8、X9。
 - 敏感度（只報告，不改模型）：Perf_Batch 側 VR200 效率 k＝0.70／0.75／0.84 的唯讀對照見報告第 3 節；任一 Interface 輸出變動 ≥ 10% 已列入「待 Project 判斷」。
 - builder：新增 `v522.py`（版本字串的唯一來源）；`build.py`、`gov.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v522.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生。

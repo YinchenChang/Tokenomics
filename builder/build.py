@@ -180,6 +180,9 @@ print("x1 chain cells:", X1['cells'], "sheets:", X1['sheets'])
 X7 = v522.interface_h(wb)      # v5.22 X7: Interface H section (after G; IF_*_Life names)
 X7["check_row"] = v522.checks_y(wb)
 print("x7 interface rows from:", X7["start"], "check row:", X7["check_row"])
+import v526
+X26 = v526.interface_i(wb)     # v5.26: Interface I section (after H; DC_Cost components IF_DeprLifeIT … IF_OpexGW, sum check row)
+print("v526 interface I from:", X26["start"], "dc rows:", X26["dc_rows"], "check row:", X26["check_row"])
 GOV["snap_retired"] = len(RETIRED)
 GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))

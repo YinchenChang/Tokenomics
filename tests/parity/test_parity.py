@@ -26,6 +26,7 @@ PROD_IF = tuple(f"{b}_Prod" for b in ("IF_FullCost_Luna", "IF_FullCost_Sol", "IF
 # 相對基準列的變動（LibreOffice 重算值；欄序 Hopper、GB200、GB300、VR200、Rubin Ultra 的基準成本欄；0.85 預設、0.7 區間下限）
 EXPECT_PROD_085 = {"sol": (0.4900, 0.2776, 0.2775, 0.2567, 0.2497), "astra": (1.0400, 0.3938, 0.4444, 0.3373, 0.3119), "fleet": (-0.4399, -0.2424, -0.2678, -0.2177, -0.2105)}
 EXPECT_PROD_070 = {"sol": (0.7763, 0.7805, 0.6955, 0.6703), "astra": (1.2922, 1.6333, 1.0135, 0.9098)}      # 欄序 GB200、GB300、VR200、Rubin Ultra（Hopper 為文字）
+V526_IF = ("IF_DeprLifeIT", "IF_DeprIT", "IF_DeprFac", "IF_AvgDraw", "IF_PowerPrice", "IF_MaintIT", "IF_MaintFac", "IF_StaffSW", "IF_TaxIns", "IF_OpexGW")   # v5.26 Interface I 節
 ALLOC_IF = ("IF_AllocQ1", "IF_AllocQ1_R2", "IF_AllocQ2", "IF_AllocServeGW", "IF_AllocRDGW", "IF_AllocDemand", "IF_AllocImpliedNk")
 
 
@@ -121,7 +122,7 @@ def test_named_ranges(model):
     downstream = {n for n in eng.names if n.startswith("IF_") and not n.startswith("IF_Hdr")}
     assert len(downstream) == EXPECT["downstream_names"]
     if_all = [n for n in eng.names if n.startswith("IF_")]
-    assert len(if_all) == EXPECT["downstream_names"] + 3 and sum(n.startswith("IF_Hdr") for n in eng.names) == 3   # 167＝164 下游＋IF_Hdr 3（IF_HdrGen、IF_HdrCost、IF_HdrTask）
+    assert len(if_all) == EXPECT["downstream_names"] + 3 and sum(n.startswith("IF_Hdr") for n in eng.names) == 3   # 195＝192 下游＋IF_Hdr 3（IF_HdrGen、IF_HdrCost、IF_HdrTask）
     for n in eng.names:  # 每個名稱都能取值，且非錯誤值
         v = eng.get_name(n)
         flat = v if isinstance(v, list) else [v]
@@ -216,7 +217,12 @@ def test_interface_d_e_shapes(model):
     for n in v522_new:
         v = eng.get_name(n)
         assert isinstance(v, list) and len(v) == 15 and all((isinstance(x, (int, float)) and not isinstance(x, bool)) or x == "SLO 不可達" for x in v), f"{n}: {v!r}"
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個
+    v526_new = set(V526_IF)                                                                    # v5.26：Interface I 節 10 個 DC_Cost 構件名稱（15 欄；數值）
+    assert len(v526_new) == 10 and v526_new <= set(eng.names)
+    for n in v526_new:
+        v = eng.get_name(n)
+        assert isinstance(v, list) and len(v) == 15 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n}: {v!r}"
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長

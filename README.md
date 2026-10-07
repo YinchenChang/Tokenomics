@@ -20,7 +20,8 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 
 Excel 的具名範圍分為兩類（見 Excel README 頁）：
 
-- **`IF_` 開頭且非 `IF_Hdr`**（164 個；v5.10）：Interface 輸出，**下游模型（OpenAI、CRWV、Nebius 等）只連結這一類**。
+- **`IF_` 開頭且非 `IF_Hdr`**（192 個；v5.26，v5.25 為 182 個）：Interface 輸出，**下游模型（OpenAI、CRWV、Nebius 等）只連結這一類**。
+  - v5.26 新增 Interface I 節「DC_Cost 構件」10 個（下游公司模型的每 MW 營運成本用；金額 $B/GW/年，比率與年限不換算）：`IF_DeprLifeIT`（IT 折舊年限，年）、`IF_DeprIT`（IT 折舊）、`IF_DeprFac`（廠房折舊，土地不折舊）、`IF_AvgDraw`（平均用電 ÷ 配電設計功率）、`IF_PowerPrice`（電價，$/kWh）、`IF_MaintIT`（IT 維護）、`IF_MaintFac`（廠房維護）、`IF_StaffSW`（人員、軟體、水與耗材）、`IF_TaxIns`（財產稅與保險）、`IF_OpexGW`（營運費用小計，不含折舊、含電費）。`IF_DeprIT＋IF_DeprFac＋IF_OpexGW＝IF_HoldAcct`（I 節末列核對）。
 - **`IF_Hdr*`（`IF_HdrGen`、`IF_HdrCost`、`IF_HdrTask`）、`DRV_*`、`CAL_*`、`TRN_*`、`TR_*`、`B4_*`、`B5_*`、`CTL_*`**：僅供本網站顯示（表頭、推導鏈、Calib 驗證表、Tech_Registry 唯讀表）、內部用或輸入控制，下游不得連結。
   `B4_*`（39 個）與 `B5_*`（24 個；v5.9 新增、v5.10 加 `B5_PFloor`）是 Block 4、Block 5 的顯示或內部用名稱（Cap_In／Har_In 輸入、市場候選表、有效單價列、選定 harness 檔案等），**下游一律不得連結**，應改連 `IF_` 的 Block 4、5 輸出（Interface D、E 節）。
 

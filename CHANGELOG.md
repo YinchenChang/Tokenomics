@@ -2,6 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261007_Tokenomics_v5.26.xlsx（取代 v5.25；Interface I 節 DC_Cost 構件 10 個下游名稱；工程類（CC 執行），依工作單 `docs/workorders/20261007_v5.26.md` r1，試行 (B)）
+
+- Commit：見本輪分支 `claude/v5.26-build`（合併後補上雜湊）。報告：`docs/reports/20261007_v5.26.md`。底稿：分支 `claude/v5.25-build` `7180c86`（v5.25 PR #26 尚未合併，依 chat 端修訂採疊加；PR base＝`claude/v5.25-build`）；`model/CURRENT` 原為 v5.25。
+- Excel（CC 以 `builder/` 自 v5.25 產生，經 LibreOffice 重算存檔）：Interface 第 218–229 列新增 I 節：`IF_DeprLifeIT`、`IF_DeprIT`、`IF_DeprFac`、`IF_AvgDraw`、`IF_PowerPrice`、`IF_MaintIT`、`IF_MaintFac`、`IF_StaffSW`、`IF_TaxIns`、`IF_OpexGW`（各連結 DC_Cost 第 38–42、44–48 列同欄；金額列 ÷ CTL_GW）與加總核對列（`IF_DeprIT＋IF_DeprFac＋IF_OpexGW − IF_HoldAcct`，15 欄皆 0）；README A1／B5 版本字串與新增第 31 列（I 節名稱說明）。與 v5.25 逐格比較：既有儲存格數值與公式 0 差異；公式格 39,252 → 39,417、具名範圍 911 → 921、工作表 56 不變。
+- builder：新增 `v526.py`（版本字串的唯一來源；DC_Cost 列依 A 欄標籤定位）；`build.py`（H 節之後呼叫 `v526.interface_i`）、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v526.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生（27 個檔）。以 v5.26 重建冪等 0 不符。
+- 網站：`app/` 的 Block 1 總覽表依名稱前綴自動納入新名稱（未改程式）。
+- 測試：期望值 `formula_cells` 39,252 → 39,417、`defined_names` 911 → 921、`downstream_names` 182 → 192；`test_interface_d_e_shapes` 加 v5.26 名稱形狀檢查。
+- 治理：GOV_Errors 0、GOV_Warnings 213、GOV_Info 107（皆與 v5.25 相同）。
+- v5.25 段的合併雜湊：v5.25（PR #26）尚未合併，待合併後補。
+
 ## 20261007_Tokenomics_v5.25.xlsx（取代 v5.24；X12 ISL／OSL 與 Astra 架構證據登錄、L1 前沿算力對照改 GPT-6 Astra；X11；判斷類（chat 端定案），依工作單 `docs/workorders/20261007_v5.25.md` r0 執行，試行 (B) 第二份）
 
 - Commit：見本輪分支 `claude/v5.25-build`（合併後補上雜湊）。報告：`docs/reports/20261007_v5.25.md`。底稿：master `bdb0de7`（＝v5.24 合併 `098873a`＋本工作單提交）；`model/CURRENT` 原為 v5.24。

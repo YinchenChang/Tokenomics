@@ -1,0 +1,158 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "7180c86cd5f6c904544d17d5787c8cd0396ccfc6",
+ "github_sha": "6a95a70a04382cc0fada268d3af1bf84515389f0",
+ "ref": "refs/pull/26/merge",
+ "event": "pull_request",
+ "run_id": 37633163340,
+ "run_number": 208,
+ "run_attempt": 2,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 112841651789,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:00:58Z",
+   "completed_at": "2026-10-07T14:02:23Z",
+   "seconds": 85,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112841652449,
+   "name": "engine-cache（建一次計算圖）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:00:58Z",
+   "completed_at": "2026-10-07T14:02:57Z",
+   "seconds": 119,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112841654880,
+   "name": "scenarios（第 2 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:20:14Z",
+   "completed_at": "2026-10-07T14:29:21Z",
+   "seconds": 547,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112841655456,
+   "name": "scenario-guard（防空轉：每個情境至少改變一格）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:03:00Z",
+   "completed_at": "2026-10-07T14:10:29Z",
+   "seconds": 449,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112841655702,
+   "name": "structure-recalc（結構性測試＋函數語意＋兩條重算）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:03:00Z",
+   "completed_at": "2026-10-07T14:13:08Z",
+   "seconds": 608,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112841655707,
+   "name": "scenarios（第 0 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:02:59Z",
+   "completed_at": "2026-10-07T14:11:02Z",
+   "seconds": 483,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112841655829,
+   "name": "scenarios（第 4 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:02:59Z",
+   "completed_at": "2026-10-07T14:09:28Z",
+   "seconds": 389,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112841656047,
+   "name": "scenarios（第 3 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:03:00Z",
+   "completed_at": "2026-10-07T14:10:45Z",
+   "seconds": 465,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112841656389,
+   "name": "scenarios（第 5 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:02:59Z",
+   "completed_at": "2026-10-07T14:10:40Z",
+   "seconds": 461,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112841657285,
+   "name": "scenarios（第 1 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:03:00Z",
+   "completed_at": "2026-10-07T14:14:46Z",
+   "seconds": 706,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112846102732,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:29:25Z",
+   "completed_at": "2026-10-07T14:29:36Z",
+   "seconds": 11,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112846215720,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-07T14:29:39Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.12.3"
+  }
+ ],
+ "failures": [
+  {
+   "source": "parity-results-scenarios-2",
+   "test": "tests.parity.test_parity::test_scenario_parity[b_prod_derate]",
+   "kind": "failure",
+   "message": "FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\ntests/parity/test_parity.py:270: in test_scenario_parity\n    ref = excel_values(lo_recalc(scen_xlsx, tmp_path / \"lo\"), base_engine[0].formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-scenarios-2",
+   "test": "tests.parity.test_parity::test_scenario_parity[b4_f_disc_03]",
+   "kind": "failure",
+   "message": "FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\ntests/parity/test_parity.py:270: in test_scenario_parity\n    ref = excel_values(lo_recalc(scen_xlsx, tmp_path / \"lo\"), base_engine[0].formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-scenarios-2",
+   "test": "tests.parity.test_parity::test_scenario_parity[floor_0]",
+   "kind": "failure",
+   "message": "FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\ntests/parity/test_parity.py:270: in test_scenario_parity\n    ref = excel_values(lo_recalc(scen_xlsx, tmp_path / \"lo\"), base_engine[0].formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-scenarios-2",
+   "test": "tests.parity.test_parity::test_scenario_parity[h_alloc_tok_high]",
+   "kind": "failure",
+   "message": "FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\ntests/parity/test_parity.py:270: in test_scenario_parity\n    ref = excel_values(lo_recalc(scen_xlsx, tmp_path / \"lo\"), base_engine[0].formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  }
+ ],
+ "log_excerpts": {},
+ "recalc_seconds": {
+  "full": 1.56,
+  "incremental_max": 0.77,
+  "incremental_max_scenario": "f_registry_t07_t09_on",
+  "incremental_median": 0.4
+ },
+ "pr_number": 26,
+ "generated_at": "2026-10-07T14:29:58Z",
+ "errors": []
+}

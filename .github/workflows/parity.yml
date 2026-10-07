@@ -11,10 +11,19 @@ name: parity
 # run 189 的 scenarios 第 4 片因 libreoffice-core 下載約 19 分鐘而逾時）；(2) 每個 job 末尾記錄完整 Python 版本並上傳 pyver-* artifact，由 ci-status 寫入 jobs[].python；
 # (3) actions/checkout v4→v5、setup-python v5→v6、upload-artifact v4→v6、download-artifact v4→v7（皆為首個以 Node.js 24 為預設的主版本；download 的 name／pattern 行為不變）。
 # 合併門檻（job parity 的名稱、needs、斷言）與任何測試的斷言都沒有改。
+# v5.24（工程類，工作單 2）：on.push 加 paths-ignore（docs/**、CHANGELOG.md、根目錄 README.md、CLAUDE.md）：推送的全部變更檔都符合時不觸發 push run。
+# 依 GitHub 文件（Workflow syntax → on.push.paths-ignore）：(1) branches-ignore 與 paths-ignore 並存時兩者都須滿足才執行；
+# (2)「Path filters are not evaluated for pushes of tags」：推標籤不評估路徑篩選，tags: ["**"] 照常觸發；(3) 只要有一個檔不符 paths-ignore 即執行。
+# pull_request 不加 paths-ignore：合併門檻 job parity 必須在每個 PR 上出現。
 on:
   push:
     branches-ignore: [ci-status]
     tags: ["**"]
+    paths-ignore:          # v5.24：只改文件的 push 不觸發（pull_request 不加，合併門檻 parity 每個 PR 都要出現）
+      - "docs/**"
+      - "CHANGELOG.md"
+      - "README.md"        # 只指根目錄 README（不含 docs/ 以外子目錄的 README）
+      - "CLAUDE.md"
   pull_request:
 
 env:

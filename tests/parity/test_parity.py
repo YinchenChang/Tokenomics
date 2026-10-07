@@ -22,9 +22,10 @@ BLOCK2_PREFIX = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache",
 
 
 PROD_IF = tuple(f"{b}_Prod" for b in ("IF_FullCost_Luna", "IF_FullCost_Sol", "IF_FullCost_Astra", "IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet"))   # v5.19 X1
+# v5.23 X10：VR200 欄（第 4 個）因 Perf_Batch 側 η_d 倍數 0.75 而改變（0.85：sol 0.2551→0.2567、astra 0.3313→0.3373；0.7：sol 0.6901→0.6955、astra 0.9923→1.0135），其餘欄不變
 # 相對基準列的變動（LibreOffice 重算值；欄序 Hopper、GB200、GB300、VR200、Rubin Ultra 的基準成本欄；0.85 預設、0.7 區間下限）
-EXPECT_PROD_085 = {"sol": (0.4900, 0.2776, 0.2775, 0.2551, 0.2497), "astra": (1.0400, 0.3938, 0.4444, 0.3313, 0.3119), "fleet": (-0.4399, -0.2424, -0.2678, -0.2177, -0.2105)}
-EXPECT_PROD_070 = {"sol": (0.7763, 0.7805, 0.6901, 0.6703), "astra": (1.2922, 1.6333, 0.9923, 0.9098)}      # 欄序 GB200、GB300、VR200、Rubin Ultra（Hopper 為文字）
+EXPECT_PROD_085 = {"sol": (0.4900, 0.2776, 0.2775, 0.2567, 0.2497), "astra": (1.0400, 0.3938, 0.4444, 0.3373, 0.3119), "fleet": (-0.4399, -0.2424, -0.2678, -0.2177, -0.2105)}
+EXPECT_PROD_070 = {"sol": (0.7763, 0.7805, 0.6955, 0.6703), "astra": (1.2922, 1.6333, 1.0135, 0.9098)}      # 欄序 GB200、GB300、VR200、Rubin Ultra（Hopper 為文字）
 ALLOC_IF = ("IF_AllocQ1", "IF_AllocQ1_R2", "IF_AllocQ2", "IF_AllocServeGW", "IF_AllocRDGW", "IF_AllocDemand", "IF_AllocImpliedNk")
 
 
@@ -404,7 +405,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     base = new_engine(model)
     assert abs(base.get_name("AL_DDaily") - 11.48) < 0.01                                 # 每日 token 約 11.5T
     assert abs(base.get_name("AL_ServeGWSpend") - 0.74266) < 5e-5                        # v5.18：0.751→0.74266（LibreOffice 重算值）
-    assert abs(base.get_name("AL_RefGWyr") - 0.018153) < 5e-6                             # v5.18：0.01808→0.018153（LibreOffice 重算值）
+    assert abs(base.get_name("AL_RefGWyr") - 0.0210207) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
     for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
@@ -419,8 +420,8 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
         assert eng.get_name("GOV_Errors") == 0, sid
         if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
             assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
-        else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 48.8%）
-            assert abs(eng.get_name("IF_AllocQ1") - 0.4845) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
+        else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 52.1%；v5.23 X10 前為 48.5%）
+            assert abs(eng.get_name("IF_AllocQ1") - 0.5213) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
 
 
 def test_alloc_mix_2025_expected_values(model, template_engine):
@@ -429,7 +430,7 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
     for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
         eng.set_key(k, v)
     eng.evaluate_all()
-    for n, want in (("IF_AllocServeGW", 0.140315), ("AL_ServeGWSpend", 0.863676), ("IF_AllocQ1", 0.365056), ("IF_AllocQ2", 0.430013)):
+    for n, want in (("IF_AllocServeGW", 0.140315), ("AL_ServeGWSpend", 0.863676), ("IF_AllocQ1", 0.392575), ("IF_AllocQ2", 0.458889)):
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
 
@@ -437,8 +438,8 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
 def test_l1_v516_expected_values_and_h3(model):
     """v5.16：L1 毛利率兩列、GPU 小時口徑、第 7、8 題的基準期望值（工作單第 1 節；chat 端計算，精度到小數第 5 位故容差 5e-6），H3＝0。"""
     eng = new_engine(model)
-    want = {"L1_Ans5_GM": (0.95308, 0.92398, 0.96383), "L1_Ans5_FullMargin": (0.93057, 0.88752, 0.94648),     # v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）
-            "L1_Ans6_GPUh": (0.25575, 0.25575, 0.25575), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47928, 0.47928, 0.47928)}
+    want = {"L1_Ans5_GM": (0.95308, 0.92398, 0.96383), "L1_Ans5_FullMargin": (0.93031, 0.88710, 0.94628),     # v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）；v5.23 X10：FullMargin 與 GPUh 改為 k＝0.75 暫存複本的 LibreOffice 重算值
+            "L1_Ans6_GPUh": (0.28231, 0.28231, 0.28231), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47928, 0.47928, 0.47928)}
     for n, (d, lo, hi) in want.items():
         for suffix, v in (("", d), ("_Lo", lo), ("_Hi", hi)):
             got = eng.get_name(n + suffix)
@@ -509,3 +510,71 @@ def test_price_life_expected_values(model, template_engine):
         if sh == "L1" or (sh == "Interface" and row <= 210):
             assert v == base_vals[(sh, coord)], (sh, coord, base_vals[(sh, coord)], v)
     assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values())
+
+
+# ── v5.23 X10：Perf_Batch 側 VR200 批次口徑 η_d 倍數（工作單 1.3、1.4 節） ──
+BATCH_PREV = HERE.parent.parent / "model" / "archive" / "20261006_Tokenomics_v5.22.xlsx"        # v5.22（LibreOffice 重算存檔）：X10 之前的口徑
+# v5.22 報告第三節 k＝0.75 的結果（VR200 欄相對 k＝1 的變動；報告取兩位小數，容差 6e-5＝0.006 個百分點）
+EXPECT_BATCH_075 = {"IF_TrainCost_Luna": {10: 0.1434, 11: 0.1434, 12: 0.1434}, "IF_TrainCost_Sol": {10: 0.1082, 11: 0.1082, 12: 0.1082},
+                    "IF_TrainCost_Astra": {10: 0.0921, 11: 0.0921, 12: 0.0921}, "TRN_GPUhRL": {10: 0.1426, 11: 0.1459, 12: 0.1596},
+                    "IF_FullCost_Luna": {11: 0.0020}, "IF_FullCost_Sol": {11: 0.0055}, "IF_FullCost_Astra": {11: 0.0287}}
+EXPECT_BATCH_075_SCALAR = {"L1_Ans1": 0.0452, "L1_Ans3": 0.1241, "L1_Ans6_GPUh": 0.1039, "L1_Ans5_FullMargin": -0.0003,
+                           "L1_RLshare_Sol_VR200": 0.1459, "L1_RLshare_Astra_VR200": 0.1596}
+EXPECT_BATCH_075_RATIO = (1.762, 1.811, 1.923)      # Perf_Batch 第 88 列 VR200（L、M、N）÷ GB300（I、J、K）；k＝1 時為 2.350、2.414、2.564
+
+
+def _flat(v):
+    if isinstance(v, list):
+        return [x for r in v for x in _flat(r)]
+    return [v]
+
+
+def _same(a, b):
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool) and not isinstance(b, bool):
+        return abs(a - b) <= 1e-12 or abs(a - b) <= 1e-9 * max(abs(a), abs(b))
+    return (a in (None, "") and b in (None, "")) or a == b
+
+
+def test_batch_etad_expected_values(model):
+    """v5.23 X10：基準 CAL_BatchEtaD＝[1,1,1,0.75,1]；h_batch_etad_100（VR200 設回 1）時，v5.22 的全部具名範圍（除 IDX_SrcID：SRC_Index 新增哨兵列）逐格相等
+    ——只有 X10 造成改變；k＝0.75 相對 k＝1 的變動等於 v5.22 報告第三節；改變的具名範圍恰為 85 個（報告 82 個＋3 個對應的 _Prod）；
+    IF_TrainGenDefault 仍為 4；TR_*、IF_RevGW_*、IF_RevGWFleet、_Life 不變；GOV_Errors＝0（Checks X1 的 _Prod 自我檢查維持 0）。"""
+    import openpyxl
+    from openpyxl.utils import range_boundaries
+    base = new_engine(model)
+    assert base.get_name("CAL_BatchEtaD") == [1, 1, 1, 0.75, 1]
+    assert base.get_name("GOV_Errors") == 0 and base.get_name("IF_TrainGenDefault") == 4
+    eng = _clone(model)
+    eng.set_key("CAL_BatchEtaD[4]", 1.0)
+    cur = eng.evaluate_all()
+    assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values()) and eng.get_name("GOV_Errors") == 0
+    prev = openpyxl.load_workbook(BATCH_PREV, data_only=True)
+    bad = []
+    for n, dn in prev.defined_names.items():
+        if n == "IDX_SrcID":
+            continue
+        sh, rg = dn.attr_text.rsplit("!", 1)
+        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+        want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
+        got = _flat(eng.get_name(n))
+        if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
+            bad.append(n)
+    assert not bad, f"k＝1 時與 v5.22 不符的具名範圍：{bad[:20]}"
+    changed = [n for n in base.names if n != "IDX_SrcID" and n in prev.defined_names
+               and not all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n))))]
+    assert len(changed) == 85, len(changed)
+    by = {p: sum(n.startswith(p) for n in changed) for p in ("IF_", "L1_", "AL_", "TRN_")}
+    assert by == {"IF_": 41, "L1_": 21, "AL_": 15, "TRN_": 8} and sum(n.endswith("_Prod") for n in changed) == 3, by       # 82＝IF 38＋L1 21＋TRN 8＋AL 15
+    assert not [n for n in changed if n.startswith(("TR_", "IF_RevGW")) or n.endswith("_Life") or n == "IF_TrainGenDefault"]
+    for n, idx in EXPECT_BATCH_075.items():
+        a, b = base.get_name(n), eng.get_name(n)
+        for k, v in idx.items():
+            assert abs(a[k - 1] / b[k - 1] - 1 - v) < 6e-5, (n, k, a[k - 1] / b[k - 1] - 1, v)
+    for n, v in EXPECT_BATCH_075_SCALAR.items():
+        a, b = base.get_name(n), eng.get_name(n)
+        a, b = (a[0], b[0]) if isinstance(a, list) else (a, b)
+        assert abs(a / b - 1 - v) < 6e-5, (n, a / b - 1, v)
+    for col_vr, col_gb, want in zip("LMN", "IJK", EXPECT_BATCH_075_RATIO):
+        assert abs(base.get("Perf_Batch", f"{col_vr}88") / base.get("Perf_Batch", f"{col_gb}88") - want) < 6e-4
+    for n in ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet"):          # 營收不經 Perf_Batch 第 53 列
+        assert all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n)))), n

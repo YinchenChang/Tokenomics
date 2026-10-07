@@ -9,6 +9,9 @@
 環境：GITHUB_TOKEN（Actions 內有認證額度）、GITHUB_REPOSITORY、GITHUB_RUN_ID、GITHUB_RUN_NUMBER、GITHUB_RUN_ATTEMPT、GITHUB_SHA、
 GITHUB_REF、GITHUB_EVENT_NAME、GITHUB_EVENT_PATH、OVERALL（needs.parity.result）。
 
+v5.23：jobs 每一筆加 python 欄（完整版本，例 3.11.16）：各 job 於結尾以 tools/ci_summary.py pyver 寫 pyver.json 並上傳 pyver-* artifact，
+本程式依 match（job 名稱前綴）對應；ci-status job 自身取執行本程式的直譯器版本；對不到者為 null。
+
 輸出 JSON：schema_version、repo、sha、ref、event、pr_number（pull_request 才有）、run_id、run_number、run_attempt、overall、jobs、failures、
 log_excerpts、recalc_seconds、generated_at（另有 github_sha、errors 兩個輔助欄位）。
 檔名：<sha>/<run_number>-a<run_attempt>-<event>.json（每次 run、每次重跑各一檔，不覆寫）；pull_request 的 sha 取 PR 分支頭（GITHUB_SHA 是合併提交）。
@@ -19,6 +22,7 @@ import datetime
 import io
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -98,6 +102,15 @@ def summarize_job(j):
                 started_at=j.get("started_at"), completed_at=j.get("completed_at"), seconds=_secs(j.get("started_at"), j.get("completed_at")))
 
 
+def attach_python(jobs, pyvers, self_python=None):
+    """jobs[].python：pyvers 為 [{"match": 名稱前綴, "python": "x.y.z"}]；最長前綴優先；ci-status job 自身用 self_python；對不到為 None。"""
+    for j in jobs:
+        name = j.get("name") or ""
+        hits = sorted((v for v in pyvers if name.startswith(v.get("match") or "\0")), key=lambda v: -len(v["match"]))
+        j["python"] = hits[0]["python"] if hits else (self_python if name.startswith("ci-status") else None)
+    return jobs
+
+
 def junit_failures(xml_bytes, source):
     """失敗與錯誤的測試名稱與訊息（前 MAX_FAIL_LINES 列）。"""
     out = []
@@ -150,10 +163,16 @@ def collect(api, env, event=None):
         out["jobs"] = [summarize_job(j) for j in raw_jobs]
     except Exception as e:                                   # noqa: BLE001
         raw_jobs = []; errors.append(f"jobs: {e}")
-    results = {}
+    results, pyvers = {}, []
     try:
         arts = api.get_json(f"/repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100").get("artifacts", [])
         for a in arts:
+            if a["name"].startswith("pyver-"):                  # v5.23：各 job 的 Python 版本記錄
+                try:
+                    pyvers.append(json.loads(_zip_members(api.get_bytes(f"/repos/{repo}/actions/artifacts/{a['id']}/zip"))["pyver.json"].decode("utf-8")))
+                except Exception as e:                           # noqa: BLE001
+                    errors.append(f"pyver {a['name']}: {e}")
+                continue
             if not (a["name"].startswith("parity-results-") or a["name"] == "junit-scenario-guard"):
                 continue
             try:
@@ -169,6 +188,7 @@ def collect(api, env, event=None):
                 results = json.loads(files["_results_structure.json"].decode("utf-8"))
     except Exception as e:                                   # noqa: BLE001
         errors.append(f"artifacts: {e}")
+    attach_python(out["jobs"], pyvers, platform.python_version())
     if results:
         inc = results.get("_incr_recalc") or {}
         out["recalc_seconds"] = dict(full=results.get("_full_recalc_seconds"), incremental_max=inc.get("max_seconds"),
@@ -197,7 +217,7 @@ README_BRANCH = """# ci-status
 檔案：`<提交 SHA>/<run 編號>-a<重跑次數>-<事件>.json`（pull_request 事件的 SHA 為 PR 分支頭）。每次 run、每次重跑各一檔，不覆寫。
 
 欄位：`schema_version`、`repo`、`sha`、`github_sha`（Actions 的 GITHUB_SHA；PR 為合併提交）、`ref`、`event`、`pr_number`（pull_request 才有）、
-`run_id`、`run_number`、`run_attempt`、`overall`（job `parity` 的結果）、`jobs`（名稱、結論、起訖時間、秒數）、`failures`（失敗或錯誤的測試與訊息前 20 列）、
+`run_id`、`run_number`、`run_attempt`、`overall`（job `parity` 的結果）、`jobs`（名稱、結論、起訖時間、秒數、`python`＝該 job 的完整 Python 版本）、`failures`（失敗或錯誤的測試與訊息前 20 列）、
 `log_excerpts`（只含失敗 job：含 FAILED／Error／Traceback／python 版本字樣的列及最後 80 列，每 job 上限 200 列）、
 `recalc_seconds`（全簿與增量重算秒數）、`generated_at`、`errors`（蒐集時取不到的項目）。
 """

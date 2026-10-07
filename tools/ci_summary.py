@@ -3,6 +3,7 @@
 
 用法：
   python3 tools/ci_summary.py job <名稱> <junit.xml> [<_results.json>]   # 單一 job：測試結果、各測試秒數、重算秒數 → stdout（Markdown）
+  python3 tools/ci_summary.py pyver <job 名稱前綴> <輸出.json>             # v5.23：記錄本 job 的完整 Python 版本（供 ci-status 讀取）
   python3 tools/ci_summary.py gate <結果目錄>                              # 彙總：各片情境聯集必須恰為 scenarios.yaml 全部情境
 """
 import json
@@ -51,6 +52,12 @@ def job(name, junit, results):
         print(f"- ❌ {c.get('classname')}::{c.get('name')}")
 
 
+def pyver(match, out):
+    """寫 {"match": <job 名稱前綴>, "python": "x.y.z"}；ci_status.py 依前綴對應 API 的 job 名稱。只輸出，不影響任何斷言。"""
+    Path(out).write_text(json.dumps({"match": match, "python": platform.python_version()}, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"Python {platform.python_version()}（{match}）")
+
+
 def gate(folder):
     import yaml
     want = [s["id"] for s in yaml.safe_load((REPO / "tests/parity/scenarios.yaml").read_text(encoding="utf-8"))["scenarios"]]
@@ -72,6 +79,8 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "job":
         job(sys.argv[2], sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else None)
+    elif cmd == "pyver":
+        pyver(sys.argv[2], sys.argv[3])
     elif cmd == "gate":
         gate(sys.argv[2])
     else:

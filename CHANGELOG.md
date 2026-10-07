@@ -8,7 +8,7 @@
 - 一手來源核對（CC 2026-10-07）：arXiv 2601.10088v1 HTML（4.3 節 Figure 14／15、4.4 節 Figure 17／18、4.1 節 Figure 10、2.3 節）與 Epoch `frontier_ai_models.csv`（GPT-6 Astra、Grok 3 列）逐項與工作單相符；Epoch `Confidence` 定義查得（records 文件頁）。
 - Excel（CC 以 `builder/` 自 v5.24 產生，經 LibreOffice 重算存檔）：SRC_Demand 新增 `SRC_DEM_014`–`017`（OpenRouter，1 級、利害關係方、純證據）；SRC_Model 新增 `SRC_MOD_055`（GPT-6 Astra 訓練算力 1.0001e27，1 級、中立）；DB_Evidence E247–E250；Gov_Map GM248（Serving C24）低 `=Serving!C24*0.5`（512）→ 400、區間文字改寫，GM245–GM250、GM203–GM205、GM531 理由欄附註；Decisions X11、X12；L1 第 36 列 L、M、N、S 改為 `SRC_MOD_055`（O36 0.149 → 0.068，P36 仍「差距 >20%」）；README A1／B5。與 v5.24 逐格比較：差異全部在工作單第 4 節預期範圍內；Interface、L1 D:F、所有模型頁數值逐格不變。公式格 39,218 → 39,252、具名範圍 903 → 911、工作表 56 不變。
 - builder：新增 `v525.py`（版本字串的唯一來源；所有寫入皆有舊值守衛）；`gov.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v525.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生（26 個檔）。以 v5.25 重建冪等 0 不符。
-- 測試：期望值 `formula_cells` 39,218 → 39,252、`defined_names` 903 → 911、`src_names` 343 → 351、`GOV_Warnings` 209 → 213。
+- 測試：期望值 `formula_cells` 39,218 → 39,252、`defined_names` 903 → 911、`src_names` 343 → 351、`GOV_Warnings` 209 → 213；`test_batch_etad_expected_values` 的 k＝1 對 v5.22 比對改為跳過 `IDX_*`、`GOV_*`（新增 SRC 紀錄的連動，非 X10 範圍）。CI：push run 207、pull_request run 208（第 2 次嘗試）全部通過。
 - 治理：GOV_Errors 0、GOV_Warnings 213（W1 213＋W2 0；W1 +4＝SRC_DEM_014–017）、GOV_Info 107（不變）。
 
 ## 20261007_Tokenomics_v5.24.xlsx（取代 v5.23；SRC_Perf 第 60–63 列舊句刪除；CI 只改文件的 push 不觸發；CHANGELOG 補合併雜湊；工程類，依工作單 `docs/workorders/20261007_v5.24.md` r0 執行，試行 (B) 第一份）

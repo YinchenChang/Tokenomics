@@ -446,7 +446,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 209 and eng.get_name("GOV_Info") == 107
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 213 and eng.get_name("GOV_Info") == 107      # v5.25：W1 209 → 213（SRC_DEM_014–017 為利害關係方、無第二來源）
 
 
 def _pct(eng, n, k):
@@ -551,7 +551,8 @@ def test_batch_etad_expected_values(model):
     prev = openpyxl.load_workbook(BATCH_PREV, data_only=True)
     bad = []
     for n, dn in prev.defined_names.items():
-        if n == "IDX_SrcID":
+        # v5.25：新增 SRC 紀錄使 SRC_Index 堆疊位移、W1 計數改變；IDX_*、GOV_* 不屬 X10 範圍（GOV_Errors＝0 已於上方另行斷言）
+        if n.startswith(("IDX_", "GOV_")):
             continue
         sh, rg = dn.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

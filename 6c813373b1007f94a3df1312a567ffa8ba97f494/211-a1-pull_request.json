@@ -1,0 +1,1019 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "6c813373b1007f94a3df1312a567ffa8ba97f494",
+ "github_sha": "02e21d813fb05d46217057741de7fa5e980688b1",
+ "ref": "refs/pull/27/merge",
+ "event": "pull_request",
+ "run_id": 37638814255,
+ "run_number": 211,
+ "run_attempt": 1,
+ "overall": "failure",
+ "jobs": [
+  {
+   "id": 112852015448,
+   "name": "engine-cache（建一次計算圖）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:41:28Z",
+   "completed_at": "2026-10-07T14:43:26Z",
+   "seconds": 118,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112852015674,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:41:28Z",
+   "completed_at": "2026-10-07T14:43:23Z",
+   "seconds": 115,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112852989162,
+   "name": "structure-recalc（結構性測試＋函數語意＋兩條重算）",
+   "conclusion": "failure",
+   "started_at": "2026-10-07T14:43:29Z",
+   "completed_at": "2026-10-07T14:55:39Z",
+   "seconds": 730,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112852989369,
+   "name": "scenario-guard（防空轉：每個情境至少改變一格）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:43:29Z",
+   "completed_at": "2026-10-07T14:52:10Z",
+   "seconds": 521,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112852989553,
+   "name": "scenarios（第 0 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:43:30Z",
+   "completed_at": "2026-10-07T14:53:55Z",
+   "seconds": 625,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112852989559,
+   "name": "scenarios（第 2 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:49:06Z",
+   "completed_at": "2026-10-07T14:57:12Z",
+   "seconds": 486,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112852989594,
+   "name": "scenarios（第 5 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:47:57Z",
+   "completed_at": "2026-10-07T14:56:49Z",
+   "seconds": 532,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112852989606,
+   "name": "scenarios（第 1 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:47:06Z",
+   "completed_at": "2026-10-07T14:59:58Z",
+   "seconds": 772,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112852989635,
+   "name": "scenarios（第 4 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:49:39Z",
+   "completed_at": "2026-10-07T14:59:37Z",
+   "seconds": 598,
+   "python": "3.11.17"
+  },
+  {
+   "id": 112852989708,
+   "name": "scenarios（第 3 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-07T14:50:31Z",
+   "completed_at": "2026-10-07T14:56:59Z",
+   "seconds": 388,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112860904073,
+   "name": "parity",
+   "conclusion": "failure",
+   "started_at": "2026-10-07T15:00:01Z",
+   "completed_at": "2026-10-07T15:00:17Z",
+   "seconds": 16,
+   "python": "3.11.16"
+  },
+  {
+   "id": 112861067845,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-07T15:00:20Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.12.3"
+  }
+ ],
+ "failures": [
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=2^10]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B1^2]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B3^0.5]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=(-8)^(1/3)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=2^-2]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B6^B3]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=\"SLO\\uff08\"&B4&\"\\uff09\"]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=\"x\"&B8]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B4&B4]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CEILING(B1,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CEILING(B6*B1/(2*B3),1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CEILING(10,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CEILING(0.0001,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=FLOOR(B1,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=FLOOR(B6*1000/B1,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=FLOOR(9.999999999,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=FLOOR(4,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ABS(B2)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ABS(B7)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MAX(B1,B2,B6)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MIN(B1,B2,B6)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MAX(B1:B3)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MIN(B1:B3)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MAX(B1:B8)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MIN(B1:B8)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ISNUMBER(B1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ISNUMBER(B4)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ISNUMBER(B5)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ISNUMBER(B1/B6)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(B4=\"abc\",1,0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(B4=\"ABC\",1,0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(B5=\"\",1,0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(B8=\"SLO \\u4e0d\\u53ef\\u9054\",\"\\u662f\",\"\\u5426\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(B1>B6,\"\\u9ad8\",\"\\u4f4e\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(B7<=0,\"SLO \\u4e0d\\u53ef\\u9054\",B1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(B5=\"\",1,B5)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=AND(B1>0,B6>0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=AND(B1>0,B7>0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=AND(B1>0,B4=\"abc\",B6=10)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CHOOSE(2,B1,B2,B6)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CHOOSE(B7+1,B1,B2)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CHOOSE(3,\"a\",\"b\",\"c\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(B1:B3,2)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(B1:B3,3)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(B1:B3,1+1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(B1:B6,3*(2-1)+1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=TEXT(10.5/B6,\"0.0\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=TEXT(3.57/B1,\"0.00\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=TEXT(B3,\"0.0\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=TEXT(0.05,\"0.0\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=TEXT(2.675,\"0.00\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=\"\\u724c\\u50f9 \\xf7 \\u6301\\u6709\\u6210\\u672c\\uff1d\"&TEXT(10.5/B6,\"0.0\")&\" \\u500d\"]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=COUNTIF(B1:B8,\"SLO \\u4e0d\\u53ef\\u9054\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=COUNTIF(B1:B8,\"abc\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=COUNTIF(B1:B8,\"slo \\u4e0d\\u53ef\\u9054\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=EXP(SUMPRODUCT((F1:F4=\"A\")*LN(G1:G4)))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=EXP(SUMPRODUCT((F1:F4=\"B\")*LN(G1:G4)))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=EXP(SUMPRODUCT((F1:F4=\"Z\")*LN(G1:G4)))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=SUMPRODUCT((F1:F4=\"A\")*G1:G4)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=SUMPRODUCT((F1:F4=F1)*G1:G4)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=SUMPRODUCT(G1:G4,G1:G4)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MATCH(MIN(J1:J4),J1:J4,0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MATCH(\"c\",H1:H4,0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(H1:H4,MATCH(MIN(J1:J4),J1:J4,0))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(H1:H4,MATCH(1E9,J1:J4,0))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=COUNTIF(J1:J4,\"<1E9\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=COUNTIF(J1:J4,\"<1000000000\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=COUNTIF(J1:J4,\"<1\")]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(M1:P1,1,3)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(M1:P1,1,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(F1:G1,1,2)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(COUNTIF(J1:J4,\"<1\")=0,\"\\u7121\\u5408\\u683c\",MIN(J1:J4))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ISNUMBER(IF(COUNTIF(J1:J4,\"<1\")=0,\"\\u7121\\u5408\\u683c\",MIN(J1:J4)))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=ISNUMBER(IF(COUNTIF(J1:J4,\"<1E9\")=0,\"\\u7121\\u5408\\u683c\",MIN(J1:J4)))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CHOOSE(2,B1,B2)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=CHOOSE(B7+2,B1,B2,B6)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=EXP(Q1*LN(B1*B6))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=EXP(Q2*LN(B1*B6))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=EXP(Q1*LN(B3))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=FN_X*2]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=MIN(FN_R)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=EXP(FN_E*LN(B6))]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=INDEX(FN_R,2,1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=AVERAGE(B1:B3)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=AVERAGE(B1,B2,B6)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=AVERAGE(B1:B8)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=AVERAGE(M1:P1)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=OR(B1>5,B6>5)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=OR(B1>5,B6>50)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=OR(B7=0,J1>0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=OR(B4=\"abc\",B1<0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(AND(OR(B7=0,J1>0),OR(B6=0,J2>0)),B1,0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=IF(AND(OR(B7=0,J7>0),OR(B6=0,J2>0)),B1,0)]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B1=B1]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B4=\"abc\"]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B1<>B6]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B8<>\"x\"]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B5=0]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_functions::test_formula_semantics[=B4=B8]",
+   "kind": "error",
+   "message": "failed on setup with \"FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\"\ntests/parity/test_functions.py:72: in results\n    ref = excel_values(lo_recalc(src, d / \"lo\"), eng.formula_cells)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  },
+  {
+   "source": "parity-results-structure",
+   "test": "tests.parity.test_parity::test_named_ranges_vs_libreoffice",
+   "kind": "failure",
+   "message": "FileNotFoundError: [Errno 2] No such file or directory: 'soffice'\ntests/parity/test_parity.py:261: in test_named_ranges_vs_libreoffice\n    out = lo_recalc(src, tmp_path / \"lo\")\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/parity/parity_lib.py:39: in lo_recalc\n    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:548: in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1026: in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/subprocess.py:1955: in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nE   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'"
+  }
+ ],
+ "log_excerpts": {
+  "structure-recalc（結構性測試＋函數語意＋兩條重算）": [
+   "2026-10-07T14:49:57.2693018Z platform linux -- Python 3.11.16, pytest-9.1.1, pluggy-1.6.0 -- /opt/hostedtoolcache/Python/3.11.16/x64/bin/python",
+   "2026-10-07T14:51:21.5095432Z tests/parity/test_parity.py::test_named_ranges_vs_libreoffice FAILED     [ 93%]",
+   "2026-10-07T14:55:26.7627187Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7633271Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7639220Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7645031Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7651133Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7656956Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7663460Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7669324Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7675701Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7681609Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7687477Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7693001Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7698222Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7704492Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7710511Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7769688Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7775210Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7780673Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7785950Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7791281Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7796594Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7801976Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7807103Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7812377Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7817592Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7822922Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7827962Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7833280Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7838466Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7843726Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7848935Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7854260Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7859464Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7864805Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7870050Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7875230Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7880588Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7885726Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7890897Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7896062Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7901378Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7906439Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7911768Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7916991Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7922253Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7927356Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7932673Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7937896Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7943185Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7948382Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7953760Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7959311Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7964704Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7970046Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7975506Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7990558Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.7996170Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8001835Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8007143Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8012696Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8018211Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8023718Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8029257Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8035062Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8040548Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8046032Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8051631Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8056908Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8059707Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8061979Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8064113Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8066225Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8068491Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8070872Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8072920Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8075057Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8077179Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8079279Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8081421Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8083554Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8085675Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8087711Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8089803Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8092032Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8094053Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8096180Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8098278Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8100451Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8102567Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8104674Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8106809Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8109086Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8111429Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8113510Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8115759Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8118019Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8120216Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8122364Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8124493Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8126738Z E   FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8127443Z FAILED tests/parity/test_parity.py::test_named_ranges_vs_libreoffice - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8127803Z ERROR tests/parity/test_functions.py::test_formula_semantics[=2^10] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8128148Z ERROR tests/parity/test_functions.py::test_formula_semantics[=B1^2] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8128489Z ERROR tests/parity/test_functions.py::test_formula_semantics[=B3^0.5] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8128829Z ERROR tests/parity/test_functions.py::test_formula_semantics[=(-8)^(1/3)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8129162Z ERROR tests/parity/test_functions.py::test_formula_semantics[=2^-2] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8129495Z ERROR tests/parity/test_functions.py::test_formula_semantics[=B6^B3] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8129942Z ERROR tests/parity/test_functions.py::test_formula_semantics[=\"SLO\\uff08\"&B4&\"\\uff09\"] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8130369Z ERROR tests/parity/test_functions.py::test_formula_semantics[=\"x\"&B8] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8130701Z ERROR tests/parity/test_functions.py::test_formula_semantics[=B4&B4] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8131057Z ERROR tests/parity/test_functions.py::test_formula_semantics[=CEILING(B1,1)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8131435Z ERROR tests/parity/test_functions.py::test_formula_semantics[=CEILING(B6*B1/(2*B3),1)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8131797Z ERROR tests/parity/test_functions.py::test_formula_semantics[=CEILING(10,1)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8132178Z ERROR tests/parity/test_functions.py::test_formula_semantics[=CEILING(0.0001,1)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8132531Z ERROR tests/parity/test_functions.py::test_formula_semantics[=FLOOR(B1,1)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8132905Z ERROR tests/parity/test_functions.py::test_formula_semantics[=FLOOR(B6*1000/B1,1)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "2026-10-07T14:55:26.8133290Z ERROR tests/parity/test_functions.py::test_formula_semantics[=FLOOR(9.999999999,1)] - FileNotFoundError: [Errno 2] No such file or directory: 'soffice'",
+   "…（以下為最後 80 列）",
+   "2026-10-07T14:55:35.2570967Z - ❌ tests.parity.test_functions::test_formula_semantics[=AVERAGE(B1,B2,B6)]",
+   "2026-10-07T14:55:35.2571270Z - ❌ tests.parity.test_functions::test_formula_semantics[=AVERAGE(B1:B8)]",
+   "2026-10-07T14:55:35.2571564Z - ❌ tests.parity.test_functions::test_formula_semantics[=AVERAGE(M1:P1)]",
+   "2026-10-07T14:55:35.2571864Z - ❌ tests.parity.test_functions::test_formula_semantics[=OR(B1>5,B6>5)]",
+   "2026-10-07T14:55:35.2572158Z - ❌ tests.parity.test_functions::test_formula_semantics[=OR(B1>5,B6>50)]",
+   "2026-10-07T14:55:35.2572451Z - ❌ tests.parity.test_functions::test_formula_semantics[=OR(B7=0,J1>0)]",
+   "2026-10-07T14:55:35.2572751Z - ❌ tests.parity.test_functions::test_formula_semantics[=OR(B4=\"abc\",B1<0)]",
+   "2026-10-07T14:55:35.2573102Z - ❌ tests.parity.test_functions::test_formula_semantics[=IF(AND(OR(B7=0,J1>0),OR(B6=0,J2>0)),B1,0)]",
+   "2026-10-07T14:55:35.2573494Z - ❌ tests.parity.test_functions::test_formula_semantics[=IF(AND(OR(B7=0,J7>0),OR(B6=0,J2>0)),B1,0)]",
+   "2026-10-07T14:55:35.2573820Z - ❌ tests.parity.test_functions::test_formula_semantics[=B1=B1]",
+   "2026-10-07T14:55:35.2574104Z - ❌ tests.parity.test_functions::test_formula_semantics[=B4=\"abc\"]",
+   "2026-10-07T14:55:35.2574382Z - ❌ tests.parity.test_functions::test_formula_semantics[=B1<>B6]",
+   "2026-10-07T14:55:35.2574656Z - ❌ tests.parity.test_functions::test_formula_semantics[=B8<>\"x\"]",
+   "2026-10-07T14:55:35.2575030Z - ❌ tests.parity.test_functions::test_formula_semantics[=B5=0]",
+   "2026-10-07T14:55:35.2575300Z - ❌ tests.parity.test_functions::test_formula_semantics[=B4=B8]",
+   "2026-10-07T14:55:35.2575567Z - ❌ tests.parity.test_parity::test_named_ranges_vs_libreoffice",
+   "2026-10-07T14:55:35.2626130Z ##[group]Run actions/upload-artifact@v6",
+   "2026-10-07T14:55:35.2626296Z with:",
+   "2026-10-07T14:55:35.2626423Z   name: parity-results-structure",
+   "2026-10-07T14:55:35.2626608Z   path: tests/parity/_results_structure.json",
+   "junit.xml",
+   "",
+   "2026-10-07T14:55:35.2626794Z   if-no-files-found: ignore",
+   "2026-10-07T14:55:35.2626938Z   compression-level: 6",
+   "2026-10-07T14:55:35.2627063Z   overwrite: false",
+   "2026-10-07T14:55:35.2627198Z   include-hidden-files: false",
+   "2026-10-07T14:55:35.2629368Z ##[endgroup]",
+   "2026-10-07T14:55:35.3731879Z Multiple search paths detected. Calculating the least common ancestor of all paths",
+   "2026-10-07T14:55:35.3741407Z The least common ancestor is /home/runner/work/Tokenomics/Tokenomics. This will be the root directory of the artifact",
+   "2026-10-07T14:55:35.3743250Z With the provided path, there will be 2 files uploaded",
+   "2026-10-07T14:55:35.3744174Z Artifact name is valid!",
+   "2026-10-07T14:55:35.3744623Z Root directory input is valid!",
+   "2026-10-07T14:55:35.6510049Z Beginning upload of artifact content to blob storage",
+   "2026-10-07T14:55:35.8079809Z Uploaded bytes 3309",
+   "2026-10-07T14:55:35.8474868Z Finished uploading artifact content to blob storage!",
+   "2026-10-07T14:55:35.8475690Z SHA256 digest of uploaded artifact zip is cac6c6ab29dc641243584dafd799b0207598598ae0a184721b1eec435a6b9bb6",
+   "2026-10-07T14:55:35.8476649Z Finalizing artifact upload",
+   "2026-10-07T14:55:36.2130831Z Artifact parity-results-structure.zip successfully finalized. Artifact ID 11491901474",
+   "2026-10-07T14:55:36.2131613Z Artifact parity-results-structure has been successfully uploaded! Final size is 3309 bytes. Artifact ID is 11491901474",
+   "2026-10-07T14:55:36.2134563Z Artifact download URL: https://github.com/YinchenChang/Tokenomics/actions/runs/37638814255/artifacts/11491901474",
+   "2026-10-07T14:55:36.2237080Z ##[group]Run python tools/ci_summary.py pyver \"structure-recalc\" pyver.json",
+   "2026-10-07T14:55:36.2237397Z \u001b[36;1mpython tools/ci_summary.py pyver \"structure-recalc\" pyver.json\u001b[0m",
+   "2026-10-07T14:55:36.2293178Z shell: /usr/bin/bash -e {0}",
+   "2026-10-07T14:55:36.2296734Z ##[endgroup]",
+   "2026-10-07T14:55:36.2542511Z Python 3.11.16（structure-recalc）",
+   "2026-10-07T14:55:36.2606101Z ##[group]Run actions/upload-artifact@v6",
+   "2026-10-07T14:55:36.2606290Z with:",
+   "2026-10-07T14:55:36.2606421Z   name: pyver-structure-recalc",
+   "2026-10-07T14:55:36.2606570Z   path: pyver.json",
+   "2026-10-07T14:55:36.2616622Z   if-no-files-found: warn",
+   "2026-10-07T14:55:36.2616852Z   compression-level: 6",
+   "2026-10-07T14:55:36.2617038Z   overwrite: false",
+   "2026-10-07T14:55:36.2617228Z   include-hidden-files: false",
+   "2026-10-07T14:55:36.2619485Z ##[endgroup]",
+   "2026-10-07T14:55:36.3588276Z With the provided path, there will be 1 file uploaded",
+   "2026-10-07T14:55:36.3591574Z Artifact name is valid!",
+   "2026-10-07T14:55:36.3591989Z Root directory input is valid!",
+   "2026-10-07T14:55:36.6779163Z Beginning upload of artifact content to blob storage",
+   "2026-10-07T14:55:36.8337104Z Uploaded bytes 185",
+   "2026-10-07T14:55:36.8713001Z Finished uploading artifact content to blob storage!",
+   "2026-10-07T14:55:36.8713529Z SHA256 digest of uploaded artifact zip is ad551702e5dbc2a6b55f2c37a6de165f9ffac0c9d72f7b8367844428fbdbb82c",
+   "2026-10-07T14:55:36.8714989Z Finalizing artifact upload",
+   "2026-10-07T14:55:37.2266302Z Artifact pyver-structure-recalc.zip successfully finalized. Artifact ID 11492400794",
+   "2026-10-07T14:55:37.2266960Z Artifact pyver-structure-recalc has been successfully uploaded! Final size is 185 bytes. Artifact ID is 11492400794",
+   "2026-10-07T14:55:37.2270015Z Artifact download URL: https://github.com/YinchenChang/Tokenomics/actions/runs/37638814255/artifacts/11492400794",
+   "2026-10-07T14:55:37.2405117Z Post job cleanup.",
+   "2026-10-07T14:55:37.2926534Z [command]/usr/bin/git version",
+   "2026-10-07T14:55:37.2957398Z git version 2.55.0",
+   "2026-10-07T14:55:37.2981066Z Temporarily overriding HOME='/home/runner/work/_temp/cbe82d88-28db-4149-87cf-a59dde4d76f5' before making global git config changes",
+   "2026-10-07T14:55:37.2981745Z Adding repository directory to the temporary git global config as a safe directory",
+   "2026-10-07T14:55:37.2982482Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Tokenomics/Tokenomics",
+   "2026-10-07T14:55:37.3014331Z [command]/usr/bin/git config --local --name-only --get-regexp core\\.sshCommand",
+   "2026-10-07T14:55:37.3041098Z [command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'core\\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\"",
+   "2026-10-07T14:55:37.3240550Z [command]/usr/bin/git config --local --name-only --get-regexp http\\.https\\:\\/\\/github\\.com\\/\\.extraheader",
+   "2026-10-07T14:55:37.3268226Z http.https://github.com/.extraheader",
+   "2026-10-07T14:55:37.3276191Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader",
+   "2026-10-07T14:55:37.3310147Z [command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'http\\.https\\:\\/\\/github\\.com\\/\\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\"",
+   "2026-10-07T14:55:37.3515425Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\\.gitdir:",
+   "2026-10-07T14:55:37.3547147Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url",
+   "2026-10-07T14:55:37.3828082Z Cleaning up orphan processes"
+  ],
+  "parity": [
+   "2026-10-07T15:00:14.1364064Z Artifact download completed successfully.",
+   "2026-10-07T15:00:14.1581145Z SHA256 digest of downloaded artifact is f62ff02e9e4b186048a4403189bb0ae93ee196d0fc569b99b73231ce0305d9e6",
+   "2026-10-07T15:00:14.1582483Z Artifact download completed successfully.",
+   "2026-10-07T15:00:14.1583834Z SHA256 digest of downloaded artifact is 63c40bb4f7d138f7b41b6a7c356c3f4ef57a4934ad6f81221e7e6b0789333010",
+   "2026-10-07T15:00:14.1584785Z Artifact download completed successfully.",
+   "2026-10-07T15:00:14.1585649Z SHA256 digest of downloaded artifact is 0a6e12d998aca9016603090c727cc94835469101c60335448cffa674337e5b9e",
+   "2026-10-07T15:00:14.1586611Z Artifact download completed successfully.",
+   "2026-10-07T15:00:14.1612454Z SHA256 digest of downloaded artifact is b4d76c5d7dadb23ebdb4b86ca6440ffe962dab2f02df3add7e2d4a0af70f52e1",
+   "2026-10-07T15:00:14.1613213Z Artifact download completed successfully.",
+   "2026-10-07T15:00:14.3961679Z SHA256 digest of downloaded artifact is cac6c6ab29dc641243584dafd799b0207598598ae0a184721b1eec435a6b9bb6",
+   "2026-10-07T15:00:14.3962550Z Artifact download completed successfully.",
+   "2026-10-07T15:00:14.3963075Z Total of 7 artifact(s) downloaded",
+   "2026-10-07T15:00:14.3968042Z Download artifact has finished successfully",
+   "2026-10-07T15:00:14.4091830Z ##[group]Run {",
+   "2026-10-07T15:00:14.4092308Z \u001b[36;1m{\u001b[0m",
+   "2026-10-07T15:00:14.4092725Z \u001b[36;1m  echo \"## parity 合併門檻\"\u001b[0m",
+   "2026-10-07T15:00:14.4093194Z \u001b[36;1m  echo \"| job | 結果 |\"\u001b[0m",
+   "2026-10-07T15:00:14.4093586Z \u001b[36;1m  echo \"|---|---|\"\u001b[0m",
+   "2026-10-07T15:00:14.4094082Z \u001b[36;1m  echo \"| engine-cache | success |\"\u001b[0m",
+   "2026-10-07T15:00:14.4095007Z \u001b[36;1m  echo \"| scenarios（6 片） | success |\"\u001b[0m",
+   "2026-10-07T15:00:14.4095516Z \u001b[36;1m  echo \"| structure-recalc | failure |\"\u001b[0m",
+   "2026-10-07T15:00:14.4095960Z \u001b[36;1m  echo \"| scenario-guard | success |\"\u001b[0m",
+   "2026-10-07T15:00:14.4096446Z \u001b[36;1m  echo \"| governance | success |\"\u001b[0m",
+   "2026-10-07T15:00:14.4096862Z \u001b[36;1m} >> \"$GITHUB_STEP_SUMMARY\"\u001b[0m",
+   "2026-10-07T15:00:14.4140222Z shell: /usr/bin/bash -e {0}",
+   "2026-10-07T15:00:14.4145603Z ##[endgroup]",
+   "2026-10-07T15:00:14.4297723Z ##[group]Run python tools/ci_summary.py gate results/ | tee -a \"$GITHUB_STEP_SUMMARY\"",
+   "2026-10-07T15:00:14.4298451Z \u001b[36;1mpython tools/ci_summary.py gate results/ | tee -a \"$GITHUB_STEP_SUMMARY\"\u001b[0m",
+   "2026-10-07T15:00:14.4336459Z shell: /usr/bin/bash -e {0}",
+   "2026-10-07T15:00:14.4341427Z ##[endgroup]",
+   "2026-10-07T15:00:14.8818649Z ## 情境覆蓋檢查（分片不得漏跑或重跑）",
+   "2026-10-07T15:00:14.8819637Z - scenarios.yaml：26 個；各片合計 26 個；缺 []；多 []；重複 []",
+   "2026-10-07T15:00:14.8820274Z - ✅ 全部情境恰跑一次",
+   "2026-10-07T15:00:14.9032352Z ##[group]Run echo \"有 job 未通過\" >&2",
+   "2026-10-07T15:00:14.9032843Z \u001b[36;1mecho \"有 job 未通過\" >&2\u001b[0m",
+   "2026-10-07T15:00:14.9033264Z \u001b[36;1mexit 1\u001b[0m",
+   "2026-10-07T15:00:14.9073249Z shell: /usr/bin/bash -e {0}",
+   "2026-10-07T15:00:14.9078589Z ##[endgroup]",
+   "2026-10-07T15:00:14.9140866Z 有 job 未通過",
+   "2026-10-07T15:00:14.9152953Z ##[error]Process completed with exit code 1.",
+   "2026-10-07T15:00:14.9209351Z ##[group]Run python tools/ci_summary.py pyver \"parity\" pyver.json",
+   "2026-10-07T15:00:14.9209952Z \u001b[36;1mpython tools/ci_summary.py pyver \"parity\" pyver.json\u001b[0m",
+   "2026-10-07T15:00:14.9244794Z shell: /usr/bin/bash -e {0}",
+   "2026-10-07T15:00:14.9250160Z ##[endgroup]",
+   "2026-10-07T15:00:14.9551619Z Python 3.11.16（parity）",
+   "2026-10-07T15:00:14.9656197Z ##[group]Run actions/upload-artifact@v6",
+   "2026-10-07T15:00:14.9656642Z with:",
+   "2026-10-07T15:00:14.9657058Z   name: pyver-parity",
+   "2026-10-07T15:00:14.9657459Z   path: pyver.json",
+   "2026-10-07T15:00:14.9657873Z   if-no-files-found: warn",
+   "2026-10-07T15:00:14.9658271Z   compression-level: 6",
+   "2026-10-07T15:00:14.9658684Z   overwrite: false",
+   "2026-10-07T15:00:14.9659077Z   include-hidden-files: false",
+   "2026-10-07T15:00:14.9664492Z ##[endgroup]",
+   "2026-10-07T15:00:15.1200898Z With the provided path, there will be 1 file uploaded",
+   "2026-10-07T15:00:15.1214962Z Artifact name is valid!",
+   "2026-10-07T15:00:15.1245428Z Root directory input is valid!",
+   "2026-10-07T15:00:15.3789588Z Beginning upload of artifact content to blob storage",
+   "2026-10-07T15:00:15.5245832Z Uploaded bytes 175",
+   "2026-10-07T15:00:15.5570718Z Finished uploading artifact content to blob storage!",
+   "2026-10-07T15:00:15.5572110Z SHA256 digest of uploaded artifact zip is 5e38ea391d3e941bf07a2a57e8324d1f105f3ed43fd100e497fd0ff7a45a6293",
+   "2026-10-07T15:00:15.5573197Z Finalizing artifact upload",
+   "2026-10-07T15:00:15.8687058Z Artifact pyver-parity.zip successfully finalized. Artifact ID 11492776298",
+   "2026-10-07T15:00:15.8688169Z Artifact pyver-parity has been successfully uploaded! Final size is 175 bytes. Artifact ID is 11492776298",
+   "2026-10-07T15:00:15.8691391Z Artifact download URL: https://github.com/YinchenChang/Tokenomics/actions/runs/37638814255/artifacts/11492776298",
+   "2026-10-07T15:00:15.8870708Z Post job cleanup.",
+   "2026-10-07T15:00:15.9689871Z [command]/usr/bin/git version",
+   "2026-10-07T15:00:15.9733192Z git version 2.55.0",
+   "2026-10-07T15:00:15.9774481Z Temporarily overriding HOME='/home/runner/work/_temp/d8bd5c69-1b41-4786-a839-7557a569ee13' before making global git config changes",
+   "2026-10-07T15:00:15.9775638Z Adding repository directory to the temporary git global config as a safe directory",
+   "2026-10-07T15:00:15.9781042Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Tokenomics/Tokenomics",
+   "2026-10-07T15:00:15.9825138Z [command]/usr/bin/git config --local --name-only --get-regexp core\\.sshCommand",
+   "2026-10-07T15:00:15.9857241Z [command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'core\\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\"",
+   "2026-10-07T15:00:16.0066665Z [command]/usr/bin/git config --local --name-only --get-regexp http\\.https\\:\\/\\/github\\.com\\/\\.extraheader",
+   "2026-10-07T15:00:16.0092485Z http.https://github.com/.extraheader",
+   "2026-10-07T15:00:16.0102654Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader",
+   "2026-10-07T15:00:16.0148248Z [command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'http\\.https\\:\\/\\/github\\.com\\/\\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\"",
+   "2026-10-07T15:00:16.0367454Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\\.gitdir:",
+   "2026-10-07T15:00:16.0397267Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url",
+   "2026-10-07T15:00:16.0776890Z Cleaning up orphan processes"
+  ]
+ },
+ "recalc_seconds": {
+  "full": 0.87,
+  "incremental_max": 0.44,
+  "incremental_max_scenario": "f_registry_t07_t09_on",
+  "incremental_median": 0.24
+ },
+ "pr_number": 27,
+ "generated_at": "2026-10-07T15:00:35Z",
+ "errors": []
+}

@@ -124,6 +124,8 @@ V518_LOG += v520.inputs_update(wb)       # v5.20 X3: Alloc_In!E7 4 -> 6 (old-val
 import v521
 V518_LOG += v521.text_update(wb)         # v5.21: Alloc_In!G7 note tail (old-text guard)
 V518_LOG += v529.inputs_update(wb)       # v5.29 X14 (l): Alloc_In 每則提示 token 數 2000/1000/6000 -> 4000/2000/6400 (old-value guards) and the G note
+import v531
+V518_LOG += v531.inputs_update(wb)       # v5.31 X16–X19: Spec_Rack E12 4.3 and text, Inputs rows 30／36–38, DC_Cost A46 label (old-value guards)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -191,6 +193,8 @@ from deps import Deps, gov_map_cells
 N_GMH = v529.gov_map_helpers(wb)
 import v530
 IFJ = v530.interface_j(wb)            # v5.30 X15 (a): running-product waterfall; self-check = source equality + monotonic (replaces v529.interface_j)
+I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuation after J (IF_MaintITWarr, IF_MaintITPost, IF_WarrantyYrs); IF_StaffSW label (X19)
+print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)

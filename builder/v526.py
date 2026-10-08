@@ -37,7 +37,7 @@ def _dc_rows(wb):
     lab = {}
     for r in range(1, ws.max_row + 1):
         a = ws.cell(r, 1).value
-        if isinstance(a, str): lab.setdefault(a.strip(), r)
+        if isinstance(a, str): lab.setdefault(a.strip().split("（站點營運")[0], r)     # v5.31 X19 (J5): DC_Cost A46 gained a scope suffix
     out = {}
     for name, dlab, *_ in ROWS:
         assert dlab in lab, f"DC_Cost label not found: {dlab}"

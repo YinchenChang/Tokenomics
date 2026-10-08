@@ -33,7 +33,9 @@
 - q 由 Tokenomics 跨世代產出比提供；p 由 SRC_Price 時間序列提供（隨需／預留／長約三層不得混用）；c 與簽約率由下游設定（按 token 計價 c ≈ 1，按 MW-year 計價 c ≈ 0）。
 - 成本加成路徑（持有成本 × (1+k) ÷ (1−o)）只作 ROIC 與資金缺口檢查，不作收入輸入；成本加成與市場價平均的做法停用（X14 (j)）。
 - 中性情境定義為 q × p ≈ 1（每 MW 收入持平）；樂觀 q × p > 1；保守 q × p < 1。
-- 對帳提醒：IREN–Microsoft 長約隱含 9.70 US$M/MW-IT/年，低於 Tokenomics GB300 經濟持有成本 12.72（比值 0.76）；下游須指定解讀（不回本、成本結構不同、或合約含非收入條款）。
+- 對帳提醒：IREN–Microsoft 長約隱含 9.70 US$M/MW-IT/年，低於 Tokenomics GB300 經濟持有成本 12.72（比值 0.76；v5.31 J1／J2 後為 10.89，比值 0.89）；下游須指定解讀（不回本、成本結構不同、或合約含非收入條款）。
+
+- IT 維護（v5.31 X17）：Tokenomics 穩態成本用壽命期等值費率（`IF_MaintIT`）；下游公司模型若逐年追蹤機隊年齡，改用 `IF_MaintITWarr`（前 `IF_WarrantyYrs` 年）與 `IF_MaintITPost`（之後），不得與 `IF_MaintIT` 重複計入。`IF_StaffSW` 不含平台研發，下游另列。
 
 ## 5. 版本與引用
 

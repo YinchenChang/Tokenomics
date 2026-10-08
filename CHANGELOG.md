@@ -2,9 +2,26 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261008_Tokenomics_v5.31.xlsx（取代 v5.30；J1–J6：GB300 機架價格、IT 維護機齡兩段（壽命期等值費率）、口徑註記、IREN 對照；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261008_v5.31.md` r1（B 段））
+
+- Commit：見本輪分支 `claude/v5.31-build`（PR #36；合併後補上雜湊）。報告：`docs/reports/20261008_v5.31.md`。底稿：master `bc03f5c`（v5.30 合併，PR #35）；`model/CURRENT` 原為 v5.30。A 段查證：`docs/reports/20261008_v5.31A_查證.md`（PR #34）。
+- 依據：chat 端依 A 段報告建議 J1–J6，Andy 2026-10-08 22:31「不反對，請繼續」（全部採 A 段建議值）。
+- Excel（CC 以 `builder/` 自 v5.30 產生，經 LibreOffice 重算存檔）：
+  - J1（X16）：Spec_Rack GB300 機架價格 低／基準／高 4.0／5.0／6.5 → **4.0／4.3／5.0** $M——E11 維持連 SRC_HW_052（MS BOM 推算，等級 3→2）；E12 改 Derived 常數 4.3（＝4.0 × 1.075，同 VR200 F12 算法）；E13 改連 SRC_HW_010（Data Gravity 採購單 5.0）；SRC_HW_007（媒體 6.0–6.5）改 Alt；E16／E17 價格來源與標記文字。
+  - J2／J3（X17／X18）：Inputs 新增第 36–38 列（IT 原廠保固年限＝SRC_DC_015 3 年；保固期內 0.25／0.5／1.0%；保固期滿後 2／3／5%，Analogy）；第 30 列「IT 維護」改為壽命期等值費率公式（同欄 WACC 與 IT 折舊年限年金加權）：低／基準／高 **1.02%／1.57%／1.82%**（原 2／3／4%）；DC_Cost 第 44 列公式不變。Interface I 節（續，J 節之後）新增 `IF_MaintITWarr`、`IF_MaintITPost`、`IF_WarrantyYrs`。
+  - J4／J5（X19）：Spec_Rack F14 補 Bernstein 含網路註記（VR200 數值不改；SRC_HW_017 等級 3→2）；`IF_StaffSW` 標籤與 DC_Cost A46 補「（站點營運；不含平台研發）」。
+  - J6（X20）：SRC_DC_014（IREN 29.0 $M/IT MW）與 `L1_CapexITMW_GB300_vsIREN`（基準 32.24，比值 1.11，±20% 內）。
+  - 另 SRC_HW_065（Wolfe 4.3，Alt）、SRC_HW_066（TrendForce 比值）、SRC_DC_015–017（HPE、Supermicro 保固；DGX 續約 3.8%）；DB_Evidence E263–E278（A 段 N01–N16）；Decisions X16–X20；Gov_Map 判斷更新 6 列、新登錄 7 列；README A1、B5、新列 A33／B33。
+- 主要數值（基準欄，$B/GW）：GB300 `IF_CapexIT` 37.446 → 32.237、`IF_MaintIT` 1.123 → 0.507、`IF_HoldEcon` 12.725 → 10.886、`IF_GPUhrEcon` 2.983 → 2.552 $/GPU-hr；VR200 `IF_MaintIT` 1.128 → 0.591、`IF_HoldEcon` 12.762 → 12.226（−4.2%）。
+- builder：新增 `v531.py`（版本字串唯一來源；所有 Excel 擁有格的寫入皆有舊值守衛）；`gov.py`（formula_map 掛鉤、SRC 新紀錄與更新、Gov_Map、L1、Evidence、Decisions）、`build.py`、`finish.py` 接上；`v526._dc_rows` 容許 DC_Cost A46 標籤加註；`tools/gen_builder_md.py` 加 `v531.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（32 個檔）。
+- 文件：README.md 下游名稱 192 → 195 與 I 節（續）說明；下游契約補 IT 維護兩段取用規則、IREN 對帳比值更新。
+- 測試：`formula_cells` 45,543 → 45,788、`defined_names` 1,060 → 1,072、`src_names` 362 → 368、`l1_names` 210 → 213、`downstream_names` 192 → 195；成本相關期望值改為 v5.31 的 LibreOffice 重算值（見報告）。
+- 治理：GOV_Errors 0、GOV_Warnings 220 → 221（W1：SRC_DC_014、SRC_DC_017 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）、GOV_Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改為「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）。
+- 前版合併雜湊：v5.30 `bc03f5c`（PR #35）補入下段。
+
 ## 20261008_Tokenomics_v5.30.xlsx（取代 v5.29；X15 定義更正：四層瀑布逐層累乘、L1_HoldEconMW 單位更正、IFW_ 上限標記；判斷類（chat 端定案，CC 執行），依工作單 `docs/workorders/20261008_v5.30.md` r0，試行 (B)）
 
-- Commit：見本輪分支 `claude/v5.30-build`（合併後補上雜湊）。報告：`docs/reports/20261008_v5.30.md`。底稿：master `a5061d9`（v5.29 合併，PR #31）＋工作單提交 `7720f72`；`model/CURRENT` 原為 v5.29。
+- Commit：合併雜湊 `bc03f5c`（PR #35）；分支 `claude/v5.30-build`。報告：`docs/reports/20261008_v5.30.md`。底稿：master `a5061d9`（v5.29 合併，PR #31）＋工作單提交 `7720f72`；`model/CURRENT` 原為 v5.29。
 - 依據：Andy 2026-10-08「請直接做」（八家公司模型審視報告 company-models PR #36–#43 共同指出的 Tokenomics 端問題）。**不改任何輸入值**。
 - Excel（CC 以 `builder/` 自 v5.29 產生，經 LibreOffice 重算存檔）：
   - X15 (a)：Interface J 節四層瀑布改為逐層累乘、單調遞減——token 產能 `IFW_TokGW_*_Prod`＝`_Util` × CTL_ProdDerate（不再讀 Interface_Prod），`_Life`＝`_Prod`；營收 `IFW_*_Prod` 維持讀 G 節（Front 四組無 G 節者＝`_Util` × CTL_ProdDerate，取代「—」），`IFW_*_Life`＝`_Prod` × CTL_PriceLife × CTL_Monetize（不再讀 H 節）。H 節與 Interface_Prod 不動。VR200 基準欄：`IFW_TokGW_Sol` 2,373／1,424／1,916／1,916 → 2,373／1,424／**1,210**／**1,210** 億 M tok；`IFW_RevGW_Sol` 381.3／228.8／184.8／228.8 → 381.3／228.8／184.8／**184.8** $B/GW/年。自我檢查列改為 (i) 來源比對 11 列（營收 _Util＝D 節、token _100＝B 節）＋(ii) 單調檢查 11 列；Checks K3 加總兩者（0）。

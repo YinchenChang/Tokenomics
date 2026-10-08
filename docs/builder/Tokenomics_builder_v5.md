@@ -41,6 +41,7 @@
 - v5.27：新增 v527.py（X13：SRC_MOD_055 低／高〔Epoch CI 5e26／2e27〕與備註、SRC_Model SRC_MOD_057–062〔Kimi K3 架構，純證據〕、DB_Evidence E251–E255 與 E249 備註附加、Gov_Map GM576／GM580／GM203–205／GM209／GM210／GM531 理由欄附註、Decisions X13；L1 第 36 列外部欄改 SRC_MOD_055_Lo／_Hi、第 39 列〔L1_Ans3〕外部對照 SRC_DEM_006 與 S 欄文字；README 版本字串唯一來源）；gov.py、finish.py 接上；所有寫入皆有舊值守衛。
 - v5.29（2026-10-08）：新增 v529.py（X14 (a)–(m)：輸出契約欄、四層瀑布、L1 新列、Load_Bearing、SRC_Price 分層欄、SRC_DEM_018、Alloc_In 輸入變動）與 deps.py（建置時靜態反查公式前置格）；gov.py、block6.py、build.py、finish.py 接上。
 - v5.30（2026-10-08）：新增 v530.py（X15：J 節四層瀑布改為逐層累乘、單調遞減〔取代 v529.interface_j〕、Checks K3 改為來源比對＋單調檢查、K2 上限旗標擴及 IFW_ 營收列與 IFW_TokGW_*_100、L1_HoldEconMW_* 不除以 1000、Decisions X15a–c、README）；v529.interface_contract 加 should_fn 參數；build.py、gov.py、finish.py 接上。
+- v5.31（2026-10-08）：新增 v531.py（判斷類 J1–J6，工作單 docs/workorders/20261008_v5.31.md r1：Spec_Rack GB300 機架價格 E12 改 Derived 常數 4.3、E13 改連 SRC_HW_010〔formula_map 掛鉤〕；Inputs 第 36–38 列 IT 保固年限與兩段維護費率、第 30 列改壽命期等值公式；Interface I 節續〔J 節之後〕IF_MaintITWarr／IF_MaintITPost／IF_WarrantyYrs；SRC_HW_065／066、SRC_DC_014–017 與 SRC 欄位更新；Gov_Map 判斷更新與 7 列新登錄；L1_CapexITMW_GB300_vsIREN；DB_Evidence E263–E278；Decisions X16–X20；README）；v526._dc_rows 容許 DC_Cost A46 標籤加註；gov.py、build.py、finish.py 接上。
 
 ## common.py
 
@@ -1477,6 +1478,7 @@ import v526
 import v527
 import v529
 import v530
+import v531
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1583,7 +1585,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v530.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v531.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1611,11 +1613,12 @@ def readme(wb):
       ("Interface 攤提耦合（v5.20 X5）", v520.X5_NOTE),
       v526.README_NAMES,      # v5.26: Interface I section names (appended; no README row moves)
       v530.README_ROW,        # v5.29: output contract and four-layer waterfall (appended); v5.30 X15: rewritten for the running product
+      v531.README_ROW,        # v5.31: Interface I continuation and IT maintenance in two segments (appended; no README row moves)
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v530.README_TITLE, F_TITLE)     # v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v531.README_TITLE, F_TITLE)     # v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -20594,7 +20597,7 @@ def _dc_rows(wb):
     lab = {}
     for r in range(1, ws.max_row + 1):
         a = ws.cell(r, 1).value
-        if isinstance(a, str): lab.setdefault(a.strip(), r)
+        if isinstance(a, str): lab.setdefault(a.strip().split("（站點營運")[0], r)     # v5.31 X19 (J5): DC_Cost A46 gained a scope suffix
     out = {}
     for name, dlab, *_ in ROWS:
         assert dlab in lab, f"DC_Cost label not found: {dlab}"
@@ -21838,6 +21841,443 @@ README_ROW = ("輸出契約與四層瀑布（v5.29 X14；v5.30 X15 逐層累乘�
               "Gov_Map AG–AJ、SRC_Index F 為 builder 每次重建的輔助欄。")
 ```
 
+## v531.py
+
+```python
+# v5.31 (work order docs/workorders/20261008_v5.31.md r1, B section): judgement-class input changes from the A-section evidence
+# report (docs/reports/20261008_v5.31A_查證.md, PR #34; J1–J6 adopted, Andy 2026-10-08 22:31「不反對，請繼續」).
+#   B1 (J1) Spec_Rack GB300 rack price low／base／high 4.0／5.0／6.5 -> 4.0／4.3／5.0 ($M):
+#           E11 keeps =SRC_HW_052 (MS BOM 推算 4.0); E12 becomes the Derived constant 4.3 (= 4.0 x (1 + 7.5%), the VR200 F12 method;
+#           formula-map link SRC_HW_010 dropped); E13 links SRC_HW_010 (Data Gravity 5.0, was SRC_HW_007_Hi 6.5). SRC_HW_007 -> Alt.
+#   B2 (J2, J3) IT maintenance in two age segments: Inputs rows 36–38 (warranty years =SRC_DC_015, in-warranty and post-warranty
+#           rates, Analogy); Inputs D30:F30 become the life-equivalent single rate (annuity-weighted with the same column's WACC
+#           (row 28) and IT depreciation life (row 23)); DC_Cost row 44 is unchanged. Interface I continuation (after J, so no
+#           existing name moves): IF_MaintITWarr, IF_MaintITPost, IF_WarrantyYrs.
+#   B3 (J4, J5) Spec_Rack F14 note (Bernstein includes networking); IF_StaffSW label and DC_Cost row 46 label (站點營運；不含平台研發).
+#   B4 (J6) SRC_DC_014 (IREN) and L1_CapexITMW_GB300_vsIREN.
+#   B5 DB_Evidence E263–E278 (A-section N01–N16), Decisions X16–X20, SRC_HW_065／066, SRC_DC_014–017, SRC field updates.
+# Every write to an Excel-owned cell is guarded (old value / presence), like v518–v530, so a rebuild never overwrites a later Excel edit.
+from copy import copy
+from openpyxl.styles import PatternFill
+from openpyxl.utils import get_column_letter as L
+from openpyxl.workbook.defined_name import DefinedName
+from common import put, F_IN, F_CALC, F_LINK, F_NOTE, section
+import v518
+import v530
+
+VERSION = "20261008_Tokenomics_v5.31"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-08"
+V = "v5.31"
+DASH = "—"
+COLS = range(3, 18)                         # C:Q
+ANDY = "chat 端建議（A 段查證報告 PR #34 J1–J6），Andy 2026-10-08 22:31「不反對，請繼續」；可撤回"
+REPORT_A = "docs/reports/20261008_v5.31A_查證.md"
+
+# ================================================================== SRC ids (next free numbers at v5.30: SRC_HW_064, SRC_DC_013)
+SID_WOLFE, SID_TF = "SRC_HW_065", "SRC_HW_066"
+SID_IREN, SID_HPE, SID_SMC, SID_DGX = "SRC_DC_014", "SRC_DC_015", "SRC_DC_016", "SRC_DC_017"
+# Evidence ids: A-section N01–N16 -> E263–E278 (next free number after E262)
+EV = {f"N{i:02d}": f"E{262 + i}" for i in range(1, 17)}
+
+# ================================================================== B1: Spec_Rack GB300 price
+RACK_BASE = 4.3
+RACK_TEXT = [  # (cell, old, new) — Spec_Rack rows 1–20 are Excel-owned (Block 1); written only while the old text is present
+    ("E16", "MS 約 $4M；2026-08 採購單約 $5M；媒體 $6–6.5M（S4、S6）",
+     "v5.31 J1：低 4.0＝Morgan Stanley BOM 推算（VR200 BOM 7.8 ÷ 1.95，SRC_HW_052）；基準 4.3＝BOM ×（1＋代工毛利 7.5%），與 VR200 F12 算法相同，"
+     f"與 Wolfe Research 4.3（{SID_WOLFE}，Alt）相符；高 5.0＝Data Gravity 2026-08 採購單（不含 CDU，SRC_HW_010）；媒體 $6–6.5M（SRC_HW_007）改列 Alt；"
+     f"公司揭露對照：IREN 每 IT MW 29.0（{SID_IREN}，L1_CapexITMW_GB300_vsIREN）"),
+    ("E17", "Interested-party", "Derived／Interested-party"),
+]
+F14_TAIL = "；Bernstein 平均約 $9.1M 含網路約 $1.2M；本模型另計 Scale-out 網路，高情境約重複 2%（v5.31 J4）"
+
+
+def formula_map(fm):
+    """Builder-owned links: E12 is no longer a link (Derived constant), E13 links SRC_HW_010, Inputs E36 links the HPE warranty record."""
+    fm = dict(fm)
+    fm.pop("Spec_Rack!E12", None)
+    fm["Spec_Rack!E13"] = "=SRC_HW_010"
+    fm["Inputs!E36"] = f"={SID_HPE}"
+    return fm
+
+
+# ================================================================== B2: Inputs (Excel-owned Block 1 page; guarded writes)
+LAB_MAINT_OLD = "IT 維護"
+LAB_MAINT = "IT 維護（壽命期等值；由兩段費率計算）"
+LAB_WARR = "IT 原廠保固年限"
+LAB_IN = "IT 維護（保固期內）"
+LAB_POST = "IT 維護（保固期滿後）"
+UNIT_RATE = "% IT 資本/年"
+NOTE_MAINT = ("v5.31 X17：壽命期等值單一費率＝Σ r_y ÷ (1＋WACC)^y ÷ Σ 1 ÷ (1＋WACC)^y（y＝1…IT 折舊年限；r_y＝保固期內費率（y ≤ 保固年限）或保固期滿後費率，"
+              "第 36–38 列）；各欄用同欄 WACC（第 28 列）與 IT 折舊年限（第 23 列）。DC_Cost 第 44 列仍為 IT 資本 × 本列。v5.30 以前為 2%／3%／4%（v4 沿用，Analogy→Assumed）")
+NOTE_WARR = (f"v5.31 X18：HPE GB300 NVL72 QuickSpecs（2026-09-08）3 年零件、3 年人工、3 年到場（{SID_HPE}）；Supermicro GPU 系統人工 3 年、零件 1 年"
+             f"（{SID_SMC}；零件 1 年由保固期內高情境 1% 涵蓋）；Dell XE9680 經銷頁 3 年 ProSupport。單值（低、高＝基準）")
+NOTE_IN = ("v5.31 X17：保固期內零件與人工由原廠負擔（保固費已含在機架售價），只剩備品、物流與保固外損壞；CoreWeave 2026 Q2 營運成本反推約 0–0.8%"
+           f"（{EV['N14']}，Derived）；區間 0.25–1%（高端涵蓋 Supermicro 零件 1 年）")
+NOTE_POST = (f"v5.31 X17：NVIDIA DGX B200 原廠支援續約 1 年 ≈ 系統價 3.8%（{SID_DGX}，英國經銷牌價）；Introl 企業 TCO 5%（Interested-party，{EV['N13']}）作高端；"
+             "大型買家應低於零售牌價 → 基準 3%")
+NEW_ROWS = [  # (label, unit, D, E, F, tag, note)
+    (LAB_WARR, "年", "=E{r}", f"={SID_HPE}", "=E{r}", "Verified", NOTE_WARR),
+    (LAB_IN, UNIT_RATE, 0.0025, 0.005, 0.01, "Analogy", NOTE_IN),
+    (LAB_POST, UNIT_RATE, 0.02, 0.03, 0.05, "Analogy", NOTE_POST),
+]
+OLD_MAINT = {"D": 0.02, "E": 0.03, "F": 0.04}
+
+
+def _row_by_label(ws, label, col=1):
+    for r in range(1, ws.max_row + 1):
+        if ws.cell(r, col).value == label: return r
+    return None
+
+
+def _equiv(c, rw, ri, rp):
+    """Life-equivalent rate for Inputs column c (D／E／F): closed form of the annuity-weighted sum (integer years)."""
+    w, n, m = f"{c}28", f"{c}23", f"MIN({c}{rw},{c}23)"
+    return (f"=IF({w}=0,({c}{ri}*{m}+{c}{rp}*({n}-{m}))/{n},"
+            f"({c}{ri}*(1-(1+{w})^(-{m}))+{c}{rp}*((1+{w})^(-{m})-(1+{w})^(-{n})))/(1-(1+{w})^(-{n})))")
+
+
+def inputs_rows(wb):
+    """Rows 36–38 of Inputs (appended after the last row, created only when absent). Returns dict label -> row."""
+    ws = wb["Inputs"]; out = {}; log = []
+    have = {lab: _row_by_label(ws, lab) for lab, *_ in NEW_ROWS}
+    if all(have.values()):
+        return have, log
+    assert not any(have.values()), f"Inputs: v5.31 rows partly present {have}"
+    r = max(rr for rr in range(1, ws.max_row + 1) if any(ws.cell(rr, c).value is not None for c in range(1, 9))) + 1
+    for lab, unit, d, e, f, tag, note in NEW_ROWS:
+        put(ws, f"A{r}", lab, F_CALC); put(ws, f"B{r}", unit, copy(ws["B30"].font))
+        for col, v in (("D", d), ("E", e), ("F", f)):
+            v = v.format(r=r) if isinstance(v, str) else v
+            font = F_IN if isinstance(v, (int, float)) else (F_LINK if "SRC_" in str(v) else F_CALC)
+            put(ws, f"{col}{r}", v, font, fmt="0" if unit == "年" else "0.00%")
+        put(ws, f"G{r}", tag, copy(ws["G30"].font)); put(ws, f"H{r}", note, F_CALC)
+        out[lab] = r; log.append(f"Inputs!A{r}:H{r} created ({lab})"); r += 1
+    return out, log
+
+
+def inputs_update(wb):
+    """Called after restore() and before gov_all(). Spec_Rack GB300 price and text, Inputs rows 30 and 36–38, DC_Cost row 46 label."""
+    log = []
+    sr = wb["Spec_Rack"]
+    if sr["E12"].value == "=SRC_HW_010":
+        sr["E12"].value = RACK_BASE; sr["E12"].font = copy(F_IN); sr["E12"].fill = PatternFill(fill_type=None)
+        log.append(f"Spec_Rack!E12: '=SRC_HW_010' -> {RACK_BASE} (v5.31 X16)")
+    for cell, old, new in RACK_TEXT:
+        if sr[cell].value == old: sr[cell].value = new; log.append(f"Spec_Rack!{cell}: text updated (v5.31 X16)")
+    if v518._append_text(sr["F14"], F14_TAIL): log.append("Spec_Rack!F14: note appended (v5.31 X19 J4)")
+    rows, l2 = inputs_rows(wb); log += l2
+    ws = wb["Inputs"]
+    rw, ri, rp = rows[LAB_WARR], rows[LAB_IN], rows[LAB_POST]
+    if ws["A30"].value == LAB_MAINT_OLD and all(ws[f"{c}30"].value == v for c, v in OLD_MAINT.items()):
+        for c in "DEF":
+            ws[f"{c}30"].value = _equiv(c, rw, ri, rp); ws[f"{c}30"].font = copy(F_CALC); ws[f"{c}30"].fill = PatternFill(fill_type=None)
+        ws["A30"].value = LAB_MAINT
+        log.append("Inputs!D30:F30: 2%/3%/4% -> life-equivalent formula; A30 label (v5.31 X17)")
+    if ws["G30"].value == "Analogy": ws["G30"].value = "Derived"; log.append("Inputs!G30: Analogy -> Derived")
+    if ws["H30"].value == "v4＝3%": ws["H30"].value = NOTE_MAINT; log.append("Inputs!H30: note (v5.31 X17)")
+    dc = wb["DC_Cost"]
+    if dc["A46"].value == "人員、軟體、水與耗材":
+        dc["A46"].value = "人員、軟體、水與耗材（站點營運；不含平台研發）"; log.append("DC_Cost!A46: label (v5.31 X19 J5)")
+    return log
+
+
+# ================================================================== B2／B3: Interface I continuation (after J; nothing moves)
+STAFF_TAIL = "（站點營運；不含平台研發）"
+
+
+def interface_i2(wb):
+    ws = wb["Interface"]
+    # B3 (J5): IF_StaffSW label (row built by v526.interface_i)
+    ref = wb.defined_names["IF_StaffSW"].attr_text
+    rs = int(ref.split("$")[-1])
+    a = ws[f"A{rs}"].value
+    if STAFF_TAIL not in a:
+        ws[f"A{rs}"].value = a.replace("　[IF_StaffSW]", STAFF_TAIL + "　[IF_StaffSW]")
+    rin = wb["Inputs"]
+    rw, ri, rp = (_row_by_label(rin, lab) for lab in (LAB_WARR, LAB_IN, LAB_POST))
+    start = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, start, "I. DC_Cost 構件（續，v5.31 X17）：IT 維護兩段費率（下游公司模型依自身機隊年齡取用）；金額除以 CTL_GW 換算為每 GW；"
+                       "IF_MaintIT 為壽命期等值（Inputs 第 30 列），兩段值不加總", 17)
+    r = start + 1; made = []
+    for name, lab, rr in (("IF_MaintITWarr", "每 GW IT 維護 — 保固期內（＝IT 資本 × 保固期內費率）", ri),
+                          ("IF_MaintITPost", "每 GW IT 維護 — 保固期滿後（＝IT 資本 × 保固期滿後費率）", rp)):
+        put(ws, f"A{r}", f"{lab}　[{name}]"); put(ws, f"B{r}", "$B/年")
+        for c in COLS:
+            X = L(c); ic = "DEF"[(c - 3) % 3]
+            put(ws, f"{X}{r}", f"=(DC_Cost!{X}24*Inputs!${ic}${rr})/CTL_GW", fmt="#,##0.000")
+        made.append((name, f"Interface!$C${r}:$Q${r}")); r += 1
+    put(ws, f"A{r}", "IT 原廠保固年限（單格；保固期內費率適用的年數）　[IF_WarrantyYrs]"); put(ws, f"B{r}", "年")
+    put(ws, f"C{r}", f"=Inputs!E{rw}", fmt="0")
+    made.append(("IF_WarrantyYrs", f"Interface!$C${r}"))
+    for n, t in made:
+        if n in wb.defined_names: del wb.defined_names[n]
+        wb.defined_names[n] = DefinedName(n, attr_text=t)
+    return dict(start=start, made=made)
+
+
+# ================================================================== B4: L1 row (appended after every existing L1 row)
+def l1_rows_new():
+    return [("CapexITMW_GB300_vsIREN", "每 IT MW 的 IT 資本支出（GB300）對 IREN 公司揭露",
+             "基準功率情境；IT 設備（機架＋Scale-out 網路＋儲存與管理），不含廠房；$B/GW＝$M/MW",
+             "=INDEX(IF_CapexIT,1,8)", "=INDEX(IF_CapexIT,1,7)", "=INDEX(IF_CapexIT,1,9)", "$M/IT MW", "成本角落情境（低成本／高成本欄）",
+             "IREN 揭露含伺服器、InfiniBand、線材、軟體授權與部署服務；本模型網路另計、不含軟體與部署；比值以 ±20% 判讀",
+             "機架價格、每架配電設計功率、Scale-out 網路比率", "機架價格：Derived／Interested-party（2 級）",
+             SID_IREN, f"={SID_IREN}", f"={SID_IREN}", "IF_CapexIT", "Interface 第 9 列",
+             "IREN 未揭露 GPU 數與每架 kW；$5.8bn 與 200 MW 的對應原文未明寫（v5.31 X20／J6）")]
+
+
+# ================================================================== B5: SRC records (appended when the ID is absent)
+_A = f"A 段查證（{REPORT_A}）"
+SRC_NEW = [
+    dict(id=SID_WOLFE, sheet="SRC_HW", metric="GB300 NVL72 機架價格（Wolfe Research）", val=4.3, lo=None, hi=None, unit="$M/架",
+         basis="分析師轉述「reported prices」（口徑未明）", applies="GB300 NVL72", date="2026-01-30",
+         src="Wolfe Research，經 Investing.com 於 Yahoo Finance 轉載 https://ca.finance.yahoo.com/news/wolfe-lifts-nvidia-target-25-145211458.html",
+         grade=2, stance="利害關係方", stance_note="賣方研究引述「reported」，底層出處不明", hand="二手", status="Alt", ev=EV["N02"], s="U-V531",
+         use="Spec_Rack!E12 佐證（不直接連結）",
+         note=f"v5.31 新增（{EV['N02']}，部分採用）：GB300 4.3 作基準 4.3 的佐證（同來源 GB200 約 3、Rubin $5–6M 早於記憶體漲價，不採用）；{_A}"),
+    dict(id=SID_TF, sheet="SRC_HW", metric="Vera Rubin 對 GB300 系統 ASP 比值（TrendForce）", val=2, lo=None, hi=None, unit="x",
+         basis="比值（系統 ASP）", applies="VR200 NVL72 ÷ GB300 NVL72", date="2026-08-28",
+         src="TrendForce 新聞稿 https://www.trendforce.com/presscenter/news/20260828-13204.html（科技新報轉載）",
+         grade=1, stance="中立", stance_note="市調機構", hand="一手（已讀）", status="Active", ev=EV["N06"], s="U-V531",
+         use="（比值對照；不連結模型格）",
+         note=f"v5.31 新增（{EV['N06']}，部分採用）：「roughly double」；模型 VR200 ÷ GB300 基準 8.4 ÷ 4.3＝1.95；{_A}"),
+    dict(id=SID_IREN, sheet="SRC_DC", metric="每 IT MW 的 GPU 與附屬設備資本支出（IREN 公司揭露）", val=29.0, lo=None, hi=None, unit="$M/IT MW",
+         basis="公司揭露：向 Dell 採購 GB300 設備 $5.8bn（含伺服器、InfiniBand、線材、軟體授權、部署服務）÷ 200 MW 關鍵 IT",
+         applies="GB300 NVL72（IREN／Microsoft 合約）", date="2025-11-03",
+         src="IREN 新聞稿 https://iren.gcs-web.com/news-releases/news-release-details/iren-secures-97bn-ai-cloud-contract-microsoft（另 irisenergy.gcs-web.com、DCD 轉載）",
+         grade=1, stance="利害關係方", stance_note="買方公司揭露（合約宣傳）", hand="一手（已讀）", status="Active", ev=EV["N04"], s="U-V531",
+         use="L1!M／N（L1_CapexITMW_GB300_vsIREN 外部欄）｜直接",
+         note=f"v5.31 新增（{EV['N04']}，採用）：總額與 MW 為 Verified，每 MW 為 Derived（$5.8bn ÷ 200）；GPU 數未揭露，$5.8bn 與 200 MW 的對應原文未明寫；{_A}"),
+    dict(id=SID_HPE, sheet="SRC_DC", metric="GPU 機架原廠標準保固年限（HPE GB300 NVL72）", val=3, lo=None, hi=None, unit="年",
+         basis="原廠標準保固：3 年零件、3 年人工、3 年到場（含在售價）", applies="GB300 NVL72（HPE）", date="2026-09-08",
+         src="HPE QuickSpecs「NVIDIA GB300 NVL72 by HPE」V3 https://www.hpe.com/us/en/collaterals/collateral.a50009244enw.html",
+         grade=1, stance="利害關係方", stance_note="賣方條款", hand="一手（已讀）", status="Active", ev=EV["N10"], s="U-V531",
+         use="Inputs!E36｜直接",
+         note=f"v5.31 新增（{EV['N10']}，採用）：保固年限依據；Dell XE9680 經銷頁 3 年 ProSupport 併入本筆備註，不另登錄；第二來源 {SID_SMC}（人工 3 年同值，零件 1 年不同）；{_A}"),
+    dict(id=SID_SMC, sheet="SRC_DC", metric="GPU 系統原廠標準保固年限（Supermicro，人工）", val=3, lo=None, hi=None, unit="年",
+         basis="原廠通則（發票無特約時）：人工 3 年（本筆值）、零件 1 年、預先換貨 1 年", applies="Supermicro GPU 系統", date="2026-10-08",
+         src="Supermicro 保固頁 https://www.supermicro.com/en/support/warranty（讀取日 2026-10-08）",
+         grade=1, stance="利害關係方", stance_note="賣方條款", hand="一手（已讀）", status="Active", ev=EV["N11"], s="U-V531",
+         use=f"（{SID_HPE} 的第二來源；Inputs 第 37 列高情境依據，不直接連結）",
+         note=f"v5.31 新增（{EV['N11']}，採用）：零件 1 年由保固期內高情境 1% 涵蓋；{_A}"),
+    dict(id=SID_DGX, sheet="SRC_DC", metric="GPU 系統原廠支援續約年費 ÷ 系統價（NVIDIA DGX B200）", val=0.038, lo=None, hi=None, unit="% 系統價/年",
+         basis="英國經銷牌價：1 年續約 £18,599.99 ÷ 系統（含 3 年 Business Standard 支援）£489,999（皆含 VAT）", applies="DGX B200 8 GPU", date="2026-10-08",
+         src="Scan UK https://www.scan.co.uk/products/dgx-b200-8x-180gb-full-with-business-std-support-3y；https://www.scan.co.uk/products/dgx-b200-8x-180gb-full-business-std-support-renew-1-year",
+         grade=2, stance="利害關係方", stance_note="經銷商牌價（零售）", hand="二手（經銷頁已讀）", status="Active", ev=EV["N12"], s="U-V531",
+         use="（Inputs 第 38 列保固期滿後費率的可比對象；不直接連結）",
+         note=f"v5.31 新增（{EV['N12']}，採用）：續約為支援、韌體、軟體授權；大型買家應低於牌價 → 基準 3%、上緣參考；{_A}"),
+]
+
+
+def src_new_records():
+    return SRC_NEW
+
+
+SRC_UPD = {  # sid -> (sheet, {col: spec}); spec = (old, new) or ("+", text) — v518._apply
+    "SRC_HW_052": ("SRC_HW", {"I": (DASH, "2026-05-21"),
+                              "J": ("分析師報價（模型頁說明文字引用，未登錄 Sources）",
+                                    "Morgan Stanley「Nvidia NVL72 Bill of Materials」表，經 wccftech https://wccftech.com/nvidia-vera-rubin-rack-hit-with-memory-price-surge-pushing-hbm4-lpddr5x-bill-to-2m-of-7-8m-total/amp/"),
+                              "K": (3, 2), "G": ("分析師估計", "分析師估計（成本 BOM 推算）"), "Q": ("+", f"；{EV['N03']}"), "S": (DASH, DATE),
+                              "V": ("Spec_Rack!E11｜直接", "Spec_Rack!E11｜直接；Spec_Rack!E12｜換算（× 1.075）"),
+                              "W": ("+", f" ｜v5.31 X16（{EV['N03']}）：4.0＝VR200 BOM 7.8（SRC_HW_015）÷ 1.95（MS 表「total cost difference of 95%」；圖片替代文字已讀，GB300 總額未讀到文字）；"
+                                         "等級 3→2；Spec_Rack E12 基準 4.3＝本筆 ×（1＋代工毛利 7.5%）")}),
+    "SRC_HW_010": ("SRC_HW", {"J": ("+", "；原文 https://www.datagravity.dev/p/how-much-does-an-nvidia-nvl72-cost（2026-08-31，v5.31 A 段已讀）"),
+                              "Q": ("+", f"；{EV['N01']}"), "S": ("2026-10-05", DATE),
+                              "V": ("Spec_Rack!E12｜直接", "Spec_Rack!E13｜直接"),
+                              "W": ("+", f" ｜v5.31 X16（{EV['N01']}）：原文已讀（略低於 $5.0M、不含 250 kW CDU 約 $32K、部署合計約 $5.7M）；由基準改作高情境依據（Spec_Rack E13）")}),
+    "SRC_HW_007": ("SRC_HW", {"O": ("Active", "Alt"), "Q": ("+", f"；{EV['N07']}"),
+                              "V": ("Spec_Rack!E13｜直接", "—（v5.31 起不連結；高情境改連 SRC_HW_010）"),
+                              "W": ("+", f" ｜v5.31 X16（{EV['N07']}，待查）：J1 (a) 採用後不再是高情境，改列 Alt（底層出處不明、本輪未讀原文）")}),
+    "SRC_HW_017": ("SRC_HW", {"K": (3, 2), "G": ("分析師估計", "分析師估計（平均成本；含網路約 $1.2M）"), "Q": ("+", f"；{EV['N05']}"), "S": (DASH, DATE),
+                              "J": ("+", "；Bernstein 原文轉載：https://wccftech.com/bernstein-warns-nvidias-vera-rubin-racks-will-hit-9-1-million-as-hbm4-prices-triple-to-53-per-gigabyte/amp/、https://news.cnyes.com/news/id/6498402（同一底層來源）"),
+                              "W": ("+", f" ｜v5.31 X19（{EV['N05']}）：等級 3→2；拆項 GPU 系統約 4.0、HBM 與儲存約 3.2、網路約 1.2、散熱與電力各約 0.15；"
+                                         "含網路，與 Spec_Rack 第 14 列口徑不同，高情境 F13 9.1 與模型另加的 Scale-out 網路約重複 2%（J4，數值不改）")}),
+}
+
+
+def src_update(wb):
+    n = 0; log = []
+    for sid, (sh, fields) in SRC_UPD.items():
+        ws = wb[sh]
+        row = next((r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value == sid), None)
+        if row is None: log.append(f"{sid}: record not found"); continue
+        for col, spec in fields.items():
+            if v518._apply(ws[f"{col}{row}"], spec): n += 1
+            else: log.append(f"{sid}!{col}: kept (not at v5.30 value or already applied)")
+    # second sources (R) of the two warranty records: written only while R is empty
+    ws = wb["SRC_DC"]
+    for sid, other in ((SID_HPE, SID_SMC), (SID_SMC, SID_HPE)):
+        row = next((r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value == sid), None)
+        if row and ws[f"R{row}"].value in (None, "", DASH): ws[f"R{row}"].value = other; n += 1
+    return n, log
+
+
+# ================================================================== B5: Gov_Map (judgement updates, guarded; new rows via gov.gm_append_c)
+def _gm_text_maint():
+    return ("v5.31 X17：壽命期等值單一費率（公式）＝保固期內費率（第 37 列）與保固期滿後費率（第 38 列）以同欄 WACC、IT 折舊年限年金加權；"
+            "保固年限第 36 列（SRC_DC_015）")
+
+
+GM_UPD = [  # (sheet, cell, {col: (old, new) or ("+", text)})
+    ("Inputs", "E30", {"E": ("IT 維護", LAB_MAINT), "F": ("Assumed", "Derived（公式）"), "J": (DASH, "X17"),
+                       "N": ("v4＝3% ｜補充旗標（IF 全欄分段，非分段依據）：中", _gm_text_maint() + " ｜補充旗標（IF 全欄分段，非分段依據）：中"),
+                       "O": ("+", "；v5.31 X17：Assumed→Derived（公式）")}),
+    ("Inputs", "D30", {"E": ("IT 維護", LAB_MAINT), "F": ("Assumed", "Derived（公式）"), "J": (DASH, "X17"),
+                       "N": ("v4＝3% ｜補充旗標（IF 全欄分段，非分段依據）：中", _gm_text_maint() + "（低成本欄） ｜補充旗標（IF 全欄分段，非分段依據）：中"),
+                       "O": ("+", "；v5.31 X17：Assumed→Derived（公式）")}),
+    ("Inputs", "F30", {"E": ("IT 維護", LAB_MAINT), "F": ("Assumed", "Derived（公式）"), "J": (DASH, "X17"),
+                       "N": ("v4＝3% ｜補充旗標（IF 全欄分段，非分段依據）：中", _gm_text_maint() + "（高成本欄） ｜補充旗標（IF 全欄分段，非分段依據）：中"),
+                       "O": ("+", "；v5.31 X17：Assumed→Derived（公式）")}),
+    ("Spec_Rack", "E12", {"F": ("原始數據", "Derived"), "G": ("單值", "基準"), "H": ("SRC_HW_010", "SRC_HW_052"),
+                          "I": ("直接", "Derived：MS BOM 推算 4.0 ×（1＋代工毛利 7.5%，Assumed）＝4.3；Wolfe 4.3（SRC_HW_065，Alt）相符"),
+                          "J": (DASH, "X16"), "K": (None, "=Spec_Rack!E11"), "L": (None, "=Spec_Rack!E13"),
+                          "N": ("連結 SRC（G1）", "v5.31 X16（J1 (a)）：基準 4.3＝4.0 × (1＋7.5%)，與 VR200 F12 算法相同；4.0 為 Morgan Stanley 成本（BOM）推算，不是售價；低 4.0、高 5.0（Data Gravity 採購單）"),
+                          "O": (DASH, "原始數據→Derived（v5.31 X16）")}),
+    ("Spec_Rack", "E13", {"H": ("SRC_HW_007", "SRC_HW_010"), "J": (DASH, "X16"),
+                          "N": ("+", " ｜v5.31 X16：高情境改連 SRC_HW_010（Data Gravity 2026-08 採購單 5.0，原文已讀）；SRC_HW_007（媒體 6.0–6.5）改列 Alt")}),
+    ("Spec_Rack", "E11", {"J": (DASH, "X16"), "N": ("+", " ｜v5.31 X16：SRC_HW_052 等級 3→2（MS BOM 表推算，換算式見該筆備註）")}),
+]
+
+
+def gov_update(ws, append_text):
+    loc = {(ws[f"C{r}"].value, ws[f"D{r}"].value): r for r in range(5, ws.max_row + 1) if ws[f"C{r}"].value}
+    n = 0
+    for sh, cell, cols in GM_UPD:
+        r = loc.get((sh, cell))
+        assert r is not None, f"Gov_Map: {sh}!{cell} not registered"
+        for col, spec in cols.items():
+            c = ws[f"{col}{r}"]
+            if isinstance(spec, tuple) and spec[0] == "+":
+                if append_text(c, spec[1]): n += 1
+            elif c.value == spec[0]:
+                c.value = spec[1]; n += 1
+                if isinstance(spec[1], str) and spec[1].startswith("="): c.font = copy(F_LINK)
+    return n
+
+
+def gov_map_rows(wb):
+    """Gov_Map rows for the new Inputs cells (dict format of v529.gov_map_rows; appended by gov.gm_append_c when absent)."""
+    ws = wb["Inputs"]
+    rw, ri, rp = (_row_by_label(ws, lab) for lab in (LAB_WARR, LAB_IN, LAB_POST))
+    sc = "切片一（v5.31 X17／X18）"
+    out = [{'scope': sc, 'sheet': 'Inputs', 'cell': f'E{rw}', 'label': LAB_WARR, 'check': LAB_WARR, 'cls': '原始數據', 'role': '單值', 'src': SID_HPE,
+            'rel': '直接', 'dec': 'X18', 'lo': None, 'hi': None, 'rtext': '單值（低、高欄＝基準）', 'reason': '連結 SRC（G1）；' + NOTE_WARR, 'retag': '', 'seg': '低'}]
+    for r, lab, sid, rel, lo, hi, reason in (
+            (ri, LAB_IN, SID_HPE, "類比：保固期內零件與人工由原廠負擔（HPE 3 年）；CoreWeave Q2 反推約 0–0.8%（" + EV["N14"] + "）", "0.25%", "1%", NOTE_IN),
+            (rp, LAB_POST, SID_DGX, "類比：NVIDIA DGX B200 續約 ≈ 3.8%／年（零售牌價）；Introl 5%（" + EV["N13"] + "）", "2%", "5%", NOTE_POST)):
+        out.append({'scope': sc, 'sheet': 'Inputs', 'cell': f'E{r}', 'label': lab, 'check': lab, 'cls': 'Analogy', 'role': '基準', 'src': sid, 'rel': rel,
+                    'dec': 'X17', 'lo': f'=Inputs!$D${r}', 'hi': f'=Inputs!$F${r}', 'rtext': f'{lo}–{hi}（A 段建議，{ANDY}）',
+                    'reason': reason, 'retag': '', 'seg': '低'})
+        for col, role in (("D", "低"), ("F", "高")):
+            out.append({'scope': sc, 'sheet': 'Inputs', 'cell': f'{col}{r}', 'label': lab, 'check': lab, 'cls': 'Analogy', 'role': role, 'src': sid, 'rel': rel,
+                        'dec': 'X17', 'lo': None, 'hi': None, 'rtext': f'E{r} 的{role}端點', 'reason': reason, 'retag': '', 'seg': '低'})
+    return out
+
+
+# ================================================================== B5: DB_Evidence E263–E278 (17 columns A..Q; layout of v529)
+def _ev(n, claim, src, tag, param, cur, new, verdict, note, sids, affected, grade, stance):
+    return [EV[n], DATE, claim, src, tag, param, cur, new, verdict, V, f"{note}｜A 段暫編 {n}｜{ANDY}｜讀取者：CC（A 段，{REPORT_A}）",
+            "已處理", sids, DASH, affected, grade, stance]
+
+
+GB300 = "IF_CapexIT、IF_HoldAcct、IF_HoldEcon、IF_GPUhrEcon（GB300）"
+MAINT = "IF_MaintIT、IF_HoldAcct、IF_HoldEcon、IF_GPUhrEcon（全世代）；IF_MaintITWarr、IF_MaintITPost"
+EVIDENCE_V531 = [
+    _ev("N01", "Data Gravity 原文：GB300 NVL72 採購單略低於 $5.0M（不含 250 kW CDU 約 $32K）、部署合計約 $5.7M（不含 DC 建造、叢集核心交換、儲存）",
+        "https://www.datagravity.dev/p/how-much-does-an-nvidia-nvl72-cost（2026-08-31；wing.vc 為同文轉載）", "Interested-party／2 級",
+        "Spec_Rack E12（基準）→ E13（高）", "5.0（基準）", "略低於 5.0", "採用（X16）：SRC_HW_010 補「原文已讀」，改作高情境依據（E13＝5.0）",
+        "未具名交易方", "SRC_HW_010", GB300, "2", "利害關係方"),
+    _ev("N02", "Wolfe Research（reported prices）：GB300 約 $4.3M、GB200 約 $3M、Rubin $5–6M",
+        "https://ca.finance.yahoo.com/news/wolfe-lifts-nvidia-target-25-145211458.html（Investing.com 轉載，2026-01-30）", "Interested-party／2 級",
+        "Spec_Rack E12", "5.0", "4.3", f"部分採用（X16）：GB300 4.3 作基準佐證，新登錄 {SID_WOLFE}（Alt）；Rubin 5–6 早於記憶體漲價，不採用",
+        "自稱 reported，底層出處不明；gpuperhour 彙整頁引同一筆，不另算", SID_WOLFE, GB300, "2", "利害關係方"),
+    _ev("N03", "Morgan Stanley NVL72 BOM 表推算 GB300 ≈ $4.0M（＝VR200 BOM 7.8 ÷ 1.95；表載記憶體 $373,939 → $2,001,600、total cost difference of 95%）",
+        "https://wccftech.com/nvidia-vera-rubin-rack-hit-with-memory-price-surge-pushing-hbm4-lpddr5x-bill-to-2m-of-7-8m-total/amp/（2026-05-21）", "Derived（中立賣方研究）／2 級",
+        "Spec_Rack E11、E12", "4.0（低）", "4.0", "採用（X16）：SRC_HW_052 等級 3→2，換算式寫入備註；E12 基準＝4.0 × 1.075",
+        "表為圖片，GB300 總額未讀到文字", "SRC_HW_052；SRC_HW_015", GB300, "2", "中立"),
+    _ev("N04", "IREN 向 Dell 採購 GB300 設備 $5.8bn（含伺服器、InfiniBand、線材、軟體授權、部署服務），對應 200 MW 關鍵 IT → 每 IT MW $29.0M",
+        "https://iren.gcs-web.com/news-releases/news-release-details/iren-secures-97bn-ai-cloud-contract-microsoft（2025-11-03；DCD 轉載）", "Verified／Derived／1 級",
+        "L1 新對照列（IF_CapexIT）", DASH, "29.0 $M/IT MW", f"採用（X20）：新登錄 {SID_IREN}；L1_CapexITMW_GB300_vsIREN 外部對照，不直接進模型",
+        "GPU 數未揭露；以 136 kW／架推算每架（含網路）≈ $4.3M", SID_IREN, "L1_CapexITMW_GB300_vsIREN（新列）", "1", "利害關係方"),
+    _ev("N05", "Bernstein：VR200 平均成本 $9.1M（GPU 系統約 4.0、HBM 與儲存約 3.2、網路約 1.2、散熱約 0.15、電力約 0.15）；1 GW 約 $47bn",
+        "https://wccftech.com/bernstein-warns-nvidias-vera-rubin-racks-will-hit-9-1-million-as-hbm4-prices-triple-to-53-per-gigabyte/amp/；https://news.cnyes.com/news/id/6498402（同一底層來源，2026-06）",
+        "Interested-party（中立賣方研究）／2 級", "Spec_Rack F13", "9.1", "9.1（含網路）", "採用（X19）：SRC_HW_017 等級 3→2；口徑欄註明含網路；Spec_Rack F14 補註（數值不改，J4）",
+        "高情境與模型另加的 Scale-out 網路約重複 2%", "SRC_HW_017", "IF_CapexIT（VR200 高成本欄；數值不變）", "2", "中立"),
+    _ev("N06", "TrendForce：Vera Rubin 系統 ASP 約為 GB300 的 2 倍", "https://www.trendforce.com/presscenter/news/20260828-13204.html（2026-08-28）",
+        "Interested-party（市調，中立）／1 級", "Spec_Rack E12／F12 比值檢查", "1.68（8.4 ÷ 5.0）", "約 2（改後 8.4 ÷ 4.3＝1.95）",
+        f"部分採用（X16）：新登錄 {SID_TF}（比值，不進數值）", "比值對照", SID_TF, DASH, "1", "中立"),
+    _ev("N07", "Tom's Hardware：GB300 NVL72 $6.0–6.5M（媒體報價）", "Tom's Hardware（經 Yahoo Finance，2026-03；本輪未讀原文）", "Interested-party／3 級",
+        "Spec_Rack E13（高）", "6.5（高）", "6.0–6.5", "待查（X16）：J1 (a) 採用後不再是高情境，SRC_HW_007 改列 Alt",
+        "底層出處不明", "SRC_HW_007", GB300, "3", "利害關係方"),
+    _ev("N08", "FT：Oracle 約 $40bn 購買約 40 萬顆 GB200 → $50K–100K／顆", "https://www.datacenterdynamics.com/en/news/oracle-to-spend-40bn-on-nvidia-chips-for-openai-texas-data-center/（2025-05）",
+        "Interested-party／2 級", DASH, DASH, "$50K–100K／顆", "不採用：「GB200」指 GPU 或 superchip 不明", "匿名消息", DASH, DASH, "2", "利害關係方"),
+    _ev("N09", "CoreWeave 1H26 每新增 MW 資本支出 24.8 $M（16.139bn ÷ 650 MW）；技術設備毛額 19.9", "CRWV 10-Q 2026-06-30 附註 5（CoreWeave W5 報告已讀，A 段未重讀）",
+        "Derived／2 級", "IF_CapexIT 對照", "34.8（CRWV 機隊組合）", "24.8／19.9", "部分採用：登錄為已看過；active power 的 IT／設施口徑未明，不作對照列",
+        "19.9 若為 IT 口徑等於每架 GB300 約 $2.7M，低於所有價格證據 → 口徑問題可能性較大", DASH, "IF_CapexIT（對照）", "2", "利害關係方"),
+    _ev("N10", "HPE GB300 NVL72 標準保固：3 年零件、3 年人工、3 年到場", "https://www.hpe.com/us/en/collaterals/collateral.a50009244enw.html（QuickSpecs V3，2026-09-08）",
+        "Verified（賣方條款）／1 級", "Inputs 第 36 列（新）", "3%（第 1 年起固定）", "保固 3 年", f"採用（X18）：新登錄 {SID_HPE}，Inputs E36 連結",
+        "Dell XE9680 經銷頁 3 年 ProSupport（https://www.servermonkey.com/poweredge-xe9680-ss-1.html）併入本筆", SID_HPE, MAINT, "1", "利害關係方"),
+    _ev("N11", "Supermicro GPU 系統標準保固：人工 3 年、零件 1 年、預先換貨 1 年", "https://www.supermicro.com/en/support/warranty（讀取日 2026-10-08）",
+        "Verified（賣方條款）／1 級", "Inputs 第 37 列（高情境）", "3%", "人工 3／零件 1", f"採用（X18）：新登錄 {SID_SMC}（{SID_HPE} 的第二來源）",
+        "零件 1 年由保固期內高情境 1% 涵蓋", SID_SMC, MAINT, "1", "利害關係方"),
+    _ev("N12", "NVIDIA DGX B200 原廠支援續約 1 年 £18,599.99 ÷ 系統（含 3 年支援）£489,999 ≈ 每年 3.8%",
+        "https://www.scan.co.uk/products/dgx-b200-8x-180gb-full-with-business-std-support-3y；…-renew-1-year（讀取日 2026-10-08）", "Analogy／Derived／2 級",
+        "Inputs 第 38 列（保固期滿後）", "3%", "3.8%", f"採用（X17）：新登錄 {SID_DGX}；保固期滿後基準 3%、上緣參考",
+        "續約為支援、韌體、軟體授權；零售牌價", SID_DGX, MAINT, "2", "利害關係方"),
+    _ev("N13", "Introl 企業 GPU 叢集 TCO：維護每年 5% 硬體價值；文中另稱原廠支援合約「typically cost 8-12%」",
+        "https://introl.com/blog/gpu-infrastructure-tco-model-5-year-enterprise-ai-deployment（2026-04-28）", "Interested-party（基礎設施服務商）／2 級",
+        "Inputs 第 38 列高情境", "4%（高）", "5%；8–12%", "部分採用（X17）：5% 作保固期滿後高情境；8–12% 不採用（企業小規模、與自身模型矛盾）",
+        "兩數自相矛盾", DASH, MAINT, "2", "利害關係方"),
+    _ev("N14", "CoreWeave 2026 Q2 營運成本反推維護 ≈ 0–0.25 $M/MW·年（約 IT 資本 0–0.8%；機隊多在保固期內）",
+        "CRWV 10-Q 2026-06-30；CoreWeave W5 報告 coreweave/docs/reports/20261008_coreweave_v4.7_公司實況驗證.md", "Derived／2 級",
+        "Inputs 第 37 列（保固期內）", "3%", "0–0.8%", "採用（X17）：保固期內低值依據；不單獨定值（含爬坡期用電偏低）",
+        "營運成本 1.357 − 研發 0.374 − 電費 0.673 − 人員軟體 0.325 − 稅險 0.156 ≤ 0", DASH, MAINT, "2", "利害關係方"),
+    _ev("N15", "超大型資料中心常駐人員 0.2–0.5 人／MW", "https://www.irecruit.co/insights/data-center-staffing-ratios-people-per-mw-2026（2026-04-24，引 poweredbywho.com）",
+        "Interested-party（人力仲介）／3 級", "Inputs E32（人員）", "500 FTE／GW", "200–500 FTE／GW", "不採用：二手、出處不全；僅確認模型在上緣",
+        "數值不改", DASH, "IF_StaffSW", "3", "利害關係方"),
+    _ev("N16", "NVIDIA AI Enterprise 牌價 $4,500／GPU／年（CSP 市集 $1／GPU·時）", "https://docs.nvidia.com/ai-enterprise/planning-resource/licensing-guide/latest/pricing.html",
+        "Verified（賣方牌價）／1 級", "Inputs E33（軟體授權與連線）", "$200M／GW（≈ $410／GPU·年）", "$4,500／GPU·年", "待查：neocloud 裸機出租是否付此授權找不到",
+        "IF_StaffSW 範圍為站點營運、不含平台研發（X19 J5 標籤）", DASH, "IF_StaffSW", "1", "利害關係方"),
+]
+
+
+def evidence_rows():
+    return EVIDENCE_V531
+
+
+# ================================================================== B5: Decisions X16–X20 (10 columns; layout of v530)
+_X = [
+    ("X16", "J1 GB300 機架價格", "Spec_Rack GB300 機架價格 低／基準／高 4.0／5.0／6.5 → 4.0／4.3／5.0 $M：低＝SRC_HW_052（MS BOM 推算，等級 3→2）；"
+     "基準＝4.0 ×（1＋代工毛利 7.5%）＝4.3（Derived 常數，與 VR200 F12 算法相同；Wolfe 4.3 相符）；高＝SRC_HW_010（Data Gravity 採購單 5.0）；SRC_HW_007（媒體 6.0–6.5）改 Alt；"
+     "價格涵蓋範圍（第 14 列）維持「同上」", "Spec_Rack E11:E13、E16、E17；SRC_HW_007／010／052／065／066；Gov_Map E11／E12／E13", "B1"),
+    ("X17", "J2 IT 維護機齡兩段＋壽命期等值費率", "Inputs 新增「IT 維護（保固期內）」0.25%／0.5%／1.0% 與「IT 維護（保固期滿後）」2%／3%／5%（Analogy）；Inputs 第 30 列改為公式："
+     "等值費率＝[Σ r_y ÷ (1＋WACC)^y] ÷ [Σ 1 ÷ (1＋WACC)^y]（y＝1…IT 折舊年限，各欄用同欄 WACC 與年限），標記 Derived；DC_Cost 第 44 列公式不變；"
+     "Interface I 節（續）新增 IF_MaintITWarr、IF_MaintITPost（下游依機隊年齡取用）", "Inputs D30:H30、第 37–38 列；Interface I 節（續）；Gov_Map", "B2"),
+    ("X18", "J3 IT 原廠保固 3 年", "Inputs 新增「IT 原廠保固年限」＝SRC_DC_015（HPE GB300 NVL72 QuickSpecs：3 年零件、人工、到場）；Supermicro 人工 3、零件 1 年（SRC_DC_016）由保固期內高情境 1% 涵蓋；"
+     "Interface 單格名稱 IF_WarrantyYrs", "Inputs 第 36 列；SRC_DC_015／016；IF_WarrantyYrs", "B2"),
+    ("X19", "J4／J5 口徑註記", "J4：Spec_Rack F14 補「Bernstein 平均約 $9.1M 含網路約 $1.2M；本模型另計 Scale-out 網路，高情境約重複 2%」，VR200 數值不改；SRC_HW_017 等級 3→2。"
+     "J5：IF_StaffSW 的 Interface 標籤與 DC_Cost 第 46 列標籤補「（站點營運；不含平台研發）」，數值不改", "Spec_Rack F14；SRC_HW_017；Interface IF_StaffSW 列 A 欄；DC_Cost A46", "B3"),
+    ("X20", "J6 IREN 外部對照", "新增 SRC_DC_014（IREN 2025-11-03：向 Dell 採購 GB300 設備 $5.8bn，含 InfiniBand、軟體、部署，對應 200 MW 關鍵 IT → 29.0 $M/IT MW）與 "
+     "L1_CapexITMW_GB300_vsIREN（模型 GB300 IF_CapexIT 對 IREN 的比值與判讀）；CoreWeave 24.8 口徑不明，不加對照列", "SRC_DC_014；L1 新列", "B4"),
+]
+DECISIONS_V531 = [[i, V, f"{i} {t}", txt, DATE, ANDY, "v5.31 已建", where, f"工作單 v5.31 r1 {sec}", "否"] for i, t, txt, where, sec in _X]
+
+
+# ================================================================== README (version string is built from VERSION; v5.30 text is kept after it)
+README_VERSION = (VERSION + "（判斷類，工作單 docs/workorders/20261008_v5.31.md r1；A 段查證 PR #34：J1 GB300 機架價格 4.0／5.0／6.5 → 4.0／4.3／5.0 $M；"
+                  "J2／J3 IT 維護改為機齡兩段（保固 3 年，保固期內 0.25／0.5／1.0%、期滿後 2／3／5%），Inputs 第 30 列改為壽命期等值費率公式（WACC、IT 折舊年限年金加權），"
+                  "Interface I 節（續）新增 IF_MaintITWarr、IF_MaintITPost、IF_WarrantyYrs；J4／J5 註記；J6 SRC_DC_014（IREN 29.0 $M/IT MW）與 L1_CapexITMW_GB300_vsIREN；"
+                  "DB_Evidence E263–E278；Decisions X16–X20）。以下為 " + v530.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v530.README_TITLE
+README_TITLE = VERSION.split("_")[-1] + _T[len(v530.VERSION.split("_")[-1]):]
+README_ROW = ("Interface I 節（續）與 IT 維護兩段（v5.31）",
+              "下游名稱（IF_ 開頭且非 IF_Hdr）共 195 個（v5.30 為 192 個，v5.31 加 3）。IT 維護（v5.31 X17／X18）：保固期內費率（Inputs 第 37 列）適用於前 IF_WarrantyYrs 年"
+              "（Inputs 第 36 列＝SRC_DC_015，3 年），之後為保固期滿後費率（第 38 列）；IF_MaintIT（DC_Cost 第 44 列）用 Inputs 第 30 列的壽命期等值單一費率"
+              "（以同欄 WACC 與 IT 折舊年限年金加權），所以 Tokenomics 的穩態持有成本不隨機齡變動。下游公司模型依自身機隊年齡取 IF_MaintITWarr（＝IT 資本 × 保固期內費率）"
+              "或 IF_MaintITPost（＝IT 資本 × 期滿後費率），兩者不加總；金額為 $B/GW/年。IF_StaffSW 為站點營運（人員、軟體授權與連線、水與耗材），不含平台研發，"
+              "下游另列。L1_CapexITMW_GB300_vsIREN：GB300 IF_CapexIT（$M/IT MW）對 IREN 公司揭露 29.0（SRC_DC_014）。")
+```
+
 ## gov_decisions.py
 
 ```python
@@ -22188,6 +22628,7 @@ import v518                       # v5.18: Stage 2 first write batch (Excel-owne
 import v519                       # v5.19: X1 mirrors (Prod sheets) and X2 Gov_Map P promotions; its Gov_Map row and Decisions are registered here
 import v520                       # v5.20: X3 evidence rows, GM578 range, C2 list; X4 F67 evidence; X5 note
 import v521                       # v5.21: X6 (X4 closed; MLPerf v6.1 primary results: SRC_Perf, E245, GM344 note, Decisions X6)
+import v531                       # v5.31: J1–J6 (formula map E12／E13／Inputs E36, SRC records and updates, Gov_Map, L1 IREN row, E263–E278, X16–X20)
 import v530                       # v5.30: X15 (b) L1_HoldEconMW_*, Decisions X15a–c
 import v529                       # v5.29: X14 (SRC_DEM_018 replaces 004, Alloc_In inputs, E256–E262, Decisions X14a–m／G16, Gov_Map notes, L1 rows, SRC_Price columns, SRC_Index date column)
 import v527                       # v5.27: X13 (SRC_MOD_055 low／high, SRC_MOD_057–062 Kimi K3, E251–E255, E249 note, Gov_Map notes, Decisions X13, L1 rows 36／39)
@@ -22199,7 +22640,7 @@ import v522                       # v5.22: X7 (L, m side-by-side outputs: Gov_Ma
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
-def _fm(): return v518.formula_map(ALL_FORMULA_MAP)     # v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links
+def _fm(): return v531.formula_map(v518.formula_map(ALL_FORMULA_MAP))     # v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
 
 SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]   # v5.13: +4
 SRC_LAST = 400                      # record rows 5..SRC_LAST (formula ranges)
@@ -22259,7 +22700,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records():
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records():
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -22319,7 +22760,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows() + v531.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -22363,7 +22804,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -22513,7 +22954,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -22563,7 +23004,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text)      # v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text)      # v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -22693,7 +23134,7 @@ def _rows_l1(wb):
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     R = v527.l1_rows(R)             # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
-    return v530.l1_rows(R + v529.l1_rows_new(wb))   # v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
+    return v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new()   # v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
 
 def l1_sheet(wb):
     global _REV_ROW
@@ -22870,6 +23311,8 @@ def gov_all(wb):
     n_src_upd += _n527; src_upd_log += _log527
     _n529, _log529 = v529.src_update(wb)              # v5.29 X14 (k): SRC_DEM_004 Superseded, replaced by SRC_DEM_018 (guarded)
     n_src_upd += _n529; src_upd_log += _log529
+    _n531, _log531 = v531.src_update(wb)              # v5.31 X16／X19: SRC_HW_007 Alt, 010／052／017 fields; SRC_DC_015／016 second sources (guarded)
+    n_src_upd += _n531; src_upd_log += _log531
     n_price_cols = v529.src_price_columns(wb)         # v5.29 第 5 節: SRC_Price tier columns X–AB inserted once (check columns move to AC–AE／AM)
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
@@ -23022,6 +23465,8 @@ V518_LOG += v520.inputs_update(wb)       # v5.20 X3: Alloc_In!E7 4 -> 6 (old-val
 import v521
 V518_LOG += v521.text_update(wb)         # v5.21: Alloc_In!G7 note tail (old-text guard)
 V518_LOG += v529.inputs_update(wb)       # v5.29 X14 (l): Alloc_In 每則提示 token 數 2000/1000/6000 -> 4000/2000/6400 (old-value guards) and the G note
+import v531
+V518_LOG += v531.inputs_update(wb)       # v5.31 X16–X19: Spec_Rack E12 4.3 and text, Inputs rows 30／36–38, DC_Cost A46 label (old-value guards)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -23089,6 +23534,8 @@ from deps import Deps, gov_map_cells
 N_GMH = v529.gov_map_helpers(wb)
 import v530
 IFJ = v530.interface_j(wb)            # v5.30 X15 (a): running-product waterfall; self-check = source equality + monotonic (replaces v529.interface_j)
+I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuation after J (IF_MaintITWarr, IF_MaintITPost, IF_WarrantyYrs); IF_StaffSW label (X19)
+print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)

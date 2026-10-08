@@ -21370,12 +21370,13 @@ def l1_rows_new(wb):
                   "下游每 MW 介面：Tokenomics 不輸出每 MW 收入，下游依 q × p × c × 簽約率自算", "IT 折舊年限、機架價格、WACC", "機架價格：3 級",
                   *ext, f"L1_HoldEconGW_{gen}", "L1 第 11–14 列", "外部（GB300 列）為 $/GPU-hr 的新雲損益兩平租金，口徑不同，判讀欄僅供方向參考" if gen == "GB300" else DASH))
     tok = lambda c: f"INDEX(IF_TokGW_Sol,1,{c})"
+    div = lambda a, b: f'=IF(ISNUMBER({b}),IF({b}>0,{a}/{b},"{SLO}"),"{SLO}")'      # 每 GW 產出在 SLO 不可達時為 0：分母為 0 回傳文字，不出現 #DIV/0!
     pairs = [("GB200", "Hopper", None), ("GB300", "GB200", ("SRC_PERF_024", "SRC_PERF_025")), ("VR200", "GB300", ("SRC_PERF_027", "SRC_PERF_028"))]
     for gen, prev, ml in pairs:
         c1, c0 = GENCOL[gen] + 1, GENCOL[prev] + 1
-        base = f"={tok(c1)}/{tok(c0)}"
+        base = div(tok(c1), tok(c0))
         if gen == "VR200":
-            lo, hi = "=Sens_Perf!$E$98/Sens_Perf!$F$98", "=Sens_Perf!$G$98/Sens_Perf!$H$98"
+            lo, hi = div("Sens_Perf!$E$98", "Sens_Perf!$F$98"), div("Sens_Perf!$G$98", "Sens_Perf!$H$98")
             rng = "Sens_Perf VR η_d × 0.5／× 1.5 欄（E:F、G:H 第 98 列）的比值"
         else:
             lo, hi = base, base; rng = "無區間（Sens_Perf 只涵蓋 VR200 對 GB300）"
@@ -21387,7 +21388,7 @@ def l1_rows_new(wb):
     ratio = f"(INDEX(IF_CostDec_Sol,1,{gb})/INDEX(IF_CostDec_Sol,1,{GENCOL['GB300'] + 1}))"
     for k, (task, tkey) in enumerate(zip(TASKS, TASK_KEYS), start=1):
         har = f"INDEX(IF_HarR_Sol,1,{k})"
-        guard = f"AND(ISNUMBER({har}),ISNUMBER(INDEX(IF_CostDec_Sol,1,{gb})),ISNUMBER(INDEX(IF_CostDec_Sol,1,{GENCOL['GB300'] + 1})))"
+        guard = f"AND(ISNUMBER({har}),ISNUMBER(INDEX(IF_CostDec_Sol,1,{gb})),ISNUMBER(INDEX(IF_CostDec_Sol,1,{GENCOL['GB300'] + 1})),ISNUMBER({ratio}),{ratio}>0)"
         base = f'=IF({guard},{har}/{ratio},"{SLO}")'
         if k == 5:
             lo = f'=IF({guard},MIN(Sens_Har!$C$33:$S$33)/{ratio},"{SLO}")'; hi = f'=IF({guard},MAX(Sens_Har!$C$33:$S$33)/{ratio},"{SLO}")'
@@ -21424,7 +21425,7 @@ def l1_rows_new(wb):
               "推論支出口徑", "本列：Assumed（E262）", DASH, None, None, "AL_SpendBasis", "Alloc_In 新列", "無外部對照（已搜尋，未找到 OpenAI 對 Azure 實付單價；E262）"))
     tv = f"INDEX(IF_TokGW_Sol,1,{gb})"
     R.append(("GapISL", "落差分解 3：參考請求 ISL 16K 對實際混合（Sol 每 GW 總產出 基準 ÷ ISL 4K）", "Sens_Perf 第 98 列 W 欄（ISL 4K，VR200）；X14 (m)",
-              f'=IF(ISNUMBER({tv}),{tv}/Sens_Perf!$W$98,"{SLO}")', f'=IF(ISNUMBER({tv}),{tv}/Sens_Perf!$Y$98,"{SLO}")', f'=IF(ISNUMBER({tv}),{tv}/Sens_Perf!$W$98,"{SLO}")', "x",
+              div(tv, "Sens_Perf!$W$98"), div(tv, "Sens_Perf!$Y$98"), div(tv, "Sens_Perf!$W$98"), "x",
               "低＝基準 ÷ ISL 64K 欄（Y98，<1）；高＝基準（ISL 4K 端）", "總產出隨 ISL 上升（prefill token 便宜）：實際混合偏短時每 GW 產出低於參考請求", "參考 ISL／OSL、η_p", "參考 ISL：Assumed（GM245–247）",
               DASH, None, None, "IF_TokGW_Sol", "Interface 第 31 列；Sens_Perf 第 98 列", DASH))
     R.append(("GapUtil", "落差分解 4：模型利用率 × 折減（IF_Util × CTL_ProdDerate）÷ 實際利用率 × 生產折減", "Alloc_In 新輸入（Assumed）；X14 (m)",

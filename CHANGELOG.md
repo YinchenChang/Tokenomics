@@ -11,6 +11,7 @@
 - 測試：期望值 `formula_cells` 39,461 → 45,337、`defined_names` 929 → 1,060、`src_names` 359 → 362、`l1_names` 141 → 210、`al_names` 80 → 86、`cst_names` 4 → 5、`idx_names` 3 → 4、工作表加 Load_Bearing；`GOV_Info` 108 → 168；Alloc 與 mix_2025 期望值依 (k)(l) 更新；`test_batch_etad_expected_values` 略過 (k)(l) 連動的 50 個名稱；`test_price_life_expected_values` 允許 L1_FleetMargin 列隨 L、m 改變；新增 `test_v529_contract_waterfall_expected_values`；`tests/app` L1 47 → 70 列、SRC_Demand 13 → 14 筆。
 - 治理：GOV_Errors 0、GOV_Warnings 219（W1 219：SRC_DEM_018 +1、SRC_DEM_004 Superseded −1；K1 0）、GOV_Info 168（I3 8 → 17、K4 1、K5 50、K6 0、K7 0）。
 - 前版合併雜湊：v5.27 `19d667f`（PR #28）補入下段。
+- CI 第 1 輪（run 224／225）失敗兩項，第 2 輪修正：(1) `f_registry_t07_t09_on`（Hopper Sol SLO 不可達、每 GW 產出為 0）使 L1_TokMW_Gen_ratio_GB200 出現 #DIV/0!——新列的比值公式一律加「分母為 0 回傳 SLO 不可達」守衛（TokMW_Gen_ratio 三列與其低高、HarVsGen 世代比、GapISL）；基準數值不變。(2) `test_batch_etad_expected_values` 的 L1_Ans1 期望 0.0452 → 0.0530：(k)(l) 使服務 GW 上升，Q1 對研發 GW 的彈性改變（與 X10 無關）。
 
 ## 20261008_Tokenomics_v5.27.xlsx（取代 v5.26；X13 J8 證據與 L1 外部對照、Kimi K3 架構證據；CI 安裝失敗即停、ci-status 重跑殘留；判斷類（chat 端定案）＋工程類，依工作單 `docs/workorders/20261008_v5.27.md` r0 執行，試行 (B)）
 

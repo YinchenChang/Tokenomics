@@ -7,6 +7,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 SLO = "SLO 不可達"
+SPEND_SID = "SRC_DEM_018"    # v5.29 X14 (k): OpenAI 2025 inference spend (Azure billing, full-year estimate) replaces SRC_DEM_004 (Superseded; 8.4 -> 12.6 $B)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
 TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
 
@@ -200,7 +201,7 @@ def alloc(wb, AIN):
 
     # ---------------- E. calibration back-solve (A3)
     hdr("E. 校準反推（A3；2025 支出比不用來校準 k，只反推隱含 N × k）")
-    line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", "=SRC_DEM_006/(SRC_DEM_004+SRC_DEM_006)", "0.0%", "AL_SpendRatio", "SRC_DEM_006 ÷（SRC_DEM_004＋SRC_DEM_006）（約 58.8%）")
+    line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", f"=SRC_DEM_006/({SPEND_SID}+SRC_DEM_006)", "0.0%", "AL_SpendRatio", f"SRC_DEM_006 ÷（{SPEND_SID}＋SRC_DEM_006）（v5.29 X14 (k)：推論支出改連 {SPEND_SID}，約 48.8%；v5.28 前為 SRC_DEM_004，約 58.8%）")
     line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計", "GW", f'=IF(ISNUMBER(AL_ServeGW),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGW,"{SLO}")', "0.0000", "AL_ImpliedRDGW")
     line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", f'=IF(ISNUMBER(AL_ImpliedRDGW),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "0.00", "AL_ImpliedNk", key_fill=True)
     line("j8", "J8 落差＝隱含 N × k ÷（N_major＋N_refresh × 改版÷家族）", "x",
@@ -210,10 +211,11 @@ def alloc(wb, AIN):
 
     # ---------------- F. external comparisons
     hdr("F. 外部對照（同時寫入 L1；支出路線與 SRC_DEM_013）")
-    line("sgx", "支出路線服務 GW＝SRC_DEM_004（$B）÷ Σ（世代占比 × 各世代持有成本）", "GW", "=SRC_DEM_004/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
-         "單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）")
+    line("sgx", f"支出路線服務 GW＝{SPEND_SID}（$B；Azure 計價）÷ Σ（世代占比 × 各世代持有成本）", "GW", f"={SPEND_SID}/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
+         f"單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）；v5.29 X14 (k)：SRC_DEM_004 → {SPEND_SID}")
     line("fsh", "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGWFree/AL_ServeGW,"{SLO}")', "0.0%", "AL_FreeServeShare")
-    line("fsx", "免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ SRC_DEM_004", "%", "=SRC_DEM_005/SRC_DEM_004", "0.0%", "AL_FreeSpendShare")
+    line("fsx", f"免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ {SPEND_SID}", "%", f"=SRC_DEM_005/{SPEND_SID}", "0.0%", "AL_FreeSpendShare",
+         f"v5.29 X14 (k)：分母改連 {SPEND_SID}（Azure 計價 12.6）；分子 SRC_DEM_005（3.9，json 口徑）未變，兩者口徑是否一致待 Project 判斷")
     line("dlo", "Epoch 每日 token 低（SRC_DEM_013_Lo）", "T tok/日", "=SRC_DEM_013_Lo", "#,##0.0")
     line("dhi", "Epoch 每日 token 高（SRC_DEM_013_Hi）", "T tok/日", "=SRC_DEM_013_Hi", "#,##0.0")
     line("din", "每日 token 合計是否在 Epoch 區間內", "", '=IF(AL_DDaily<SRC_DEM_013_Lo,"區間外（低於）",IF(AL_DDaily>SRC_DEM_013_Hi,"區間外（高於）","區間內"))', None)
@@ -431,13 +433,13 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
     out.append(("ExtServeGW", "服務 GW：token 路線 對 支出路線", "OpenAI 2025；token 路線＝需求 D ÷ 每 GW 產能；支出路線＝推論支出 ÷ 持有成本",
                 "=IF_AllocServeGW", "=IF_AllocServeGW", "=IF_AllocServeGW", "GW", "無區間（單一對照值）",
                 "兩路線差距指出需求 D、每 GW 產能或支出口徑之一偏離；對照列落在 ±20% 外是預期結果之一，不調整輸入",
-                "每則提示 token 數、服務世代組合、每 GW 產能", "每則提示 token 數（Assumed，A10）", "SRC_DEM_004",
+                "每則提示 token 數、服務世代組合、每 GW 產能", "每則提示 token 數（Assumed，A10）", SPEND_SID,
                 "=AL_ServeGWSpend", "=AL_ServeGWSpend", "IF_AllocServeGW", "Alloc F 節",
                 "支出路線以經濟持有成本換算 GW，與外部揭露的 GW 口徑（D1）無關"))
-    out.append(("ExtFreeShare", "免費服務算力占比：token 路線 對 支出口徑（SRC_DEM_005 ÷ SRC_DEM_004）", "OpenAI 2025",
+    out.append(("ExtFreeShare", f"免費服務算力占比：token 路線 對 支出口徑（SRC_DEM_005 ÷ {SPEND_SID}）", "OpenAI 2025",
                 "=AL_FreeServeShare", "=AL_FreeServeShare", "=AL_FreeServeShare", "%", "無區間（單一對照值）",
                 "token 路線＝免費服務 GW ÷ 服務 GW；支出口徑＝免費推論支出 ÷ 推論支出", "免費占比、層級組合（Cap_In）", "免費用戶占比：Assumed",
-                "SRC_DEM_005", "=SRC_DEM_005/SRC_DEM_004", "=SRC_DEM_005/SRC_DEM_004", "AL_FreeServeShare", "Alloc F 節", "兩口徑不同（算力 vs 支出）"))
+                f"SRC_DEM_005；{SPEND_SID}", f"=SRC_DEM_005/{SPEND_SID}", f"=SRC_DEM_005/{SPEND_SID}", "AL_FreeServeShare", "Alloc F 節", "兩口徑不同（算力 vs 支出）；v5.29 分母改連 SRC_DEM_018（Azure 計價），與分子 json 口徑是否一致待 Project 判斷"))
     out.append(("ExtDaily", "每日 token 合計 對 Epoch 估計（SRC_DEM_013 低、高）", "OpenAI 2025；API＋ChatGPT", "=AL_DDaily", "=AL_DDaily", "=AL_DDaily", "T tok/日",
                 "無區間（單一對照值）", "基準約 11.5T，只略高於 Epoch 下限 10T；每則 token 數與 API 比例同取低端時約 7.7T，落在區間外（預期，不是錯誤）",
                 "每則提示 token 數、API 全年平均比例", "每則提示 token 數（Assumed，A10）", "SRC_DEM_013", "=SRC_DEM_013_Lo", "=SRC_DEM_013_Hi",
@@ -454,8 +456,8 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
                 gm_formula(11), gm_formula(12), gm_formula(10), "%", rdef,
                 "1 −（IF_FullCost_Sol − IF_AmortBU_Sol）÷ IF_PriceRef_Sol：推論算力計入營業成本、訓練計入研發（不含攤提）。理論毛利率是 SLO 下單一層級滿載、基準利用率的上限；"
                 "與 2025 隱含值約 36% 的差距，與「兩路線差約 15 倍」同源（物理產能上限 對 實際營運），屬預期，不調整輸入。E＝高成本欄、F＝低成本欄",
-                "機架價格、IT 折舊年限、WACC、利用率、單價快照", "利用率 60%：Assumed（K11）", "SRC_DEM_004；SRC_DEM_007",
-                "=1-SRC_DEM_004/SRC_DEM_007", "=1-SRC_DEM_004/SRC_DEM_007", "L1_Ans5_GM", "Interface D 節（IF_FullCost_Sol、IF_AmortBU_Sol、IF_PriceRef_Sol）",
+                "機架價格、IT 折舊年限、WACC、利用率、單價快照", "利用率 60%：Assumed（K11）", f"{SPEND_SID}；SRC_DEM_007",
+                f"=1-{SPEND_SID}/SRC_DEM_007", f"=1-{SPEND_SID}/SRC_DEM_007", "L1_Ans5_GM", "Interface D 節（IF_FullCost_Sol、IF_AmortBU_Sol、IF_PriceRef_Sol）",
                 "外部為 2025 推論毛利隱含值＝1 − 推論支出 ÷ 營收（Derived；兩者皆 Interested-party），與本列的物理上限口徑不同"))
     out.append(("Ans5_FullMargin", "問 5：理論毛利率（全成本口徑：含 K6 預設訓練攤提；Sol，VR200）", cond,
                 fm_formula(11), fm_formula(12), fm_formula(10), "%", rdef,

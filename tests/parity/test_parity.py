@@ -222,7 +222,13 @@ def test_interface_d_e_shapes(model):
     for n in v526_new:
         v = eng.get_name(n)
         assert isinstance(v, list) and len(v) == 15 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n}: {v!r}"
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) == 120   # v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個
+    v531_new = {"IF_MaintITWarr", "IF_MaintITPost"}                                            # v5.31 X17：Interface I 節（續）2 個 15 欄名稱（數值）＋單格 IF_WarrantyYrs（X18）
+    for n in v531_new:
+        v = eng.get_name(n)
+        assert isinstance(v, list) and len(v) == 15 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n}: {v!r}"
+    v = eng.get_name("IF_WarrantyYrs"); assert not isinstance(v, list) and isinstance(v, (int, float)) and not isinstance(v, bool), v
+    v531_new |= {"IF_WarrantyYrs"}
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) - len(v531_new) == 120   # v5.31 新增 3 個； v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
@@ -242,12 +248,13 @@ def test_floor_scenarios_expected_values(model, template_engine):
     names = base.get_name("IF_HdrTask")
     assert base.get_name("IF_PFloor") == 0.5                                              # 基準 p_min＝50%
     assert base.get_name("IF_FrontSuccVRName") == ["Luna｜標準", "Luna｜標準", "Luna｜選定", "Luna｜選定", "Sol｜選定"]
-    assert abs(base.get_name("IF_FrontSuccVR")[4] - 0.0222) < 5e-5 and abs(base.get_name("IF_FrontSuccVRP")[4] - 0.627) < 5e-4
+    # v5.31 J2：VR200 每成功任務成本隨 IT 維護下降（Coding agent 前緣 0.0222 → 0.0213；不設下限 0.0135 → 0.0129）
+    assert abs(base.get_name("IF_FrontSuccVR")[4] - 0.0213) < 5e-5 and abs(base.get_name("IF_FrontSuccVRP")[4] - 0.627) < 5e-4
     f0 = _floor_engine(template_engine, 0)                                                          # 不設下限：前緣＝「對照（不設下限）」列
     cols = "CDEFG"
     assert [f0.get("Harness", f"{c}151") for c in cols] == [f0.get("Harness", f"{c}147") for c in cols]
     assert [f0.get("Harness", f"{c}152") for c in cols] == [f0.get("Harness", f"{c}148") for c in cols]
-    assert f0.get_name("IF_FrontSuccVRName")[4] == "Luna｜選定" and abs(f0.get_name("IF_FrontSuccVR")[4] - 0.0135) < 5e-4
+    assert f0.get_name("IF_FrontSuccVRName")[4] == "Luna｜選定" and abs(f0.get_name("IF_FrontSuccVR")[4] - 0.0129) < 5e-4
     f8 = _floor_engine(template_engine, 0.8)                                                        # 下限 80%：Coding agent 無合格
     assert f8.get_name("IF_FrontSuccVR")[4] == f8.get_name("IF_FrontSuccVRName")[4] == f8.get_name("IF_FrontSuccVRP")[4] == "無合格"
     assert f8.get_name("IF_FrontSuccVRName")[2:4] == ["Sol｜選定", "Sol｜選定"]            # 單代理、多代理研究
@@ -410,7 +417,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
     base = new_engine(model)
     assert abs(base.get_name("AL_DDaily") - 16.48) < 0.01                                 # v5.29 X14 (l)：每則提示 token 數 2,000 → 4,000，每日 token 11.48 → 16.48T
-    assert abs(base.get_name("AL_ServeGWSpend") - 1.11399) < 5e-5                        # v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
+    assert abs(base.get_name("AL_ServeGWSpend") - 1.21964) < 5e-5                        # v5.31 J1／J2：1.11399 → 1.21964（支出 ÷ 持有成本，持有成本下降）；v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
     assert abs(base.get_name("AL_RefGWyr") - 0.0210207) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
@@ -439,7 +446,7 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
     for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
         eng.set_key(k, v)
     eng.evaluate_all()
-    for n, want in (("IF_AllocServeGW", 0.182593), ("AL_ServeGWSpend", 1.295514), ("IF_AllocQ1", 0.331841), ("IF_AllocQ2", 0.394559)):   # v5.29 X14 (k)(l)：0.140315／0.863676／0.392575／0.458889 → 本列（引擎重算值，與 LibreOffice 一致）
+    for n, want in (("IF_AllocServeGW", 0.182593), ("AL_ServeGWSpend", 1.347144), ("IF_AllocQ1", 0.331841), ("IF_AllocQ2", 0.393635)):   # v5.31：AL_ServeGWSpend 1.295514 → 1.347144、IF_AllocQ2 0.394559 → 0.393635（持有成本下降；LibreOffice 重算值）； v5.29 X14 (k)(l)：0.140315／0.863676／0.392575／0.458889 → 本列（引擎重算值，與 LibreOffice 一致）
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
 
@@ -447,8 +454,8 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
 def test_l1_v516_expected_values_and_h3(model):
     """v5.16：L1 毛利率兩列、GPU 小時口徑、第 7、8 題的基準期望值（工作單第 1 節；chat 端計算，精度到小數第 5 位故容差 5e-6），H3＝0。"""
     eng = new_engine(model)
-    want = {"L1_Ans5_GM": (0.95308, 0.92398, 0.96383), "L1_Ans5_FullMargin": (0.93031, 0.88710, 0.94628),     # v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）；v5.23 X10：FullMargin 與 GPUh 改為 k＝0.75 暫存複本的 LibreOffice 重算值
-            "L1_Ans6_GPUh": (0.28231, 0.28231, 0.28231), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47928, 0.47928, 0.47928)}
+    want = {"L1_Ans5_GM": (0.95505, 0.92739, 0.96503), "L1_Ans5_FullMargin": (0.93324, 0.89216, 0.94805),     # v5.31 J1／J2：持有成本下降，毛利率上升（LibreOffice 重算值）； v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）；v5.23 X10：FullMargin 與 GPUh 改為 k＝0.75 暫存複本的 LibreOffice 重算值
+            "L1_Ans6_GPUh": (0.28231, 0.28231, 0.28231), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47940, 0.47940, 0.47940)}      # v5.31：Ans8 0.47928 → 0.47940
     for n, (d, lo, hi) in want.items():
         for suffix, v in (("", d), ("_Lo", lo), ("_Hi", hi)):
             got = eng.get_name(n + suffix)
@@ -542,6 +549,28 @@ EXPECT_BATCH_075_SCALAR = {"L1_Ans1": 0.0530, "L1_Ans3": 0.1241, "L1_Ans6_GPUh":
 EXPECT_BATCH_075_RATIO = (1.762, 1.811, 1.923)      # Perf_Batch 第 88 列 VR200（L、M、N）÷ GB300（I、J、K）；k＝1 時為 2.350、2.414、2.564
 
 
+# v5.31 J1／J2（Andy 2026-10-08「不反對，請繼續」）：GB300 機架價格與 IT 維護等值費率改變成本鏈；test_batch_etad_expected_values 比對 v5.22 時，
+# 略過「v5.30 → v5.31 值有改變」的具名範圍（以兩版 LibreOffice 重算存檔逐名稱比較；與 X10 無關）
+V530_PREV = HERE.parent.parent / "model" / "archive" / "20261008_Tokenomics_v5.30.xlsx"
+
+
+def _names_changed_v531(model):
+    import openpyxl
+    from openpyxl.utils import range_boundaries
+    a, b = openpyxl.load_workbook(V530_PREV, data_only=True), openpyxl.load_workbook(model, data_only=True)
+    out = set()
+    for n, dn in a.defined_names.items():
+        if n not in b.defined_names: continue
+        vals = []
+        for wb, t in ((a, dn.attr_text), (b, b.defined_names[n].attr_text)):
+            sh, rg = t.rsplit("!", 1)
+            c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+            vals.append([wb[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)])
+        if len(vals[0]) != len(vals[1]) or not all(_same(x, y) for x, y in zip(*vals)):
+            out.add(n)
+    return out
+
+
 def _flat(v):
     if isinstance(v, list):
         return [x for r in v for x in _flat(r)]
@@ -568,12 +597,16 @@ def test_batch_etad_expected_values(model):
     cur = eng.evaluate_all()
     assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values()) and eng.get_name("GOV_Errors") == 0
     prev = openpyxl.load_workbook(BATCH_PREV, data_only=True)
+    v531_changed = _names_changed_v531(model)
+    assert "IF_HoldEcon" in v531_changed and "IF_RevGW_Sol" not in v531_changed and "TRN_GPUhRL" not in v531_changed
     bad = []
     for n, dn in prev.defined_names.items():
         # v5.25：新增 SRC 紀錄使 SRC_Index 堆疊位移、W1 計數改變；IDX_*、GOV_* 不屬 X10 範圍（GOV_Errors＝0 已於上方另行斷言）
         if n.startswith(("IDX_", "GOV_")):
             continue
         if n in V529_INPUT_CHANGED:      # v5.29 X14 (k)(l)：Andy 核准的輸入值變動（推論支出 SRC_DEM_018、每則提示 token 數 4,000）使 Alloc 鏈 50 個名稱與 v5.22 不同；與 X10 無關
+            continue
+        if n in v531_changed:            # v5.31 J1／J2：GB300 機架價格、IT 維護等值費率改變的成本鏈名稱；與 X10 無關
             continue
         sh, rg = dn.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

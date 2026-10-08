@@ -410,7 +410,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
     base = new_engine(model)
     assert abs(base.get_name("AL_DDaily") - 16.48) < 0.01                                 # v5.29 X14 (l)：每則提示 token 數 2,000 → 4,000，每日 token 11.48 → 16.48T
-    assert abs(base.get_name("AL_ServeGWSpend") - 1.11399) < 5e-5                        # v5.29 X14 (k)：推論支出 SRC_DEM_004 8.4 → SRC_DEM_018 12.6，支出路線服務 GW 0.74266 → 1.11399（LibreOffice 重算值）
+    assert abs(base.get_name("AL_ServeGWSpend") - 1.11399) < 5e-5                        # v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
     assert abs(base.get_name("AL_RefGWyr") - 0.0210207) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
@@ -452,7 +452,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 219 and eng.get_name("GOV_Info") == 168      # v5.29：Info 108 → 168（I3 8 → 17：新增 L1 列的外部對照 9 列判讀「差距 >20%」；K4 1（L1_FleetMargin 含 CTL_ProdDerate，與 Theory_Rev 比值差 0.85 倍）；K5 50（Load_Bearing 列數）；K6 0；K7 0）；Warnings 219 不變（W1：SRC_DEM_018 +1、SRC_DEM_004 Superseded −1；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 220 and eng.get_name("GOV_Info") == 165      # v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
 
 
 def _pct(eng, n, k):
@@ -483,7 +483,7 @@ def test_prod_derate_expected_values(model, template_engine):
 
 
 LIFE_IF = ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet")                  # v5.22 X7：各自的 _Life 並列列
-# v5.29 X14 (k)(l)：兩個核准的輸入值變動（SRC_DEM_018 取代 SRC_DEM_004：推論支出 8.4 → 12.6 $B；Alloc_In 每則提示 token 數 2,000 → 4,000）連動改變的名稱——
+# v5.29 X14 (k)(l)：兩個核准的輸入值變動（SRC_DEM_018 新增，支出路線服務 GW 改用 12.6 $B（r2：比例類公式仍用 SRC_DEM_004）；Alloc_In 每則提示 token 數 2,000 → 4,000）連動改變的名稱——
 # Alloc 鏈（AL_D*、AL_Serve*、AL_Q*、AL_Implied*、AL_J8Gap、AL_SpendRatio、AL_FreeSpendShare、AL_FreeServeShare、AL_Sens*、AL_TokPerPrompt*）、Interface F 節 IF_Alloc*、
 # L1_Ans1／Ans2／ExtServeGW／ExtFreeShare／ExtDaily（含 _Lo／_Hi）；test_batch_etad_expected_values 比對 v5.22 時略過（與 X10 無關）
 V529_INPUT_CHANGED = frozenset(
@@ -599,13 +599,13 @@ def test_batch_etad_expected_values(model):
         assert all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n)))), n
 
 
-# ── v5.29 X14（工作單 docs/workorders/20261008_v5.29.md r1）：輸出契約欄、四層瀑布、損益兩平、Load_Bearing、落差分解 ──
+# ── v5.29 X14（工作單 docs/workorders/20261008_v5.29.md r1＋r2）：輸出契約欄、四層瀑布、損益兩平、Load_Bearing、落差分解 ──
 IFW_BASES = ("RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront", "TokGW_Luna", "TokGW_Sol", "TokGW_Astra")
 
 
 def test_v529_contract_waterfall_expected_values(model):
     """v5.29：IFC_ 四欄與 Interface 資料列同長且值域正確；IFW_ 44 個名稱各 15 欄；有對應列的 _Util／_Prod／_Life 逐格等於來源列（Checks K3＝0）；
-    L1 新列的 LibreOffice 重算值（工作單第 3、3b 節）；Checks K2、K3＝0、K4＝1（L1_FleetMargin＝CTL_ProdDerate × Theory_Rev 機隊比值）、K5＝50；GOV_Errors＝0。"""
+    L1 新列的 LibreOffice 重算值（工作單第 3、3b 節）；Checks K2、K3＝0、K4＝0（r2 第 2 項：L1_FleetMargin＝Theory_Rev 機隊比值 × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize）、K5＝50；GOV_Errors＝0。"""
     eng = new_engine(model)
     conf, use, layer, upd = (eng.get_name(n) for n in ("IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"))
     assert len(conf) == len(use) == len(layer) == len(upd) >= 300
@@ -632,8 +632,13 @@ def test_v529_contract_waterfall_expected_values(model):
         assert abs(got - v) < 5e-6, (n, got, v)
         lo, hi = eng.get_name(n + "_Lo"), eng.get_name(n + "_Hi")
         assert lo <= got <= hi, (n, lo, got, hi)
-    assert abs(eng.get_name("L1_FleetMargin") - eng.get_name("CTL_ProdDerate") * eng.get("Theory_Rev", "M73")) < 1e-9
+    assert abs(eng.get_name("L1_FleetMargin") - eng.get_name("CTL_ProdDerate") * eng.get_name("CTL_PriceLife") * eng.get_name("CTL_Monetize") * eng.get("Theory_Rev", "M73")) < 1e-9
+    assert eng.get("Checks", "D121") == 0 and eng.get("Checks", "D91") == 15        # r2：K4＝0；I3 17 → 15（FleetMargin、HoldEconMW_GB300 外部欄改「—」）
+    assert eng.get("L1", "P53") == "無外部對照" and eng.get("L1", "P56") == "無外部對照"
     assert abs(eng.get_name("L1_GapProduct") - eng.get_name("L1_GapPrompt") * eng.get_name("L1_GapSpendBasis") * eng.get_name("L1_GapISL") * eng.get_name("L1_GapUtil")) < 1e-9
     assert eng.get_name("LB_LiveCount") == 50 and len(eng.get_name("LB_Rows")) == 50
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CHK_L1Order") == 0
-    assert eng.get_name("SRC_DEM_018") == 12.6 and eng.get("SRC_Demand", "O8") == "Superseded" and eng.get_name("AL_TokPerPrompt") == 4000
+    assert eng.get_name("SRC_DEM_018") == 12.6 and eng.get("SRC_Demand", "O8") == "Active" and eng.get_name("SRC_DEM_004") == 8.4 and eng.get_name("AL_TokPerPrompt") == 4000   # r2 第 1 項：004 與 018 並列 Active
+    assert abs(eng.get_name("AL_SpendRatio") - 0.588235) < 5e-6 and abs(eng.get_name("AL_FreeSpendShare") - 0.464286) < 5e-6 and abs(eng.get_name("AL_ServeGWSpend") - 1.113990) < 5e-6   # r2：C55／C63 回到 004，C61 用 018
+    assert abs(eng.get("L1", "M49") - 0.357307) < 5e-6 and abs(eng.get("L1", "M46") - 1.113990) < 5e-6   # r2：Ans5_GM 外部值回到 004 口徑；ExtServeGW 外部值用 018
+    assert eng.get("Gov_Map", "AK4") is not None and eng.get("Load_Bearing", "K5") == "—" and eng.get("Load_Bearing", "K54") == "—"   # r2 第 7 項：反轉門檻欄（Gov_Map AK，Excel 擁有）；Load_Bearing K 欄以公式讀取，本版空白

@@ -2935,7 +2935,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 SLO = "SLO 不可達"
-SPEND_SID = "SRC_DEM_018"    # v5.29 X14 (k): OpenAI 2025 inference spend (Azure billing, full-year estimate) replaces SRC_DEM_004 (Superseded; 8.4 -> 12.6 $B)
+SPEND_SID = "SRC_DEM_018"    # v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
 TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
 
@@ -3129,7 +3129,7 @@ def alloc(wb, AIN):
 
     # ---------------- E. calibration back-solve (A3)
     hdr("E. 校準反推（A3；2025 支出比不用來校準 k，只反推隱含 N × k）")
-    line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", f"=SRC_DEM_006/({SPEND_SID}+SRC_DEM_006)", "0.0%", "AL_SpendRatio", f"SRC_DEM_006 ÷（{SPEND_SID}＋SRC_DEM_006）（v5.29 X14 (k)：推論支出改連 {SPEND_SID}，約 48.8%；v5.28 前為 SRC_DEM_004，約 58.8%）")
+    line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", "=SRC_DEM_006/(SRC_DEM_004+SRC_DEM_006)", "0.0%", "AL_SpendRatio", "SRC_DEM_006 ÷（SRC_DEM_004＋SRC_DEM_006）（約 58.8%）")
     line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計", "GW", f'=IF(ISNUMBER(AL_ServeGW),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGW,"{SLO}")', "0.0000", "AL_ImpliedRDGW")
     line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", f'=IF(ISNUMBER(AL_ImpliedRDGW),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "0.00", "AL_ImpliedNk", key_fill=True)
     line("j8", "J8 落差＝隱含 N × k ÷（N_major＋N_refresh × 改版÷家族）", "x",
@@ -3142,8 +3142,7 @@ def alloc(wb, AIN):
     line("sgx", f"支出路線服務 GW＝{SPEND_SID}（$B；Azure 計價）÷ Σ（世代占比 × 各世代持有成本）", "GW", f"={SPEND_SID}/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
          f"單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）；v5.29 X14 (k)：SRC_DEM_004 → {SPEND_SID}")
     line("fsh", "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGWFree/AL_ServeGW,"{SLO}")', "0.0%", "AL_FreeServeShare")
-    line("fsx", f"免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ {SPEND_SID}", "%", f"=SRC_DEM_005/{SPEND_SID}", "0.0%", "AL_FreeSpendShare",
-         f"v5.29 X14 (k)：分母改連 {SPEND_SID}（Azure 計價 12.6）；分子 SRC_DEM_005（3.9，json 口徑）未變，兩者口徑是否一致待 Project 判斷")
+    line("fsx", "免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ SRC_DEM_004", "%", "=SRC_DEM_005/SRC_DEM_004", "0.0%", "AL_FreeSpendShare")
     line("dlo", "Epoch 每日 token 低（SRC_DEM_013_Lo）", "T tok/日", "=SRC_DEM_013_Lo", "#,##0.0")
     line("dhi", "Epoch 每日 token 高（SRC_DEM_013_Hi）", "T tok/日", "=SRC_DEM_013_Hi", "#,##0.0")
     line("din", "每日 token 合計是否在 Epoch 區間內", "", '=IF(AL_DDaily<SRC_DEM_013_Lo,"區間外（低於）",IF(AL_DDaily>SRC_DEM_013_Hi,"區間外（高於）","區間內"))', None)
@@ -3364,10 +3363,10 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
                 "每則提示 token 數、服務世代組合、每 GW 產能", "每則提示 token 數（Assumed，A10）", SPEND_SID,
                 "=AL_ServeGWSpend", "=AL_ServeGWSpend", "IF_AllocServeGW", "Alloc F 節",
                 "支出路線以經濟持有成本換算 GW，與外部揭露的 GW 口徑（D1）無關"))
-    out.append(("ExtFreeShare", f"免費服務算力占比：token 路線 對 支出口徑（SRC_DEM_005 ÷ {SPEND_SID}）", "OpenAI 2025",
+    out.append(("ExtFreeShare", "免費服務算力占比：token 路線 對 支出口徑（SRC_DEM_005 ÷ SRC_DEM_004）", "OpenAI 2025",
                 "=AL_FreeServeShare", "=AL_FreeServeShare", "=AL_FreeServeShare", "%", "無區間（單一對照值）",
                 "token 路線＝免費服務 GW ÷ 服務 GW；支出口徑＝免費推論支出 ÷ 推論支出", "免費占比、層級組合（Cap_In）", "免費用戶占比：Assumed",
-                f"SRC_DEM_005；{SPEND_SID}", f"=SRC_DEM_005/{SPEND_SID}", f"=SRC_DEM_005/{SPEND_SID}", "AL_FreeServeShare", "Alloc F 節", "兩口徑不同（算力 vs 支出）；v5.29 分母改連 SRC_DEM_018（Azure 計價），與分子 json 口徑是否一致待 Project 判斷"))
+                "SRC_DEM_005", "=SRC_DEM_005/SRC_DEM_004", "=SRC_DEM_005/SRC_DEM_004", "AL_FreeServeShare", "Alloc F 節", "兩口徑不同（算力 vs 支出）"))
     out.append(("ExtDaily", "每日 token 合計 對 Epoch 估計（SRC_DEM_013 低、高）", "OpenAI 2025；API＋ChatGPT", "=AL_DDaily", "=AL_DDaily", "=AL_DDaily", "T tok/日",
                 "無區間（單一對照值）", "基準約 11.5T，只略高於 Epoch 下限 10T；每則 token 數與 API 比例同取低端時約 7.7T，落在區間外（預期，不是錯誤）",
                 "每則提示 token 數、API 全年平均比例", "每則提示 token 數（Assumed，A10）", "SRC_DEM_013", "=SRC_DEM_013_Lo", "=SRC_DEM_013_Hi",
@@ -3384,8 +3383,8 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
                 gm_formula(11), gm_formula(12), gm_formula(10), "%", rdef,
                 "1 −（IF_FullCost_Sol − IF_AmortBU_Sol）÷ IF_PriceRef_Sol：推論算力計入營業成本、訓練計入研發（不含攤提）。理論毛利率是 SLO 下單一層級滿載、基準利用率的上限；"
                 "與 2025 隱含值約 36% 的差距，與「兩路線差約 15 倍」同源（物理產能上限 對 實際營運），屬預期，不調整輸入。E＝高成本欄、F＝低成本欄",
-                "機架價格、IT 折舊年限、WACC、利用率、單價快照", "利用率 60%：Assumed（K11）", f"{SPEND_SID}；SRC_DEM_007",
-                f"=1-{SPEND_SID}/SRC_DEM_007", f"=1-{SPEND_SID}/SRC_DEM_007", "L1_Ans5_GM", "Interface D 節（IF_FullCost_Sol、IF_AmortBU_Sol、IF_PriceRef_Sol）",
+                "機架價格、IT 折舊年限、WACC、利用率、單價快照", "利用率 60%：Assumed（K11）", "SRC_DEM_004；SRC_DEM_007",
+                "=1-SRC_DEM_004/SRC_DEM_007", "=1-SRC_DEM_004/SRC_DEM_007", "L1_Ans5_GM", "Interface D 節（IF_FullCost_Sol、IF_AmortBU_Sol、IF_PriceRef_Sol）",
                 "外部為 2025 推論毛利隱含值＝1 − 推論支出 ÷ 營收（Derived；兩者皆 Interested-party），與本列的物理上限口徑不同"))
     out.append(("Ans5_FullMargin", "問 5：理論毛利率（全成本口徑：含 K6 預設訓練攤提；Sol，VR200）", cond,
                 fm_formula(11), fm_formula(12), fm_formula(10), "%", rdef,
@@ -20876,8 +20875,9 @@ README_TITLE = VERSION.split("_")[-1] + _T[len(v526.VERSION.split("_")[-1]):]
 ```python
 # v5.29 (work order docs/workorders/20261008_v5.29.md r1): output contract columns, four-layer waterfall, fleet break-even and
 # per-MW rows, Load_Bearing sheet, gap decomposition; X14 (a)–(m), G16 (work order says G15; that ID already exists).
-#   0 (k) SRC_DEM_018 (OpenAI 2025 inference spend, Azure billing, full-year estimate) replaces SRC_DEM_004 (Superseded);
-#         builder-owned formulas that read the inference spend (Alloc E／F, L1 external columns) now read SRC_DEM_018
+#   0 (k) SRC_DEM_018 (OpenAI 2025 inference spend, Azure billing, full-year estimate) added. r2 (work order末節, 2026-10-08): both 004 and 018
+#         stay Active (different calibers); only the spend-route serving GW (Alloc C61, L1_ExtServeGW external) reads 018; Alloc C55／C63,
+#         L1_ExtFreeShare／L1_Ans5_GM externals and Gov_Map GM453 keep 004 (json-consistent numerator and denominator)
 #   0 (l) Alloc_In 每則提示 token 數 2,000 -> 4,000 (range 2,000–6,400); written only while the cells still hold the v5.28 values
 #   1   Interface R–U (Confidence／Decision Use／口徑層／最弱輸入更新日) + helpers V–Y; Gov_Map helper columns AG–AJ; SRC_Index F
 #   2   Interface J: IFW_<name>_100／_Util／_Prod／_Life for 8 revenue rows and 3 IF_TokGW rows, with self-check flags (Checks K3)
@@ -20905,8 +20905,10 @@ COLS = range(3, 18)                         # C:Q
 ANDY_DESIGN = "Andy 2026-10-08：同意你的設計／三件一起做（整合版評估報告 docs/reports/20261008_eval_integrated.md）"
 ANDY_ADVICE = "Andy 2026-10-08「依建議」（docs/evidence/20261008/summary.md 待 Andy 判定 3 項）"
 
-SPEND_SID = "SRC_DEM_018"                   # inference spend record used by builder-owned formulas from v5.29 on
-OLD_SPEND_SID = "SRC_DEM_004"
+SPEND_SID = "SRC_DEM_018"                   # Azure-billing inference spend: spend-route serving GW only (Alloc C61, L1_ExtServeGW; r2 item 1)
+OLD_SPEND_SID = "SRC_DEM_004"               # json-consistent inference spend: ratios with 005／006／007 (Alloc C55／C63, L1_ExtFreeShare／Ans5_GM, GM453)
+GM_THRESH_COL = "AK"                        # r2 item 7: Excel-owned judgement column 反轉門檻（v5.29）; AI (work order wording) already holds the IFC helper, so the first free column after AG–AJ is used
+GM_THRESH_HDR = "反轉門檻（v5.29；Excel 擁有，chat 端以 Sens_* 反算填入；builder 不覆寫）"
 
 
 def _nm(wb, n, ref):
@@ -20937,10 +20939,13 @@ SRC_DEM = [dict(
     basis="Azure 計價，含 Microsoft 利潤與資本回收；Q1–Q3 實際 8.67（Q1 2.075、Q2 2.947、Q3 3.648）＋ Q4 以 Q3 run-rate 至 +15% 推估",
     applies="OpenAI", date="2025", src=E259_SRC, grade=2, stance="利害關係方", stance_note="OpenAI 內部文件經媒體轉述（文件未公開）；Microsoft 分成 20%",
     hand="二手（文件未公開）", status="Active", ev="E259", s="U-V529",
-    use="Alloc!E 節（AL_SpendRatio）、F 節（AL_ServeGWSpend、AL_FreeSpendShare）；L1 外部對照（L1_ExtServeGW、L1_ExtFreeShare、L1_Ans5_GM、L1_FleetMargin）｜換算",
-    note=f"v5.29 X14 (k) 新增，取代 {OLD_SPEND_SID}（8.4，openai_token_revenue.json）；全年 12.6＝8.67＋Q4 3.648 × 1.075（區間：Q4＝Q3 run-rate 12.3 至 +15% 13.0）；"
+    use="Alloc!F 節（AL_ServeGWSpend，支出路線服務 GW）；L1 外部對照（L1_ExtServeGW）｜換算",
+    note=f"v5.29 X14 (k) 新增；r2：與 {OLD_SPEND_SID}（8.4，json 一致集）口徑不同，兩筆並列 Active——本筆只用於支出路線服務 GW（Alloc C61、L1_ExtServeGW），"
+         f"比例類公式（支出比、免費支出占比、毛利隱含值、Cap_In C28 換算）仍用 {OLD_SPEND_SID}（同源分子分母）；全年 12.6＝8.67＋Q4 3.648 × 1.075（區間：Q4＝Q3 run-rate 12.3 至 +15% 13.0）；"
          "口徑為 Azure 計價，不等於持有成本口徑（L1_GapSpendBasis 另以 Assumed 倍數換算）")]
-DEM004_NOTE = f" ｜v5.29 X14 (k)：{DATE} 改 Superseded，取代者 {SPEND_SID}（E259：2025 Q1–Q3 實際 8.67 $B 已高於本筆 8.4）；Cap_In C28 換算仍以本筆為據（G0-2 保留）"
+DEM004_BASIS = "；json 一致集（與 005／006／007 同源）"
+DEM004_NOTE = (f" ｜v5.29 X14 (k) r2：維持 Active，與 {SPEND_SID}（Azure 帳單全年推估 12.6）口徑不同、兩筆並列（E7 以同指標同口徑判定，不衝突）；"
+               f"本筆供 Alloc 支出比（C55）、免費支出占比（C63）、L1_ExtFreeShare／L1_Ans5_GM 外部欄與 Cap_In C28 換算（同源分子分母）；{SPEND_SID} 只用於支出路線服務 GW（Alloc C61、L1_ExtServeGW）")
 
 
 def src_new_records():
@@ -20948,11 +20953,12 @@ def src_new_records():
 
 
 def src_update(wb):
-    """SRC_DEM_004: O Active -> Superseded, P — -> SRC_DEM_018 (only while still at the old values); W note appended once."""
+    """SRC_DEM_004 (r2 item 1): stays Active. O／P are reverted only if a PR #31 build left them at Superseded／SRC_DEM_018;
+    G (口徑) and W (備註) get the r2 text appended once."""
     ws = wb["SRC_Demand"]; n = 0; log = []
     row = next((r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value == OLD_SPEND_SID), None)
     if row is None: return 0, [f"{OLD_SPEND_SID} not found"]
-    for col, spec in (("O", ("Active", "Superseded")), ("P", (DASH, SPEND_SID)), ("W", ("+", DEM004_NOTE))):
+    for col, spec in (("O", ("Superseded", "Active")), ("P", (SPEND_SID, DASH)), ("G", ("+", DEM004_BASIS)), ("W", ("+", DEM004_NOTE))):
         if v518._apply(ws[f"{col}{row}"], spec): n += 1; log.append(f"SRC_Demand!{col}{row} {OLD_SPEND_SID} updated")
         else: log.append(f"{OLD_SPEND_SID}!{col}: kept (already applied or edited)")
     return n, log
@@ -21030,7 +21036,7 @@ def gov_map_rows(wb):
 # ================================================================== 6: Gov_Map notes (guarded append) and GM453 link 004 -> 018
 NOTE_BE = " ｜v5.29：進 L1_FleetBreakeven／L1_FleetMargin，X14 (c)"
 NOTE_TOK = " ｜v5.29 X14 (l)：基準 2,000 → 4,000、區間 2,000 → 6,400（E261）；L1_GapPrompt 以 v5.28 基準 2,000 為分母"
-NOTE_453 = (f" ｜v5.29 X14 (k)：SRC_ID {OLD_SPEND_SID} → {SPEND_SID}（12.6 $B，Azure 計價）；換算 12.6 ÷（12.6＋12）＝0.512，C28 0.41 不改（G0-2 保留，待 Stage 2 判斷）")
+NOTE_453 = (f" ｜v5.29 X14 (k) r2：維持連 {OLD_SPEND_SID}（8.4，json 一致集；換算 0.4118，C28 0.41 不改，G0-2 保留）；{SPEND_SID} 為 Azure 口徑，不用於比例")
 GOV_CHECK = {"GM236": ("Serving", "C17"), "GM237": ("Serving", "C18"), "GM593": ("Cap_In", "C63"), "GM594": ("Cap_In", "C64"),
              "GM586": ("Alloc_In", "C15"), "GM453": ("Cap_In", "C28")}
 GM586_M = (DASH, "2,000–6,400（X14 (l)：下限 Robonomics 假設上緣，上限 OpenRouter 實測 6,400，E261）")
@@ -21048,8 +21054,11 @@ def gov_update(ws, append_text):
     if ws[f"M{r}"].value == GM586_M[0]: ws[f"M{r}"].value = GM586_M[1]; n += 1
     if append_text(ws[f"N{r}"], NOTE_TOK): n += 1
     r = rows["GM453"]
-    if ws[f"H{r}"].value == OLD_SPEND_SID: ws[f"H{r}"].value = SPEND_SID; n += 1
+    if ws[f"H{r}"].value == SPEND_SID: ws[f"H{r}"].value = OLD_SPEND_SID; n += 1      # r2 item 1: undo a PR #31 build's 004 -> 018 link (base v5.27 already holds 004)
     if append_text(ws[f"N{r}"], NOTE_453): n += 1
+    # r2 item 7: Excel-owned judgement column 反轉門檻（v5.29）— header created only when absent; contents never written by the builder
+    if ws[f"{GM_THRESH_COL}4"].value is None:
+        put(ws, f"{GM_THRESH_COL}4", GM_THRESH_HDR, F_BOLD, wrap=True); ws.column_dimensions[GM_THRESH_COL].width = 18; n += 1
     return n
 
 
@@ -21078,9 +21087,10 @@ EVIDENCE_V529 = [
      "OpenAI 推論支出（Azure）：2024 全年 $3.767B；2025 Q1 $2.075B、Q2 $2.947B、Q3 $3.648B，至 2025-09 累計 $8.67B；Microsoft 營收分成 20%",
      "https://www.wheresyoured.at/oai_docs/（2025-11-12，文件為該刊所見，FT 報導雙方未評論）", "Interested-party／2 級（文件未公開）",
      f"{OLD_SPEND_SID}（OpenAI 2025 推論支出 $8.4B）", "8.4 $B", "Q1–Q3 已 8.67；全年依 Q3 run-rate 約 12.3–13（區間）",
-     f"採納（X14 (k)）：新增 {SPEND_SID}＝12.6（12.3–13.0），{OLD_SPEND_SID} 改 Superseded", V,
-     f"新值高於現值；採用後支出路線服務 GW 由 0.74 升至約 1.1。此支出為 Azure 計價（含 Microsoft 利潤與資本回收），不等於持有成本口徑；見 summary 的分解（L1_GapSpendBasis）｜{ANDY_ADVICE}｜讀取者：chat 端（{_CSV}）；CC 依 CSV 登錄",
-     "已處理", f"{SPEND_SID}；{OLD_SPEND_SID}", SPEND_SID, "L1_ExtServeGW、L1_ExtFreeShare、L1_Ans5_GM 外部欄；Alloc E／F 節（AL_SpendRatio、AL_ServeGWSpend、AL_FreeSpendShare）；IF_AllocImpliedNk", "2", "利害關係方"],
+     f"採納（X14 (k)；r2）：新增 {SPEND_SID}＝12.6（12.3–13.0），只用於支出路線服務 GW；{OLD_SPEND_SID} 維持 Active（json 一致集，口徑不同，兩筆並列）", V,
+     f"新值高於現值；採用後支出路線服務 GW 由 0.74 升至約 1.1。此支出為 Azure 計價（含 Microsoft 利潤與資本回收），不等於持有成本口徑；見 summary 的分解（L1_GapSpendBasis）。"
+     f"r2（chat 端審查 PR #31 第九節 1）：比例類公式（Alloc 支出比、免費支出占比、L1_ExtFreeShare／L1_Ans5_GM 外部欄、Cap_In C28 換算）仍用 {OLD_SPEND_SID}，同源分子分母｜{ANDY_ADVICE}｜讀取者：chat 端（{_CSV}）；CC 依 CSV 登錄",
+     "已處理", f"{SPEND_SID}；{OLD_SPEND_SID}", SPEND_SID, "L1_ExtServeGW 外部欄；Alloc F 節（AL_ServeGWSpend）；L1_ScaleServe", "2", "利害關係方"],
     ["E260", DATE,
      "OpenAI API 處理量 2026-03 逾 15B tok/min（SRC_DEM_011 已登錄）對 2025-10 6B：6 個月 2.5 倍；2025 全年平均 ÷ 10 月時點值 0.75（Alloc_In Assumed）隱含 1–10 月成長約 1.5 倍，與此成長率一致",
      "SRC_DEM_010、SRC_DEM_011（既有）", DASH, "Alloc_In「API 全年平均 ÷ 10 月時點值」", "0.75（0.6–0.9）", "不改", "不採納（維持）", V,
@@ -21109,15 +21119,17 @@ def evidence_rows():
 _X14 = [
     ("a", "輸出契約欄", "Interface 每一列附 Confidence（A／B／C）、Decision Use、口徑層、最弱輸入更新日四欄（R–U），全部由公式自 Gov_Map 與 SRC 徙出，不手填；依賴的 Gov_Map 列由 builder 建置時反查（靜態展開），判斷欄仍即時讀 Gov_Map"),
     ("b", "四層瀑布", "四層瀑布為正式口徑：100% → × IF_Util → × CTL_ProdDerate → × L × m。既有 D／G／H 節列不動，新增 J 節把同一指標的四層並列（IFW_），供下游一次取齊"),
-    ("c", "機隊損益兩平列", "L1_FleetBreakeven＝IF_HoldEcon ÷（IF_RevGWFleet ÷ IF_Util）（VR200 基準欄；令機隊營收等於持有成本所需的「利用率 × 折減 × L × m」乘積）與 L1_FleetMargin＝IF_Util × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize ÷ L1_FleetBreakeven"),
+    ("c", "機隊損益兩平列", "L1_FleetBreakeven＝IF_HoldEcon ÷（IF_RevGWFleet ÷ IF_Util）（VR200 基準欄；令機隊營收等於持有成本所需的「利用率 × 折減 × L × m」乘積）與 L1_FleetMargin＝IF_Util × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize ÷ L1_FleetBreakeven（r2 第 2 項：Checks K4 比對 Theory_Rev 比值 × CTL_ProdDerate × L × m，折減 1 時 3.82、基準 3.245）"),
     ("d", "每 MW 介面", "新增 L1_HoldEconMW_*（每世代，＝L1_HoldEconGW_* ÷ 1000）與 L1_TokMW_Gen_ratio_*（相鄰世代 Sol 每 GW 總產出比，附低高）；Tokenomics 不輸出每 MW 收入，下游依 q × p × c × 簽約率自算"),
     ("e", "harness 對世代比較", "L1_HarVsGen_<task>＝（選定 ÷ 標準 每成功任務成本，VR200）÷（VR200 ÷ GB300 decode $/M，Sol）；依 Workload 五個任務分列；基準仍 L3（w＝0）、L4 不動"),
     ("f", "Astra 雙基準", "L1 第 36 列保留 bottom-up，新增 L1_PretrainFLOP_Astra_Ext＝SRC_MOD_055（external-anchor，低高＝_Lo／_Hi）與 L1_AstraScale＝Ext ÷ bottom-up；不改 Train_In、Arch 任何輸入（X13 (e)）"),
     ("g", "規模係數", "新增 L1_ScaleRD＝SRC_DEM_006 ÷ L1_Ans3 與 L1_ScaleServe＝支出路線服務 GW ÷ token 路線服務 GW；兩列進輸出契約，Decision Use＝「下游校準用，不得當產能」"),
-    ("h", "Load_Bearing 頁", "由 Gov_Map 篩出「CC 敏感度分段＝高」且類別為 Assumed／Analogy 的格（engine 不支援 FILTER，builder 靜態展開，各欄即時連結 Gov_Map），加反轉門檻欄（本版空白）"),
+    ("h", "Load_Bearing 頁", "由 Gov_Map 篩出「CC 敏感度分段＝高」且類別為 Assumed／Analogy 的格（engine 不支援 FILTER，builder 靜態展開，各欄即時連結 Gov_Map），加反轉門檻欄（r2 第 7 項：門檻值放 Gov_Map AK 欄「反轉門檻（v5.29）」，Excel 擁有、builder 只建表頭；Load_Bearing K 欄以公式讀取；本版空白）"),
     ("i", "Block 6 代表性實驗室", "Decisions 新增 G16（工作單稱 G15，該 ID 已被 Stage 2 等級規則使用）：Block 6 以 OpenAI 為代表性實驗室代理；其他實驗室模型須自行覆寫 Alloc_In（P2-3）"),
     ("j", "每 MW 收入 50/50 平均停用", "屬下游模型事項（Nebius／Oracle 現行）：只在 Decisions 登錄 X14 (d) 供下游引用，不在 Tokenomics 內處理"),
-    ("k", "SRC_DEM_004 取代", f"新增 {SPEND_SID}「OpenAI 2025 推論支出（Azure 帳單，全年推估）」＝12.6 $B、低 12.3、高 13.0（等級 2、利害關係方、二手、Evidence E259）；{OLD_SPEND_SID} 改 Superseded、取代者 018（G5）；Gov_Map GM453 與 builder 擁有的推論支出公式（Alloc E／F 節、L1 外部欄）改連 018"),
+    ("k", "SRC_DEM_018 新增（與 004 並列）", f"新增 {SPEND_SID}「OpenAI 2025 推論支出（Azure 帳單，全年推估）」＝12.6 $B、低 12.3、高 13.0（等級 2、利害關係方、二手、Evidence E259）。"
+          f"r2（chat 端審查 PR #31 第九節 1，2026-10-08）：{OLD_SPEND_SID} 與 {SPEND_SID} 兩筆皆 Active，口徑不同（004：json 內部一致集；018：Azure 帳單全年推估），E7 以「同指標同口徑」判定故不衝突；"
+          f"只有支出路線服務 GW（Alloc C61、L1_ExtServeGW 外部欄）連 018；Alloc 支出比（C55）、免費支出占比（C63）、L1_ExtFreeShare／L1_Ans5_GM 外部欄與 Gov_Map GM453（Cap_In C28 換算）維持 004（同源分子分母）"),
     ("l", "每則提示 token 數", "Alloc_In「每則提示 token 數」2,000 → 4,000，區間 2,000–6,400（E261：OpenRouter 6,400 與 Robonomics 800–2,000 的幾何中點；上限改為 OpenRouter 實測）；標記維持 Assumed"),
     ("m", "token 對帳落差分解列", "L1 新增 L1_GapPrompt、L1_GapSpendBasis、L1_GapISL、L1_GapUtil、L1_GapProduct（第 3b 節；兩個新 Assumed 輸入：推論支出計價 ÷ 持有成本 2.0［1.5–3.0］、實際利用率 × 生產折減 0.35［0.3–0.4］）；契約第 2 條第 5 項改寫為四項口徑差的逐項換算"),
 ]
@@ -21126,7 +21138,7 @@ DECISIONS_V529 = [
      {"a": "Interface R–U（IFC_）、Gov_Map AG–AJ、SRC_Index F、Checks K1／K2", "b": "Interface J 節（IFW_）、Checks K3",
       "c": "L1_FleetBreakeven、L1_FleetMargin；Gov_Map GM236／GM237／GM593／GM594 理由欄；Checks K4", "d": "L1_HoldEconMW_*、L1_TokMW_Gen_ratio_*",
       "e": "L1_HarVsGen_*（5 列）", "f": "L1_PretrainFLOP_Astra_Ext、L1_AstraScale", "g": "L1_ScaleRD、L1_ScaleServe", "h": "Load_Bearing；Checks K5／K6",
-      "i": "Decisions G16", "j": "無（下游）", "k": f"SRC_Demand {SPEND_SID}／{OLD_SPEND_SID}；Gov_Map GM453；Alloc E／F 節；L1 外部欄；DB_Evidence E259",
+      "i": "Decisions G16", "j": "無（下游）", "k": f"SRC_Demand {SPEND_SID}（新）／{OLD_SPEND_SID}（維持 Active，口徑欄）；Alloc C61；L1_ExtServeGW 外部欄；Gov_Map GM453 附註；DB_Evidence E259",
       "l": "Alloc_In C15:E15、G15；Gov_Map GM586；DB_Evidence E261", "m": "Alloc_In 新列（AL_SpendBasis、AL_UtilActual、CST_TokPerPromptV528）；L1 3b 節 5 列；Gov_Map 5 列；Checks K7；DB_Evidence E262"}[k],
      "工作單 v5.29 第 0 節", "否"]
     for k, t, txt in _X14
@@ -21155,9 +21167,11 @@ README_VERSION = (VERSION + "（X14 (a)–(m)：Interface 新增 R–U 輸出契
                   "與 J 節四層瀑布 IFW_<name>_100／_Util／_Prod／_Life（8 個營收列、3 個 IF_TokGW 列）；L1 新增 L1_FleetBreakeven、L1_FleetMargin、L1_HoldEconMW_*、"
                   "L1_TokMW_Gen_ratio_*、L1_HarVsGen_*、L1_PretrainFLOP_Astra_Ext、L1_AstraScale、L1_ScaleRD、L1_ScaleServe 與 token 對帳落差分解 L1_Gap*；"
                   "新頁 Load_Bearing（高段 Assumed／Analogy 格清單）；SRC_Price 新增 X–AB 分層欄；Checks K 節；"
-                  f"判斷類：{SPEND_SID} 取代 {OLD_SPEND_SID}（推論支出 8.4 → 12.6 $B）、Alloc_In 每則提示 token 數 2,000 → 4,000（2,000–6,400）——"
+                  f"判斷類：新增 {SPEND_SID}（推論支出 Azure 帳單 12.6 $B，只用於支出路線服務 GW；{OLD_SPEND_SID} 8.4 維持 Active，供比例類公式——r2）、Alloc_In 每則提示 token 數 2,000 → 4,000（2,000–6,400）——"
                   "L1_Ans1–3、L1_ExtServeGW／ExtDaily／ExtFreeShare 與 IF_Alloc* 連動改變；其餘 IF_ 與模型頁數值不變；DB_Evidence E256–E262；Decisions X14a–m、G16；"
-                  "工作單 docs/workorders/20261008_v5.29.md r1）。以下為 " + v527.README_VERSION.split("_Tokenomics_", 1)[1])
+                  "工作單 docs/workorders/20261008_v5.29.md r1＋r2）。"
+                  f"r2（2026-10-08，chat 端審查 PR #31 第九節）：{OLD_SPEND_SID} 與 {SPEND_SID} 兩筆並列 Active、只有支出路線服務 GW 用 018；Checks K4 改為比對含 CTL_ProdDerate × L × m 的 Theory_Rev 比值（應為 0）；"
+                  f"反轉門檻改為 Gov_Map {GM_THRESH_COL} 欄（Excel 擁有，Load_Bearing K 欄以公式讀取）；L1_HoldEconMW_GB300、L1_FleetMargin 外部欄改「—」（對照改寫入讀法文字）。以下為 " + v527.README_VERSION.split("_Tokenomics_", 1)[1])
 _T = v527.README_TITLE
 README_TITLE = VERSION.split("_")[-1] + _T[len(v527.VERSION.split("_")[-1]):]
 README_NAMES_ADD = ("；IFC_（v5.29）＝Interface R–U 輸出契約欄（IFC_Conf、IFC_Use、IFC_Layer、IFC_Updated），下游可引用；"
@@ -21359,16 +21373,20 @@ def l1_rows_new(wb):
     fm = lambda ref: f'=IF(ISNUMBER({ref}),IF_Util*CTL_ProdDerate*CTL_PriceLife*CTL_Monetize/{ref},"{SLO}")'
     R.append(("FleetMargin", "機隊營收 ÷ 持有成本（四層口徑：IF_Util × CTL_ProdDerate × L × m ÷ 損益兩平乘積；VR200）", "VR200 基準成本欄；X14 (c)",
               fm("L1_FleetBreakeven"), fm("L1_FleetBreakeven_Hi"), fm("L1_FleetBreakeven_Lo"), "x", "成本角落情境（高成本／低成本欄；倍數隨成本反向）",
-              "＝CTL_ProdDerate × Theory_Rev「機隊營收 ÷ 持有成本」（折減 1 時相等；Checks K4）；外部欄依工作單連 L1_Ans5_GM 的外部值（2025 推論毛利隱含值，口徑不同：毛利率 對 倍數）",
+              "含折減：＝Theory_Rev「機隊營收 ÷ 持有成本」× CTL_ProdDerate × CTL_PriceLife × CTL_Monetize（Checks K4 比對，應為 0；折減 1 時 3.82，基準 3.245）。"
+              f"對照（不入外部欄，口徑不同：毛利率 對 倍數）：2025 推論毛利隱含值＝1 − {OLD_SPEND_SID} ÷ SRC_DEM_007，見 L1_Ans5_GM 外部欄（r2 第 11 項）",
               "利用率、生產折減、L、m、持有成本、單價快照", "利用率 60%：Assumed（K11）；CTL_ProdDerate 0.85：情境值",
-              f"{SPEND_SID}；SRC_DEM_007", f"=1-{SPEND_SID}/SRC_DEM_007", f"=1-{SPEND_SID}/SRC_DEM_007", "L1_FleetBreakeven", "L1 本頁；Theory_Rev 第 73 列",
-              "外部為毛利率口徑（1 − 推論支出 ÷ 營收），與本列倍數口徑不同，判讀欄僅供方向參考"))
+              DASH, None, None, "L1_FleetBreakeven", "L1 本頁；Theory_Rev 第 73 列",
+              "無外部對照（r2 第 11 項：毛利率口徑與本列倍數口徑不同，不計入 I3；對照寫在讀法欄）"))
     for gen in ("Hopper", "GB200", "GB300", "VR200"):
-        ext = ("SRC_PRC_002", "=SRC_PRC_002", "=SRC_PRC_002") if gen == "GB300" else (DASH, None, None)
+        read = "下游每 MW 介面：Tokenomics 不輸出每 MW 收入，下游依 q × p × c × 簽約率自算"
+        if gen == "GB300":      # r2 item 11: the $/GPU-hr comparison (SRC_PRC_002) is a different caliber -> text only, external columns "—"
+            read += "。對照（不入外部欄，口徑不同：$/GPU-hr 對 $M/MW/年）：SRC_PRC_002 新雲 GB300 損益兩平租金，見 SRC_Price（r2 第 11 項）"
         R.append((f"HoldEconMW_{gen}", f"每 MW 年經濟持有成本（{gen}；＝每 GW ÷ 1,000）", "基準成本情境；IT 關鍵電力；X14 (d)",
                   f"=L1_HoldEconGW_{gen}/1000", f"=L1_HoldEconGW_{gen}_Lo/1000", f"=L1_HoldEconGW_{gen}_Hi/1000", "$M/MW/年", COST_RNG,
-                  "下游每 MW 介面：Tokenomics 不輸出每 MW 收入，下游依 q × p × c × 簽約率自算", "IT 折舊年限、機架價格、WACC", "機架價格：3 級",
-                  *ext, f"L1_HoldEconGW_{gen}", "L1 第 11–14 列", "外部（GB300 列）為 $/GPU-hr 的新雲損益兩平租金，口徑不同，判讀欄僅供方向參考" if gen == "GB300" else DASH))
+                  read, "IT 折舊年限、機架價格、WACC", "機架價格：3 級",
+                  DASH, None, None, f"L1_HoldEconGW_{gen}", "L1 第 11–14 列",
+                  "無外部對照（r2 第 11 項：SRC_PRC_002 為 $/GPU-hr 口徑，不計入 I3；對照寫在讀法欄）" if gen == "GB300" else DASH))
     tok = lambda c: f"INDEX(IF_TokGW_Sol,1,{c})"
     div = lambda a, b: f'=IF(ISNUMBER({b}),IF({b}>0,{a}/{b},"{SLO}"),"{SLO}")'      # 每 GW 產出在 SLO 不可達時為 0：分母為 0 回傳文字，不出現 #DIV/0!
     pairs = [("GB200", "Hopper", None), ("GB300", "GB200", ("SRC_PERF_024", "SRC_PERF_025")), ("VR200", "GB300", ("SRC_PERF_027", "SRC_PERF_028"))]
@@ -21426,7 +21444,7 @@ def l1_rows_new(wb):
     tv = f"INDEX(IF_TokGW_Sol,1,{gb})"
     R.append(("GapISL", "落差分解 3：參考請求 ISL 16K 對實際混合（Sol 每 GW 總產出 基準 ÷ ISL 4K）", "Sens_Perf 第 98 列 W 欄（ISL 4K，VR200）；X14 (m)",
               div(tv, "Sens_Perf!$W$98"), div(tv, "Sens_Perf!$Y$98"), div(tv, "Sens_Perf!$W$98"), "x",
-              "低＝基準 ÷ ISL 64K 欄（Y98，<1）；高＝基準（ISL 4K 端）", "總產出隨 ISL 上升（prefill token 便宜）：實際混合偏短時每 GW 產出低於參考請求", "參考 ISL／OSL、η_p", "參考 ISL：Assumed（GM245–247）",
+              "低＝基準 ÷ ISL 64K 欄（Y98，<1）；高＝基準（ISL 4K 端）", "D 為短提示端（ISL 4K），非中點（r2 第 10 項）：總產出隨 ISL 上升（prefill token 便宜），實際混合偏短時每 GW 產出低於參考請求；E 為 ISL 64K 端、F＝D", "參考 ISL／OSL、η_p", "參考 ISL：Assumed（GM245–247）",
               DASH, None, None, "IF_TokGW_Sol", "Interface 第 31 列；Sens_Perf 第 98 列", DASH))
     R.append(("GapUtil", "落差分解 4：模型利用率 × 折減（IF_Util × CTL_ProdDerate）÷ 實際利用率 × 生產折減", "Alloc_In 新輸入（Assumed）；X14 (m)",
               "=IF_Util*CTL_ProdDerate/AL_UtilActual", "=IF_Util*CTL_ProdDerate/AL_UtilActual_Hi", "=IF_Util*CTL_ProdDerate/AL_UtilActual_Lo", "x", "依新輸入區間 0.3–0.4 反向",
@@ -21440,7 +21458,7 @@ def l1_rows_new(wb):
 
 
 # ================================================================== 4: Load_Bearing (static expansion; every cell links Gov_Map live)
-LB_HDR = ["GM_ID", "工作表", "格", "列標籤", "類別", "低", "高", "CC 敏感度分段", "SRC 等級", "影響的 L1 列（builder 反查，靜態）", "反轉門檻（本版空白，待 chat 端）",
+LB_HDR = ["GM_ID", "工作表", "格", "列標籤", "類別", "低", "高", "CC 敏感度分段", "SRC 等級", "影響的 L1 列（builder 反查，靜態）", "反轉門檻（公式讀 Gov_Map " + GM_THRESH_COL + " 欄；Excel 擁有，待 chat 端填）",
           "審查日（SRC）", "更新方式", "審查日距建置日（天；公式）"]
 
 
@@ -21450,7 +21468,7 @@ def load_bearing(wb, deps, gm_cells):
     gm = wb["Gov_Map"]
     title(ws, "Load_Bearing — 高段（CC 敏感度分段＝高）的 Assumed／Analogy 輸入格清單（X14 (h)，v5.29）",
           "builder 每次重建：engine（pycel）不支援 FILTER，故列的篩選在建置時靜態展開（條件：Gov_Map P＝高 且 F∈{Assumed, Analogy}），各欄以公式即時連結 Gov_Map；"
-          "Gov_Map 判斷欄改動後須重建本頁（Checks K5 比對即時篩選數與本頁列數）。反轉門檻欄本版空白，待 chat 端填。")
+          f"Gov_Map 判斷欄改動後須重建本頁（Checks K5 比對即時篩選數與本頁列數）。反轉門檻欄（K）以公式讀 Gov_Map {GM_THRESH_COL} 欄（Excel 擁有的判斷欄，r2 第 7 項），本版空白、待 chat 端以 Sens_* 反算填入。")
     put(ws, "A3", "建置日（本頁靜態展開的日期；K6 以此計算審查日距今天數）", F_NOTE); put(ws, "C3", DATE, F_CALC)
     for i, h in enumerate(LB_HDR):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = [8, 11, 9, 30, 10, 9, 9, 8, 7, 36, 18, 11, 26, 10][i]
@@ -21469,7 +21487,7 @@ def load_bearing(wb, deps, gm_cells):
         put(ws, f"F{r}", f"=Gov_Map!$K${g}"); put(ws, f"G{r}", f"=Gov_Map!$L${g}"); put(ws, f"H{r}", f"=Gov_Map!$P${g}"); put(ws, f"I{r}", f"=Gov_Map!$T${g}")
         keys = rev.get(g, [])
         put(ws, f"J{r}", "、".join(keys) if keys else DASH, F_NOTE, wrap=True)
-        put(ws, f"K{r}", None); put(ws, f"L{r}", f'=IF(ISNUMBER(Gov_Map!$AF${g}),INDEX(IDX_SrcDate,Gov_Map!$AF${g}),"{DASH}")')
+        put(ws, f"K{r}", f'=IF(Gov_Map!${GM_THRESH_COL}${g}="","{DASH}",Gov_Map!${GM_THRESH_COL}${g})', wrap=True); put(ws, f"L{r}", f'=IF(ISNUMBER(Gov_Map!$AF${g}),INDEX(IDX_SrcDate,Gov_Map!$AF${g}),"{DASH}")')
         put(ws, f"M{r}", f"改 Excel 藍字格 {gm[f'C{g}'].value}!{gm[f'D{g}'].value}（Gov_Map {gm[f'A{g}'].value} 的區間、理由同步）；不改 builder", F_NOTE, wrap=True)
         d = f"L{r}"
         put(ws, f"N{r}", f'=IF(AND(ISTEXT({d}),LEN({d})=10),IF(ISNUMBER(VALUE(SUBSTITUTE({d},"-",""))),'
@@ -21497,8 +21515,8 @@ def checks_k(wb, ifc, ifj, lb):
         ("K2", "R 欄為 A 但 S 欄缺「上限」附註的 B 節 100% 產出列與 D 節理論營收列數", "ERROR",
          f'=SUMPRODUCT((Interface!$R$6:$R${last}="A")*(Interface!$Y$6:$Y${last}=1)*(Interface!$X$6:$X${last}=0))', "Interface R／X／Y 欄（Y＝應附上限的靜態旗標，X＝S 含「上限」）"),
         ("K3", "四層瀑布自我檢查：IFW_ 列不等於來源列的格數（絕對差 > 1e-9；文字列須相同）", "ERROR", f"=SUM(Interface!C{f0}:Q{f1})", f"Interface 第 {f0}–{f1} 列 × C:Q"),
-        ("K4", "L1_FleetMargin 與 Theory_Rev「機隊營收 ÷ 持有成本」VR200 基準欄之差 > 1e-9（1＝不等；基準下等於 CTL_ProdDerate 倍，見報告）", "INFO",
-         f'=IF(AND(ISNUMBER(L1_FleetMargin),ISNUMBER(Theory_Rev!$M${m73})),IF(ABS(L1_FleetMargin-Theory_Rev!$M${m73})<=0.000000001,0,1),1)', f"L1_FleetMargin；Theory_Rev!M{m73}"),
+        ("K4", "L1_FleetMargin 與 Theory_Rev「機隊營收 ÷ 持有成本」VR200 基準欄 × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize 之差 > 1e-9（1＝不等；r2 第 2 項，應為 0）", "INFO",
+         f'=IF(AND(ISNUMBER(L1_FleetMargin),ISNUMBER(Theory_Rev!$M${m73})),IF(ABS(L1_FleetMargin-Theory_Rev!$M${m73}*CTL_ProdDerate*CTL_PriceLife*CTL_Monetize)<=0.000000001,0,1),1)', f"L1_FleetMargin；Theory_Rev!M{m73} × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize"),
         ("K5", "Load_Bearing 列數（Gov_Map 即時篩選：P＝高 且 F∈{Assumed, Analogy}；本頁靜態展開 " + str(lb["rows"]) + " 列）", "INFO", "=LB_LiveCount", "Load_Bearing；Gov_Map P、F 欄"),
         ("K6", "Load_Bearing 中審查日超過 90 天（距建置日）者", "INFO", '=COUNTIF(LB_Days,">90")', "Load_Bearing N 欄（無審查日者不計）"),
         ("K7", "L1_GapProduct 的低高區間未涵蓋外部對照（L1_ScaleServe）：1＝未涵蓋", "INFO",
@@ -22361,7 +22379,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text)      # v5.29: X14 notes, GM586 range text, GM453 link 004 -> 018; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text)      # v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):

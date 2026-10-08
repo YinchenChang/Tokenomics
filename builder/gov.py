@@ -395,7 +395,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text)      # v5.29: X14 notes, GM586 range text, GM453 link 004 -> 018; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text)      # v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):

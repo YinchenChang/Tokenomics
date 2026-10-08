@@ -105,6 +105,8 @@ checks_b5(wb, R5, H5, SH5)
 # ---- v5.15: Block 6 (Alloc_In inputs, Alloc derivation, Interface F) ----
 from block6 import alloc_in, alloc, interface_b6, checks_h
 AIN = alloc_in(wb)
+import v529
+AIN_529 = v529.alloc_in_rows(wb)       # v5.29 X14 (m): two Assumed inputs and the v5.28 constant (appended after the existing content; restored by preserve)
 AL6 = alloc(wb, AIN)
 interface_b6(wb, last_row(wb["Interface"]) + 2)
 sources(wb)
@@ -121,6 +123,7 @@ import v520
 V518_LOG += v520.inputs_update(wb)       # v5.20 X3: Alloc_In!E7 4 -> 6 (old-value guard)
 import v521
 V518_LOG += v521.text_update(wb)         # v5.21: Alloc_In!G7 note tail (old-text guard)
+V518_LOG += v529.inputs_update(wb)       # v5.29 X14 (l): Alloc_In 每則提示 token 數 2000/1000/6000 -> 4000/2000/6400 (old-value guards) and the G note
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -183,14 +186,25 @@ print("x7 interface rows from:", X7["start"], "check row:", X7["check_row"])
 import v526
 X26 = v526.interface_i(wb)     # v5.26: Interface I section (after H; DC_Cost components IF_DeprLifeIT … IF_OpexGW, sum check row)
 print("v526 interface I from:", X26["start"], "dc rows:", X26["dc_rows"], "check row:", X26["check_row"])
+# ---- v5.29: Gov_Map helper columns, Interface J (waterfall), Interface R–U (contract; static precedent tracing), Load_Bearing, Checks K ----
+from deps import Deps, gov_map_cells
+N_GMH = v529.gov_map_helpers(wb)
+IFJ = v529.interface_j(wb)
+DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
+IFC = v529.interface_contract(wb, DEPS, GMC)
+LB = v529.load_bearing(wb, DEPS, GMC)
+CK_K = v529.checks_k(wb, IFC, IFJ, LB)
+print("v529 interface J from:", IFJ["start"], "names:", len(IFJ["made"]), "flags:", IFJ["flags"], "| contract rows:", len(IFC["rows"]), "no-dep rows:", IFC["no_dep"],
+      "| Load_Bearing rows:", LB["rows"], "| Gov_Map helper rows:", N_GMH, "| Checks K rows:", CK_K)
 GOV["snap_retired"] = len(RETIRED)
+GOV["v529"] = dict(contract_rows=len(IFC["rows"]), contract_no_dep=IFC["no_dep"], waterfall_names=len(IFJ["made"]), load_bearing_rows=LB["rows"], gov_map_helper_rows=N_GMH)
 GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
 print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
-         "Har_In","Harness","Sens_Har","Alloc_In","Alloc",*PROD_SHEETS,"Interface","L1","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
+         "Har_In","Harness","Sens_Har","Alloc_In","Alloc",*PROD_SHEETS,"Interface","L1","Load_Bearing","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
          "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Price","SRC_Cap","SRC_Harness","SRC_Demand","SRC_Index","Sources_Legacy","DB_Evidence"]]
 assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)
 wb._sheets = [wb[n] for n in order]

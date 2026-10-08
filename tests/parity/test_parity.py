@@ -409,8 +409,8 @@ def test_full_recalc_time(model, results_store):
 def test_alloc_expected_values_and_slo_text(model, template_engine):
     """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
     base = new_engine(model)
-    assert abs(base.get_name("AL_DDaily") - 11.48) < 0.01                                 # 每日 token 約 11.5T
-    assert abs(base.get_name("AL_ServeGWSpend") - 0.74266) < 5e-5                        # v5.18：0.751→0.74266（LibreOffice 重算值）
+    assert abs(base.get_name("AL_DDaily") - 16.48) < 0.01                                 # v5.29 X14 (l)：每則提示 token 數 2,000 → 4,000，每日 token 11.48 → 16.48T
+    assert abs(base.get_name("AL_ServeGWSpend") - 1.11399) < 5e-5                        # v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
     assert abs(base.get_name("AL_RefGWyr") - 0.0210207) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
@@ -427,7 +427,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
         if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
             assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
         else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 52.1%；v5.23 X10 前為 48.5%）
-            assert abs(eng.get_name("IF_AllocQ1") - 0.5213) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
+            assert abs(eng.get_name("IF_AllocQ1") - 0.4570) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))      # v5.29 X14 (l)：0.5213 → 0.4570（服務 GW 隨每則 token 數上升）
 
 
 def test_alloc_mix_2025_expected_values(model, template_engine):
@@ -436,7 +436,7 @@ def test_alloc_mix_2025_expected_values(model, template_engine):
     for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
         eng.set_key(k, v)
     eng.evaluate_all()
-    for n, want in (("IF_AllocServeGW", 0.140315), ("AL_ServeGWSpend", 0.863676), ("IF_AllocQ1", 0.392575), ("IF_AllocQ2", 0.458889)):
+    for n, want in (("IF_AllocServeGW", 0.182593), ("AL_ServeGWSpend", 1.295514), ("IF_AllocQ1", 0.331841), ("IF_AllocQ2", 0.394559)):   # v5.29 X14 (k)(l)：0.140315／0.863676／0.392575／0.458889 → 本列（引擎重算值，與 LibreOffice 一致）
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
 
@@ -452,7 +452,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 219 and eng.get_name("GOV_Info") == 108      # v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 220 and eng.get_name("GOV_Info") == 165      # v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
 
 
 def _pct(eng, n, k):
@@ -483,6 +483,14 @@ def test_prod_derate_expected_values(model, template_engine):
 
 
 LIFE_IF = ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet")                  # v5.22 X7：各自的 _Life 並列列
+# v5.29 X14 (k)(l)：兩個核准的輸入值變動（SRC_DEM_018 新增，支出路線服務 GW 改用 12.6 $B（r2：比例類公式仍用 SRC_DEM_004）；Alloc_In 每則提示 token 數 2,000 → 4,000）連動改變的名稱——
+# Alloc 鏈（AL_D*、AL_Serve*、AL_Q*、AL_Implied*、AL_J8Gap、AL_SpendRatio、AL_FreeSpendShare、AL_FreeServeShare、AL_Sens*、AL_TokPerPrompt*）、Interface F 節 IF_Alloc*、
+# L1_Ans1／Ans2／ExtServeGW／ExtFreeShare／ExtDaily（含 _Lo／_Hi）；test_batch_etad_expected_values 比對 v5.22 時略過（與 X10 無關）
+V529_INPUT_CHANGED = frozenset(
+    ["AL_D", "AL_DChat", "AL_DChatFree", "AL_DChatPaid", "AL_DDaily", "AL_DFree", "AL_DPaid", "AL_FreeServeShare", "AL_FreeSpendShare", "AL_ImpliedNk", "AL_ImpliedRDGW",
+     "AL_J8Gap", "AL_Q1", "AL_Q1R2", "AL_Q1g", "AL_Q2", "AL_Q2g", "AL_SensDaily", "AL_SensQ1", "AL_SensQ2", "AL_ServeGW", "AL_ServeGWFree", "AL_ServeGWPaid", "AL_ServeGWSpend",
+     "AL_ServeGen", "AL_SpendRatio", "AL_TokPerPrompt", "AL_TokPerPrompt_Hi", "AL_TokPerPrompt_Lo"]
+    + list(ALLOC_IF) + [f"L1_{k}{s}" for k in ("Ans1", "Ans2", "ExtDaily", "ExtFreeShare", "ExtServeGW") for s in ("", "_Lo", "_Hi")])
 
 
 def test_price_life_expected_values(model, template_engine):
@@ -511,9 +519,10 @@ def test_price_life_expected_values(model, template_engine):
             else:
                 assert y == x, (n, k, x, y)          # 基準列為文字（SLO 不可達）→ 相同文字
     assert changed > 0                               # 防空轉：至少一格 _Life 改變
-    for (sh, coord), v in cur.items():               # 基準列、L1、Interface 第 1–210 列、其他模型頁：數值不變（只允許 Theory_Rev D 節、Interface H 節、Checks X7 與其彙總）
+    fm_row = int(re.sub(r"[A-Z]+", "", base.names["L1_FleetMargin"].rsplit("!", 1)[1].replace("$", "")))   # v5.29 X14 (c)：L1_FleetMargin 含 CTL_PriceLife × CTL_Monetize，該列隨情境改變
+    for (sh, coord), v in cur.items():               # 基準列、L1、Interface 第 1–210 列、其他模型頁：數值不變（只允許 Theory_Rev D 節、Interface H 節、Checks X7 與其彙總；v5.29 起另允許 L1_FleetMargin 列）
         row = int(re.sub(r"[A-Z]+", "", coord))
-        if sh == "L1" or (sh == "Interface" and row <= 210):
+        if (sh == "L1" and row != fm_row) or (sh == "Interface" and row <= 210):
             assert v == base_vals[(sh, coord)], (sh, coord, base_vals[(sh, coord)], v)
     assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values())
 
@@ -524,7 +533,8 @@ BATCH_PREV = HERE.parent.parent / "model" / "archive" / "20261006_Tokenomics_v5.
 EXPECT_BATCH_075 = {"IF_TrainCost_Luna": {10: 0.1434, 11: 0.1434, 12: 0.1434}, "IF_TrainCost_Sol": {10: 0.1082, 11: 0.1082, 12: 0.1082},
                     "IF_TrainCost_Astra": {10: 0.0921, 11: 0.0921, 12: 0.0921}, "TRN_GPUhRL": {10: 0.1426, 11: 0.1459, 12: 0.1596},
                     "IF_FullCost_Luna": {11: 0.0020}, "IF_FullCost_Sol": {11: 0.0055}, "IF_FullCost_Astra": {11: 0.0287}}
-EXPECT_BATCH_075_SCALAR = {"L1_Ans1": 0.0452, "L1_Ans3": 0.1241, "L1_Ans6_GPUh": 0.1039, "L1_Ans5_FullMargin": -0.0003,
+# v5.29 X14 (k)(l)：L1_Ans1 0.0452 → 0.0530（Q1 對研發 GW 的彈性隨服務 GW 上升而改變；引擎重算值 0.052959；不受 Alloc 輸入影響的其餘項不變）
+EXPECT_BATCH_075_SCALAR = {"L1_Ans1": 0.0530, "L1_Ans3": 0.1241, "L1_Ans6_GPUh": 0.1039, "L1_Ans5_FullMargin": -0.0003,
                            "L1_RLshare_Sol_VR200": 0.1459, "L1_RLshare_Astra_VR200": 0.1596}
 EXPECT_BATCH_075_RATIO = (1.762, 1.811, 1.923)      # Perf_Batch 第 88 列 VR200（L、M、N）÷ GB300（I、J、K）；k＝1 時為 2.350、2.414、2.564
 
@@ -560,6 +570,8 @@ def test_batch_etad_expected_values(model):
         # v5.25：新增 SRC 紀錄使 SRC_Index 堆疊位移、W1 計數改變；IDX_*、GOV_* 不屬 X10 範圍（GOV_Errors＝0 已於上方另行斷言）
         if n.startswith(("IDX_", "GOV_")):
             continue
+        if n in V529_INPUT_CHANGED:      # v5.29 X14 (k)(l)：Andy 核准的輸入值變動（推論支出 SRC_DEM_018、每則提示 token 數 4,000）使 Alloc 鏈 50 個名稱與 v5.22 不同；與 X10 無關
+            continue
         sh, rg = dn.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
@@ -585,3 +597,48 @@ def test_batch_etad_expected_values(model):
         assert abs(base.get("Perf_Batch", f"{col_vr}88") / base.get("Perf_Batch", f"{col_gb}88") - want) < 6e-4
     for n in ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet"):          # 營收不經 Perf_Batch 第 53 列
         assert all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n)))), n
+
+
+# ── v5.29 X14（工作單 docs/workorders/20261008_v5.29.md r1＋r2）：輸出契約欄、四層瀑布、損益兩平、Load_Bearing、落差分解 ──
+IFW_BASES = ("RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront", "TokGW_Luna", "TokGW_Sol", "TokGW_Astra")
+
+
+def test_v529_contract_waterfall_expected_values(model):
+    """v5.29：IFC_ 四欄與 Interface 資料列同長且值域正確；IFW_ 44 個名稱各 15 欄；有對應列的 _Util／_Prod／_Life 逐格等於來源列（Checks K3＝0）；
+    L1 新列的 LibreOffice 重算值（工作單第 3、3b 節）；Checks K2、K3＝0、K4＝0（r2 第 2 項：L1_FleetMargin＝Theory_Rev 機隊比值 × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize）、K5＝50；GOV_Errors＝0。"""
+    eng = new_engine(model)
+    conf, use, layer, upd = (eng.get_name(n) for n in ("IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"))
+    assert len(conf) == len(use) == len(layer) == len(upd) >= 300
+    assert set(x for x in conf if x not in ("", None)) <= {"A", "B", "C", "—", "（表頭）"}
+    assert set(x for x in layer if x not in ("", None)) <= {"100%", "IF_Util", "CTL_ProdDerate", "L×m", "—"}
+    assert sum(1 for x in conf if x == "—") == 0 and conf.count("B") > conf.count("A") > 0
+    for b in IFW_BASES:
+        for suf in ("100", "Util", "Prod", "Life"):
+            v = eng.get_name(f"IFW_{b}_{suf}")
+            assert isinstance(v, list) and len(v) == 15, (b, suf)
+        util = eng.get_name(f"IFW_{b}_Util")
+        if b.startswith("TokGW"):
+            assert all(abs(u - x * eng.get_name("IF_Util")) <= 1e-9 * abs(x) for u, x in zip(util, eng.get_name(f"IF_{b}")))
+            assert eng.get_name(f"IFW_{b}_100") == eng.get_name(f"IF_{b}")
+        else:
+            assert util == eng.get_name(f"IF_{b}")
+            if f"IF_{b}_Prod" in eng.names: assert eng.get_name(f"IFW_{b}_Prod") == eng.get_name(f"IF_{b}_Prod")
+            if f"IF_{b}_Life" in eng.names: assert eng.get_name(f"IFW_{b}_Life") == eng.get_name(f"IF_{b}_Life")
+    want = {"L1_FleetBreakeven": 0.157156, "L1_FleetMargin": 3.245188, "L1_HoldEconMW_VR200": 0.012762, "L1_TokMW_Gen_ratio_VR200": 1.565285,
+            "L1_HarVsGen_Coding": 0.780699, "L1_AstraScale": 14.616242, "L1_ScaleRD": 10.368786, "L1_ScaleServe": 16.502022,
+            "L1_GapPrompt": 2.0, "L1_GapSpendBasis": 2.0, "L1_GapISL": 2.306527, "L1_GapUtil": 1.457143, "L1_GapProduct": 13.443755}   # LibreOffice 重算值（小數第 6 位）
+    for n, v in want.items():
+        got = eng.get_name(n)
+        assert abs(got - v) < 5e-6, (n, got, v)
+        lo, hi = eng.get_name(n + "_Lo"), eng.get_name(n + "_Hi")
+        assert lo <= got <= hi, (n, lo, got, hi)
+    assert abs(eng.get_name("L1_FleetMargin") - eng.get_name("CTL_ProdDerate") * eng.get_name("CTL_PriceLife") * eng.get_name("CTL_Monetize") * eng.get("Theory_Rev", "M73")) < 1e-9
+    assert eng.get("Checks", "D121") == 0 and eng.get("Checks", "D91") == 15        # r2：K4＝0；I3 17 → 15（FleetMargin、HoldEconMW_GB300 外部欄改「—」）
+    assert eng.get("L1", "P53") == "無外部對照" and eng.get("L1", "P56") == "無外部對照"
+    assert abs(eng.get_name("L1_GapProduct") - eng.get_name("L1_GapPrompt") * eng.get_name("L1_GapSpendBasis") * eng.get_name("L1_GapISL") * eng.get_name("L1_GapUtil")) < 1e-9
+    assert eng.get_name("LB_LiveCount") == 50 and len(eng.get_name("LB_Rows")) == 50
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CHK_L1Order") == 0
+    assert eng.get_name("SRC_DEM_018") == 12.6 and eng.get("SRC_Demand", "O8") == "Active" and eng.get_name("SRC_DEM_004") == 8.4 and eng.get_name("AL_TokPerPrompt") == 4000   # r2 第 1 項：004 與 018 並列 Active
+    assert abs(eng.get_name("AL_SpendRatio") - 0.588235) < 5e-6 and abs(eng.get_name("AL_FreeSpendShare") - 0.464286) < 5e-6 and abs(eng.get_name("AL_ServeGWSpend") - 1.113990) < 5e-6   # r2：C55／C63 回到 004，C61 用 018
+    assert abs(eng.get("L1", "M49") - 0.357307) < 5e-6 and abs(eng.get("L1", "M46") - 1.113990) < 5e-6   # r2：Ans5_GM 外部值回到 004 口徑；ExtServeGW 外部值用 018
+    assert eng.get("Gov_Map", "AK4") is not None and eng.get("Load_Bearing", "K5") == "—" and eng.get("Load_Bearing", "K54") == "—"   # r2 第 7 項：反轉門檻欄（Gov_Map AK，Excel 擁有）；Load_Bearing K 欄以公式讀取，本版空白

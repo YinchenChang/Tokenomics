@@ -21,6 +21,7 @@ import v518                       # v5.18: Stage 2 first write batch (Excel-owne
 import v519                       # v5.19: X1 mirrors (Prod sheets) and X2 Gov_Map P promotions; its Gov_Map row and Decisions are registered here
 import v520                       # v5.20: X3 evidence rows, GM578 range, C2 list; X4 F67 evidence; X5 note
 import v521                       # v5.21: X6 (X4 closed; MLPerf v6.1 primary results: SRC_Perf, E245, GM344 note, Decisions X6)
+import v529                       # v5.29: X14 (SRC_DEM_018 replaces 004, Alloc_In inputs, E256–E262, Decisions X14a–m／G16, Gov_Map notes, L1 rows, SRC_Price columns, SRC_Index date column)
 import v527                       # v5.27: X13 (SRC_MOD_055 low／high, SRC_MOD_057–062 Kimi K3, E251–E255, E249 note, Gov_Map notes, Decisions X13, L1 rows 36／39)
 import v525                       # v5.25: X12 evidence (SRC_DEM_014–017, SRC_MOD_055, E247–E250), GM248 range, Decisions X11／X12, L1 row 36 comparison
 import v524                       # v5.24: SRC_Perf note wording (rows 60–63, old phrase removed)
@@ -90,7 +91,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records():
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records():
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -100,13 +101,16 @@ def src_append(wb):
 
 
 KEY_COL, KEY_SEP = "AH", "¦"       # v5.12 (A): builder-owned key column (指標¦口徑¦適用對象, Active rows only) used by X
+# v5.29 (work order 第 5 節): SRC_Price gained five tier columns at X–AB, so its check columns are AC／AD／AE and the key column AM
+CHECK_COLS = {sh: ("X", "Y", "Z", KEY_COL) for sh in SRC_SHEETS}; CHECK_COLS["SRC_Price"] = ("AC", "AD", "AE", "AM")
 
 def src_refresh(wb):
     """Helper formulas (X–Z, AH) for every record row, and SRC_ names (value／_Lo／_Hi／Perf attributes)."""
     n_names = 0; index = {}
     for sh in SRC_SHEETS:
         ws = wb[sh]
-        put(ws, f"{KEY_COL}4", "同指標鍵（公式；X 欄用，v5.12）", F_BOLD, wrap=True); ws.column_dimensions[KEY_COL].width = 12
+        cx, cy, cz, ck = CHECK_COLS[sh]
+        put(ws, f"{ck}4", "同指標鍵（公式；X 欄用，v5.12）", F_BOLD, wrap=True); ws.column_dimensions[ck].width = 12
         # v5.14: X compares only rows 5..(last record + IDX_HEAD), the same span SRC_Index uses for this sheet (was 5..SRC_LAST).
         # A record beyond the span is already an ERROR (Checks E13, fixed by rebuilding), so the counts are unchanged; the
         # comparison arrays shrink from 8 × 396 to about 700 rows (X columns were ~40% of full-recalc time in v5.13).
@@ -118,10 +122,10 @@ def src_refresh(wb):
             rng = lambda c: f"${c}$5:${c}${end}"
             # v5.12 (A): same count as v5.11 (B, G, H equal and Active) via one key column (AH) and one comparison array,
             # instead of four 396-row arrays per record (the SRC X columns were ~60% of full-recalc time after SRC_Index)
-            put(ws, f"{KEY_COL}{r}", f'=IF($O{r}="Active",$B{r}&"{KEY_SEP}"&$G{r}&"{KEY_SEP}"&$H{r},"")')
-            put(ws, f"X{r}", f'=IF($O{r}="Active",SUMPRODUCT(({rng(KEY_COL)}=${KEY_COL}{r})*1),0)', fmt="0")
-            put(ws, f"Y{r}", f'=IF(AND($O{r}="Active",OR($Q{r}="{DASH}",$Q{r}="")),1,0)', fmt="0")
-            put(ws, f"Z{r}", f'=IF(AND($O{r}="Active",$L{r}="利害關係方",OR($R{r}="{DASH}",$R{r}="")),1,0)', fmt="0")
+            put(ws, f"{ck}{r}", f'=IF($O{r}="Active",$B{r}&"{KEY_SEP}"&$G{r}&"{KEY_SEP}"&$H{r},"")')
+            put(ws, f"{cx}{r}", f'=IF($O{r}="Active",SUMPRODUCT(({rng(ck)}=${ck}{r})*1),0)', fmt="0")
+            put(ws, f"{cy}{r}", f'=IF(AND($O{r}="Active",OR($Q{r}="{DASH}",$Q{r}="")),1,0)', fmt="0")
+            put(ws, f"{cz}{r}", f'=IF(AND($O{r}="Active",$L{r}="利害關係方",OR($R{r}="{DASH}",$R{r}="")),1,0)', fmt="0")
             _nm(wb, sid, f"{sh}!$C${r}"); n_names += 1
             for col, suf in (("D", "_Lo"), ("E", "_Hi")):
                 if ws[f"{col}{r}"].value is not None: _nm(wb, sid + suf, f"{sh}!${col}${r}"); n_names += 1
@@ -147,7 +151,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -191,7 +195,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -271,7 +275,7 @@ def src_index(wb):
           f"{IDX_HEAD} 列；紀錄超出範圍時 Checks E13 報錯（重建即可）。最後一段為 Gov_Map H 欄的鏡像（哨兵）：找不到的 SRC_ID 落在這段，狀態與等級為「不存在」。")
     for i, (h, w) in enumerate(zip(["SRC_ID", "工作表", "原列", "狀態", "等級"], [16, 14, 7, 12, 8])):
         put(ws, f"{L(i+1)}4", h, F_BOLD); ws.column_dimensions[L(i+1)].width = w
-    r = 5; spans = {}
+    r = 5; spans = {}; date_rows = {}; sentinel = []
     for sh in SRC_SHEETS:
         src = wb[sh]
         end = _span_end(src)
@@ -279,12 +283,15 @@ def src_index(wb):
         for rr in range(5, end + 1):
             put(ws, f"A{r}", f'={sh}!$A{rr}&""'); put(ws, f"B{r}", sh); put(ws, f"C{r}", rr, F_CALC)
             put(ws, f"D{r}", f"={sh}!$O{rr}"); put(ws, f"E{r}", f"={sh}!$K{rr}")
+            date_rows[r] = (sh, rr)
             r += 1
     sent0 = r
     for gr in range(5, GM_LAST + 1):
         put(ws, f"A{r}", f'=Gov_Map!$H{gr}&""'); put(ws, f"B{r}", "（哨兵）", F_NOTE); put(ws, f"C{r}", gr, F_CALC)
         put(ws, f"D{r}", "不存在"); put(ws, f"E{r}", "不存在")
+        sentinel.append(r)
         r += 1
+    v529.src_index_dates(wb, date_rows, sentinel)      # v5.29: F column (SRC 審查日) and IDX_SrcDate, read by Gov_Map AI and Load_Bearing
     _nm(wb, "IDX_SrcID", f"SRC_Index!$A$5:$A${r-1}")
     _nm(wb, "IDX_SrcStat", f"SRC_Index!$D$5:$D${r-1}")
     _nm(wb, "IDX_SrcGrade", f"SRC_Index!$E$5:$E${r-1}")
@@ -338,7 +345,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523:
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -388,7 +395,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text)      # v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text)      # v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -439,7 +446,7 @@ GENCOL = {"Hopper": 1, "GB200": 4, "GB300": 7, "VR200": 10}     # Interface colu
 COST_RNG = "成本角落情境（低成本／高成本欄）"
 UTIL_RNG = "利用率 40–80%（Sens_Rev 情境值；J6 區間）"
 
-def _rows_l1():
+def _rows_l1(wb):
     R = []
     for g, c0 in GENCOL.items():
         ext = ("SRC_DC_010", "=SRC_DC_010_Lo", "=SRC_DC_010_Hi") if g == "VR200" else (DASH, None, None)
@@ -517,7 +524,8 @@ def _rows_l1():
               v527.L1_ASTRA_ELO, v527.L1_ASTRA_EHI, DASH, "Training 第 31、34 列；Checks 第 38 列", v525.L1_ASTRA_GAP))      # v5.25 X12: SRC_MOD_033 (Grok-3) -> SRC_MOD_055 (GPT-6 Astra)
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
-    return v527.l1_rows(R)          # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
+    R = v527.l1_rows(R)             # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
+    return R + v529.l1_rows_new(wb) # v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
 
 def l1_sheet(wb):
     global _REV_ROW
@@ -532,7 +540,7 @@ def l1_sheet(wb):
         put(ws, f"{L(i+1)}4", h, F_BOLD, wrap=True); ws.column_dimensions[L(i+1)].width = widths[i]
     r = 5; nonformula = 0
     rows_at = {}
-    for row in _rows_l1():
+    for row in _rows_l1(wb):
         row = tuple(x.replace("{rev}", str(_REV_ROW)) if isinstance(x, str) else x for x in row)
         key, lab, cond, base, lo, hi, unit, rdef, read, drv, weak, sid, elo, ehi, nmref, where, gap = row
         rows_at[key] = r
@@ -567,7 +575,7 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
         put(ws, f"{L(i+1)}{r}", h, F_BOLD)
     r += 1
     GM = lambda col: f"Gov_Map!${col}$5:${col}${GM_LAST}"
-    srcsum = lambda col, crit: "+".join(f'COUNTIF({s}!${col}$5:${col}${SRC_LAST},"{crit}")' for s in SRC_SHEETS)
+    srcsum = lambda k, crit: "+".join(f'COUNTIF({s}!${CHECK_COLS[s][k]}$5:${CHECK_COLS[s][k]}${SRC_LAST},"{crit}")' for s in SRC_SHEETS)   # v5.29: SRC_Price check columns at AC–AE
     rows = [
       ("E1", "模型頁原始數據寫死（未連結 SRC）", "ERROR", f'=COUNTIF({GM("V")},1)', "Gov_Map 類別＝原始數據、建置時狀態≠連結 SRC（G0-2 保留與切片二另計）"),
       ("E2", "Analogy 缺可比對象 SRC_ID", "ERROR", f'=COUNTIF({GM("W")},1)', "Gov_Map"),
@@ -575,14 +583,14 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
       ("E4", "Analogy／Assumed／Derived 缺理由", "ERROR", f'=COUNTIF({GM("Y")},1)', "Gov_Map"),
       ("E5", "Decision 格缺決策 ID", "ERROR", f'=COUNTIF({GM("Z")},1)', "Gov_Map"),
       ("E6", "決策 ID 不在 Decisions 頁", "ERROR", f'=COUNTIF({GM("AA")},1)', "Gov_Map × Decisions"),
-      ("E7", "同指標、同口徑、同對象有兩筆以上 Active", "ERROR", "=" + srcsum("X", ">1"), "SRC_* X 欄（逐筆計數，重複者每筆各計 1）"),
-      ("E8", "Active SRC 缺 Evidence ID", "ERROR", "=" + srcsum("Y", "1"), "SRC_* Y 欄"),
+      ("E7", "同指標、同口徑、同對象有兩筆以上 Active", "ERROR", "=" + srcsum(0, ">1"), "SRC_* X 欄（SRC_Price 為 AC 欄，v5.29；逐筆計數，重複者每筆各計 1）"),
+      ("E8", "Active SRC 缺 Evidence ID", "ERROR", "=" + srcsum(1, "1"), "SRC_* Y 欄（SRC_Price 為 AD 欄，v5.29）"),
       ("E9", "模型連結的 SRC 紀錄不是 Active", "ERROR", f'=COUNTIF({GM("AB")},1)', "Gov_Map 類別＝原始數據"),
       ("E10", "基準值不在低／高之間", "ERROR", f'=COUNTIF({GM("AC")},1)', "Gov_Map 數值區間（低、高不分方向）"),
       ("E11", "L1 數值欄不是公式（貼值）", "ERROR", l1_nonformula, "建置時靜態檢查（builder）"),
       ("E12", "引用的 SRC_ID 不存在", "ERROR", f'=COUNTIF({GM("AE")},1)', "Gov_Map"),
       ("E13", "SRC 紀錄超出 SRC_Index 範圍（需重建）", "ERROR", idx_cov, "各 SRC 頁 A 欄在 SRC_Index 範圍之後、第 400 列之前的非空白格（v5.12）"),
-      ("W1", "利害關係方 Active 紀錄缺第二來源", "WARN", "=" + srcsum("Z", "1"), "SRC_* Z 欄（SemiAnalysis 規則推廣；Stage 2 補）"),
+      ("W1", "利害關係方 Active 紀錄缺第二來源", "WARN", "=" + srcsum(2, "1"), "SRC_* Z 欄（SRC_Price 為 AE 欄，v5.29；SemiAnalysis 規則推廣；Stage 2 補）"),
       ("W2", "3 級紀錄被 CC 高段敏感度參數使用", "WARN", f'=COUNTIF({GM("AD")},1)', "Gov_Map（CC 第 10 輪分段）"),
       ("I1", "DB_Evidence 待判定", "INFO", '=COUNTIF(DB_Evidence!$L$5:$L$500,"待判定")', "DB_Evidence L 欄"),
       ("I2", "DB_Evidence 待 Andy", "INFO", '=COUNTIF(DB_Evidence!$L$5:$L$500,"待 Andy")', "DB_Evidence L 欄"),
@@ -692,6 +700,9 @@ def gov_all(wb):
     n_src_upd += _n524; src_upd_log += _log524
     _n527, _log527 = v527.src_update(wb)              # v5.27 X13 (a): SRC_MOD_055 low／high and note (guarded: only while D／E are empty)
     n_src_upd += _n527; src_upd_log += _log527
+    _n529, _log529 = v529.src_update(wb)              # v5.29 X14 (k): SRC_DEM_004 Superseded, replaced by SRC_DEM_018 (guarded)
+    n_src_upd += _n529; src_upd_log += _log529
+    n_price_cols = v529.src_price_columns(wb)         # v5.29 第 5 節: SRC_Price tier columns X–AB inserted once (check columns move to AC–AE／AM)
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
     v521.evidence_update(wb)                          # v5.21 X6: E244 replacement column (guarded)
@@ -711,4 +722,4 @@ def gov_all(wb):
     return dict(src_made=made, src_appended=appended, src_updated_v518=n_src_upd, gm_updated=n_upd, gm_appended_c=n_c, dec_updated=dec_upd, checks_slice2=len(ck2_log), src_names=n_src_names, src_records=len(idx), evidence_added=ev_added, decisions_made=dec_made, decisions_appended=dec_made2,
                 src_index_rows=SI["rows"], src_index_src_rows=SI["src_rows"], src_index_spans=SI["spans"],
                 formula_map_changed=n_fm, f14_changed=n_f14, gov_rows=n_gm, gov_raw_hardcoded=hard, l1_rows=n_l1, l1_nonformula=nonf,
-                fm_log=fm_log + ck2_log + ck3_log + [f"v518 {x}" for x in src_upd_log])
+                src_price_cols_inserted=n_price_cols, fm_log=fm_log + ck2_log + ck3_log + [f"v518 {x}" for x in src_upd_log])

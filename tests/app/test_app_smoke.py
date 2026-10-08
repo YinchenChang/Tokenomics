@@ -224,12 +224,12 @@ def test_governance_page_and_overview_status():
     assert m["GOV_Errors"] == "0" and set(m) == {"GOV_Errors", "GOV_Warnings", "GOV_Info"}
     assert len(at.table) == 1 and len(at.table[0].value) == 23         # Checks G 節 23 項（E13＋W2＋I8；v5.12 新增 E13）
     l1, src = at.dataframe[0].value, at.dataframe[1].value
-    assert len(l1) == 47 and "L1_ID" in l1.columns                  # v5.16：44 → 47（毛利率兩列、GPU 小時口徑）；v5.15：32 → 44（Block 6：Answers 9＋外部對照 3）；v5.13：25 → 32（第 30–36 列為 Checks 移入的外部比對）
+    assert len(l1) == 70 and "L1_ID" in l1.columns                  # v5.29：47 → 70（新增 23 列）；v5.16：44 → 47（毛利率兩列、GPU 小時口徑）；v5.15：32 → 44（Block 6：Answers 9＋外部對照 3）；v5.13：25 → 32（第 30–36 列為 Checks 移入的外部比對）
     assert len(src) == 60                                              # 預設顯示 SRC_HW 60 筆
     at.radio[0].set_value("SRC_Perf").run()
     assert not at.exception and len(at.dataframe[1].value) == 51      # v5.13：SRC_Perf 40 → 51（補登 SRC_PERF_041–051）
     assert list(at.radio[0].options) == ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]
-    for sheet, n in (("SRC_Price", 44), ("SRC_Cap", 21), ("SRC_Harness", 15), ("SRC_Demand", 13)):
+    for sheet, n in (("SRC_Price", 44), ("SRC_Cap", 21), ("SRC_Harness", 15), ("SRC_Demand", 14)):   # v5.29：SRC_Demand 13 → 14（SRC_DEM_018）
         at.radio[0].set_value(sheet).run()
         assert not at.exception and len(at.dataframe[1].value) == n
     at = AppTest.from_string(HEAD + "from app.views import overview; overview.render()", default_timeout=180).run()

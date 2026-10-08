@@ -7,6 +7,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 SLO = "SLO 不可達"
+SPEND_SID = "SRC_DEM_018"    # v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
 TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
 
@@ -210,8 +211,8 @@ def alloc(wb, AIN):
 
     # ---------------- F. external comparisons
     hdr("F. 外部對照（同時寫入 L1；支出路線與 SRC_DEM_013）")
-    line("sgx", "支出路線服務 GW＝SRC_DEM_004（$B）÷ Σ（世代占比 × 各世代持有成本）", "GW", "=SRC_DEM_004/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
-         "單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）")
+    line("sgx", f"支出路線服務 GW＝{SPEND_SID}（$B；Azure 計價）÷ Σ（世代占比 × 各世代持有成本）", "GW", f"={SPEND_SID}/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
+         f"單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）；v5.29 X14 (k)：SRC_DEM_004 → {SPEND_SID}")
     line("fsh", "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGWFree/AL_ServeGW,"{SLO}")', "0.0%", "AL_FreeServeShare")
     line("fsx", "免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ SRC_DEM_004", "%", "=SRC_DEM_005/SRC_DEM_004", "0.0%", "AL_FreeSpendShare")
     line("dlo", "Epoch 每日 token 低（SRC_DEM_013_Lo）", "T tok/日", "=SRC_DEM_013_Lo", "#,##0.0")
@@ -431,7 +432,7 @@ def l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG):
     out.append(("ExtServeGW", "服務 GW：token 路線 對 支出路線", "OpenAI 2025；token 路線＝需求 D ÷ 每 GW 產能；支出路線＝推論支出 ÷ 持有成本",
                 "=IF_AllocServeGW", "=IF_AllocServeGW", "=IF_AllocServeGW", "GW", "無區間（單一對照值）",
                 "兩路線差距指出需求 D、每 GW 產能或支出口徑之一偏離；對照列落在 ±20% 外是預期結果之一，不調整輸入",
-                "每則提示 token 數、服務世代組合、每 GW 產能", "每則提示 token 數（Assumed，A10）", "SRC_DEM_004",
+                "每則提示 token 數、服務世代組合、每 GW 產能", "每則提示 token 數（Assumed，A10）", SPEND_SID,
                 "=AL_ServeGWSpend", "=AL_ServeGWSpend", "IF_AllocServeGW", "Alloc F 節",
                 "支出路線以經濟持有成本換算 GW，與外部揭露的 GW 口徑（D1）無關"))
     out.append(("ExtFreeShare", "免費服務算力占比：token 路線 對 支出口徑（SRC_DEM_005 ÷ SRC_DEM_004）", "OpenAI 2025",

@@ -285,6 +285,8 @@ def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, resu
     eng = _clone(template_engine, fresh=True)   # 每個情境獨立的重建實例；核心斷言不依賴快取（快取等價另見 test_cache_matches_fresh）
     for key, v in sc["inputs"].items():
         eng.set_key(key, v)
+    import gc
+    gc.collect()                                 # v5.31（工程類）：先回收建圖留下的垃圾，計時只含改輸入後的重算（不改門檻與斷言；見 v5.31 報告）
     t0 = time.perf_counter()
     got = eng.evaluate_all()
     elapsed = time.perf_counter() - t0

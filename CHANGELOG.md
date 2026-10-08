@@ -2,9 +2,23 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261008_Tokenomics_v5.30.xlsx（取代 v5.29；X15 定義更正：四層瀑布逐層累乘、L1_HoldEconMW 單位更正、IFW_ 上限標記；判斷類（chat 端定案，CC 執行），依工作單 `docs/workorders/20261008_v5.30.md` r0，試行 (B)）
+
+- Commit：見本輪分支 `claude/v5.30-build`（合併後補上雜湊）。報告：`docs/reports/20261008_v5.30.md`。底稿：master `a5061d9`（v5.29 合併，PR #31）＋工作單提交 `7720f72`；`model/CURRENT` 原為 v5.29。
+- 依據：Andy 2026-10-08「請直接做」（八家公司模型審視報告 company-models PR #36–#43 共同指出的 Tokenomics 端問題）。**不改任何輸入值**。
+- Excel（CC 以 `builder/` 自 v5.29 產生，經 LibreOffice 重算存檔）：
+  - X15 (a)：Interface J 節四層瀑布改為逐層累乘、單調遞減——token 產能 `IFW_TokGW_*_Prod`＝`_Util` × CTL_ProdDerate（不再讀 Interface_Prod），`_Life`＝`_Prod`；營收 `IFW_*_Prod` 維持讀 G 節（Front 四組無 G 節者＝`_Util` × CTL_ProdDerate，取代「—」），`IFW_*_Life`＝`_Prod` × CTL_PriceLife × CTL_Monetize（不再讀 H 節）。H 節與 Interface_Prod 不動。VR200 基準欄：`IFW_TokGW_Sol` 2,373／1,424／1,916／1,916 → 2,373／1,424／**1,210**／**1,210** 億 M tok；`IFW_RevGW_Sol` 381.3／228.8／184.8／228.8 → 381.3／228.8／184.8／**184.8** $B/GW/年。自我檢查列改為 (i) 來源比對 11 列（營收 _Util＝D 節、token _100＝B 節）＋(ii) 單調檢查 11 列；Checks K3 加總兩者（0）。
+  - X15 (b)：`L1_HoldEconMW_*`（含 `_Lo`／`_Hi`）改為 `=L1_HoldEconGW_*`（不除以 1000；1 $B/GW＝1 $M/MW），單位欄維持「$M/MW/年」，標籤改述；GB300 0.0127 → **12.72**、VR200 0.0128 → **12.76**、Hopper 0.0101 → 10.10、GB200 0.0092 → 9.17。
+  - X15 (c)：`IFC_Use`（S 欄）對 `IFW_RevGW*`／`IFW_RevGWFleet*`／`IFW_RevGWFront*` 全部四層與 `IFW_TokGW_*_100` 附「；上限，不得作預測」（Y 欄應附旗標同步擴充；K2＝0）。
+  - Decisions X15a–c；README A1、B5（置頂 v5.30）、A32／B32（瀑布說明改寫為逐層累乘）；Checks K2／K3 文字。
+- builder：新增 `v530.py`（版本字串唯一來源；`interface_j` 取代 v529 版、`should_cap`、`checks_k` 文字、`l1_rows`、Decisions、README）；`v529.interface_contract` 加 `should_fn` 參數；`build.py`、`gov.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v530.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（31 個檔）。以 v5.30 重建冪等 0 不符。
+- 文件：下游契約 `docs/plan/Tokenomics_downstream_contract.md` 第 2 條第 2 項補「v5.30 起四層為逐層累乘、單調遞減」。
+- 測試：`formula_cells` 45,383 → 45,543（Front 8 列改公式 120 格＋其輸出契約公式 40 格）；`defined_names` 1,060 不變；`L1_HoldEconMW_VR200` 期望值 0.012762 → 12.762016；v5.29 測試的「IFW_*_Life＝IF_*_Life」斷言移除（定義改變），新增 `test_v530_waterfall_running_product`；`b_prod_derate`（Serving C18＝0.7）情境的 GOV_Errors 0 → 57（K3 單調檢查：G 節以 0.85 取代 C18 重解，故營收 _Prod > _Util；列入報告「待 Project 判斷」第 1 項）。
+- 治理：GOV_Errors 0、GOV_Warnings 220、GOV_Info 165（皆不變；K2 0、K3 0）。
+
 ## 20261008_Tokenomics_v5.29.xlsx（取代 v5.27；X14 (a)–(m)：輸出契約欄、四層瀑布、損益兩平與每 MW 介面、Load_Bearing、落差分解；SRC_DEM_018 新增（與 SRC_DEM_004 並列，r2）、每則提示 token 數 2,000 → 4,000；判斷類（chat 端定案）＋工程類，依工作單 `docs/workorders/20261008_v5.29.md` r1＋r2 執行，試行 (B)）
 
-- Commit：見本輪分支 `claude/v5.29-build`（合併後補上雜湊）。報告：`docs/reports/20261008_v5.29.md`。底稿：master `862bdd4`（＝v5.27 合併 `19d667f`（PR #28）＋v5.28／v5.29 工作單與證據提交）；`model/CURRENT` 原為 v5.27（v5.28 為純網站工作單，不改 Excel，尚未建置）。
+- Commit：合併雜湊 `a5061d9`（PR #31）；分支 `claude/v5.29-build`。報告：`docs/reports/20261008_v5.29.md`。底稿：master `862bdd4`（＝v5.27 合併 `19d667f`（PR #28）＋v5.28／v5.29 工作單與證據提交）；`model/CURRENT` 原為 v5.27（v5.28 為純網站工作單，不改 Excel，尚未建置）。
 - 判斷類（Andy 2026-10-08「依建議」）：SRC_Demand 新增 `SRC_DEM_018`（OpenAI 2025 推論支出，Azure 帳單全年推估 12.6 $B，低 12.3／高 13.0，2 級、利害關係方、二手，E259）；第 1–2 輪將 `SRC_DEM_004` 改 Superseded 並把全部推論支出公式改連 018，**r2 改為兩筆並列 Active、只有支出路線服務 GW 用 018**（見下方 r2 段）。Alloc_In「每則提示 token 數」2,000 → 4,000（低 1,000 → 2,000、高 6,000 → 6,400），理由欄附加 E261。連動：Alloc 鏈、Interface F 節 IF_Alloc*、L1_Ans1／Ans2／ExtServeGW／ExtFreeShare／ExtDaily 改變（每日 token 11.48 → 16.48 T、token 路線服務 GW 0.0519 → 0.0675、支出路線 0.7427 → 1.1140、Q1 0.636 → 0.573）；其餘 IF_ 與模型頁數值逐格不變。
 - Excel（CC 以 `builder/` 自 v5.27 產生，經 LibreOffice 重算存檔）：Interface R–U 輸出契約欄（Confidence／Decision Use／口徑層／最弱輸入更新日，`IFC_` 四名稱；V–Y 為輔助欄）與 J 節四層瀑布 `IFW_<name>_100／_Util／_Prod／_Life`（8 個營收列＋3 個 IF_TokGW 列，44 名稱）及自我檢查列；Gov_Map AG–AJ、SRC_Index F（`IDX_SrcDate`）為 builder 輔助欄；L1 新增 23 列（`L1_FleetBreakeven`、`L1_FleetMargin`、`L1_HoldEconMW_*`、`L1_TokMW_Gen_ratio_*`、`L1_HarVsGen_*`、`L1_PretrainFLOP_Astra_Ext`、`L1_AstraScale`、`L1_ScaleRD`、`L1_ScaleServe`、`L1_Gap*`）；Alloc_In 新增兩個 Assumed 輸入（`AL_SpendBasis` 2.0［1.5–3.0］、`AL_UtilActual` 0.35［0.3–0.4］）與常數 `CST_TokPerPromptV528`（Gov_Map GM596–GM600）；新頁 Load_Bearing（50 列，靜態展開）；SRC_Price X–AB 分層欄（檢查欄移至 AC–AE／AM）；Checks K1–K7；DB_Evidence E256–E262；Decisions X14a–X14m、G16（工作單稱 G15，該 ID 已存在）；Gov_Map 理由欄附註（GM236／237／593／594／586／453）；README A1／B5／B22、新增第 32 列。
 - builder：新增 `v529.py`（版本字串唯一來源；所有 Excel 擁有格的寫入皆有舊值守衛）與 `deps.py`（建置時以公式文字靜態反查前置格；Confidence 與 Load_Bearing「影響的 L1 列」用）；`gov.py`（SRC 檢查欄依頁參數化、SRC_Index 審查日欄、L1 新列、X14 掛接）、`block6.py`（推論支出改連 `SRC_DEM_018`）、`build.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v529.py`、`deps.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（30 個檔）。以 v5.29 重建冪等 0 不符。

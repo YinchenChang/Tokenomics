@@ -363,8 +363,9 @@ def _layer(sec, label):
     return DASH
 
 
-def interface_contract(wb, deps, gm_cells):
-    """R–U on every Interface data row (column C holds a formula or number; rows 4–5 are headers). Returns dict."""
+def interface_contract(wb, deps, gm_cells, should_fn=None):
+    """R–U on every Interface data row (column C holds a formula or number; rows 4–5 are headers). Returns dict.
+    should_fn(sec, label, layer) -> 0／1 overrides the static "上限" flag rule (v5.30 X15 (c): v530.should_cap)."""
     ws = wb["Interface"]
     last = _last_row(ws)
     for col, h in IFC_HDR.items():
@@ -386,7 +387,7 @@ def interface_contract(wb, deps, gm_cells):
         hi = [g for g in dep_rows if gm[f"P{g}"].value == "高"]
         label = str(a or "")
         layer = _layer(sec, label)
-        should = 1 if (sec == "B" and layer == "100%") or (sec == "D" and ("理論營收" in label or "付費服務營收" in label)) else 0
+        should = should_fn(sec, label, layer) if should_fn else (1 if (sec == "B" and layer == "100%") or (sec == "D" and ("理論營收" in label or "付費服務營收" in label)) else 0)
         note = "；上限，不得作預測" if should else ""
         if not dep_rows:
             put(ws, f"R{r}", DASH); put(ws, f"S{r}", DASH); put(ws, f"V{r}", 0, F_CALC, fmt="0"); put(ws, f"U{r}", DASH)

@@ -189,11 +189,12 @@ print("v526 interface I from:", X26["start"], "dc rows:", X26["dc_rows"], "check
 # ---- v5.29: Gov_Map helper columns, Interface J (waterfall), Interface R–U (contract; static precedent tracing), Load_Bearing, Checks K ----
 from deps import Deps, gov_map_cells
 N_GMH = v529.gov_map_helpers(wb)
-IFJ = v529.interface_j(wb)
+import v530
+IFJ = v530.interface_j(wb)            # v5.30 X15 (a): running-product waterfall; self-check = source equality + monotonic (replaces v529.interface_j)
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
-IFC = v529.interface_contract(wb, DEPS, GMC)
+IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)
-CK_K = v529.checks_k(wb, IFC, IFJ, LB)
+CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
 print("v529 interface J from:", IFJ["start"], "names:", len(IFJ["made"]), "flags:", IFJ["flags"], "| contract rows:", len(IFC["rows"]), "no-dep rows:", IFC["no_dep"],
       "| Load_Bearing rows:", LB["rows"], "| Gov_Map helper rows:", N_GMH, "| Checks K rows:", CK_K)
 GOV["snap_retired"] = len(RETIRED)

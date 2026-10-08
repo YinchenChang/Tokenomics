@@ -423,7 +423,10 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
         for n in ALLOC_IF:                                                                  # 每個 IF_Alloc*：數值或文字「SLO 不可達」，不得為錯誤值
             v = eng.get_name(n)
             assert (isinstance(v, (int, float)) and not isinstance(v, bool)) or v == "SLO 不可達", (sid, n, v)
-        assert eng.get_name("GOV_Errors") == 0, sid
+        if sid == "b_prod_derate":                                                          # v5.30 X15 (a)：C18＝0.7 而 CTL_ProdDerate＝0.85 時，G 節（以 0.85 取代 C18 重解）> D 節（0.7），
+            assert eng.get("Checks", "D120") == 57 and eng.get_name("GOV_Errors") == 57, sid  # 營收列 _Prod > _Util，K3 單調檢查依工作單計 ERROR（57 格；其餘 ERROR 0）；見 v5.30 報告「待 Project 判斷」第 1 項
+        else:
+            assert eng.get_name("GOV_Errors") == 0, sid
         if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
             assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
         else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 52.1%；v5.23 X10 前為 48.5%）
@@ -623,8 +626,9 @@ def test_v529_contract_waterfall_expected_values(model):
         else:
             assert util == eng.get_name(f"IF_{b}")
             if f"IF_{b}_Prod" in eng.names: assert eng.get_name(f"IFW_{b}_Prod") == eng.get_name(f"IF_{b}_Prod")
-            if f"IF_{b}_Life" in eng.names: assert eng.get_name(f"IFW_{b}_Life") == eng.get_name(f"IF_{b}_Life")
-    want = {"L1_FleetBreakeven": 0.157156, "L1_FleetMargin": 3.245188, "L1_HoldEconMW_VR200": 0.012762, "L1_TokMW_Gen_ratio_VR200": 1.565285,
+            # v5.30 X15 (a)：_Life 改為 _Prod × L × m（不再等於 H 節 IF_*_Life）；逐層累乘的斷言見 test_v530_waterfall_running_product
+    want = {"L1_FleetBreakeven": 0.157156, "L1_FleetMargin": 3.245188, "L1_HoldEconMW_VR200": 12.762016,      # v5.30 X15 (b)：HoldEconMW 不除以 1000（0.012762 → 12.762016）
+            "L1_TokMW_Gen_ratio_VR200": 1.565285,
             "L1_HarVsGen_Coding": 0.780699, "L1_AstraScale": 14.616242, "L1_ScaleRD": 10.368786, "L1_ScaleServe": 16.502022,
             "L1_GapPrompt": 2.0, "L1_GapSpendBasis": 2.0, "L1_GapISL": 2.306527, "L1_GapUtil": 1.457143, "L1_GapProduct": 13.443755}   # LibreOffice 重算值（小數第 6 位）
     for n, v in want.items():
@@ -642,3 +646,47 @@ def test_v529_contract_waterfall_expected_values(model):
     assert abs(eng.get_name("AL_SpendRatio") - 0.588235) < 5e-6 and abs(eng.get_name("AL_FreeSpendShare") - 0.464286) < 5e-6 and abs(eng.get_name("AL_ServeGWSpend") - 1.113990) < 5e-6   # r2：C55／C63 回到 004，C61 用 018
     assert abs(eng.get("L1", "M49") - 0.357307) < 5e-6 and abs(eng.get("L1", "M46") - 1.113990) < 5e-6   # r2：Ans5_GM 外部值回到 004 口徑；ExtServeGW 外部值用 018
     assert eng.get("Gov_Map", "AK4") is not None and eng.get("Load_Bearing", "K5") == "—" and eng.get("Load_Bearing", "K54") == "—"   # r2 第 7 項：反轉門檻欄（Gov_Map AK，Excel 擁有）；Load_Bearing K 欄以公式讀取，本版空白
+
+
+# ── v5.30 X15（工作單 docs/workorders/20261008_v5.30.md r0）：四層瀑布逐層累乘、L1_HoldEconMW 單位更正、IFW_ 上限標記 ──
+def _num(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool)
+
+
+def test_v530_waterfall_running_product(model):
+    """v5.30：(a) _Prod＝_Util × CTL_ProdDerate（營收列有 G 節者讀 G 節）、_Life＝_Prod × L × m（營收）／＝_Prod（token）；四層單調遞減；Checks K3＝0；
+    VR200 基準欄（索引 10）LibreOffice 重算值；(b) L1_HoldEconMW_*＝L1_HoldEconGW_*（含 _Lo／_Hi）；(c) IFW_ 營收四層與 IFW_TokGW_*_100 的 IFC_Use 含「上限」，K2＝0。"""
+    eng = new_engine(model)
+    d, lm = eng.get_name("CTL_ProdDerate"), eng.get_name("CTL_PriceLife") * eng.get_name("CTL_Monetize")
+    for b in IFW_BASES:
+        v100, util, prod, life = (eng.get_name(f"IFW_{b}_{s}") for s in ("100", "Util", "Prod", "Life"))
+        if b.startswith("TokGW") or f"IF_{b}_Prod" not in eng.names:
+            assert all(abs(p - u * d) <= 1e-9 * abs(u) for u, p in zip(util, prod) if _num(u)), b
+        if b.startswith("TokGW"):
+            assert prod == life, b
+        else:
+            assert all(abs(x - p * lm) <= 1e-9 * abs(p) for p, x in zip(prod, life) if _num(p)), b
+        for col in zip(v100, util, prod, life):
+            nums = [x for x in col if _num(x)]
+            assert all(a >= c - 1e-9 * max(1, abs(a)) for a, c in zip(nums, nums[1:])), (b, col)
+    want = {"IFW_TokGW_Sol": (237287338734.99, 142372403240.994, 121016542754.845, 121016542754.845),
+            "IFW_RevGW_Sol": (381.347118606988, 228.808271164193, 184.79597204631, 184.79597204631)}
+    for n, vals in want.items():
+        for s, v in zip(("100", "Util", "Prod", "Life"), vals):
+            got = eng.get_name(f"{n}_{s}")[10]
+            assert abs(got - v) <= 1e-9 * v, (n, s, got, v)
+    assert eng.get("Checks", "D119") == 0 and eng.get("Checks", "D120") == 0 and eng.get_name("GOV_Errors") == 0      # K2、K3
+    for g in ("Hopper", "GB200", "GB300", "VR200"):
+        for suf in ("", "_Lo", "_Hi"):
+            assert eng.get_name(f"L1_HoldEconMW_{g}{suf}") == eng.get_name(f"L1_HoldEconGW_{g}{suf}"), (g, suf)
+    assert abs(eng.get_name("L1_HoldEconMW_GB300") - 12.724746) < 5e-6
+    labels, use = eng.get_name("IFC_Layer"), eng.get_name("IFC_Use")      # 同長（Interface 第 6 列起）
+    import openpyxl
+    ws = openpyxl.load_workbook(model, read_only=True)["Interface"]
+    a_col = [r[0] for r in ws.iter_rows(min_row=6, max_row=5 + len(use), min_col=1, max_col=1, values_only=True)]
+    n_cap = 0
+    for lab, u in zip(a_col, use):
+        if isinstance(lab, str) and ("[IFW_RevGW" in lab or ("[IFW_TokGW_" in lab and "_100]" in lab)):
+            assert isinstance(u, str) and "上限，不得作預測" in u, (lab, u); n_cap += 1
+    assert n_cap == 8 * 4 + 3
+

@@ -1,0 +1,132 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "1788fc47d86330f6858a294dc1713a4194a270db",
+ "github_sha": "1788fc47d86330f6858a294dc1713a4194a270db",
+ "ref": "refs/heads/claude/v5.29-build",
+ "event": "push",
+ "run_id": 37760820208,
+ "run_number": 226,
+ "run_attempt": 1,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 113256502196,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:02:35Z",
+   "completed_at": "2026-10-08T10:04:50Z",
+   "seconds": 135,
+   "python": "3.11.16"
+  },
+  {
+   "id": 113256502284,
+   "name": "engine-cache（建一次計算圖）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:02:35Z",
+   "completed_at": "2026-10-08T10:04:19Z",
+   "seconds": 104,
+   "python": "3.11.16"
+  },
+  {
+   "id": 113257168774,
+   "name": "structure-recalc（結構性測試＋函數語意＋兩條重算）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:57Z",
+   "completed_at": "2026-10-08T10:17:39Z",
+   "seconds": 762,
+   "python": "3.11.17"
+  },
+  {
+   "id": 113257168838,
+   "name": "scenario-guard（防空轉：每個情境至少改變一格）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:21Z",
+   "completed_at": "2026-10-08T10:14:50Z",
+   "seconds": 629,
+   "python": "3.11.16"
+  },
+  {
+   "id": 113257168988,
+   "name": "scenarios（第 3 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:21Z",
+   "completed_at": "2026-10-08T10:16:14Z",
+   "seconds": 713,
+   "python": "3.11.17"
+  },
+  {
+   "id": 113257169019,
+   "name": "scenarios（第 4 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:21Z",
+   "completed_at": "2026-10-08T10:14:09Z",
+   "seconds": 588,
+   "python": "3.11.16"
+  },
+  {
+   "id": 113257169061,
+   "name": "scenarios（第 5 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:57Z",
+   "completed_at": "2026-10-08T10:16:00Z",
+   "seconds": 663,
+   "python": "3.11.16"
+  },
+  {
+   "id": 113257169079,
+   "name": "scenarios（第 2 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:21Z",
+   "completed_at": "2026-10-08T10:14:54Z",
+   "seconds": 633,
+   "python": "3.11.16"
+  },
+  {
+   "id": 113257169080,
+   "name": "scenarios（第 0 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:21Z",
+   "completed_at": "2026-10-08T10:18:18Z",
+   "seconds": 837,
+   "python": "3.11.16"
+  },
+  {
+   "id": 113257169098,
+   "name": "scenarios（第 1 片／共 6）",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:04:21Z",
+   "completed_at": "2026-10-08T10:17:58Z",
+   "seconds": 817,
+   "python": "3.11.17"
+  },
+  {
+   "id": 113262355506,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-10-08T10:18:20Z",
+   "completed_at": "2026-10-08T10:18:33Z",
+   "seconds": 13,
+   "python": "3.11.17"
+  },
+  {
+   "id": 113262443977,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-08T10:18:35Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.12.3"
+  }
+ ],
+ "failures": [],
+ "log_excerpts": {},
+ "recalc_seconds": {
+  "full": 1.98,
+  "incremental_max": 0.86,
+  "incremental_max_scenario": "f_registry_t07_t09_on",
+  "incremental_median": 0.46
+ },
+ "generated_at": "2026-10-08T10:18:43Z",
+ "errors": []
+}

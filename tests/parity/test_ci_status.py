@@ -184,3 +184,40 @@ def test_ci_summary_pyver_writes_json(tmp_path):
     out = tmp_path / "pyver.json"
     ci_summary.pyver("scenarios（第 0 片", str(out))
     assert json.loads(out.read_text(encoding="utf-8")) == {"match": "scenarios（第 0 片", "python": platform.python_version()}
+
+
+def test_rerun_failures_only_from_latest_attempt():
+    """v5.27 工作單 3.2：重跑失敗 job 後，artifacts API 會同時列出前次與本次嘗試的同名 artifact；failures 只彙整每個名稱最新的一筆
+    （v5.25 run 207／208、v5.26 run 214 第 2 次嘗試仍列出第 1 次的失敗）。未重跑的 job 只有一筆，照常讀取；overall 不變。"""
+    old_fail = ('<testsuite tests="1"><testcase classname="tests.parity.test_parity" name="test_scenario_parity[x]">'
+                '<failure message="FileNotFoundError: soffice">x</failure></testcase></testsuite>')
+    new_ok = '<testsuite tests="1"><testcase classname="tests.parity.test_parity" name="test_scenario_parity[x]"/></testsuite>'
+    listing = [  # 依 run 214 的實際形狀：同名兩筆，created_at 不同；id 與時間先後不一定一致
+        {"id": 11494226602, "name": "parity-results-scenarios-1", "created_at": "2026-10-07T15:35:50Z", "files": {"junit.xml": old_fail}},
+        {"id": 11494428124, "name": "parity-results-scenarios-1", "created_at": "2026-10-07T15:47:38Z", "files": {"junit.xml": new_ok}},
+        {"id": 11494675622, "name": "parity-results-scenarios-3", "created_at": "2026-10-07T15:33:18Z", "files": {"junit.xml": old_fail}},
+        {"id": 11493203966, "name": "parity-results-scenarios-3", "created_at": "2026-10-07T15:43:54Z", "files": {"junit.xml": new_ok}},
+        {"id": 11494250479, "name": "parity-results-structure", "created_at": "2026-10-07T15:30:48Z",
+         "files": {"junit.xml": new_ok, "tests/parity/_results_structure.json": json.dumps(RESULTS)}},
+    ]
+
+    class RerunApi(FakeApi):
+        def get_json(self, path):
+            if path.endswith("/artifacts?per_page=100"):
+                return {"artifacts": [{k: v for k, v in a.items() if k != "files"} for a in listing]}
+            return super().get_json(path)
+
+        def get_bytes(self, path):
+            if "/artifacts/" in path:
+                aid = int(path.split("/artifacts/")[1].split("/")[0])
+                return _zip(next(a["files"] for a in listing if a["id"] == aid))
+            return super().get_bytes(path)
+
+    ok_jobs = [dict(j, conclusion="success") for j in JOBS[:2]]
+    d = cs.collect(RerunApi(ok_jobs, {}, {}), dict(ENV, OVERALL="success"), EVENT)
+    assert d["failures"] == [] and d["overall"] == "success" and d["errors"] == []          # 前次嘗試的 soffice 失敗不再列出
+    assert d["recalc_seconds"]["full"] == 1.53                                             # 未重跑 job 的唯一一筆照常讀取
+    listing[1]["files"] = {"junit.xml": old_fail}                                          # 反向：最新一筆仍失敗時照列（只去重，不吞失敗）
+    d = cs.collect(RerunApi(ok_jobs, {}, {}), ENV, EVENT)
+    assert [f["source"] for f in d["failures"]] == ["parity-results-scenarios-1"]
+    assert [a["id"] for a in cs.latest_per_name([{"id": 2, "name": "a"}, {"id": 1, "name": "a"}, {"id": 3, "name": "b"}])] == [2, 3]   # 無 created_at 時以 id 取大

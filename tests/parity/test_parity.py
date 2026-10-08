@@ -452,7 +452,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 213 and eng.get_name("GOV_Info") == 107      # v5.25：W1 209 → 213（SRC_DEM_014–017 為利害關係方、無第二來源）
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 219 and eng.get_name("GOV_Info") == 108      # v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
 
 
 def _pct(eng, n, k):

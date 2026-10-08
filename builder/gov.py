@@ -21,6 +21,7 @@ import v518                       # v5.18: Stage 2 first write batch (Excel-owne
 import v519                       # v5.19: X1 mirrors (Prod sheets) and X2 Gov_Map P promotions; its Gov_Map row and Decisions are registered here
 import v520                       # v5.20: X3 evidence rows, GM578 range, C2 list; X4 F67 evidence; X5 note
 import v521                       # v5.21: X6 (X4 closed; MLPerf v6.1 primary results: SRC_Perf, E245, GM344 note, Decisions X6)
+import v527                       # v5.27: X13 (SRC_MOD_055 low／high, SRC_MOD_057–062 Kimi K3, E251–E255, E249 note, Gov_Map notes, Decisions X13, L1 rows 36／39)
 import v525                       # v5.25: X12 evidence (SRC_DEM_014–017, SRC_MOD_055, E247–E250), GM248 range, Decisions X11／X12, L1 row 36 comparison
 import v524                       # v5.24: SRC_Perf note wording (rows 60–63, old phrase removed)
 import v523                       # v5.23: X10 (Gov_Map row, Decisions), SRC_Perf note wording
@@ -89,7 +90,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records():
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records():
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -146,7 +147,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -190,7 +191,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -387,7 +388,7 @@ def gov_map(wb, src_index):
     if ws["AF4"].value is None: put(ws, "AF4", GM_HDR[31], F_BOLD, wrap=True)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text)      # v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text)      # v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -513,10 +514,10 @@ def _rows_l1():
     R.append(("PretrainFLOP_Astra", "Astra 預訓練算力", "J8 基準（啟用參數 × 預訓練 token）", "=Training!$N$31*Training!$N$34*1E21",
               "=Training!$N$31*Training!$N$34*1E21", "=Training!$N$31*Training!$N$34*1E21", "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
               "訓練 FLOPs/token × token；與前沿錨點 2e26–2e27 的差距即 J8 缺口", "Astra 啟用參數、預訓練 token", "Astra 架構：Assumed", v525.L1_ASTRA_SID,
-              f"={v525.L1_ASTRA_SID}", f"={v525.L1_ASTRA_SID}", DASH, "Training 第 31、34 列；Checks 第 38 列", v525.L1_ASTRA_GAP))      # v5.25 X12: SRC_MOD_033 (Grok-3) -> SRC_MOD_055 (GPT-6 Astra)
+              v527.L1_ASTRA_ELO, v527.L1_ASTRA_EHI, DASH, "Training 第 31、34 列；Checks 第 38 列", v525.L1_ASTRA_GAP))      # v5.25 X12: SRC_MOD_033 (Grok-3) -> SRC_MOD_055 (GPT-6 Astra)
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
-    return R
+    return v527.l1_rows(R)          # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
 
 def l1_sheet(wb):
     global _REV_ROW
@@ -689,9 +690,12 @@ def gov_all(wb):
     n_src_upd += _n523; src_upd_log += _log523
     _n524, _log524 = v524.src_note_fix(wb)            # v5.24: SRC_Perf W rows 60–63, old phrase removed (guarded: only while it is present)
     n_src_upd += _n524; src_upd_log += _log524
+    _n527, _log527 = v527.src_update(wb)              # v5.27 X13 (a): SRC_MOD_055 low／high and note (guarded: only while D／E are empty)
+    n_src_upd += _n527; src_upd_log += _log527
     n_src_names, idx = src_refresh(wb)
     ev_added = evidence_upgrade(wb)
     v521.evidence_update(wb)                          # v5.21 X6: E244 replacement column (guarded)
+    v527.evidence_update(wb)                          # v5.27 X13 (b): E249 note (guarded: appended once)
     dec_made = decisions_sheet(wb)
     dec_made2 = dec_append(wb)
     dec_upd = dec_update(wb) + v520.decisions_update(wb["Decisions"], v518._append_text) + v521.decisions_update(wb["Decisions"])

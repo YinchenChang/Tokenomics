@@ -8,7 +8,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 MD = REPO / "docs" / "builder" / "Tokenomics_builder_v5.md"
-AFTER = {"block6.py": "block5.py", "gov_seed3.py": "gov_seed2.py", "gov_seed4.py": "gov_seed3.py", "v518.py": "gov_seed4.py", "v519.py": "v518.py", "v520.py": "v519.py", "v521.py": "v520.py", "v522.py": "v521.py", "v523.py": "v522.py", "v524.py": "v523.py", "v525.py": "v524.py", "v526.py": "v525.py"}      # 新檔放在哪個檔之後
+AFTER = {"block6.py": "block5.py", "gov_seed3.py": "gov_seed2.py", "gov_seed4.py": "gov_seed3.py", "v518.py": "gov_seed4.py", "v519.py": "v518.py", "v520.py": "v519.py", "v521.py": "v520.py", "v522.py": "v521.py", "v523.py": "v522.py", "v524.py": "v523.py", "v525.py": "v524.py", "v526.py": "v525.py", "v527.py": "v526.py"}      # 新檔放在哪個檔之後
 
 
 def parse(text):

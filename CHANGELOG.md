@@ -2,19 +2,30 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261008_Tokenomics_v5.27.xlsx（取代 v5.26；X13 J8 證據與 L1 外部對照、Kimi K3 架構證據；CI 安裝失敗即停、ci-status 重跑殘留；判斷類（chat 端定案）＋工程類，依工作單 `docs/workorders/20261008_v5.27.md` r0 執行，試行 (B)）
+
+- Commit：見本輪分支 `claude/v5.27-build`（合併後補上雜湊）。報告：`docs/reports/20261008_v5.27.md`。底稿：master `3dd1216`（＝v5.26 合併 `4074684`＋本工作單提交）；`model/CURRENT` 原為 v5.26。
+- 一手來源核對（CC 2026-10-08，WebFetch）：Epoch `frontier_ai_models.csv` GPT-6 Astra 列 notes 末句「…yielding a CI of ~[5e26, 2e27] FLOP.」相符；Grok 3 列 3.5e+26；Epoch「models over 1e25 FLOP」頁 Grok-3 仍為 4.6e+26（第 1.2 節採「不新增、不取代」一路）；Hugging Face `moonshotai/Kimi-K3` config.json 與模型卡（93 層、hidden 7168、896／16 experts；總參數 2.8T、啟用 104B 取自模型卡）。技術報告 PDF 讀取失敗。
+- Excel（CC 以 `builder/` 自 v5.26 產生，經 LibreOffice 重算存檔）：SRC_MOD_055 低 5e26／高 2e27（新名稱 `_Lo`、`_Hi`）與備註；SRC_Model 新增 SRC_MOD_057–062（Kimi K3，1 級、利害關係方、純證據）；DB_Evidence E251–E255、E249 備註附加；Gov_Map 8 格理由欄附註；Decisions X13；L1 M36／N36 改連 `_Lo／_Hi`（O36 0.068 → 0.055、P36「差距 >20%」→「低於外部區間」）；L1 L39:N39 連 SRC_DEM_006（O39 — → 0.096、P39「無外部對照」→「差距 >20%」）、S39 文字；README A1／B5。Interface、L1 D:F、所有模型頁數值逐格不變。
+- builder：新增 `v527.py`（版本字串唯一來源；所有寫入皆有舊值守衛）；`gov.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v527.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（28 個檔）。以 v5.27 重建冪等 0 不符。
+- 工程類（CI）：`parity.yml` 兩個 LibreOffice 安裝步驟加 `shell: bash`（pipefail），`timeout-minutes` 10 → 25；`tools/install_libreoffice.sh` apt 逾時 90／180 → 180／420 秒、嘗試 2 → 3、成功分支驗證 `command -v soffice`；`tools/ci_status.py` 同名 artifact 只取最新一筆（failures 只彙整本次嘗試）。
+- 測試：期望值 `formula_cells` 39,417 → 39,461、`defined_names` 921 → 929、`src_names` 351 → 359、`GOV_Warnings` 213 → 219、`GOV_Info` 107 → 108；`test_ci_status.py` 新增重跑去重測試。
+- 治理：GOV_Errors 0、GOV_Warnings 219（W1 219、W2 0、H3 0）、GOV_Info 108（I3 7 → 8）。
+- 前兩版合併雜湊：v5.25 `97e7b20`（PR #26）、v5.26 `4074684`（PR #27）已補入各段。
+
 ## 20261007_Tokenomics_v5.26.xlsx（取代 v5.25；Interface I 節 DC_Cost 構件 10 個下游名稱；工程類（CC 執行），依工作單 `docs/workorders/20261007_v5.26.md` r1，試行 (B)）
 
-- Commit：見本輪分支 `claude/v5.26-build`（合併後補上雜湊）。報告：`docs/reports/20261007_v5.26.md`。底稿：分支 `claude/v5.25-build` `7180c86`（v5.25 PR #26 尚未合併，依 chat 端修訂採疊加；PR base＝`claude/v5.25-build`）；`model/CURRENT` 原為 v5.25。
+- Commit：合併雜湊 `4074684`（PR #27）；分支 `claude/v5.26-build`。報告：`docs/reports/20261007_v5.26.md`。底稿：分支 `claude/v5.25-build` `7180c86`（v5.25 PR #26 尚未合併，依 chat 端修訂採疊加；PR base＝`claude/v5.25-build`）；`model/CURRENT` 原為 v5.25。
 - Excel（CC 以 `builder/` 自 v5.25 產生，經 LibreOffice 重算存檔）：Interface 第 218–229 列新增 I 節：`IF_DeprLifeIT`、`IF_DeprIT`、`IF_DeprFac`、`IF_AvgDraw`、`IF_PowerPrice`、`IF_MaintIT`、`IF_MaintFac`、`IF_StaffSW`、`IF_TaxIns`、`IF_OpexGW`（各連結 DC_Cost 第 38–42、44–48 列同欄；金額列 ÷ CTL_GW）與加總核對列（`IF_DeprIT＋IF_DeprFac＋IF_OpexGW − IF_HoldAcct`，15 欄皆 0）；README A1／B5 版本字串與新增第 31 列（I 節名稱說明）。與 v5.25 逐格比較：既有儲存格數值與公式 0 差異；公式格 39,252 → 39,417、具名範圍 911 → 921、工作表 56 不變。
 - builder：新增 `v526.py`（版本字串的唯一來源；DC_Cost 列依 A 欄標籤定位）；`build.py`（H 節之後呼叫 `v526.interface_i`）、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v526.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生（27 個檔）。以 v5.26 重建冪等 0 不符。
 - 網站：`app/` 的 Block 1 總覽表依名稱前綴自動納入新名稱（未改程式）。
 - 測試：期望值 `formula_cells` 39,252 → 39,417、`defined_names` 911 → 921、`downstream_names` 182 → 192；`test_interface_d_e_shapes` 加 v5.26 名稱形狀檢查。
 - 治理：GOV_Errors 0、GOV_Warnings 213、GOV_Info 107（皆與 v5.25 相同）。
-- v5.25 段的合併雜湊：v5.25（PR #26）尚未合併，待合併後補。
+- v5.25 段的合併雜湊：已於 v5.27 補上（`97e7b20`，PR #26）。
 
 ## 20261007_Tokenomics_v5.25.xlsx（取代 v5.24；X12 ISL／OSL 與 Astra 架構證據登錄、L1 前沿算力對照改 GPT-6 Astra；X11；判斷類（chat 端定案），依工作單 `docs/workorders/20261007_v5.25.md` r0 執行，試行 (B) 第二份）
 
-- Commit：見本輪分支 `claude/v5.25-build`（合併後補上雜湊）。報告：`docs/reports/20261007_v5.25.md`。底稿：master `bdb0de7`（＝v5.24 合併 `098873a`＋本工作單提交）；`model/CURRENT` 原為 v5.24。
+- Commit：合併雜湊 `97e7b20`（PR #26）；分支 `claude/v5.25-build`。報告：`docs/reports/20261007_v5.25.md`。底稿：master `bdb0de7`（＝v5.24 合併 `098873a`＋本工作單提交）；`model/CURRENT` 原為 v5.24。
 - 一手來源核對（CC 2026-10-07）：arXiv 2601.10088v1 HTML（4.3 節 Figure 14／15、4.4 節 Figure 17／18、4.1 節 Figure 10、2.3 節）與 Epoch `frontier_ai_models.csv`（GPT-6 Astra、Grok 3 列）逐項與工作單相符；Epoch `Confidence` 定義查得（records 文件頁）。
 - Excel（CC 以 `builder/` 自 v5.24 產生，經 LibreOffice 重算存檔）：SRC_Demand 新增 `SRC_DEM_014`–`017`（OpenRouter，1 級、利害關係方、純證據）；SRC_Model 新增 `SRC_MOD_055`（GPT-6 Astra 訓練算力 1.0001e27，1 級、中立）；DB_Evidence E247–E250；Gov_Map GM248（Serving C24）低 `=Serving!C24*0.5`（512）→ 400、區間文字改寫，GM245–GM250、GM203–GM205、GM531 理由欄附註；Decisions X11、X12；L1 第 36 列 L、M、N、S 改為 `SRC_MOD_055`（O36 0.149 → 0.068，P36 仍「差距 >20%」）；README A1／B5。與 v5.24 逐格比較：差異全部在工作單第 4 節預期範圍內；Interface、L1 D:F、所有模型頁數值逐格不變。公式格 39,218 → 39,252、具名範圍 903 → 911、工作表 56 不變。
 - builder：新增 `v525.py`（版本字串的唯一來源；所有寫入皆有舊值守衛）；`gov.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v525.py` 位置；`docs/builder/Tokenomics_builder_v5.md` 重新產生（26 個檔）。以 v5.25 重建冪等 0 不符。

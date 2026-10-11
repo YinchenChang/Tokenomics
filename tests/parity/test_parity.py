@@ -464,7 +464,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 221 and eng.get_name("GOV_Info") == 168      # v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 250 and eng.get_name("GOV_Info") == 168      # v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
 
 
 def _pct(eng, n, k):
@@ -532,8 +532,12 @@ def test_price_life_expected_values(model, template_engine):
                 assert y == x, (n, k, x, y)          # 基準列為文字（SLO 不可達）→ 相同文字
     assert changed > 0                               # 防空轉：至少一格 _Life 改變
     fm_row = int(re.sub(r"[A-Z]+", "", base.names["L1_FleetMargin"].rsplit("!", 1)[1].replace("$", "")))   # v5.29 X14 (c)：L1_FleetMargin 含 CTL_PriceLife × CTL_Monetize，該列隨情境改變
+    _row = lambda n: int(re.sub(r"[A-Z]+", "", base.names[n].rsplit("!", 1)[1].replace("$", "")))
+    m_rows = {_row("L1_MImplied"), _row("L1_MImplied_Ext")}   # v5.32 B3：兩列的外部欄 M／N＝CTL_Monetize，比值 O 與判讀 P 隨情境改變；D:F（隱含 m）不變
     for (sh, coord), v in cur.items():               # 基準列、L1、Interface 第 1–210 列、其他模型頁：數值不變（只允許 Theory_Rev D 節、Interface H 節、Checks X7 與其彙總；v5.29 起另允許 L1_FleetMargin 列）
         row = int(re.sub(r"[A-Z]+", "", coord))
+        if sh == "L1" and row in m_rows and re.sub(r"\d", "", coord) in ("M", "N", "O", "P"):
+            continue
         if (sh == "L1" and row != fm_row) or (sh == "Interface" and row <= 210):
             assert v == base_vals[(sh, coord)], (sh, coord, base_vals[(sh, coord)], v)
     assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values())
@@ -758,3 +762,38 @@ def test_v531_rack_price_and_it_maint(model):
     r = eng.get_name("L1_CapexITMW_GB300_vsIREN") / 29.0
     assert 0.8 <= r <= 1.2
     assert eng.get("SRC_HW", "O11") == "Alt" and eng.get_name("GOV_Errors") == 0
+
+
+# ── v5.32（工作單 docs/workorders/20261011_v5.32.md r1）：變現率 m 追蹤（Cap_In H 節、L1_MImplied／_Ext、Checks M1） ──
+def test_v532_m_tracking(model):
+    """v5.32：L1_MImplied（合併、模型 token 分母）基準＝SRC_DEM_007 ÷（AL_DPaid × 層級組合混合單價）＝1.7427（A 段第 6 節 1.74）；
+    外部欄＝CTL_Monetize（1）；判讀「落在 0.3–1.0 區間外」；L1_MImplied_Ext 以 Epoch 幾何中點；Checks M1＝1（WARN）；CTL_Monetize 仍為 1；GOV_Errors＝0。
+    期望值為 v5.32 LibreOffice 重算值；另以 Python 由具名範圍驗算基準式（1e-12）。"""
+    import re
+    eng = new_engine(model)
+    assert eng.get_name("CTL_Monetize") == 1 and eng.get_name("GOV_Errors") == 0
+    mix = eng.get_name("B4_MixPaid")
+    price = mix[0] * eng.get_name("IF_PriceRef_Luna") + mix[1] * eng.get_name("IF_PriceRef_Sol") + mix[2] * eng.get_name("IF_PriceRef_Astra")
+    m = eng.get_name("SRC_DEM_007") * 1e9 / (eng.get_name("AL_DPaid") * price)
+    assert abs(eng.get_name("L1_MImplied") - m) <= 1e-12 * m
+    want = {"L1_MImplied": (1.742672, 1.051059, 2.953300), "L1_MImplied_Ext": (1.069506, 0.338207, 3.382075)}
+    for n, (d, lo, hi) in want.items():
+        for suf, v in (("", d), ("_Lo", lo), ("_Hi", hi)):
+            assert abs(eng.get_name(n + suf) - v) < 5e-6, (n + suf, eng.get_name(n + suf), v)
+    epoch = (eng.get_name("SRC_DEM_013_Lo") * eng.get_name("SRC_DEM_013_Hi")) ** 0.5
+    ext = eng.get_name("SRC_DEM_007") * 1e9 / (epoch * 1e6 * 365 * (1 - eng.get_name("IF_FreeShare")) * price)
+    assert abs(eng.get_name("L1_MImplied_Ext") - ext) <= 1e-12 * ext
+    for n in ("L1_MImplied", "L1_MImplied_Ext"):
+        r = int(re.sub(r"[A-Z]+", "", eng.names[n].rsplit("!", 1)[1].replace("$", "")))
+        assert eng.get("L1", f"M{r}") == 1 and eng.get("L1", f"N{r}") == 1 and eng.get("L1", f"P{r}") == "落在 0.3–1.0 區間外", n
+    import openpyxl
+    wb = openpyxl.load_workbook(model, read_only=True)                  # 標籤（常數格）以 openpyxl 讀；數值一律由引擎計算
+    ck = {wb["Checks"][f"A{r}"].value: r for r in range(100, 140)}
+    assert eng.get("Checks", f"D{ck['M1']}") == 1
+    cap = {wb["Cap_In"][f"A{r}"].value: r for r in range(66, 109) if isinstance(wb["Cap_In"][f"A{r}"].value, str)}
+    def row(prefix):
+        return next(r for lab, r in cap.items() if lab.startswith(prefix))
+    sub, api = row("隱含 m — 訂閱路線（模型 token）"), row("隱含 m — API 路線（模型 token）")
+    assert abs(eng.get("Cap_In", f"C{sub}") - 3.196061) < 5e-6 and abs(eng.get("Cap_In", f"C{api}") - 0.845519) < 5e-6
+    assert abs(eng.get("Cap_In", f"C{row('2025 期間平均訂閱數')}") - 32.75) < 1e-12
+    assert abs(eng.get("Cap_In", f"C{row('對照：程式代理訂閱 m')}") - 200 / (13 * 21)) < 1e-12

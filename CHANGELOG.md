@@ -2,9 +2,23 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261011_Tokenomics_v5.32.xlsx（取代 v5.31；變現率 m 追蹤：付費用戶數 × 每用戶年 token 用量；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261011_v5.32.md` r1（B 段））
+
+- Commit：見本輪分支 `claude/v5.32-build`（合併後補上雜湊）。報告：`docs/reports/20261011_v5.32.md`。底稿：master `f16f161`（v5.31 合併，PR #36）；`model/CURRENT` 原為 v5.31。A 段查證：`docs/reports/20261011_v5.32A_查證.md`（PR #38）。
+- 依據：Andy 2026-10-11 09:41（追蹤 m 的工作單原話）與 11:21「了解，接著照建議依序執行」；chat 端判定 A 段 J1–J6（J1 調整為 (a′)）。
+- Excel（CC 以 `builder/` 自 v5.31 產生，經 LibreOffice 重算存檔）：
+  - B1：SRC_Demand 新增 `SRC_DEM_019`–`SRC_DEM_048`（30 筆，A 段 N01–N04、N06–N16 各時點一筆；N15／N16 只登錄，Cap_In C13 不改）；`SRC_DEM_018` 備註補 N12（Microsoft 分潤 20%；$38B 上限待查一手）；DB_Evidence E279–E301（A 段 N01–N23，判定照提案）。
+  - B2：Cap_In 新增 H 節「m 追蹤（v5.32）」（第 66–108 列，接在 G 節之後，既有具名範圍不位移）：分子＝SRC_DEM_007 × 訂閱占比 0.61／0.70／0.82；訂閱人數期間平均 32.75 M；分母兩欄並列（模型 token＝Alloc 第 5、8 列；外部 token＝SRC_DEM_011 年化、SRC_DEM_013 × (1 − IF_FreeShare)）；單價＝B4_MixPaid × IF_PriceRef_*；隱含 m（訂閱、API、合併 × 模型、外部）；程式代理對照列不進合併。
+  - B3：L1 新增 `L1_MImplied`（1.743；1.051–2.953）與 `L1_MImplied_Ext`（1.070；0.338–3.382），外部欄＝CTL_Monetize，判讀「落在 0.3–1.0 區間內／外」；Checks M1（WARN）。
+  - B4：`CTL_Monetize` 基準 1 與 Gov_Map 區間 0.3–1.0 不改；既有 IF_／L1_ 數值逐格不變；Interface 不新增名稱。
+  - B5：Gov_Map GM594 理由欄附加 J1 (a′)；Gov_Map 新登錄 4 列（Cap_In H 節 4 個藍字常數）；Decisions X21–X26；README A1、B5、新列 A34／B34。
+- builder：新增 `v532.py`；`gov.py`、`build.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v532.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（33 個檔）。
+- 測試：`formula_cells` 45,788 → 46,203、`defined_names` 1,072 → 1,109、`src_names` 368 → 399、`l1_names` 213 → 219；GOV_Warnings 221 → 250；新增 `test_v532_m_tracking`；`test_price_life_expected_values` 允許 L1_MImplied／_Ext 的 M:P 欄（外部欄＝CTL_Monetize）隨情境改變。
+- 治理：GOV_Errors 0、GOV_Warnings 221 → 250（M1 +1：J4 (a) 預期；W1 +28：新 SRC_DEM 利害關係方 Active 無第二來源）、GOV_Info 168（不變）。
+
 ## 20261008_Tokenomics_v5.31.xlsx（取代 v5.30；J1–J6：GB300 機架價格、IT 維護機齡兩段（壽命期等值費率）、口徑註記、IREN 對照；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261008_v5.31.md` r1（B 段））
 
-- Commit：見本輪分支 `claude/v5.31-build`（PR #36；合併後補上雜湊）。報告：`docs/reports/20261008_v5.31.md`。底稿：master `bc03f5c`（v5.30 合併，PR #35）；`model/CURRENT` 原為 v5.30。A 段查證：`docs/reports/20261008_v5.31A_查證.md`（PR #34）。
+- Commit：合併雜湊 `f16f161`（PR #36）；分支 `claude/v5.31-build`。報告：`docs/reports/20261008_v5.31.md`。底稿：master `bc03f5c`（v5.30 合併，PR #35）；`model/CURRENT` 原為 v5.30。A 段查證：`docs/reports/20261008_v5.31A_查證.md`（PR #34）。
 - 依據：chat 端依 A 段報告建議 J1–J6，Andy 2026-10-08 22:31「不反對，請繼續」（全部採 A 段建議值）。
 - Excel（CC 以 `builder/` 自 v5.30 產生，經 LibreOffice 重算存檔）：
   - J1（X16）：Spec_Rack GB300 機架價格 低／基準／高 4.0／5.0／6.5 → **4.0／4.3／5.0** $M——E11 維持連 SRC_HW_052（MS BOM 推算，等級 3→2）；E12 改 Derived 常數 4.3（＝4.0 × 1.075，同 VR200 F12 算法）；E13 改連 SRC_HW_010（Data Gravity 採購單 5.0）；SRC_HW_007（媒體 6.0–6.5）改 Alt；E16／E17 價格來源與標記文字。

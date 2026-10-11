@@ -84,6 +84,8 @@ from block4 import cap_in, price_frontier, capability, cache_store, fleet, amort
 K4 = cap_in(wb)
 import v522
 v522.cap_in_g(wb)      # v5.22 X7: CTL_PriceLife／CTL_Monetize (Cap_In G section, after the existing content)
+import v532
+V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -179,6 +181,7 @@ nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
 from gov import gov_all
 GOV = gov_all(wb)
 checks_h(wb)        # v5.15: Checks H section (after the G section; counted in GOV_Errors)
+V532_L1P = v532.l1_judge(wb)      # v5.32 B3: L1_MImplied／_Ext judgement column (inside／outside the CTL_Monetize Gov_Map range)
 import v519
 X1 = v519.x1(wb)    # v5.19 X1: *_Prod mirror sheets, Interface G, Checks I1 (after gov_all: reads the final formulas of the chain)
 print("x1 chain cells:", X1['cells'], "sheets:", X1['sheets'])
@@ -199,6 +202,8 @@ DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every for
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)
 CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
+CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
+print("v532 Cap_In H from:", V532_CAP["start"], "to:", V532_CAP["end"], "| L1 rows:", V532_L1P, "| Checks M1 row:", CK_M)
 print("v529 interface J from:", IFJ["start"], "names:", len(IFJ["made"]), "flags:", IFJ["flags"], "| contract rows:", len(IFC["rows"]), "no-dep rows:", IFC["no_dep"],
       "| Load_Bearing rows:", LB["rows"], "| Gov_Map helper rows:", N_GMH, "| Checks K rows:", CK_K)
 GOV["snap_retired"] = len(RETIRED)

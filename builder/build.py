@@ -86,6 +86,8 @@ import v522
 v522.cap_in_g(wb)      # v5.22 X7: CTL_PriceLife／CTL_Monetize (Cap_In G section, after the existing content)
 import v532
 V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
+import v533
+V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -128,6 +130,7 @@ V518_LOG += v521.text_update(wb)         # v5.21: Alloc_In!G7 note tail (old-tex
 V518_LOG += v529.inputs_update(wb)       # v5.29 X14 (l): Alloc_In 每則提示 token 數 2000/1000/6000 -> 4000/2000/6400 (old-value guards) and the G note
 import v531
 V518_LOG += v531.inputs_update(wb)       # v5.31 X16–X19: Spec_Rack E12 4.3 and text, Inputs rows 30／36–38, DC_Cost A46 label (old-value guards)
+V518_LOG += v533.inputs_update(wb)       # v5.33 J8／J9: Alloc_In C9 0 -> 0.6, C11 0.4 -> 0, C12 0.2 -> 0, E15 6400 -> 11000 (old-value guards) and G notes
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -182,6 +185,7 @@ from gov import gov_all
 GOV = gov_all(wb)
 checks_h(wb)        # v5.15: Checks H section (after the G section; counted in GOV_Errors)
 V532_L1P = v532.l1_judge(wb)      # v5.32 B3: L1_MImplied／_Ext judgement column (inside／outside the CTL_Monetize Gov_Map range)
+V533_L1P = v533.l1_judge(wb)      # v5.33 B4: L1_MFleet (range) and L1_TokCeiling (demand ÷ ceiling) judgement columns
 import v519
 X1 = v519.x1(wb)    # v5.19 X1: *_Prod mirror sheets, Interface G, Checks I1 (after gov_all: reads the final formulas of the chain)
 print("x1 chain cells:", X1['cells'], "sheets:", X1['sheets'])
@@ -203,6 +207,8 @@ IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (
 LB = v529.load_bearing(wb, DEPS, GMC)
 CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
+CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
+print("v533 Cap_In H7 from:", V533_CAP["start"], "to:", V533_CAP["end"], "| L1 rows:", V533_L1P, "| Checks M2/M3 rows:", CK_M23)
 print("v532 Cap_In H from:", V532_CAP["start"], "to:", V532_CAP["end"], "| L1 rows:", V532_L1P, "| Checks M1 row:", CK_M)
 print("v529 interface J from:", IFJ["start"], "names:", len(IFJ["made"]), "flags:", IFJ["flags"], "| contract rows:", len(IFC["rows"]), "no-dep rows:", IFC["no_dep"],
       "| Load_Bearing rows:", LB["rows"], "| Gov_Map helper rows:", N_GMH, "| Checks K rows:", CK_K)

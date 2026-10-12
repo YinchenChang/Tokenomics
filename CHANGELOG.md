@@ -2,6 +2,20 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261013_Tokenomics_v5.33.xlsx（取代 v5.32；付費 token 數量校準：2025 基準年世代組合、每則 token 高端、機隊口徑（兩種讀法）；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261012_v5.33.md` r1（B 段））
+
+- Commit：見本輪分支 `claude/v5.33-build`（合併後補上雜湊）。報告：`docs/reports/20261013_v5.33.md`。底稿：master `63dc78a`（v5.32 合併，PR #39）；`model/CURRENT` 原為 v5.32。A 段查證：`docs/reports/20261012_v5.33A_查證.md`（PR #40）。
+- 依據：Andy 2026-10-12 07:43（A 段工作單原話）與 2026-10-13 06:46「2.2025 基準年世代組合：或改為 Hopper 60／GB200 40　其餘支持照你的建議」；chat 端判定 J7–J14。
+- Excel（CC 以 `builder/` 自 v5.32 產生，經 LibreOffice 重算存檔）：
+  - B1：SRC_Demand 新增 `SRC_DEM_049`–`SRC_DEM_068`（20 筆，A 段第 8 節 S-01–S-20 各一筆）；`SRC_DEM_007` 備註補 J14（13.07 為 OpenAI 自身營收口徑，待一手確認）、`SRC_DEM_009` 補 N15、`SRC_DEM_045` 補 N12；DB_Evidence E302–E324（A 段 N01–N23，判定照提案）；E301 判定補「已查證」（N13）。
+  - B2：Alloc_In 藍字 C9 0 → **0.6**、C11 0.4 → **0**、C12 0.2 → **0**（J8；C10 0.4 不變）、E15 6,400 → **11,000**（J9）；G 欄備註補 J8／J9。連動：Alloc B–G 節；`IF_AllocQ1` 0.573 → 0.332、`IF_AllocQ1_R2` 0.629 → 0.420、`IF_AllocQ2` 0.614 → 0.394、`IF_AllocServeGW` 0.0675 → 0.1826、`IF_AllocImpliedNk` 1.98 → 5.36；`L1_ScaleServe` 18.07 → 7.38、`L1_GapPrompt_Hi` 3.2 → 5.5、`L1_MImplied_Lo` 1.05 → 0.75 等（B2 列明者）。
+  - B3：Cap_In 新增 H7「機隊口徑」（第 108–130 列，接在 H6 之後；原第 108 列讀法移到第 130 列並改寫；既有具名範圍不位移）：支出路線服務 GW ÷ Azure 倍數 0.674、付費／免費產能、r 模型 0.57 vs 支出口徑 3.22、利用率修正 0.583／0.85、機隊付費 token 點估計 8.23 × 10⁹（上限 11.99 × 10⁹）、機隊 m 0.810（0.531–1.417）、m 下限 0.556、「必須為真」三列（m＝0.3 被上限排除）、非文字份額 0.05／0.10／0.20（藍字，Gov_Map GM612／GM613）與扣除後 m。
+  - B4：L1 新增 `L1_MFleet`（0.810；外部欄＝CTL_Monetize，判讀「落在 0.3–1.0 區間內」）與 `L1_TokCeiling`（1.199 × 10¹⁰；外部欄＝AL_DPaid，判讀「需求路線 ÷ 上限＝0.32」）；Checks M2、M3（WARN，依現值 0）。
+  - B5／B6：`CTL_Monetize` 基準 1 與區間 0.3–1.0 不改；Gov_Map GM590（C9:C12）、GM586／GM587（C15 區間文字改 2,000–11,000）、GM594 理由欄附加；Decisions X27–X34，X22／X26 備註附加；README A1、B5、新列 A35／B35。
+- builder：新增 `v533.py`；`gov.py`、`build.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v533.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（34 個檔）。
+- 測試：`formula_cells` 46,203 → 46,471、`defined_names` 1,109 → 1,140、`src_names` 399 → 424、`l1_names` 219 → 225；GOV_Warnings 250 → 267；`L1_ScaleServe`、`AL_ServeGWSpend`、`L1_MImplied_Lo` 期望值更新；`test_batch_etad_expected_values` 另略過 v5.32 → v5.33 改變的名稱；新增 `test_v533_fleet_basis`。
+- 治理：GOV_Errors 0、GOV_Warnings 250 → 267（W1 +17：新 SRC_DEM 利害關係方 Active 無第二來源；M2、M3 為 0）、GOV_Info 168（不變）。
+
 ## 20261011_Tokenomics_v5.32.xlsx（取代 v5.31；變現率 m 追蹤：付費用戶數 × 每用戶年 token 用量；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261011_v5.32.md` r1（B 段））
 
 - Commit：見本輪分支 `claude/v5.32-build`（合併後補上雜湊）。報告：`docs/reports/20261011_v5.32.md`。底稿：master `f16f161`（v5.31 合併，PR #36）；`model/CURRENT` 原為 v5.31。A 段查證：`docs/reports/20261011_v5.32A_查證.md`（PR #38）。

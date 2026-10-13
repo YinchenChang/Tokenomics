@@ -1,4 +1,6 @@
-# Tokenomics — Claude Code 工作規範（2026-10-04 修訂五，取代 repo 內現有 CLAUDE.md）
+# Tokenomics — Claude Code 工作規範（2026-10-13 修訂六，取代 repo 內現有 CLAUDE.md）
+
+> 修訂六（2026-10-13，Andy 決定）：本機數值檢查取代「等 GitHub CI」作為提交與合併門檻；重算秒數降為警告；加入兩輪停損；數值檢查通過後由 CC 自行合併，不再等 Andy 確認。理由：本模型用於研究，更新頻繁，等待 CI 一輪約 20 分鐘且修正循環沒有停損，v5.33 建置因此耗時 7 小時。數值檢查本身不放寬——Tokenomics 是第 0 層，下游公司模型全部讀它的 IF_ 數值。
 
 ## 1. 角色與事實來源
 
@@ -41,20 +43,26 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
 
 - 以公式引擎（首選 `formulas`，備選 `pycel`）載入 xlsx 並重算。
 - 選型標準：parity 測試全數通過，且單次全簿重算少於 2 秒。
-  - 效能門檻分兩條：(a) 每個 parity 情境改輸入後的增量重算少於 2 秒（硬性）；(b) 全簿強制重算少於 2 秒（硬性）。
+  - 效能門檻分兩條：(a) 每個 parity 情境改輸入後的增量重算少於 2 秒；(b) 全簿強制重算少於 2 秒。
+  - **兩條門檻自修訂六起皆為警告，不是失敗**：超過時測試以 warning 記錄秒數並寫進報告，不阻擋提交或合併。秒數受執行機器影響（CI runner 曾量到 2.02–2.08 秒），不是數值正確性問題。只有在單一機器上連續三版都超過 3 秒，才列入「待 Project 判斷」討論引擎選型。
 - 遇到引擎不支援的 Excel 函數時：
   - 回報給 Andy，由 Project 端改寫 Excel。
   - 不得在 Python 另寫旁路計算。
 - 輸入與輸出一律透過 Excel 具名範圍存取，不寫死儲存格位址。
 
-## 3. 一致性測試（必須通過才可合併）
+## 3. 一致性測試（數值檢查必須通過才可合併）
 
 1. 以 LibreOffice headless 重算 xlsx，取得期望值。
 2. 以 engine 計算同一組情境（`tests/parity/scenarios.yaml`：基準、低、高，另加每個世代與層級的組合）。
 3. 比對範圍與容差：
    - `Interface` 頁全部儲存格，以及標為 `key` 的中間格。
    - 相對誤差不超過 1e-9；字串必須完全一致。
-4. GitHub Actions 在每次 push 與 PR 執行。未通過即阻擋合併。
+4. **檢查在本機執行，結果寫進報告；GitHub Actions 不阻擋**（修訂六）：
+   - CC 在開 PR 前於本機跑完 `tests/parity` 全套（數值檢查：逐格一致、具名範圍期望值、情境無錯誤值、GOV_Errors 0），把通過／失敗項數與重算秒數寫進報告第 5a 節。本機全過即可開 PR 與合併。
+   - GitHub Actions 照常在 push 與 PR 執行，供事後對照；CC **不等待、不輪詢**其結果。CI 與本機不一致時，列在下一版報告「待 Project 判斷」。
+   - 重算秒數（第 2 節 engine 規則兩條門檻）只警告，不算失敗。
+   - **停損**：同一個失敗項修正兩輪仍未通過，或失敗屬於環境因素（秒數、runner 差異、權限、網路），CC 停止修正，把現狀與未完成項寫進報告交 chat 端判斷；不得反覆推送重試。
+   - 預期中的數值變動（工作單「預期變動」已列明者）造成的測試期望值不符，CC 直接更新測試期望值並在報告表 1 註明，不算失敗。
 
 ## 4. 建置與同步流程（每個 Excel 新版本）
 
@@ -63,12 +71,13 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
    - CC 同時重新產生 `docs/builder/Tokenomics_builder_v5.md`（`tools/gen_builder_md.py`；標題與各檔 `## <檔名>.py` 區塊格式不變）。chat 端不再交付 Excel 或 builder md。
    - 工作單要求改動的輸入值：直接寫入 Excel 的藍字格，沿用「只在仍為舊值時才寫」的機制（`gov.gm_update` 同類寫法），不改 builder 的預設值。
 2. **驗收（全部成立才可提交）**：
-   - LibreOffice 重算錯誤 0 格；本機跑受影響子集；parity 全套以 CI 為準；合併門檻為 CI 全部 job 通過。增量與全簿重算皆 < 2 秒。
+   - LibreOffice 重算錯誤 0 格；本機跑 parity 全套（第 3 節第 4 條）；合併門檻為本機數值檢查全部通過。增量與全簿重算秒數記錄於報告，超過 2 秒只警告。
    - `restore_log` unmatched 0；「Excel value kept over code default」只能出現工作單列明的格。
    - 冪等：以新版為底稿重建，兩邊都經 LibreOffice 重算存檔後比較，數值與公式文字不符 0（builder 直接輸出的科學記號寫法與 LibreOffice 存檔不同，不作為不一致）。
    - 與現行版逐格比較：差異必須全部落在工作單的「預期變動」範圍內。
 3. 如果具名範圍有增減，依 Excel 更新 `app/` 的欄位映射。
 4. 在 `CHANGELOG.md` 記錄 Excel 版本、commit 與變動摘要。
+4a-bis. **合併（修訂六）**：第 2 項驗收全部成立、報告已寫入 repo 並貼成 PR comment 後，CC 以 `gh api -X PUT repos/YinchenChang/Tokenomics/pulls/<n>/merge -f merge_method=merge -f sha=<最新 SHA>` 自行合併到 master，不等 Andy 確認。合併被權限或衝突擋下時，不繞過，在最終回覆與報告寫明「待合併」與原因。Andy 事後有異議可 revert；判斷類內容仍以工作單為界，工作單沒寫的不因可自行合併而放寬。
 5. 發現 Excel 本身的錯誤（`#REF!`、`#DIV/0!`、循環參照、單位不一致）時：
    - 在 PR 描述與報告中列出；不得在 Python 端旁路修補。
    - 例外：屬工作單範圍內可直接修正的 Excel 公式缺陷，可在同一版修正，並在報告表 1 列出。其他錯誤列在報告，交 Project 判斷。
@@ -83,7 +92,7 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
    - 與現行版逐格比對：全部既有儲存格數值不變；差異只能是新增的顯示格、標籤文字或具名範圍。報告逐項列出所有差異。
    - 第 3 節 parity 全過。
 4. 依第 4 節完成同步（含 `model/CURRENT`、CHANGELOG），並更新 `builder/` 後重新產生 `docs/builder/Tokenomics_builder_v5.md`（標題與各檔區塊格式不變），讓 chat 端可直接讀取。
-5. 報告標題標明「工程類（CC 執行）」；合併前請 Andy 確認。
+5. 報告標題標明「工程類（CC 執行）」；驗收成立後依第 4 節 4a-bis 自行合併。
 
 ## 5. Block 0 遷移任務（v4 → v5 過渡；已完成，保留紀錄）
 
@@ -109,11 +118,11 @@ Andy 不熟悉程式，所以每一輪工作結束都要交報告：
   - 下一步與需要 Andy 決定的事項。
 - **同一份內容也貼成 PR comment**，讓 Andy 可以從 GitHub 通知信讀取。
 - 報告開頭列出：分支名稱、最新提交 SHA、報告檔路徑，讓 chat 端可直接以 `https://raw.githubusercontent.com/YinchenChang/Tokenomics/<SHA>/<路徑>` 讀取原檔。
-- 合併前請 Andy 確認。
+- 數值檢查通過即自行合併（第 4 節 4a-bis）；報告寫明合併 SHA。
 - **必填一節「預期變動 vs 實際變動」**（修訂五）：
   - 表 1：工作單每一項 → 是否完成、實際位置（頁、列或名稱）、數值摘要。
   - 表 2：逐格比較中，不在工作單範圍內的所有差異（應為 0；若非 0 逐項說明）。
-  - 另列：重算秒數（本機與 CI，CI 以 job summary 為準）、parity 項數與情境數、GOV 三項計數。
+  - 另列：重算秒數（本機為準；CI 若已完成可附）、parity 通過／失敗項數與情境數、GOV 三項計數。
 - 必填「待 Project 判斷」一節：工作單沒寫到或寫得不清楚而 CC 未自行決定的事項。
 
 ## 6. 禁止事項

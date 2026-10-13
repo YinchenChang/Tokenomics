@@ -424,7 +424,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
     for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
-                              ("b_prod_derate", {"Serving!C18": 0.7}, False)):
+                              ("b_prod_derate", {"Serving!C18": 0.7}, True)):      # v5.33 J8：2025 組合含 Hopper 60%，C18＝0.7 時 Hopper SLO 不可達 → Alloc 回傳文字（v5.32 前組合無 Hopper，為數值 0.4570）
         eng = _clone(template_engine)
         for k, v in inputs.items():
             eng.set_key(k, v)
@@ -438,8 +438,10 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
             assert eng.get_name("GOV_Errors") == 0, sid
         if text:                                                                            # SLO 不可達：Q1、Q2、服務 GW 回傳文字
             assert eng.get_name("IF_AllocQ1") == eng.get_name("IF_AllocQ2") == eng.get_name("IF_AllocServeGW") == "SLO 不可達", sid
-        else:                                                                               # 生產折減 0.7 仍可服務：回傳數值（Q1 約 52.1%；v5.23 X10 前為 48.5%）
-            assert abs(eng.get_name("IF_AllocQ1") - 0.4570) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))      # v5.29 X14 (l)：0.5213 → 0.4570（服務 GW 隨每則 token 數上升）
+        else:                                                                               # （v5.33 起兩個情境皆為文字；v5.32 前 b_prod_derate 回傳數值：Q1 0.4570，v5.29 X14 (l)）
+            assert abs(eng.get_name("IF_AllocQ1") - 0.4570) < 5e-4, (sid, eng.get_name("IF_AllocQ1"))
+        if sid == "b_prod_derate":                                                          # v5.33 B3：Cap_In H7 與 L1_MFleet／L1_TokCeiling 帶 SLO 守衛，回傳文字而非錯誤值
+            assert eng.get_name("L1_MFleet") == eng.get_name("L1_TokCeiling") == "SLO 不可達" and eng.get("Checks", "D129") == 0 and eng.get("Checks", "D130") == 0
 
 
 def test_alloc_mix_2025_expected_values(model, template_engine):

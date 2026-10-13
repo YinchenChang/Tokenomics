@@ -4,7 +4,7 @@
 
 ## 20261013_Tokenomics_v5.33.xlsx（取代 v5.32；付費 token 數量校準：2025 基準年世代組合、每則 token 高端、機隊口徑（兩種讀法）；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261012_v5.33.md` r1（B 段））
 
-- Commit：見本輪分支 `claude/v5.33-build`（合併後補上雜湊）。報告：`docs/reports/20261013_v5.33.md`。底稿：master `63dc78a`（v5.32 合併，PR #39）；`model/CURRENT` 原為 v5.32。A 段查證：`docs/reports/20261012_v5.33A_查證.md`（PR #40）。
+- Commit：PR #41 合併 `388f274`（內容 `4c4a336`→`48e19a9`）。報告：`docs/reports/20261013_v5.33.md`。底稿：master `63dc78a`（v5.32 合併，PR #39）；`model/CURRENT` 原為 v5.32。A 段查證：`docs/reports/20261012_v5.33A_查證.md`（PR #40）。
 - 依據：Andy 2026-10-12 07:43（A 段工作單原話）與 2026-10-13 06:46「2.2025 基準年世代組合：或改為 Hopper 60／GB200 40　其餘支持照你的建議」；chat 端判定 J7–J14。
 - Excel（CC 以 `builder/` 自 v5.32 產生，經 LibreOffice 重算存檔）：
   - B1：SRC_Demand 新增 `SRC_DEM_049`–`SRC_DEM_068`（20 筆，A 段第 8 節 S-01–S-20 各一筆）；`SRC_DEM_007` 備註補 J14（13.07 為 OpenAI 自身營收口徑，待一手確認）、`SRC_DEM_009` 補 N15、`SRC_DEM_045` 補 N12；DB_Evidence E302–E324（A 段 N01–N23，判定照提案）；E301 判定補「已查證」（N13）。

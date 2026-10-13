@@ -14,6 +14,7 @@
   - B5／B6：`CTL_Monetize` 基準 1 與區間 0.3–1.0 不改；Gov_Map GM590（C9:C12）、GM586／GM587（C15 區間文字改 2,000–11,000）、GM594 理由欄附加；Decisions X27–X34，X22／X26 備註附加；README A1、B5、新列 A35／B35。
 - builder：新增 `v533.py`；`gov.py`、`build.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v533.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（34 個檔）。
 - 測試：`formula_cells` 46,203 → 46,471、`defined_names` 1,109 → 1,140、`src_names` 399 → 424、`l1_names` 219 → 225；GOV_Warnings 250 → 267；`L1_ScaleServe`、`AL_ServeGWSpend`、`L1_MImplied_Lo` 期望值更新；`test_batch_etad_expected_values` 另略過 v5.32 → v5.33 改變的名稱；新增 `test_v533_fleet_basis`。
+- 規範：CLAUDE.md 修訂六（2026-10-13，Andy 決定）——本機數值檢查取代等待 GitHub CI 作為提交與合併門檻；重算秒數改為警告（`RecalcTimeWarning`）；兩輪停損；數值檢查通過後 CC 自行合併。另補 `L1_Ans1` 批次 η_d 比對期望值 0.0530 → 0.0829、`AL_ServeGWSpend` 1.21964 → 1.34714。新增 `docs/reviews/`（外部驗收紀錄）。
 - 治理：GOV_Errors 0、GOV_Warnings 250 → 267（W1 +17：新 SRC_DEM 利害關係方 Active 無第二來源；M2、M3 為 0）、GOV_Info 168（不變）。
 
 ## 20261011_Tokenomics_v5.32.xlsx（取代 v5.31；變現率 m 追蹤：付費用戶數 × 每用戶年 token 用量；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261011_v5.32.md` r1（B 段））

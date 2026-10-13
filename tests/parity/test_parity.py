@@ -4,6 +4,7 @@
 """
 import os
 import time
+import warnings
 from pathlib import Path
 
 import pytest
@@ -307,7 +308,8 @@ def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, resu
     if sc["id"] == "h_prod_derate_070":          # v5.19 X1 防空轉：至少一個 _Prod 列改變；基準列（IF_FullCost_*、IF_RevGW_*）一格都不變
         assert any(base_engine[0].get_name(n) != eng.get_name(n) for n in PROD_IF), f"[{sc['id']}] _Prod 列未改變"
         assert all(base_engine[0].get_name(n[:-5]) == eng.get_name(n[:-5]) for n in PROD_IF), f"[{sc['id']}] 基準列被改動（Serving!C18 未動，基準列不得變）"
-    assert elapsed < INCREMENTAL_LIMIT_S, f"[{sc['id']}] 改輸入後重算 {elapsed:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"   # (a) 增量重算硬性門檻
+    if elapsed >= INCREMENTAL_LIMIT_S:                                                       # (a) 增量重算門檻：修訂六起只警告（CLAUDE.md 第 2 節 engine 規則、第 3 節第 4 條）
+        warnings.warn(f"[{sc['id']}] 改輸入後重算 {elapsed:.2f}s ≥ {INCREMENTAL_LIMIT_S}s（警告，不算失敗）", RecalcTimeWarning)
     assert res["error_value_cells"] == 0, f"[{sc['id']}] 錯誤值 {res['error_value_cells']} 格（v5.9 起任何情境皆不得出現錯誤值；兩邊錯誤代碼不同亦視為不符）"
     if sc["id"] != "base":
         assert changed, f"[{sc['id']}] 未改變任何公式格（測試空轉）"
@@ -377,6 +379,10 @@ FULL_RECALC_LIMIT_S = 2.0
 INCREMENTAL_LIMIT_S = 2.0
 
 
+class RecalcTimeWarning(UserWarning):
+    """修訂六（2026-10-13）：重算秒數超過門檻只警告、不算失敗；秒數受機器影響，不是數值正確性問題。"""
+
+
 def test_incremental_recalc_matches_fresh_and_is_fast(model, results_store):
     """同一實例連續改輸入再還原：結果須與全新實例相同；(a) 每個情境增量重算 < 2 秒（硬性）。"""
     eng = new_engine(model, fresh=True)
@@ -392,7 +398,8 @@ def test_incremental_recalc_matches_fresh_and_is_fast(model, results_store):
         eng.evaluate_all()
         dt = time.perf_counter() - t0
         secs[sc["id"]] = dt
-        assert dt < INCREMENTAL_LIMIT_S, f"{sc['id']} 增量重算 {dt:.2f}s ≥ {INCREMENTAL_LIMIT_S}s"
+        if dt >= INCREMENTAL_LIMIT_S:
+            warnings.warn(f"{sc['id']} 增量重算 {dt:.2f}s ≥ {INCREMENTAL_LIMIT_S}s（警告，不算失敗）", RecalcTimeWarning)
         for key, v in origs.items():
             eng.set_key(key, v)
     worst = max(secs, key=secs.get)
@@ -412,14 +419,15 @@ def test_full_recalc_time(model, results_store):
     eng._xl.recalculate()                      # 強制全簿（全部公式格）重算
     full = time.perf_counter() - t0
     results_store["_full_recalc_seconds"] = round(full, 2)
-    assert full < FULL_RECALC_LIMIT_S, f"全簿強制重算 {full:.2f}s ≥ {FULL_RECALC_LIMIT_S}s"
+    if full >= FULL_RECALC_LIMIT_S:                                                          # 修訂六：只警告；秒數寫入 results_store 供報告引用
+        warnings.warn(f"全簿強制重算 {full:.2f}s ≥ {FULL_RECALC_LIMIT_S}s（警告，不算失敗）", RecalcTimeWarning)
 
 
 def test_alloc_expected_values_and_slo_text(model, template_engine):
     """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
     base = new_engine(model)
     assert abs(base.get_name("AL_DDaily") - 16.48) < 0.01                                 # v5.29 X14 (l)：每則提示 token 數 2,000 → 4,000，每日 token 11.48 → 16.48T
-    assert abs(base.get_name("AL_ServeGWSpend") - 1.21964) < 5e-5                        # v5.31 J1／J2：1.11399 → 1.21964（支出 ÷ 持有成本，持有成本下降）；v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
+    assert abs(base.get_name("AL_ServeGWSpend") - 1.34714) < 5e-5                        # v5.33 J8：組合持有成本 10.33 → 9.353，1.21964 → 1.34714（工作單 B2 驗收錨點 1.35）；v5.31 J1／J2：1.11399 → 1.21964（支出 ÷ 持有成本，持有成本下降）；v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
     assert abs(base.get_name("AL_RefGWyr") - 0.0210207) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
     assert abs(base.get_name("AL_FamGWyr") - base.get("Fleet_1GW", "M33")) < 1e-12        # 家族計畫＝Fleet_1GW 第 33 列（VR200 欄）
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
@@ -552,7 +560,8 @@ EXPECT_BATCH_075 = {"IF_TrainCost_Luna": {10: 0.1434, 11: 0.1434, 12: 0.1434}, "
                     "IF_TrainCost_Astra": {10: 0.0921, 11: 0.0921, 12: 0.0921}, "TRN_GPUhRL": {10: 0.1426, 11: 0.1459, 12: 0.1596},
                     "IF_FullCost_Luna": {11: 0.0020}, "IF_FullCost_Sol": {11: 0.0055}, "IF_FullCost_Astra": {11: 0.0287}}
 # v5.29 X14 (k)(l)：L1_Ans1 0.0452 → 0.0530（Q1 對研發 GW 的彈性隨服務 GW 上升而改變；引擎重算值 0.052959；不受 Alloc 輸入影響的其餘項不變）
-EXPECT_BATCH_075_SCALAR = {"L1_Ans1": 0.0530, "L1_Ans3": 0.1241, "L1_Ans6_GPUh": 0.1039, "L1_Ans5_FullMargin": -0.0003,
+EXPECT_BATCH_075_SCALAR = {"L1_Ans1": 0.0829,       # v5.33 J8：2025 組合 Hopper 60／GB200 40 使服務 GW 對 η_d 更敏感，0.0530 → 0.0829（LibreOffice 重算值；工作單 B2 預期連動）
+                            "L1_Ans3": 0.1241, "L1_Ans6_GPUh": 0.1039, "L1_Ans5_FullMargin": -0.0003,
                            "L1_RLshare_Sol_VR200": 0.1459, "L1_RLshare_Astra_VR200": 0.1596}
 EXPECT_BATCH_075_RATIO = (1.762, 1.811, 1.923)      # Perf_Batch 第 88 列 VR200（L、M、N）÷ GB300（I、J、K）；k＝1 時為 2.350、2.414、2.564
 

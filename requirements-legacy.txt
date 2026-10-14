@@ -1,0 +1,6 @@
+# 暫停的網站與公式引擎（legacy/）所需套件（CLAUDE.md 修訂八）。恢復網站時再安裝。
+streamlit>=1.40
+pandas
+openpyxl
+pycel==1.0b30
+pyyaml

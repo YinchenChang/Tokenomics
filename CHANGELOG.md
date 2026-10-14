@@ -2,6 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 工程類：修訂八-B 停用公式引擎與網站（不改 Excel；Excel 仍為 20261014_Tokenomics_v5.35.xlsx）
+
+- 分支 `claude/parity-rev8`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_修訂八B_停用引擎.md`；進度檔：`docs/reports/20261015_修訂八B_進度.md`；工作單：`docs/workorders/20261015_修訂八B_停用引擎.md`。
+- 不改 `model/`、`builder/`、任何數值；測試期望值與容差不改（逐項例外見報告表 1）。
+- `engine/`、`app/`、`tests/app/`、`tools/build_engine_cache.py`、`tools/stage0_inventory.py` 以 `git mv` 移到 `legacy/`（`tests/app` → `tests/legacy/app`）；`tests/parity/test_functions.py` → `tests/legacy/`。
+- `tests/parity/` 改為讀 LibreOffice 重算值：`conftest.py` 的 `lo.view(inputs)`（同組輸入只算一次，2 條執行緒預先算好情境）；`test_scenario_checks` 取代引擎對 LibreOffice 的逐格比對；刪除快取等價、增量／全簿重算秒數等測試。
+- `tokenomics.py`、`run_local.bat` 改為印出暫停訊息；`tools/export_csv.py` 改讀 LibreOffice 重算值；`requirements.txt` 移除 pycel／streamlit／pandas，新增 `requirements-legacy.txt`。
+- `.github/workflows/parity.yml`：單一 parity job＋governance＋ci-status，仍不阻擋合併。
+- `CLAUDE.md` 修訂八（含 4b 第 8 項代理模型）、`README.md` 同步更新。
+
 ## 20261014_Tokenomics_v5.35.xlsx（取代 v5.34；m 序列三項修正 ＋ L 拆分（L_price × L_demote）；判斷類（chat 端判定 J22–J24，CC 執行），依工作單 `docs/workorders/20261014_v5.35.md` r0）
 
 - Commit：分支 `claude/v5.35-build`（內容提交 `de39f92`；合併 SHA 見報告與 PR）。報告：`docs/reports/20261014_v5.35.md`；進度檔：`docs/reports/20261014_v5.35_進度.md`。底稿：master `322e1c7`（PR #44，v5.34）；`model/CURRENT` 原為 v5.34。

@@ -1,17 +1,15 @@
-"""Excel（LibreOffice 重算）與 engine 的一致性測試（CLAUDE.md 第 3 節）。
+"""數值檢查（CLAUDE.md 第 3 節；修訂八-B）：所有檢查讀 LibreOffice 重算後的值，不再使用公式引擎。
 
-比對範圍：全部公式格；具名範圍名稱與 attr_text；17 個情境（含 v5.11 兩個治理情境）各以獨立引擎實例重算。
+範圍：全部情境（scenarios.yaml）的錯誤值與防空轉；具名範圍與形狀；各版本的期望值測試。
+`lo.view(inputs)` 回傳該組輸入重算後的唯讀檢視（介面同舊 Engine 的唯讀部分）；inputs={} 為基準。
 """
-import os
-import time
-import warnings
 from pathlib import Path
 
 import pytest
 import yaml
 
-from engine import Engine, current_model_path, read_defined_names_xml, resolve_key
-from parity_lib import compare, excel_values, format_mismatches, lo_recalc, set_inputs
+from conftest import model_path
+from parity_lib import lo_recalc, read_defined_names_xml, set_inputs
 
 HERE = Path(__file__).parent
 CFG = yaml.safe_load((HERE / "scenarios.yaml").read_text(encoding="utf-8"))
@@ -31,36 +29,20 @@ V526_IF = ("IF_DeprLifeIT", "IF_DeprIT", "IF_DeprFac", "IF_AvgDraw", "IF_PowerPr
 ALLOC_IF = ("IF_AllocQ1", "IF_AllocQ1_R2", "IF_AllocQ2", "IF_AllocServeGW", "IF_AllocRDGW", "IF_AllocDemand", "IF_AllocImpliedNk")
 
 
+# 額外的輸入組合（測試名稱 → 輸入列表）：conftest 的 lo fixture 會在 session 開始時與情境一起並行預先重算。
+PREWARM = {
+    "test_floor_scenarios_expected_values": [{"B5_PFloor": 0}, {"B5_PFloor": 0.8}],
+    "test_alloc_expected_values_and_slo_text": [{"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, {"Serving!C18": 0.7}],
+    "test_alloc_mix_2025_expected_values": [{"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}],
+    "test_prod_derate_expected_values": [{"CTL_ProdDerate": 0.7}],
+    "test_price_life_expected_values": [{"CTL_PriceLife": 0.5, "CTL_Monetize": 0.8}],
+    "test_batch_etad_expected_values": [{"CAL_BatchEtaD[4]": 1.0}],
+}
+
+
 @pytest.fixture(scope="module")
 def model():
-    return current_model_path()
-
-
-@pytest.fixture(scope="module")
-def base_engine(model):
-    """基準引擎（只讀）：供防空轉統計與公式格清單，避免每個情境重複建圖。一律重建（不經快取）。"""
-    eng = new_engine(model, fresh=True)
-    return eng, eng.evaluate_all()
-
-
-def new_engine(model, fresh=False):
-    """回傳全新的引擎實例。預設（無快取）每次建圖並重算，約 50 秒。
-    CI 設定 TOKENOMICS_ENGINE_CACHE 時改由 pycel 序列化檔載入（ExcelCompiler.from_file，約數秒），每次載入都是獨立實例；
-    載入後仍強制全簿重算。第 14 輪評估：18 情境與重建逐格比對不符 0（2026-10-04 提速報告）。
-    fresh=True 一律重建：效能門檻測試（兩條重算）量的是真正建出來的引擎，不經快取。
-    曾評估以 deepcopy 範本共用建圖結果（第 12 輪第 7 點）：總時長可由約 37 分降至約 10 分，但複本偶發
-    'NoneType' has no attribute 'get_range'，且複本的重算變慢（4.9–6.2 秒），不採用。"""
-    cache = None if fresh else os.environ.get("TOKENOMICS_ENGINE_CACHE")
-    return Engine(model, cache=cache or None)
-
-
-@pytest.fixture(scope="module")
-def template_engine(model):
-    return model
-
-
-def _clone(model, fresh=False):
-    return new_engine(model, fresh=fresh)
+    return model_path()
 
 
 def test_model_current_pointer(model):
@@ -83,17 +65,17 @@ def test_readme_version_consistency(model):
     assert b5.startswith(cur[: -len(".xlsx")]), f"README!B5 開頭應為 {cur[:-5]}，實際：{b5[:40]}"
 
 
-def test_workbook_expectations(model):
-    eng = new_engine(model)
+def test_workbook_expectations(model, lo):
+    eng = lo.view({})
     assert len(eng.formula_cells) == EXPECT["formula_cells"]
     assert len(eng.names) == EXPECT["defined_names"]
     assert eng.sheetnames == EXPECT["sheets"]                              # v5.7 起含 DB_Evidence（最後一頁）；v5.8 起含 8 個 Block 4 頁
     assert not any(s == "DB_Evidence" for s, _ in eng.formula_cells)       # DB_Evidence 純輸入、無公式
 
 
-def test_named_ranges(model):
+def test_named_ranges(model, lo):
     """144 個具名範圍：名稱存在、attr_text 與 workbook.xml 及 LibreOffice 重算版一致，且可取值。"""
-    eng = new_engine(model)
+    eng = lo.view({})
     xml_names = read_defined_names_xml(model)
     assert set(eng.names) == set(xml_names)
     for n, txt in eng.names.items():
@@ -130,9 +112,9 @@ def test_named_ranges(model):
         assert all(not (isinstance(x, str) and x.startswith("#")) for x in flat), f"{n} 含錯誤值"
 
 
-def test_display_names_alignment(model):
+def test_display_names_alignment(model, lo):
     """表頭與推導鏈名稱的形狀：DRV_ 皆 15 欄且與 DRV_Gen／DRV_Tier 對齊；IF_Hdr 與 IF_ 輸出欄數一致。"""
-    eng = new_engine(model)
+    eng = lo.view({})
     n = EXPECT["drv_columns"]
     for name in eng.names:
         if name.startswith("DRV_"):
@@ -168,9 +150,9 @@ def test_display_names_alignment(model):
     assert set(eng.get_name("CAL_F_Gen")) <= set(eng.get_name("IF_HdrGen"))   # 驗證點的世代名稱都是 Interface 世代
 
 
-def test_interface_d_e_shapes(model):
+def test_interface_d_e_shapes(model, lo):
     """Interface D 節（v5.8）與 E 節（v5.9）的形狀，分開檢查：單格（數值或文字）、15 欄（5 世代 × 3 成本情境）、5 欄（任務）。"""
-    eng = new_engine(model)
+    eng = lo.view({})
     ncol, ntask = len(eng.get_name("IF_HdrGen")), len(eng.get_name("IF_HdrTask"))
     assert ncol == 15 and ntask == 5
     single_num = [f"IF_{p}_{t}" for p in ("PriceFresh", "PriceCached", "PriceThink", "PriceOut", "PriceRef", "FrontRef", "Life") for t in TIERS] + ["IF_HarW"]
@@ -236,196 +218,66 @@ def test_interface_d_e_shapes(model):
     assert len(mkt) == len(eng.get_name("B4_MktCountry")) and set(mkt) <= {0, 1} and 0 < sum(mkt) < len(mkt)
 
 
-def _floor_engine(template, floor):
-    eng = _clone(template)
-    eng.set_key("B5_PFloor", floor)
-    eng.evaluate_all()
-    return eng
+def _floor_engine(lo, floor):
+    return lo.view({"B5_PFloor": floor})
 
 
-def test_floor_scenarios_expected_values(model, template_engine):
+def test_floor_scenarios_expected_values(model, lo):
     """v5.10 M1：floor_0 與 floor_80 的期望值（與 parity 情境互補；parity 保證兩邊一致，這裡保證結果合理）。"""
-    base = new_engine(model)
+    base = lo.view({})
     names = base.get_name("IF_HdrTask")
     assert base.get_name("IF_PFloor") == 0.5                                              # 基準 p_min＝50%
     assert base.get_name("IF_FrontSuccVRName") == ["Luna｜標準", "Luna｜標準", "Luna｜選定", "Luna｜選定", "Sol｜選定"]
     # v5.31 J2：VR200 每成功任務成本隨 IT 維護下降（Coding agent 前緣 0.0222 → 0.0213；不設下限 0.0135 → 0.0129）
     assert abs(base.get_name("IF_FrontSuccVR")[4] - 0.0213) < 5e-5 and abs(base.get_name("IF_FrontSuccVRP")[4] - 0.627) < 5e-4
-    f0 = _floor_engine(template_engine, 0)                                                          # 不設下限：前緣＝「對照（不設下限）」列
+    f0 = _floor_engine(lo, 0)                                                          # 不設下限：前緣＝「對照（不設下限）」列
     cols = "CDEFG"
     assert [f0.get("Harness", f"{c}151") for c in cols] == [f0.get("Harness", f"{c}147") for c in cols]
     assert [f0.get("Harness", f"{c}152") for c in cols] == [f0.get("Harness", f"{c}148") for c in cols]
     assert f0.get_name("IF_FrontSuccVRName")[4] == "Luna｜選定" and abs(f0.get_name("IF_FrontSuccVR")[4] - 0.0129) < 5e-4
-    f8 = _floor_engine(template_engine, 0.8)                                                        # 下限 80%：Coding agent 無合格
+    f8 = _floor_engine(lo, 0.8)                                                        # 下限 80%：Coding agent 無合格
     assert f8.get_name("IF_FrontSuccVR")[4] == f8.get_name("IF_FrontSuccVRName")[4] == f8.get_name("IF_FrontSuccVRP")[4] == "無合格"
     assert f8.get_name("IF_FrontSuccVRName")[2:4] == ["Sol｜選定", "Sol｜選定"]            # 單代理、多代理研究
     assert f8.get("Checks", "B70") == 1, names                                            # 無合格任務數
 
 
-def test_named_ranges_vs_libreoffice(model, tmp_path):
+def test_named_ranges_vs_libreoffice(model, lo, tmp_path):
     """LibreOffice 存檔後的名稱範圍（正規化後）與原檔一致。"""
     src = tmp_path / model.name
     set_inputs(model, src, {})
     out = lo_recalc(src, tmp_path / "lo")
     import openpyxl
-    lo = {k: v.attr_text.replace("$", "") for k, v in openpyxl.load_workbook(out).defined_names.items()}
-    ours = {k: v.replace("$", "") for k, v in Engine(model).names.items()}
-    assert lo == ours
-
-
-FRESH_STATE = {}   # 情境 id → (全部公式格值, 全部具名範圍值)；由 test_scenario_parity 的重建實例填入
+    lo_names = {k: v.attr_text.replace("$", "") for k, v in openpyxl.load_workbook(out).defined_names.items()}
+    ours = {k: v.replace("$", "") for k, v in lo.meta.names.items()}
+    assert lo_names == ours
 
 
 @pytest.mark.parametrize("sc", SCENARIOS, ids=[s["id"] for s in SCENARIOS])
-def test_scenario_parity(sc, model, base_engine, template_engine, tmp_path, results_store):
-    """情境：改寫輸入 → LibreOffice 重算（基準）→ 與引擎全部公式格比對。"""
-    scen_xlsx = tmp_path / model.name
-    set_inputs(model, scen_xlsx, sc["inputs"])
-    ref = excel_values(lo_recalc(scen_xlsx, tmp_path / "lo"), base_engine[0].formula_cells)
-
-    eng = _clone(template_engine, fresh=True)   # 每個情境獨立的重建實例；核心斷言不依賴快取（快取等價另見 test_cache_matches_fresh）
-    for key, v in sc["inputs"].items():
-        eng.set_key(key, v)
-    import gc
-    gc.collect()                                 # v5.31（工程類）：先回收建圖留下的垃圾，計時只含改輸入後的重算（不改門檻與斷言；見 v5.31 報告）
-    t0 = time.perf_counter()
-    got = eng.evaluate_all()
-    elapsed = time.perf_counter() - t0
-    FRESH_STATE[sc["id"]] = (got, {n: eng.get_name(n) for n in eng.names})   # 供 test_cache_matches_fresh 取用（同一個重建實例的結果）
-
-    res = compare(got, ref)
-    base = base_engine[1]                        # 防空轉：統計相對基準改變的格數（其中屬 Interface 者）
-    changed = [k for k in base if base[k] != got[k]]
-    results_store[sc["id"]] = {k: v for k, v in res.items() if k != "mismatches"} | {
-        "n_mismatch": len(res["mismatches"]), "eval_all_seconds_after_change": round(elapsed, 2),
-        "changed_cells": len(changed), "changed_interface_cells": sum(1 for s_, _ in changed if s_ == "Interface")}
+def test_scenario_checks(sc, lo, results_store):
+    """情境：改寫輸入 → LibreOffice 重算 → 全部公式格錯誤值 0；非基準情境相對基準至少改變一個公式格（防空轉）。"""
+    view, base_view = lo.view(sc["inputs"]), lo.view({})
+    got, base = view.evaluate_all(), base_view.evaluate_all()
+    errors = [k for k, v in got.items() if isinstance(v, str) and v.startswith("#")]
+    changed = [k for k in base if base[k] != got[k]]   # 防空轉：統計相對基準改變的格數（其中屬 Interface 者）
+    results_store[sc["id"]] = {"cells": len(got), "error_value_cells": len(errors), "changed_cells": len(changed),
+                               "changed_interface_cells": sum(1 for s_, _ in changed if s_ == "Interface")}
     if sc["id"].startswith("h_alloc_"):          # v5.15 防空轉：Interface F 節（IF_Alloc*）至少一格改變；成長情境只改 Alloc 頁（見報告）
-        sheet_ref = [base_engine[0].name_ref(n) for n in ALLOC_IF] if sc["id"] != "h_alloc_growth" else [("Alloc", None)]
+        sheet_ref = [base_view.name_ref(n) for n in ALLOC_IF] if sc["id"] != "h_alloc_growth" else [("Alloc", None)]
         if sc["id"] != "h_alloc_growth":
             assert any(base[(s_, r_)] != got[(s_, r_)] for s_, r_ in sheet_ref if (s_, r_) in base), f"[{sc['id']}] Interface F 節未改變"
         else:
             assert any(s_ == "Alloc" for s_, _ in changed), f"[{sc['id']}] Alloc 頁未改變"
     if sc["id"] == "h_prod_derate_070":          # v5.19 X1 防空轉：至少一個 _Prod 列改變；基準列（IF_FullCost_*、IF_RevGW_*）一格都不變
-        assert any(base_engine[0].get_name(n) != eng.get_name(n) for n in PROD_IF), f"[{sc['id']}] _Prod 列未改變"
-        assert all(base_engine[0].get_name(n[:-5]) == eng.get_name(n[:-5]) for n in PROD_IF), f"[{sc['id']}] 基準列被改動（Serving!C18 未動，基準列不得變）"
-    if elapsed >= INCREMENTAL_LIMIT_S:                                                       # (a) 增量重算門檻：修訂六起只警告（CLAUDE.md 第 2 節 engine 規則、第 3 節第 4 條）
-        warnings.warn(f"[{sc['id']}] 改輸入後重算 {elapsed:.2f}s ≥ {INCREMENTAL_LIMIT_S}s（警告，不算失敗）", RecalcTimeWarning)
-    assert res["error_value_cells"] == 0, f"[{sc['id']}] 錯誤值 {res['error_value_cells']} 格（v5.9 起任何情境皆不得出現錯誤值；兩邊錯誤代碼不同亦視為不符）"
+        assert any(base_view.get_name(n) != view.get_name(n) for n in PROD_IF), f"[{sc['id']}] _Prod 列未改變"
+        assert all(base_view.get_name(n[:-5]) == view.get_name(n[:-5]) for n in PROD_IF), f"[{sc['id']}] 基準列被改動（Serving!C18 未動，基準列不得變）"
+    assert not errors, f"[{sc['id']}] 錯誤值 {len(errors)} 格（v5.9 起任何情境皆不得出現錯誤值）；前 10 格 {[(k, got[k]) for k in errors[:10]]}"
     if sc["id"] != "base":
         assert changed, f"[{sc['id']}] 未改變任何公式格（測試空轉）"
-    assert not res["mismatches"], f"[{sc['id']}] " + format_mismatches(res["mismatches"])
 
 
-@pytest.fixture(scope="session")
-def cache_path(tmp_path_factory):
-    """快取檔：CI 由 TOKENOMICS_ENGINE_CACHE 提供；本機未設定時建一次（約 75 秒）。"""
-    env = os.environ.get("TOKENOMICS_ENGINE_CACHE")
-    if env:
-        return env
-    p = tmp_path_factory.mktemp("cache") / "engine.pkl"
-    Engine(current_model_path()).save_cache(p)
-    return str(p)
-
-
-@pytest.mark.parametrize("sc", SCENARIOS, ids=[s["id"] for s in SCENARIOS])
-def test_cache_matches_fresh(sc, model, cache_path, results_store):
-    """快取等價（2026-10-04 審查第 2 點）：同一組輸入，快取載入的實例與重建的實例，
-    全部公式格與全部具名範圍精確比對（不用容差；型別也要相同），不符即失敗。
-    重建實例即同片 test_scenario_parity 剛算完的那一個（同檔、同行程）；單獨執行本測試時才另建。"""
-    if sc["id"] in FRESH_STATE:
-        want_cells, want_names = FRESH_STATE[sc["id"]]
-    else:
-        fresh = new_engine(model, fresh=True)
-        for key, v in sc["inputs"].items():
-            fresh.set_key(key, v)
-        want_cells = fresh.evaluate_all()
-        want_names = {n: fresh.get_name(n) for n in fresh.names}
-    t0 = time.perf_counter()
-    eng = Engine(model, cache=cache_path)       # 每個情境獨立載入的實例
-    load_s = time.perf_counter() - t0
-    for key, v in sc["inputs"].items():
-        eng.set_key(key, v)
-    got_cells = eng.evaluate_all()
-    bad_cells = [k for k in want_cells if want_cells[k] != got_cells[k] or type(want_cells[k]) is not type(got_cells[k])]
-    def _same(a, b):                      # 具名範圍：值相等且型別相同（清單逐元素；PR #14 審查遺留項）
-        if isinstance(a, list) or isinstance(b, list):
-            return isinstance(a, list) and isinstance(b, list) and len(a) == len(b) and all(_same(x, y) for x, y in zip(a, b))
-        return a == b and type(a) is type(b)
-    bad_names = [n for n in want_names if not _same(want_names[n], eng.get_name(n))]
-    results_store.setdefault("_cache_equiv", {})[sc["id"]] = {
-        "cells": len(want_cells), "names": len(want_names), "cell_mismatch": len(bad_cells),
-        "name_mismatch": len(bad_names), "load_seconds": round(load_s, 1)}
-    assert not bad_cells and not bad_names, (
-        f"[{sc['id']}] 快取與重建不符：公式格 {len(bad_cells)}、具名範圍 {len(bad_names)}；"
-        f"前 10 格 {[(k, want_cells[k], got_cells[k]) for k in bad_cells[:10]]}；前 5 名 {bad_names[:5]}")
-
-
-def test_scenarios_actually_change_outputs(model, base_engine, template_engine, tmp_path):
-    """防止測試空轉：每個情境至少改變 Interface 的一個格（相對基準）。"""
-    base = base_engine[1]
-    for sc in SCENARIOS[1:]:
-        eng = _clone(template_engine)
-        for key, v in sc["inputs"].items():
-            eng.set_key(key, v)
-        cur = eng.evaluate_all()
-        changed = [k for k in base if base[k] != cur[k]]
-        assert changed, f"{sc['id']} 未改變任何公式格"
-
-
-# 效能門檻（CLAUDE.md 第 2 節）：兩條都是硬性。
-#   (a) 增量重算 < 2 秒：每個情境改輸入後都要測。
-#   (b) 全簿強制重算 < 2 秒：v5.12 以 SRC_Index 改寫 Gov_Map 查找後恢復（v5.11 暫行為 5 秒）。
-FULL_RECALC_LIMIT_S = 2.0
-INCREMENTAL_LIMIT_S = 2.0
-
-
-class RecalcTimeWarning(UserWarning):
-    """修訂六（2026-10-13）：重算秒數超過門檻只警告、不算失敗；秒數受機器影響，不是數值正確性問題。"""
-
-
-def test_incremental_recalc_matches_fresh_and_is_fast(model, results_store):
-    """同一實例連續改輸入再還原：結果須與全新實例相同；(a) 每個情境增量重算 < 2 秒（硬性）。"""
-    eng = new_engine(model, fresh=True)
-    base = eng.evaluate_all()
-    names = eng.names
-    base_orig = {a: eng.get(*resolve_key(names, a)) for sc in SCENARIOS[1:] for a in sc["inputs"]}   # 改動前的原值
-    secs = {}                                                       # v5.17：各情境增量重算秒數（只輸出，不影響斷言）
-    for sc in SCENARIOS[1:]:
-        origs = {a: base_orig[a] for a in sc["inputs"]}
-        t0 = time.perf_counter()
-        for key, v in sc["inputs"].items():
-            eng.set_key(key, v)
-        eng.evaluate_all()
-        dt = time.perf_counter() - t0
-        secs[sc["id"]] = dt
-        if dt >= INCREMENTAL_LIMIT_S:
-            warnings.warn(f"{sc['id']} 增量重算 {dt:.2f}s ≥ {INCREMENTAL_LIMIT_S}s（警告，不算失敗）", RecalcTimeWarning)
-        for key, v in origs.items():
-            eng.set_key(key, v)
-    worst = max(secs, key=secs.get)
-    vals = sorted(secs.values())
-    results_store["_incr_recalc"] = {"max_seconds": round(secs[worst], 2), "max_scenario": worst,
-                                     "median_seconds": round(vals[len(vals) // 2] if len(vals) % 2 else (vals[len(vals) // 2 - 1] + vals[len(vals) // 2]) / 2, 2),
-                                     "n": len(vals)}
-    res = compare(eng.evaluate_all(), base)   # 還原後與基準相同（容差內；pycel 部分格以 15 位快取值回填）
-    assert not res["mismatches"], format_mismatches(res["mismatches"])
-
-
-def test_full_recalc_time(model, results_store):
-    """(b) 全簿強制重算 < 2 秒（v5.12 恢復）。"""
-    eng = new_engine(model, fresh=True)
-    eng.evaluate_all()
-    t0 = time.perf_counter()
-    eng._xl.recalculate()                      # 強制全簿（全部公式格）重算
-    full = time.perf_counter() - t0
-    results_store["_full_recalc_seconds"] = round(full, 2)
-    if full >= FULL_RECALC_LIMIT_S:                                                          # 修訂六：只警告；秒數寫入 results_store 供報告引用
-        warnings.warn(f"全簿強制重算 {full:.2f}s ≥ {FULL_RECALC_LIMIT_S}s（警告，不算失敗）", RecalcTimeWarning)
-
-
-def test_alloc_expected_values_and_slo_text(model, template_engine):
+def test_alloc_expected_values_and_slo_text(model, lo):
     """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
-    base = new_engine(model)
+    base = lo.view({})
     assert abs(base.get_name("AL_DDaily") - 16.48) < 0.01                                 # v5.29 X14 (l)：每則提示 token 數 2,000 → 4,000，每日 token 11.48 → 16.48T
     assert abs(base.get_name("AL_ServeGWSpend") - 1.34714) < 5e-5                        # v5.33 J8：組合持有成本 10.33 → 9.353，1.21964 → 1.34714（工作單 B2 驗收錨點 1.35）；v5.31 J1／J2：1.11399 → 1.21964（支出 ÷ 持有成本，持有成本下降）；v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
     assert abs(base.get_name("AL_RefGWyr") - 0.0210207) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
@@ -433,10 +285,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
     for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
                               ("b_prod_derate", {"Serving!C18": 0.7}, True)):      # v5.33 J8：2025 組合含 Hopper 60%，C18＝0.7 時 Hopper SLO 不可達 → Alloc 回傳文字（v5.32 前組合無 Hopper，為數值 0.4570）
-        eng = _clone(template_engine)
-        for k, v in inputs.items():
-            eng.set_key(k, v)
-        eng.evaluate_all()
+        eng = lo.view(inputs)
         for n in ALLOC_IF:                                                                  # 每個 IF_Alloc*：數值或文字「SLO 不可達」，不得為錯誤值
             v = eng.get_name(n)
             assert (isinstance(v, (int, float)) and not isinstance(v, bool)) or v == "SLO 不可達", (sid, n, v)
@@ -454,20 +303,17 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
             assert eng.get_name("L1_LReqFleet") == "m 非數字（本情境）" and abs(eng.get_name("L1_LTotal") - 0.642602) < 5e-6      # v5.35 B2：所需 L 帶 ISNUMBER 守衛（m＝L1_MFleet 為文字）；L_total 不依賴 m
 
 
-def test_alloc_mix_2025_expected_values(model, template_engine):
+def test_alloc_mix_2025_expected_values(model, lo):
     """補充 2：2025 機隊 Hopper 60%／GB200 40% 的期望值（chat 端獨立重算）。v5.33 J8 起此組合即為基準（Alloc_In C9–C12），本測試改為直接設定同一組合，期望值不變；情境檔 h_alloc_mix_2025 改設 0／40／40／20。"""
-    eng = _clone(template_engine)
-    for k, v in {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0}.items():
-        eng.set_key(k, v)
-    eng.evaluate_all()
+    eng = lo.view({"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0})
     for n, want in (("IF_AllocServeGW", 0.182593), ("AL_ServeGWSpend", 1.347144), ("IF_AllocQ1", 0.331841), ("IF_AllocQ2", 0.393635)):   # v5.31：AL_ServeGWSpend 1.295514 → 1.347144、IF_AllocQ2 0.394559 → 0.393635（持有成本下降；LibreOffice 重算值）； v5.29 X14 (k)(l)：0.140315／0.863676／0.392575／0.458889 → 本列（引擎重算值，與 LibreOffice 一致）
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
 
 
-def test_l1_v516_expected_values_and_h3(model):
+def test_l1_v516_expected_values_and_h3(model, lo):
     """v5.16：L1 毛利率兩列、GPU 小時口徑、第 7、8 題的基準期望值（工作單第 1 節；chat 端計算，精度到小數第 5 位故容差 5e-6），H3＝0。"""
-    eng = new_engine(model)
+    eng = lo.view({})
     want = {"L1_Ans5_GM": (0.95505, 0.92739, 0.96503), "L1_Ans5_FullMargin": (0.93324, 0.89216, 0.94805),     # v5.31 J1／J2：持有成本下降，毛利率上升（LibreOffice 重算值）； v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）；v5.23 X10：FullMargin 與 GPUh 改為 k＝0.75 暫存複本的 LibreOffice 重算值
             "L1_Ans6_GPUh": (0.28231, 0.28231, 0.28231), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47940, 0.47940, 0.47940)}      # v5.31：Ans8 0.47928 → 0.47940
     for n, (d, lo, hi) in want.items():
@@ -485,19 +331,17 @@ def _pct(eng, n, k):
     return p / b - 1 if all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in (p, b)) else None
 
 
-def test_prod_derate_expected_values(model, template_engine):
+def test_prod_derate_expected_values(model, lo):
     """v5.19 X1（工作單 1.5 節；LibreOffice 重算值）：CTL_ProdDerate 預設 0.85 與 0.7 下，_Prod 列相對基準列的變動；自我檢查 X1＝0。
     欄序：5 世代 × 3 成本情境（低／基準／高），基準欄索引 1、4、7、10、13＝Hopper、GB200、GB300、VR200、Rubin Ultra。"""
-    base = new_engine(model)
+    base = lo.view({})
     assert base.get_name("CTL_ProdDerate") == 0.85 and base.get("Serving", "C18") == 1.0   # C18 維持 1.0（G0-11）
     assert base.get_name("GOV_Errors") == 0                                               # 含 Checks X1（替代值改回 C18 時七列等於基準列）
     want = {"IF_FullCost_Sol_Prod": EXPECT_PROD_085["sol"], "IF_FullCost_Astra_Prod": EXPECT_PROD_085["astra"], "IF_RevGWFleet_Prod": EXPECT_PROD_085["fleet"]}
     for n, vals in want.items():
         for k, v in zip((1, 4, 7, 10, 13), vals):
             assert abs(_pct(base, n, k) - v) < 5e-4, (n, k, _pct(base, n, k), v)
-    eng = _clone(template_engine)
-    eng.set_key("CTL_ProdDerate", 0.7)
-    eng.evaluate_all()
+    eng = lo.view({"CTL_ProdDerate": 0.7})
     assert eng.get_name("GOV_Errors") == 0
     for n in ("IF_FullCost_Luna_Prod", "IF_FullCost_Sol_Prod", "IF_FullCost_Astra_Prod"):
         assert eng.get_name(n)[1] == "SLO 不可達", n                                      # Hopper：Astra 層 SLO 不可達 → 機隊不可服務 → 全成本為文字
@@ -517,19 +361,17 @@ V529_INPUT_CHANGED = frozenset(
     + list(ALLOC_IF) + [f"L1_{k}{s}" for k in ("Ans1", "Ans2", "ExtDaily", "ExtFreeShare", "ExtServeGW") for s in ("", "_Lo", "_Hi")])
 
 
-def test_price_life_expected_values(model, template_engine):
+def test_price_life_expected_values(model, lo):
     """v5.22 X7（工作單 1.3、1.4 節）：基準 L＝m＝1 時四個 _Life 列＝基準列；h_price_life_050（L＝0.5、m＝0.8）時 60 格 _Life＝基準 × 0.4，
     基準列、L1、Interface 第 1–210 列不變；錯誤值 0；Checks X7（GOV_Errors）＝0。基準列為文字時 _Life 為相同文字。"""
     import re
-    base = new_engine(model)
+    base = lo.view({})
     assert base.get_name("CTL_PriceLife") == 1 and base.get_name("CTL_Monetize") == 1
     for n in LIFE_IF:
         assert base.get_name(n + "_Life") == base.get_name(n), n
     assert base.get_name("GOV_Errors") == 0
     base_vals = base.evaluate_all()
-    eng = _clone(template_engine)
-    eng.set_key("CTL_PriceLife", 0.5)
-    eng.set_key("CTL_Monetize", 0.8)
+    eng = lo.view({"CTL_PriceLife": 0.5, "CTL_Monetize": 0.8})
     cur = eng.evaluate_all()
     assert eng.get_name("GOV_Errors") == 0
     changed = 0
@@ -603,17 +445,16 @@ def _same(a, b):
     return (a in (None, "") and b in (None, "")) or a == b
 
 
-def test_batch_etad_expected_values(model):
+def test_batch_etad_expected_values(model, lo):
     """v5.23 X10：基準 CAL_BatchEtaD＝[1,1,1,0.75,1]；h_batch_etad_100（VR200 設回 1）時，v5.22 的全部具名範圍（除 IDX_SrcID：SRC_Index 新增哨兵列）逐格相等
     ——只有 X10 造成改變；k＝0.75 相對 k＝1 的變動等於 v5.22 報告第三節；改變的具名範圍恰為 85 個（報告 82 個＋3 個對應的 _Prod）；
     IF_TrainGenDefault 仍為 4；TR_*、IF_RevGW_*、IF_RevGWFleet、_Life 不變；GOV_Errors＝0（Checks X1 的 _Prod 自我檢查維持 0）。"""
     import openpyxl
     from openpyxl.utils import range_boundaries
-    base = new_engine(model)
+    base = lo.view({})
     assert base.get_name("CAL_BatchEtaD") == [1, 1, 1, 0.75, 1]
     assert base.get_name("GOV_Errors") == 0 and base.get_name("IF_TrainGenDefault") == 4
-    eng = _clone(model)
-    eng.set_key("CAL_BatchEtaD[4]", 1.0)
+    eng = lo.view({"CAL_BatchEtaD[4]": 1.0})
     cur = eng.evaluate_all()
     assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values()) and eng.get_name("GOV_Errors") == 0
     prev = openpyxl.load_workbook(BATCH_PREV, data_only=True)
@@ -659,10 +500,10 @@ def test_batch_etad_expected_values(model):
 IFW_BASES = ("RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront", "TokGW_Luna", "TokGW_Sol", "TokGW_Astra")
 
 
-def test_v529_contract_waterfall_expected_values(model):
+def test_v529_contract_waterfall_expected_values(model, lo):
     """v5.29：IFC_ 四欄與 Interface 資料列同長且值域正確；IFW_ 44 個名稱各 15 欄；有對應列的 _Util／_Prod／_Life 逐格等於來源列（Checks K3＝0）；
     L1 新列的 LibreOffice 重算值（工作單第 3、3b 節）；Checks K2、K3＝0、K4＝0（r2 第 2 項：L1_FleetMargin＝Theory_Rev 機隊比值 × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize）、K5＝50；GOV_Errors＝0。"""
-    eng = new_engine(model)
+    eng = lo.view({})
     conf, use, layer, upd = (eng.get_name(n) for n in ("IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"))
     assert len(conf) == len(use) == len(layer) == len(upd) >= 300
     assert set(x for x in conf if x not in ("", None)) <= {"A", "B", "C", "—", "（表頭）"}
@@ -706,10 +547,10 @@ def _num(x):
     return isinstance(x, (int, float)) and not isinstance(x, bool)
 
 
-def test_v530_waterfall_running_product(model):
+def test_v530_waterfall_running_product(model, lo):
     """v5.30：(a) _Prod＝_Util × CTL_ProdDerate（營收列有 G 節者讀 G 節）、_Life＝_Prod × L × m（營收）／＝_Prod（token）；四層單調遞減；Checks K3＝0；
     VR200 基準欄（索引 10）LibreOffice 重算值；(b) L1_HoldEconMW_*＝L1_HoldEconGW_*（含 _Lo／_Hi）；(c) IFW_ 營收四層與 IFW_TokGW_*_100 的 IFC_Use 含「上限」，K2＝0。"""
-    eng = new_engine(model)
+    eng = lo.view({})
     d, lm = eng.get_name("CTL_ProdDerate"), eng.get_name("CTL_PriceLife") * eng.get_name("CTL_Monetize")
     for b in IFW_BASES:
         v100, util, prod, life = (eng.get_name(f"IFW_{b}_{s}") for s in ("100", "Util", "Prod", "Life"))
@@ -746,11 +587,11 @@ def test_v530_waterfall_running_product(model):
 
 
 # ── v5.31 J1–J6（工作單 docs/workorders/20261008_v5.31.md r1）：GB300 機架價格、IT 維護機齡兩段（壽命期等值費率）、IREN 對照 ──
-def test_v531_rack_price_and_it_maint(model):
+def test_v531_rack_price_and_it_maint(model, lo):
     """v5.31：(J1) Spec_Rack GB300 機架價格 4.0／4.3／5.0；(J2／J3) Inputs 第 30 列＝兩段費率以同欄 WACC、IT 折舊年限年金加權（以 Python 逐年加總驗算），
     IF_MaintITWarr／IF_MaintITPost＝IT 資本 × 兩段費率，IF_WarrantyYrs＝3；IF_MaintIT＝IT 資本 × 等值費率；加總核對列仍為 0；
     (J6) L1_CapexITMW_GB300_vsIREN＝GB300 IF_CapexIT 對 SRC_DC_014；GB300／VR200 基準欄 LibreOffice 重算值。"""
-    eng = new_engine(model)
+    eng = lo.view({})
     assert [eng.get("Spec_Rack", c) for c in ("E11", "E12", "E13")] == [4.0, 4.3, 5.0]
     assert eng.get_name("IF_WarrantyYrs") == 3 and eng.get_name("SRC_DC_015") == 3
     capex, maint, warr, post = (eng.get_name(n) for n in ("IF_CapexIT", "IF_MaintIT", "IF_MaintITWarr", "IF_MaintITPost"))
@@ -779,12 +620,12 @@ def test_v531_rack_price_and_it_maint(model):
 
 
 # ── v5.32（工作單 docs/workorders/20261011_v5.32.md r1）：變現率 m 追蹤（Cap_In H 節、L1_MImplied／_Ext、Checks M1） ──
-def test_v532_m_tracking(model):
+def test_v532_m_tracking(model, lo):
     """v5.32：L1_MImplied（合併、模型 token 分母）基準＝SRC_DEM_007 ÷（AL_DPaid × 層級組合混合單價）＝1.7427（A 段第 6 節 1.74）；
     外部欄＝CTL_Monetize（1）；判讀「落在 0.3–1.0 區間外」；L1_MImplied_Ext 以 Epoch 幾何中點；Checks M1＝1（WARN）；CTL_Monetize 仍為 1；GOV_Errors＝0。
     期望值為 v5.32 LibreOffice 重算值；另以 Python 由具名範圍驗算基準式（1e-12）。"""
     import re
-    eng = new_engine(model)
+    eng = lo.view({})
     assert eng.get_name("CTL_Monetize") == 1 and eng.get_name("GOV_Errors") == 0
     mix = eng.get_name("B4_MixPaid")
     price = mix[0] * eng.get_name("IF_PriceRef_Luna") + mix[1] * eng.get_name("IF_PriceRef_Sol") + mix[2] * eng.get_name("IF_PriceRef_Astra")
@@ -814,13 +655,13 @@ def test_v532_m_tracking(model):
 
 
 # ── v5.33（工作單 docs/workorders/20261012_v5.33.md r1）：付費 token 數量校準（Alloc_In J8／J9、Cap_In H7 機隊口徑、L1_MFleet／L1_TokCeiling、Checks M2／M3） ──
-def test_v533_fleet_basis(model):
+def test_v533_fleet_basis(model, lo):
     """v5.33：Alloc_In 2025 組合 Hopper 0.6／GB200 0.4／GB300 0／VR200 0（J8）、每則提示 token 數高端 11,000（J9）；
     機隊付費 token 點估計＝AL_ServeGWSpend ÷ AL_SpendBasis × AL_UtilActual ÷ IF_Util ÷（1 ÷ AL_BlendPaid ＋ r ÷ AL_BlendFree），r＝AL_DFree ÷ AL_DPaid；
     上限以 CTL_ProdDerate 取代利用率修正。工作單錨點：AL_ServeGW 0.18、L1_ScaleServe 7.4、AL_ServeGWSpend 1.35、機隊付費 token 8.2e9、上限 12.0e9、機隊 m 0.81、m 下限 0.56。
     L1_MFleet 判讀「落在 0.3–1.0 區間內」、L1_TokCeiling 外部欄＝AL_DPaid；Checks M2＝M3＝0、M1 仍為 1；GOV_Errors＝0。期望值為 LibreOffice 重算值，另以 Python 驗算基準式（1e-12）。"""
     import re
-    eng = new_engine(model)
+    eng = lo.view({})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CTL_Monetize") == 1
     assert eng.get_name("AL_MixGen") == [0.6, 0.4, 0, 0] and eng.get_name("AL_TokPerPrompt_Hi") == 11000 and eng.get_name("AL_TokPerPrompt") == 4000
     assert all(eng.get("Alloc", f"{c}19") == 1 for c in "CDEF")                     # Hopper 等四世代皆可服務（B2 硬性條件）
@@ -861,13 +702,13 @@ def test_v533_fleet_basis(model):
 
 
 # ── v5.34（工作單 docs/workorders/20261014_v5.34.md r0.1）：變現率 m 細化（Cap_In H8 m 分拆、H9 token 帳三路線、H10 季度序列、L1 六列、Checks M4） ──
-def test_v534_m_split(model):
+def test_v534_m_split(model, lo):
     """v5.34：三分法 m_API＝(SRC_DEM_007 −消費訂閱 −商用席次) ÷（AL_DAPI × 單價）＝0.5637（錨點 0.56）、m_消費訂閱 4.2614（4.26）、m_商用席次 1.8263（1.83）、
     m_整體＝L1_MImplied 1.742672（三分只是同一分子分母的重排）；折讓因子 D 欄 0.75（B4_Disc 高端 0.3 → 0.4，J20）；隱含組合因子＝m_API；閉合解 τ* 13,949.6（≈13,950）、
     閉合免費占比 0.213；H10 2026 Q2 欄 m_API 0.3467（0.35）、m_整體 1.3432（1.34）、m_fleet 0.7811（0.78）、m_消費訂閱 4.768、m_商用席次 6.502；Checks M4＝1（WARN，預期）；
     既有 IF_Price*、L1_MImplied、L1_MFleet 不變；GOV_Errors＝0。期望值為 LibreOffice 重算值，另以 Python 由具名範圍驗算基準式（1e-12）。"""
     import re
-    eng = new_engine(model)
+    eng = lo.view({})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CTL_Monetize") == 1
     assert eng.get_name("B4_Disc") == 0.2 and eng.get_name("B4_Disc_Lo") == 0.1 and eng.get_name("B4_Disc_Hi") == 0.4      # J20：只動高端
     assert abs(eng.get_name("IF_PriceRef_Sol") - 1.607111) < 5e-6 and abs(eng.get_name("L1_MImplied") - 1.742672) < 5e-6 and abs(eng.get_name("L1_MFleet") - 0.809839) < 5e-6
@@ -922,12 +763,12 @@ def test_v534_m_split(model):
 
 
 # ── v5.35（工作單 docs/workorders/20261014_v5.35.md r0）：m 序列三項修正（Cap_In H10）＋ L 拆分（Cap_In I 節、L1 四列） ──
-def test_v535_l_split(model):
+def test_v535_l_split(model, lo):
     """v5.35：L_price＝((1+g)^T − 1) ÷ (T·LN(1+g))＝0.7412（g −0.10、T＝IF_DeprLifeIT 6）、L_total＝0.6426（T1 4、ρ 0.5）、L_demote＝0.867；D 欄（g −0.25、T1 3、ρ＝Luna ÷ Sol 0.05）0.4762／0.342／0.718；
     E 欄（g +0.05、T1 5、ρ 1.0）1.1618／1.1618／1.0；回本所需 L＝L1_FleetBreakeven ÷（IF_Util × CTL_ProdDerate × m）：m＝L1_MFleet 0.3645、m＝L1_MAPI 0.5237；H10 2026 三欄：Q1 m_API 0.295／5.744／3.556／1.192、
     Q2 0.340／5.399／4.557／1.343、FY2026 0.348／5.569／8.044／1.432；2025 欄不變；既有 L1_（含 v5.34 六個）與 IF_ 不變；CTL_PriceLife、CTL_Monetize 皆 1。期望值為 LibreOffice 重算值，另以 Python 由具名範圍驗算（1e-12）。"""
     import math, re
-    eng = new_engine(model)
+    eng = lo.view({})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CTL_PriceLife") == 1 and eng.get_name("CTL_Monetize") == 1
     T = eng.get_name("IF_DeprLifeIT")[1]; assert T == 6                                                     # Hopper 基準欄（工作單 I-4：非 6 停下）
     def lp(g): return 1 if abs(math.log(1 + g)) < 1e-12 else ((1 + g) ** T - 1) / (T * math.log(1 + g))

@@ -451,6 +451,7 @@ def test_alloc_expected_values_and_slo_text(model, template_engine):
         if sid == "b_prod_derate":                                                          # v5.33 B3：Cap_In H7 與 L1_MFleet／L1_TokCeiling 帶 SLO 守衛，回傳文字而非錯誤值
             assert eng.get_name("L1_MFleet") == eng.get_name("L1_TokCeiling") == "SLO 不可達" and eng.get("Checks", "D129") == 0 and eng.get("Checks", "D130") == 0
             assert eng.get_name("L1_TokPerPromptClose") == "SLO 不可達" and eng.get("Checks", "D131") == 0            # v5.34 B3：H9 閉合解與 Checks M4 帶同一 SLO 守衛
+            assert eng.get_name("L1_LReqFleet") == "m 非數字（本情境）" and abs(eng.get_name("L1_LTotal") - 0.642602) < 5e-6      # v5.35 B2：所需 L 帶 ISNUMBER 守衛（m＝L1_MFleet 為文字）；L_total 不依賴 m
 
 
 def test_alloc_mix_2025_expected_values(model, template_engine):
@@ -475,7 +476,7 @@ def test_l1_v516_expected_values_and_h3(model):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 270 and eng.get_name("GOV_Info") == 169      # v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 271 and eng.get_name("GOV_Info") == 169      # v5.35：Warnings 270 → 271（W1 +1：SRC_DEM_072 利害關係方 Active、無第二來源）；Info 不變（L1_LTotal 判讀「區間內」、L1_LReqFleet 判讀「回本」、L1_LPrice／LDemote「無外部對照」皆不計入 I3）；v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213
 
 
 def _pct(eng, n, k):
@@ -902,7 +903,7 @@ def test_v534_m_split(model):
     wb = openpyxl.load_workbook(model, read_only=True)
     ck = {wb["Checks"][f"A{r}"].value: r for r in range(100, 140)}
     assert eng.get("Checks", f"D{ck['M1']}") == 1 and eng.get("Checks", f"D{ck['M2']}") == 0 and eng.get("Checks", f"D{ck['M3']}") == 0 and eng.get("Checks", f"D{ck['M4']}") == 1
-    cap = {wb["Cap_In"][f"A{r}"].value: r for r in range(130, 230) if isinstance(wb["Cap_In"][f"A{r}"].value, str)}
+    cap = {wb["Cap_In"][f"A{r}"].value: r for r in range(130, 225) if isinstance(wb["Cap_In"][f"A{r}"].value, str)}      # v5.35：H10 以第 224 列自我檢查結束，I 節另測
     row = lambda p: next(r for lab, r in cap.items() if lab.startswith(p))
     assert eng.get("Cap_In", f"C{row('自我檢查：m_整體')}") == 0 and eng.get("Cap_In", f"E{row('自我檢查：m_整體')}") == 0
     assert eng.get("Cap_In", f"C{row('折讓因子')}") == 1 and abs(eng.get("Cap_In", f"D{row('折讓因子')}") - 0.75) < 1e-12 and abs(eng.get("Cap_In", f"E{row('折讓因子')}") - 1.125) < 1e-12
@@ -912,9 +913,59 @@ def test_v534_m_split(model):
     h10 = row("H10. m 季度序列")                                                                     # H10 列以本節起算（H8 另有同前綴的 m_API 列）
     cap10 = {lab: r for lab, r in cap.items() if r > h10}
     row10 = lambda p: next(r for lab, r in cap10.items() if lab.startswith(p))
-    q = {"m_API": 0.346747, "m_消費訂閱": 4.767768, "m_商用席次": 6.501502, "m_整體": 1.343201, "m_fleet": 0.781143}      # 2026 Q2 年化欄（E）
+    q = {"m_API": 0.340275, "m_消費訂閱": 5.398591, "m_商用席次": 4.557252, "m_整體": 1.343201, "m_fleet": 0.781143}      # 2026 Q2 年化欄（E）；v5.35 B1（J23）：三分營收以 m 分子營收 26.3 為基底、消費份額 0.65 → m_API 0.3467 → 0.3403、m_消費訂閱 4.768 → 5.399、m_商用席次 6.502 → 4.557；m_整體、m_fleet 不變
     for lab, v in q.items():
         assert abs(eng.get("Cap_In", f"E{row10(lab)}") - v) < 5e-6, (lab, eng.get("Cap_In", f"E{row10(lab)}"), v)
     assert abs(eng.get("Cap_In", f"C{row10('m_整體')}") - eng.get_name("L1_MImplied")) <= 1e-9 and abs(eng.get("Cap_In", f"C{row10('m_fleet')}") - eng.get_name("L1_MFleet")) <= 1e-9
     assert eng.get("Cap_In", f"C{row('自我檢查：2025 欄')}") == "一致"
     assert [eng.get("Cap_In", f"{c}{row('營收份額：API')}") for c in "CDEF"] == [0.2] * 4 or all(abs(eng.get("Cap_In", f"{c}{row('營收份額：API')}") - 0.2) < 1e-12 for c in "CDEF")
+
+
+# ── v5.35（工作單 docs/workorders/20261014_v5.35.md r0）：m 序列三項修正（Cap_In H10）＋ L 拆分（Cap_In I 節、L1 四列） ──
+def test_v535_l_split(model):
+    """v5.35：L_price＝((1+g)^T − 1) ÷ (T·LN(1+g))＝0.7412（g −0.10、T＝IF_DeprLifeIT 6）、L_total＝0.6426（T1 4、ρ 0.5）、L_demote＝0.867；D 欄（g −0.25、T1 3、ρ＝Luna ÷ Sol 0.05）0.4762／0.342／0.718；
+    E 欄（g +0.05、T1 5、ρ 1.0）1.1618／1.1618／1.0；回本所需 L＝L1_FleetBreakeven ÷（IF_Util × CTL_ProdDerate × m）：m＝L1_MFleet 0.3645、m＝L1_MAPI 0.5237；H10 2026 三欄：Q1 m_API 0.295／5.744／3.556／1.192、
+    Q2 0.340／5.399／4.557／1.343、FY2026 0.348／5.569／8.044／1.432；2025 欄不變；既有 L1_（含 v5.34 六個）與 IF_ 不變；CTL_PriceLife、CTL_Monetize 皆 1。期望值為 LibreOffice 重算值，另以 Python 由具名範圍驗算（1e-12）。"""
+    import math, re
+    eng = new_engine(model)
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CTL_PriceLife") == 1 and eng.get_name("CTL_Monetize") == 1
+    T = eng.get_name("IF_DeprLifeIT")[1]; assert T == 6                                                     # Hopper 基準欄（工作單 I-4：非 6 停下）
+    def lp(g): return 1 if abs(math.log(1 + g)) < 1e-12 else ((1 + g) ** T - 1) / (T * math.log(1 + g))
+    def lt(g, t1, rho): return (t1 + rho * (T - t1)) / T if abs(math.log(1 + g)) < 1e-12 else (((1 + g) ** t1 - 1) + rho * ((1 + g) ** T - (1 + g) ** t1)) / (T * math.log(1 + g))
+    rho_lo = eng.get_name("IF_PriceRef_Luna") / eng.get_name("IF_PriceRef_Sol")
+    for suf, g, t1, rho in (("", -0.10, 4, 0.5), ("_Lo", -0.25, 3, rho_lo), ("_Hi", 0.05, 5, 1.0)):
+        for n, v in (("L1_LPrice", lp(g)), ("L1_LTotal", lt(g, t1, rho)), ("L1_LDemote", lt(g, t1, rho) / lp(g))):
+            assert abs(eng.get_name(n + suf) - v) <= 1e-12 * v, (n + suf, eng.get_name(n + suf), v)
+    for n, v in (("L1_LPrice", 0.741234), ("L1_LTotal", 0.642602), ("L1_LDemote", 0.866936), ("L1_LPrice_Lo", 0.476188), ("L1_LTotal_Lo", 0.342002), ("L1_LDemote_Lo", 0.718206),
+                 ("L1_LPrice_Hi", 1.161772), ("L1_LTotal_Hi", 1.161772), ("L1_LDemote_Hi", 1.0), ("L1_LReqFleet", 0.364527), ("L1_LReqFleet_Lo", 0.208301), ("L1_LReqFleet_Hi", 0.555461)):
+        assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)
+    req = lambda m: eng.get_name("L1_FleetBreakeven") / (eng.get_name("IF_Util") * eng.get_name("CTL_ProdDerate") * eng.get_name(m))
+    assert abs(eng.get_name("L1_LReqFleet") - req("L1_MFleet")) <= 1e-12 * req("L1_MFleet") and abs(eng.get_name("L1_LReqFleet_Lo") - req("L1_MFleet_Hi")) <= 1e-12 * req("L1_MFleet_Hi")
+    for n in ("L1_LPrice", "L1_LDemote", "L1_LTotal", "L1_LReqFleet"):
+        rr = int(re.sub(r"[A-Z]+", "", eng.names[n].rsplit("!", 1)[1].replace("$", "")))
+        assert eng.get("L1", f"E{rr}") <= eng.get("L1", f"D{rr}") <= eng.get("L1", f"F{rr}"), n
+        if n == "L1_LTotal": assert eng.get("L1", f"M{rr}") == 1 and eng.get("L1", f"P{rr}") == "落在 0.3–1.0 區間內"
+        elif n == "L1_LReqFleet": assert abs(eng.get("L1", f"M{rr}") - eng.get_name("L1_LTotal")) < 1e-12 and eng.get("L1", f"P{rr}").startswith("回本（L_total 口徑）：L_total 0.64 ≥ 所需 L 0.36")
+        else: assert eng.get("L1", f"P{rr}") == "無外部對照"
+    # 既有 L1（v5.34 六個）與 IF_ 不變
+    for n, v in (("L1_MAPI", 0.563679), ("L1_MSub", 4.261414), ("L1_MSeat", 1.826320), ("L1_MixFactorAPI", 0.563679), ("L1_MImplied", 1.742672), ("L1_MFleet", 0.809839), ("IF_PriceRef_Sol", 1.607111)):
+        assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)
+    assert abs(eng.get_name("L1_TokPerPromptClose") - 13949.573) < 5e-3
+    import openpyxl
+    wb = openpyxl.load_workbook(model, read_only=True)
+    cap = {wb["Cap_In"][f"A{r}"].value: r for r in range(182, 250) if isinstance(wb["Cap_In"][f"A{r}"].value, str)}
+    row = lambda p: next(r for lab, r in cap.items() if lab.startswith(p))
+    i0 = row("I. L 拆分")
+    assert row("H10. m 季度序列") < row("自我檢查：2025 欄") < i0 < row("讀法")                                   # I 節在 H10 之後、讀法列之前
+    for lab, cols in (("m_API", (0.563679, 0.295028, 0.340275, 0.348314)), ("m_消費訂閱", (4.261414, 5.743974, 5.398591, 5.568857)), ("m_商用席次", (1.826320, 3.555650, 4.557252, 8.043904)),
+                      ("m_整體", (1.742672, 1.192291, 1.343201, 1.431747)), ("廣告營收", (0, 0, 0.5, 1.0)), ("2026 消費訂閱占", (0.75, 0.65, 0.65, 0.65)), ("L_price（I 節", (0.741234,) * 4)):
+        for c, v in zip("CDEF", cols):
+            assert abs(eng.get("Cap_In", f"{c}{row(lab)}") - v) < 5e-6, (lab, c, eng.get("Cap_In", f"{c}{row(lab)}"), v)
+    r = row("m 分子營收")
+    for c in "CDEF":                                                                                                # J23 (1)：三分之和＝m 分子營收
+        assert abs(eng.get("Cap_In", f"{c}{row('消費訂閱營收')}") + eng.get("Cap_In", f"{c}{row('商用席次營收')}") + eng.get("Cap_In", f"{c}{row('API 營收')}") - eng.get("Cap_In", f"{c}{r}")) < 1e-9
+    assert abs(eng.get("Cap_In", f"E{row('m_fleet')}") - 0.781143) < 5e-6 and eng.get("Cap_In", f"C{row('自我檢查：2025 欄')}") == "一致"
+    assert abs(eng.get("Cap_In", f"C{row('壽命 T')}") - 6) < 1e-12 and abs(eng.get("Cap_In", f"D{row('降級後價值比')}") - rho_lo) < 1e-12
+    assert eng.get("Cap_In", f"C{row('判讀：L_total 對 Gov_Map')}") == "區間內（0.3–1.0）" and eng.get("Cap_In", f"E{row('判讀：L_total 對 Gov_Map')}") == "區間外（0.3–1.0）"
+    assert eng.get("Cap_In", f"C{row('判讀：L_total ≥ 所需 L（m＝L1_MFleet）')}").startswith("回本") and eng.get("Cap_In", f"D{row('判讀：L_total ≥ 所需 L（m＝L1_MAPI）')}").startswith("未回本")
+    assert abs(eng.get("Cap_In", f"C{row('回本所需 L（m＝L1_MAPI')}") - 0.523674) < 5e-6

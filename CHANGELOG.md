@@ -2,6 +2,21 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261014_Tokenomics_v5.35.xlsx（取代 v5.34；m 序列三項修正 ＋ L 拆分（L_price × L_demote）；判斷類（chat 端判定 J22–J24，CC 執行），依工作單 `docs/workorders/20261014_v5.35.md` r0）
+
+- Commit：分支 `claude/v5.35-build`（內容提交 `de39f92`；合併 SHA 見報告與 PR）。報告：`docs/reports/20261014_v5.35.md`；進度檔：`docs/reports/20261014_v5.35_進度.md`。底稿：master `322e1c7`（PR #44，v5.34）；`model/CURRENT` 原為 v5.34。
+- 依據：Andy 2026-10-14 19:38「3. Assume 0.65，其餘照建議」（對象＝v5.34 報告「待 Project 判斷」第 1–3 項的 chat 端建議）、15:49「兩件事我都同意。」（L 拆分）；chat 端判定 J22–J24。
+- Excel（CC 以 `builder/` 自 v5.34 產生，經 LibreOffice 重算存檔）：
+  - B1（J23；Cap_In H10）：廣告營收列 D／E／F 改為藍字 0／0.5／1.0（各登 Gov_Map，區間 0–0.2／0.3–0.8／0.5–1.5）；消費訂閱／商用席次／API 營收三列改以「m 分子營收（營收 − 廣告）」為基底（三分之和＝m_整體分子）；新列「2026 消費訂閱占 ChatGPT 付費 token 份額」（第 200 列；C 連結 H8 0.75、D 藍字 0.65（0.5–0.8）、E／F 連結 D），消費訂閱／商用席次 token 列改引用此列；原「中階牌價指數」預留列（第 204 列）改為連結 I 節 L_price（顯示用，四個藍字 1 退役）。2026 Q2：m_API 0.3467 → **0.3403**、m_消費訂閱 4.768 → **5.399**、m_商用席次 6.502 → **4.557**、m_整體 **1.343**（不變）、m_fleet **0.781**（不變）；Q1 0.295／5.744／3.556／1.192；FY2026 0.348／5.569／8.044／1.432；2025 欄全部不變。
+  - B2（J22；Cap_In I 節，第 225–243 列，接在 H10 之後、讀法列之前）：藍字 g −0.10（−0.25～+0.05）、T1 4（3–5）、ρ 0.5（低端＝IF_PriceRef_Luna ÷ IF_PriceRef_Sol 0.05 公式、高端 1.0）；T＝INDEX(IF_DeprLifeIT,1,2)＝6；k＝LN(1+g)；L_price **0.7412**（0.4762–1.1618）、L_total **0.6426**（0.342–1.1618）、L_demote **0.867**（0.718–1.0）；對照 CTL_PriceLife 1、E246 類比 0.42–0.70、Gov_Map GM593 區間判讀「區間內（0.3–1.0）」；回本所需 L（m＝L1_MFleet）**0.3645**（0.208–0.555）、（m＝L1_MAPI）0.5237；判讀「回本（L_total 口徑）」。
+  - B3：SRC_Demand 新增 `SRC_DEM_072`（OpenAI 廣告年化 $1B，CNBC 2026-08-31；Active）；DB_Evidence E338–E343（N14–N19：牌價序列 OpenAI／Sonnet／Gemini、迴歸結果、L 換算式、廣告年化）；SRC_Price 不新增（等級 3，待一手確認）。
+  - B4：L1 新增 `L1_LPrice`、`L1_LDemote`、`L1_LTotal`（外部欄＝CTL_PriceLife，判讀「落在 0.3–1.0 區間內」）、`L1_LReqFleet`（外部欄＝L1_LTotal，判讀「回本（L_total 口徑）：L_total 0.64 ≥ 所需 L 0.36」），各含 `_Lo`／`_Hi`（第 86–89 列）；既有 L1 列（第 5–85 列）逐格不變。
+  - B5：Gov_Map 新登錄 10 列（GM634–GM643：I 節 g／T1／ρ 基準與端點、H10 廣告三格、0.65 一格）；GM629（原 C203:F203）改指 C204:F204、類別改「顯示用（公式）」；GM630–GM633（2026 世代組合）因插列改指 D211–D214（值不變）；Decisions X42–X44（X44 為 v5.34 待判斷第 4–13 項十項定案）；Excel README A1、B5、新列 A37／B37。
+  - 既有 IF_ 逐格不變（Interface 0 格差異）；既有 L1_（含 v5.34 六個）數值不變；`CTL_PriceLife`、`CTL_Monetize` 不改。
+- builder：新增 `v535.py`（`patch_h10` 在寫入前就地修改 v534 的 H10 規格；`cap_in_i`；`gov_map_repoint` 以標籤守衛改指位移的 Gov_Map 列）；`gov.py`、`build.py`（SNAP_RETIRED 加 H10 牌價指數四格）、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v535.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（36 個檔）。
+- 測試：`formula_cells` 47,134 → 47,391、`defined_names` 1,167 → 1,180、`src_names` 431 → 432、`l1_names` 243 → 255；GOV_Warnings 270 → 271、GOV_Info 169 不變；`test_v534_m_split` 的 2026 Q2 錨點改為 v5.35 值（工作單預期變動）；新增 `test_v535_l_split`；情境 b_prod_derate 補 L1_LReqFleet 的 ISNUMBER 守衛斷言。
+- 治理：GOV_Errors 0、GOV_Warnings 271（W1 +1：SRC_DEM_072 利害關係方 Active 無第二來源）、GOV_Info 169。
+
 ## 20261014_Tokenomics_v5.34.xlsx（取代 v5.33；變現率 m 細化：m 按收費模式分拆、token 帳三路線與閉合解、m 季度序列；判斷類（chat 端判定 J15–J21，CC 執行），依工作單 `docs/workorders/20261014_v5.34.md` r0.1）
 
 - Commit：分支 `claude/v5.34-build`（內容提交 `508da71`；合併 SHA 見報告與 PR）。報告：`docs/reports/20261014_v5.34.md`；進度檔：`docs/reports/20261014_v5.34_進度.md`。底稿：master `ebeb7e6`（PR #42，CLAUDE.md 修訂七）；`model/CURRENT` 原為 v5.33。

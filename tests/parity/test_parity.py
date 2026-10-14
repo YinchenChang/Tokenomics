@@ -545,7 +545,7 @@ def test_price_life_expected_values(model, template_engine):
     assert changed > 0                               # 防空轉：至少一格 _Life 改變
     fm_row = int(re.sub(r"[A-Z]+", "", base.names["L1_FleetMargin"].rsplit("!", 1)[1].replace("$", "")))   # v5.29 X14 (c)：L1_FleetMargin 含 CTL_PriceLife × CTL_Monetize，該列隨情境改變
     _row = lambda n: int(re.sub(r"[A-Z]+", "", base.names[n].rsplit("!", 1)[1].replace("$", "")))
-    m_rows = {_row("L1_MImplied"), _row("L1_MImplied_Ext"), _row("L1_MFleet"), _row("L1_MAPI"), _row("L1_MSub"), _row("L1_MSeat")}   # v5.34 B4：L1_MAPI／MSub／MSeat 外部欄同為 CTL_Monetize；v5.33 B4：L1_MFleet 外部欄同為 CTL_Monetize；v5.32 B3：兩列的外部欄 M／N＝CTL_Monetize，比值 O 與判讀 P 隨情境改變；D:F（隱含 m）不變
+    m_rows = {_row("L1_MImplied"), _row("L1_MImplied_Ext"), _row("L1_MFleet"), _row("L1_MAPI"), _row("L1_MSub"), _row("L1_MSeat"), _row("L1_LTotal")}   # v5.35 B4：L1_LTotal 外部欄＝CTL_PriceLife（L＝0.5 時 M／N／O／P 隨情境改變；D:F 不變）；v5.34 B4：L1_MAPI／MSub／MSeat 外部欄同為 CTL_Monetize；v5.33 B4：L1_MFleet 外部欄同為 CTL_Monetize；v5.32 B3：兩列的外部欄 M／N＝CTL_Monetize，比值 O 與判讀 P 隨情境改變；D:F（隱含 m）不變
     for (sh, coord), v in cur.items():               # 基準列、L1、Interface 第 1–210 列、其他模型頁：數值不變（只允許 Theory_Rev D 節、Interface H 節、Checks X7 與其彙總；v5.29 起另允許 L1_FleetMargin 列）
         row = int(re.sub(r"[A-Z]+", "", coord))
         if sh == "L1" and row in m_rows and re.sub(r"\d", "", coord) in ("M", "N", "O", "P"):
@@ -913,7 +913,7 @@ def test_v534_m_split(model):
     h10 = row("H10. m 季度序列")                                                                     # H10 列以本節起算（H8 另有同前綴的 m_API 列）
     cap10 = {lab: r for lab, r in cap.items() if r > h10}
     row10 = lambda p: next(r for lab, r in cap10.items() if lab.startswith(p))
-    q = {"m_API": 0.340275, "m_消費訂閱": 5.398591, "m_商用席次": 4.557252, "m_整體": 1.343201, "m_fleet": 0.781143}      # 2026 Q2 年化欄（E）；v5.35 B1（J23）：三分營收以 m 分子營收 26.3 為基底、消費份額 0.65 → m_API 0.3467 → 0.3403、m_消費訂閱 4.768 → 5.399、m_商用席次 6.502 → 4.557；m_整體、m_fleet 不變
+    q = {"m_API": 0.340278, "m_消費訂閱": 5.398635, "m_商用席次": 4.557290, "m_整體": 1.343201, "m_fleet": 0.781143}      # 2026 Q2 年化欄（E）；v5.35 B1（J23）：三分營收以 m 分子營收 26.3 為基底、消費份額 0.65 → m_API 0.3467 → 0.3403、m_消費訂閱 4.768 → 5.399、m_商用席次 6.502 → 4.557；m_整體、m_fleet 不變
     for lab, v in q.items():
         assert abs(eng.get("Cap_In", f"E{row10(lab)}") - v) < 5e-6, (lab, eng.get("Cap_In", f"E{row10(lab)}"), v)
     assert abs(eng.get("Cap_In", f"C{row10('m_整體')}") - eng.get_name("L1_MImplied")) <= 1e-9 and abs(eng.get("Cap_In", f"C{row10('m_fleet')}") - eng.get_name("L1_MFleet")) <= 1e-9
@@ -936,8 +936,8 @@ def test_v535_l_split(model):
     for suf, g, t1, rho in (("", -0.10, 4, 0.5), ("_Lo", -0.25, 3, rho_lo), ("_Hi", 0.05, 5, 1.0)):
         for n, v in (("L1_LPrice", lp(g)), ("L1_LTotal", lt(g, t1, rho)), ("L1_LDemote", lt(g, t1, rho) / lp(g))):
             assert abs(eng.get_name(n + suf) - v) <= 1e-12 * v, (n + suf, eng.get_name(n + suf), v)
-    for n, v in (("L1_LPrice", 0.741234), ("L1_LTotal", 0.642602), ("L1_LDemote", 0.866936), ("L1_LPrice_Lo", 0.476188), ("L1_LTotal_Lo", 0.342002), ("L1_LDemote_Lo", 0.718206),
-                 ("L1_LPrice_Hi", 1.161772), ("L1_LTotal_Hi", 1.161772), ("L1_LDemote_Hi", 1.0), ("L1_LReqFleet", 0.364527), ("L1_LReqFleet_Lo", 0.208301), ("L1_LReqFleet_Hi", 0.555461)):
+    for n, v in (("L1_LPrice", 0.741200), ("L1_LTotal", 0.642602), ("L1_LDemote", 0.866976), ("L1_LPrice_Lo", 0.476233), ("L1_LTotal_Lo", 0.341998), ("L1_LDemote_Lo", 0.718132),
+                 ("L1_LPrice_Hi", 1.161763), ("L1_LTotal_Hi", 1.161763), ("L1_LDemote_Hi", 1.0), ("L1_LReqFleet", 0.364509), ("L1_LReqFleet_Lo", 0.208291), ("L1_LReqFleet_Hi", 0.555442)):
         assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)
     req = lambda m: eng.get_name("L1_FleetBreakeven") / (eng.get_name("IF_Util") * eng.get_name("CTL_ProdDerate") * eng.get_name(m))
     assert abs(eng.get_name("L1_LReqFleet") - req("L1_MFleet")) <= 1e-12 * req("L1_MFleet") and abs(eng.get_name("L1_LReqFleet_Lo") - req("L1_MFleet_Hi")) <= 1e-12 * req("L1_MFleet_Hi")
@@ -957,8 +957,8 @@ def test_v535_l_split(model):
     row = lambda p: next(r for lab, r in cap.items() if lab.startswith(p))
     i0 = row("I. L 拆分")
     assert row("H10. m 季度序列") < row("自我檢查：2025 欄") < i0 < row("讀法")                                   # I 節在 H10 之後、讀法列之前
-    for lab, cols in (("m_API", (0.563679, 0.295028, 0.340275, 0.348314)), ("m_消費訂閱", (4.261414, 5.743974, 5.398591, 5.568857)), ("m_商用席次", (1.826320, 3.555650, 4.557252, 8.043904)),
-                      ("m_整體", (1.742672, 1.192291, 1.343201, 1.431747)), ("廣告營收", (0, 0, 0.5, 1.0)), ("2026 消費訂閱占", (0.75, 0.65, 0.65, 0.65)), ("L_price（I 節", (0.741234,) * 4)):
+    for lab, cols in (("m_API", (0.563679, 0.294994, 0.340278, 0.348339)), ("m_消費訂閱", (4.261414, 5.743864, 5.398635, 5.568844)), ("m_商用席次", (1.826320, 3.555726, 4.557290, 8.043885)),
+                      ("m_整體", (1.742672, 1.192339, 1.343201, 1.431699)), ("廣告營收", (0, 0, 0.5, 1.0)), ("2026 消費訂閱占", (0.75, 0.65, 0.65, 0.65)), ("L_price（I 節", (0.741200,) * 4)):
         for c, v in zip("CDEF", cols):
             assert abs(eng.get("Cap_In", f"{c}{row(lab)}") - v) < 5e-6, (lab, c, eng.get("Cap_In", f"{c}{row(lab)}"), v)
     r = row("m 分子營收")
@@ -968,4 +968,4 @@ def test_v535_l_split(model):
     assert abs(eng.get("Cap_In", f"C{row('壽命 T')}") - 6) < 1e-12 and abs(eng.get("Cap_In", f"D{row('降級後價值比')}") - rho_lo) < 1e-12
     assert eng.get("Cap_In", f"C{row('判讀：L_total 對 Gov_Map')}") == "區間內（0.3–1.0）" and eng.get("Cap_In", f"E{row('判讀：L_total 對 Gov_Map')}") == "區間外（0.3–1.0）"
     assert eng.get("Cap_In", f"C{row('判讀：L_total ≥ 所需 L（m＝L1_MFleet）')}").startswith("回本") and eng.get("Cap_In", f"D{row('判讀：L_total ≥ 所需 L（m＝L1_MAPI）')}").startswith("未回本")
-    assert abs(eng.get("Cap_In", f"C{row('回本所需 L（m＝L1_MAPI')}") - 0.523674) < 5e-6
+    assert abs(eng.get("Cap_In", f"C{row('回本所需 L（m＝L1_MAPI')}") - 0.523690) < 5e-6

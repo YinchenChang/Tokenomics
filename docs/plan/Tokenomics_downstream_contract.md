@@ -23,11 +23,11 @@
 | 計價方式 | 收入取決於 | Tokenomics 提供 | 下游設定 |
 |---|---|---|---|
 | 按 token（模型商） | 技術利用率（已上線容量在 SLO 下的平均負載） | `IF_Util`（基準 60%，Assumed）、`CTL_ProdDerate` | 可覆寫利用率；L、m |
-| 按 GPU-hour／MW-year（神雲、雲平台） | 商業簽約率（容量是否已售出） | 成本底線 `L1_HoldEconMW_*`、世代產出比 `L1_TokMW_Gen_ratio_*` | 簽約率（滿產滿租＝100%）、價格層、價值捕獲率 c |
+| 按 GPU-hour／MW-year（新雲、雲平台） | 商業簽約率（容量是否已售出） | 成本底線 `L1_HoldEconMW_*`、世代產出比 `L1_TokMW_Gen_ratio_*` | 簽約率（滿產滿租＝100%）、價格層、價值捕獲率 c |
 
 兩者同時扣減即重複扣減；每個下游模型必須在 handoff 寫明採哪一種。
 
-## 4. 每 MW 收入生成式（神雲、雲平台）
+## 4. 每 MW 收入生成式（新雲、雲平台）
 
 - 每 MW 收入 = 每 MW token 產出 × 每 token 實收價格 × 價值捕獲率 × 簽約率；乘數形式：q × p × c。
 - q 由 Tokenomics 跨世代產出比提供；p 由 SRC_Price 時間序列提供（隨需／預留／長約三層不得混用）；c 與簽約率由下游設定（按 token 計價 c ≈ 1，按 MW-year 計價 c ≈ 0）。

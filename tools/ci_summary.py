@@ -34,18 +34,16 @@ def job(name, junit, results):
                   f"具名範圍不符 {sum(v['name_mismatch'] for v in eq.values())}；每情境比對 {next(iter(eq.values()))['cells']} 格／{next(iter(eq.values()))['names']} 個名稱；"
                   f"載入最長 {max(v['load_seconds'] for v in eq.values())} 秒")
         if sc:
-            print(f"- 情境 {len(sc)} 個；不符格數合計 {sum(v['n_mismatch'] for v in sc.values())}；"
-                  f"含錯誤值的情境 {[k for k, v in sc.items() if v['error_value_cells']]}")
-            print(f"- 增量重算（改輸入後）最大 {max(v['eval_all_seconds_after_change'] for v in sc.values())} 秒")
+            print(f"- 情境 {len(sc)} 個；含錯誤值的情境 {[k for k, v in sc.items() if v['error_value_cells']]}")
         if "_full_recalc_seconds" in d:
             print(f"- 全簿強制重算 {d['_full_recalc_seconds']} 秒")
         if "_incr_recalc" in d:
             i = d["_incr_recalc"]
             print(f"- 增量重算 最大 {i['max_seconds']} 秒（{i['max_scenario']}）／中位數 {i['median_seconds']} 秒（{i['n']} 個情境）")
         if sc:
-            print("\n| 情境 | 不符格 | 增量重算（秒） | 改變格數 |\n|---|---|---|---|")
+            print("\n| 情境 | 錯誤值格 | 改變格數 |\n|---|---|---|")
             for k, v in sc.items():
-                print(f"| {k} | {v['n_mismatch']} | {v['eval_all_seconds_after_change']} | {v['changed_cells']} |")
+                print(f"| {k} | {v['error_value_cells']} | {v['changed_cells']} |")
     slow = sorted(cases, key=lambda c: -float(c.get("time", 0)))[:5]
     print("\n最慢 5 項：" + "；".join(f"{c.get('name')} {float(c.get('time', 0)):.0f}s" for c in slow))
     for c in bad:

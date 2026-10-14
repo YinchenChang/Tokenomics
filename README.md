@@ -8,11 +8,9 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 | 路徑 | 內容 |
 |---|---|
 | `model/` | 現行活頁簿（唯一一份）；舊版在 `model/archive/` |
-| `engine/` | 以公式引擎（pycel）直接計算 xlsx，不手抄公式 |
-| `app/` | Streamlit 網站：只讀 Interface 具名範圍（＋Calib 驗證表、Block 4、5 頁的 `B4_`、`B5_` 顯示名稱） |
-| `tests/parity/` | Excel（LibreOffice 重算）與 engine 的一致性測試與情境檔 |
-| `tests/app/` | 網站煙霧測試 |
-| `legacy/`、`tests/legacy/` | 已停用的 v4 手抄公式與舊測試（不列入 CI） |
+| `tests/parity/` | 數值檢查與情境檔：以 LibreOffice 重算現行活頁簿與每個情境，檢查錯誤值、防空轉、各版本期望值、具名範圍與 GOV_Errors |
+| `legacy/` | **網站暫停（CLAUDE.md 修訂八）**：公式引擎（`legacy/engine/`）、Streamlit 網站（`legacy/app/`）及其工具（`legacy/tools/`），以及早先停用的 v4 手抄公式；程式保留，不執行、不列入 CI |
+| `tests/legacy/` | 暫停的網站與引擎測試（`app/`、`test_functions.py`）及舊 v4 測試，不列入 CI |
 | `docs/reports/` | 每輪報告（繁體中文） |
 | `CHANGELOG.md` | 每次同步的 Excel 版本、commit、變動摘要 |
 
@@ -32,17 +30,16 @@ Excel 的具名範圍分為兩類（見 Excel README 頁）：
 
 ## 執行
 
-```bash
-pip install -r requirements.txt
-streamlit run app/main.py        # 首次載入約 1 分鐘（v5.10 首次載入約 1 分鐘；引擎建圖並全簿重算）
-```
+網站暫停（CLAUDE.md 修訂八）；`python tokenomics.py` 與 `run_local.bat` 只印出暫停訊息。恢復網站時，安裝 `requirements-legacy.txt`，並先由 Project 端決定是否恢復引擎。
+
+匯出 SRC_／Interface CSV 並檢查 GOV_Errors（以 LibreOffice 重算 `model/CURRENT`）：`python3 tools/export_csv.py --out data/export`。
 
 ## 測試
 
 ```bash
-sudo apt-get install -y libreoffice-calc      # parity 基準
+sudo apt-get install -y libreoffice-calc      # 重算用
 pip install -r requirements-dev.txt
-python -m pytest tests/parity tests/app
+python -m pytest tests/parity                  # 全套約 10–15 分鐘；超過 2 分鐘請背景執行
 ```
 
-CI（`.github/workflows/parity.yml`）在每次 push 與 PR 執行 parity；任一格不符即失敗，並列出前 20 個不符格。
+數值檢查在本機執行，通過即可合併；CI（`.github/workflows/parity.yml`：單一 parity job＋governance）供事後對照，不阻擋合併。

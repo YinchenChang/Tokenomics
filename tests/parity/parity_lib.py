@@ -1,17 +1,79 @@
 """Parity 測試工具：LibreOffice headless 重算（基準）與比對。"""
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import tempfile
+import zipfile
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
 import openpyxl
 
-from engine import resolve_key
 
 REL_TOL = 1e-9
 ABS_TOL = 1e-12
+
+# ── 從 legacy/engine/core.py 原樣搬入（修訂八-B）：具名範圍與輸入鍵解析 ──
+_REF_RE = re.compile(
+    r"^(?:'(?P<q>(?:[^']|'')+)'|(?P<u>[^!']+))!"
+    r"\$?(?P<c1>[A-Z]+)\$?(?P<r1>\d+)(?::\$?(?P<c2>[A-Z]+)\$?(?P<r2>\d+))?$"
+)
+
+
+def parse_ref(attr_text: str) -> tuple[str, str]:
+    """'Interface!$C$19:$Q$19' → ('Interface', 'C19:Q19')；頁名可含中文或引號。"""
+    m = _REF_RE.match(attr_text)
+    if not m:
+        raise ValueError(f"無法解析範圍：{attr_text!r}")
+    sheet = (m["q"] or m["u"]).replace("''", "'")
+    ref = f"{m['c1']}{m['r1']}"
+    if m["c2"]:
+        ref += f":{m['c2']}{m['r2']}"
+    return sheet, ref
+
+
+_KEY_RE = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_.]*)(?:\[(?P<i>\d+)\])?$")
+
+
+def resolve_key(names: dict[str, str], key: str) -> tuple[str, str]:
+    """情境輸入鍵 → (頁名, 儲存格)。鍵可為 'Sheet!A1'（舊情境）、'NAME'（單格具名範圍）
+    或 'NAME[k]'（單列或單欄具名範圍的第 k 格，k 從 1 起算）。"""
+    if "!" in key:
+        sheet, coord = key.split("!")
+        return sheet, coord
+    m = _KEY_RE.match(key)
+    if not m or m["name"] not in names:
+        raise KeyError(f"找不到具名範圍：{key!r}")
+    sheet, ref = parse_ref(names[m["name"]])
+    if ":" not in ref:
+        if m["i"]:
+            raise ValueError(f"{key}：單格具名範圍不可加索引")
+        return sheet, ref
+    if not m["i"]:
+        raise ValueError(f"{key}：多格具名範圍必須指定索引，例如 {m['name']}[1]")
+    c1, c2 = ref.split(":")
+    (a, r1), (b, r2) = (re.match(r"([A-Z]+)(\d+)", x).groups() for x in (c1, c2))
+    k = int(m["i"]) - 1
+    from openpyxl.utils import column_index_from_string as ci, get_column_letter as gl
+    if r1 == r2:   # 單列：沿欄展開
+        return sheet, f"{gl(ci(a) + k)}{r1}"
+    if a == b:     # 單欄：沿列展開
+        return sheet, f"{a}{int(r1) + k}"
+    raise ValueError(f"{key}：只支援單列或單欄具名範圍")
+
+
+def read_defined_names_xml(path: Path) -> dict[str, str]:
+    """直接解析 workbook.xml 的 definedName，作為獨立於 openpyxl 的對照來源。"""
+    ns = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    with zipfile.ZipFile(path) as z:
+        root = ET.fromstring(z.read("xl/workbook.xml"))
+    out = {}
+    for el in root.iterfind(".//m:definedNames/m:definedName", ns):
+        if el.get("localSheetId") is None:  # 只取活頁簿層級名稱
+            out[el.get("name")] = (el.text or "").strip()
+    return out
 
 
 def set_inputs(src: Path, dst: Path, inputs: dict[str, object]) -> None:

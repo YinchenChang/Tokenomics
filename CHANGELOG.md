@@ -2,6 +2,22 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261014_Tokenomics_v5.34.xlsx（取代 v5.33；變現率 m 細化：m 按收費模式分拆、token 帳三路線與閉合解、m 季度序列；判斷類（chat 端判定 J15–J21，CC 執行），依工作單 `docs/workorders/20261014_v5.34.md` r0.1）
+
+- Commit：分支 `claude/v5.34-build`（內容提交 `508da71`；合併 SHA 見報告與 PR）。報告：`docs/reports/20261014_v5.34.md`；進度檔：`docs/reports/20261014_v5.34_進度.md`。底稿：master `ebeb7e6`（PR #42，CLAUDE.md 修訂七）；`model/CURRENT` 原為 v5.33。
+- 依據：Andy 2026-10-14 15:35「我能說甚麼呢，你已經包括我的想法了。關於第6點，這個m當然是實驗室(OAI)視角」、15:39「同意，請進行。」、15:49（r0.1）「兩件事我都同意。」；chat 端判定 J15–J21。
+- Excel（CC 以 `builder/` 自 v5.33 產生，經 LibreOffice 重算存檔）：
+  - B1：SRC_Demand 新增 `SRC_DEM_069`（2026 Q1 營收 5.7）、`SRC_DEM_070`（2026 推論支出預測 14.1，Alt）、`SRC_DEM_071`（API 占營收 0.20，低 0.15）；`SRC_DEM_042`、`SRC_DEM_060` 備註補；DB_Evidence E325–E337（N01–N13）。
+  - B2：Cap_In 新增 H8「m 分拆」（第 130–169 列）：藍字 商用席次占比 0.10（0.05–0.15）、消費訂閱占付費 token 份額 0.75（0.60–0.90）、2026 廣告 0.5（0–1.0）、方案上限讀法四格（20／700／200／14,000）；營收三分 9.149／1.307／2.614、token 三分、m_API **0.564**、m_消費訂閱 **4.261**、m_商用席次 **1.826**、m_整體 **1.743**（自我檢查＝L1_MImplied，差 0）；折讓因子 1.0／0.75／1.125、隱含組合因子 0.564（對照代理型極端 0.196）；訂閱 m 下限 0.029／0.014；「必須為真」每訂閱者年 token 142 M（現值 44.6 的 3.2 倍）；J21 Anthropic 對照 0.828／0.163。
+  - B3：Cap_In H9「token 帳三路線」（第 170–181 列）：需求 3.83e9／機隊 8.23e9／上限 1.20e10，殘差 0.465、0.319；閉合解 有效服務 GW 0.3929 → T_chat* 1.273e10 → τ* **13,950**（高於 Alloc_In C15 區間 2,000–11,000）；閉合免費占比 0.213。Checks M4（WARN）＝1（預期）。
+  - B4：L1 新增 `L1_MAPI`（0.564；0.106–0.794）、`L1_MSub`（4.261；0.753–24.96）、`L1_MSeat`（1.826；0.553–6.849）、`L1_MixFactorAPI`（0.564；0.094–1.058）、`L1_TokPerPromptClose`（13,950；6,911–22,758；外部＝Alloc_In C15 區間，判讀「高於外部區間」）、`L1_MAPI_Anthropic`（文字「缺分母」；外部欄 0.828／0.163），各含 `_Lo`／`_Hi`；m 三列外部欄＝CTL_Monetize，判讀 L1_MAPI「區間內」、MSub／MSeat「區間外」。
+  - B5：Cap_In H10「m 季度序列」（第 182–223 列；顯示用）：2025／2026 Q1／Q2／FY2026 營收 13.07／22.8／26.8／36（藍字 36）、份額每欄各自輸入（0.70／0.10、0.60／0.20、0.55／0.25、0.45／0.35；API 餘額 0.20）、API token（SRC_DEM_011 年化 7.884e9；FY × 1.3）、ChatGPT 則數 2.5／3.2／3.6／3.8、2026 世代組合 Hopper 0.25／GB200 0.45／GB300 0.25／VR200 0.05；m_API 0.564／0.295／**0.347**／0.358、m_整體 1.743／1.166／**1.343**／1.452、m_fleet 0.810／0.658／**0.781**／1.042；中階牌價指數預留列（1，不乘入）。
+  - B6：Cap_In E12（`B4_Disc` 高端）0.3 → **0.4**（J20；基準 0.2、低端 0.1 不改，`IF_Price*` 不變）；Gov_Map GM441 區間文字補 0.1–0.4、GM441／GM442 理由附加，新登錄 20 列（GM614–GM633）；Decisions X35–X41；Excel README A1、B5、新列 A36／B36；Checks M 區標題補 M4。具名範圍新增 `B4_Disc_Lo`／`B4_Disc_Hi`（顯示用）。
+  - 既有 IF_、L1_ 數值全部不變（逐格比對）；`CTL_Monetize` 不改（J15）。
+- builder：新增 `v534.py`；`gov.py`、`build.py`、`finish.py` 接上；`tools/gen_builder_md.py` 加 `v534.py`；`docs/builder/Tokenomics_builder_v5.md` 重新產生（35 個檔）。
+- 測試：`formula_cells` 46,471 → 47,134、`defined_names` 1,140 → 1,167、`src_names` 424 → 431、`l1_names` 225 → 243、`b4_names` 39 → 41、`display_only_names` 140 → 142；GOV_Warnings 267 → 270、GOV_Info 168 → 169；新增 `test_v534_m_split`；情境 b_prod_derate 補 L1_TokPerPromptClose 與 Checks M4 的 SLO 守衛斷言。
+- 治理：GOV_Errors 0、GOV_Warnings 270（M4 +1、W1 +2：SRC_DEM_069／071 利害關係方 Active 無第二來源）、GOV_Info 169（I3 +1：L1_TokPerPromptClose「高於外部區間」）。
+
 ## 20261013_Tokenomics_v5.33.xlsx（取代 v5.32；付費 token 數量校準：2025 基準年世代組合、每則 token 高端、機隊口徑（兩種讀法）；判斷類（chat 端判定，CC 執行），依工作單 `docs/workorders/20261012_v5.33.md` r1（B 段））
 
 - Commit：PR #41 合併 `388f274`（內容 `4c4a336`→`48e19a9`）。報告：`docs/reports/20261013_v5.33.md`。底稿：master `63dc78a`（v5.32 合併，PR #39）；`model/CURRENT` 原為 v5.32。A 段查證：`docs/reports/20261012_v5.33A_查證.md`（PR #40）。

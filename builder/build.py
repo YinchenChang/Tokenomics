@@ -33,6 +33,8 @@ for _old, _new in SNAP_MOVES:
 from block4 import PRICE_ROWS
 SNAP_RETIRED = [("Arch", (lab, 0), c) for lab in ("KV bytes/token — 情境 1", "KV bytes/token — 情境 2", "KV bytes/token — 情境 3")
                 for c in (3, 4, 5)] + [("Cap_In", (row[0], 0), 14) for row in PRICE_ROWS]
+import v535
+SNAP_RETIRED += v535.SNAP_RETIRED       # v5.35 B2: Cap_In H10 mid-tier price index row (four blue 1s) is now a link to I-section L_price
 RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
@@ -89,7 +91,9 @@ V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(aft
 import v533
 V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
 import v534
+v535.patch_h10()      # v5.35 B1 (J23): H10 spec patched in place before it is written (ads per column, revenue rows on the m numerator, 0.65 share row, L_price link row)
 V534_CAP = v534.cap_in_h8_h10(wb, V532_CAP, V533_CAP)      # v5.34 B2／B3／B5: Cap_In H8–H10 (before the H reading row, which is rewritten after them; B4_Disc_Lo／_Hi names added; no defined name moves)
+V535_CAP = v535.cap_in_i(wb, V534_CAP)      # v5.35 B2 (J22): Cap_In I section「L 拆分」(before the H reading row, which is rewritten after it; no defined name moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -190,6 +194,7 @@ checks_h(wb)        # v5.15: Checks H section (after the G section; counted in G
 V532_L1P = v532.l1_judge(wb)      # v5.32 B3: L1_MImplied／_Ext judgement column (inside／outside the CTL_Monetize Gov_Map range)
 V533_L1P = v533.l1_judge(wb)      # v5.33 B4: L1_MFleet (range) and L1_TokCeiling (demand ÷ ceiling) judgement columns
 V534_L1P = v534.l1_judge(wb)      # v5.34 B4: L1_MAPI／MSub／MSeat (range) and L1_MixFactorAPI (ratio to the agent extreme) judgement columns
+V535_L1P = v535.l1_judge(wb)      # v5.35 B4: L1_LTotal (CTL_PriceLife range) and L1_LReqFleet (L_total ≥ required L) judgement columns
 import v519
 X1 = v519.x1(wb)    # v5.19 X1: *_Prod mirror sheets, Interface G, Checks I1 (after gov_all: reads the final formulas of the chain)
 print("x1 chain cells:", X1['cells'], "sheets:", X1['sheets'])
@@ -213,6 +218,7 @@ CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
 CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
 CK_M4 = v534.checks_m4(wb)                # v5.34 B3: Checks M4, WARN (after M3; counted in GOV_Warnings)
+print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))
 print("v534 Cap_In H8–H10 from:", V534_CAP["start"], "to:", V534_CAP["end"], "| L1 rows:", V534_L1P, "| Checks M4 row:", CK_M4)
 print("v533 Cap_In H7 from:", V533_CAP["start"], "to:", V533_CAP["end"], "| L1 rows:", V533_L1P, "| Checks M2/M3 rows:", CK_M23)
 print("v532 Cap_In H from:", V532_CAP["start"], "to:", V532_CAP["end"], "| L1 rows:", V532_L1P, "| Checks M1 row:", CK_M)

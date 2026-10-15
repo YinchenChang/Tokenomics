@@ -1,0 +1,3089 @@
+[
+{
+"sh": "Train_In",
+"r": 6,
+"label": "預訓練 MFU 基準（FP8 分母；GB200／GB300）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 7,
+"label": "goodput（扣除故障、重啟、checkpoint 的有效時間比）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 8,
+"label": "SFT MFU 係數（× 預訓練 MFU）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 9,
+"label": "RL trainer MFU 係數（× 預訓練 MFU）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 10,
+"label": "參考模型前向（KL 懲罰；0＝無、1＝有）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 11,
+"label": "rollout 效率（長尾等待、權重同步、閒置）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 12,
+"label": "GRPO 每題取樣數（共用 prompt，prefill 只算一次）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 13,
+"label": "研發倍數（研發總 GPU 小時 ÷ 最終訓練）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 15,
+"label": "合成資料生成層級（1 Luna／2 Sol／3 Astra）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 16,
+"label": "下游預設訓練世代（世代索引）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 17,
+"label": "並列訓練世代（世代索引）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 21,
+"label": "預訓練 MFU 世代倍數",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Train_In",
+"r": 25,
+"label": "預訓練 token",
+"nf": 2,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 26,
+"label": "預訓練序列長（dense 注意力）",
+"nf": 2,
+"ni": 1
+},
+{
+"sh": "Train_In",
+"r": 27,
+"label": "長上下文延伸 token",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 28,
+"label": "長上下文延伸序列長（稀疏注意力路徑）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 29,
+"label": "SFT token",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 30,
+"label": "SFT 序列長",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 31,
+"label": "批次推論速度下限（rollout、合成、評測）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 32,
+"label": "rollout 參考輸入（prompt＋工具結果）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 33,
+"label": "rollout 參考輸出（含思考）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 34,
+"label": "RL rollout 輸出 token（含各領域專家）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 35,
+"label": "On-policy 蒸餾：學生 rollout 輸出 token",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 36,
+"label": "蒸餾教師層級（1／2／3）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 37,
+"label": "合成資料生成 token",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 38,
+"label": "評測 token",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Train_In",
+"r": 41,
+"label": "DeepSeek V3 預訓練 token",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Train_In",
+"r": 42,
+"label": "DeepSeek V3 預訓練 H800 GPU 小時",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Train_In",
+"r": 43,
+"label": "DeepSeek V3 預訓練序列長",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Train_In",
+"r": 47,
+"label": "前沿預訓練錨點 中",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Training",
+"r": 6,
+"label": "世代索引",
+"nf": 0,
+"ni": 15
+},
+{
+"sh": "Training",
+"r": 7,
+"label": "層級索引",
+"nf": 0,
+"ni": 15
+},
+{
+"sh": "Training",
+"r": 10,
+"label": "FP8 dense 峰值",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 11,
+"label": "訓練峰值倍數（H_TPK）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 12,
+"label": "訓練用峰值（MFU 分母）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 13,
+"label": "預訓練 MFU 基準",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 14,
+"label": "MFU 世代倍數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 15,
+"label": "訓練 MFU 倍數（H_MFU）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 16,
+"label": "預訓練 MFU（採用）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 17,
+"label": "goodput",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 18,
+"label": "每 GW GPU 數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 22,
+"label": "啟用參數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 23,
+"label": "注意力 FLOPs／被注意 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 24,
+"label": "全注意力層比例",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 25,
+"label": "全注意力跨度上限",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 26,
+"label": "其他層壓縮比",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 27,
+"label": "其他層滑動窗",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 28,
+"label": "FLOPs/token 倍數（H_FLOP）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 30,
+"label": "所需 token 倍數（H_TOK）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 31,
+"label": "預訓練 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 32,
+"label": "序列長",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 33,
+"label": "平均被注意 token（dense 注意力＝平均位置）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 34,
+"label": "訓練 FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 35,
+"label": "預訓練 FLOPs",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 36,
+"label": "預訓練 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 38,
+"label": "延伸 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 39,
+"label": "序列長",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 40,
+"label": "平均被注意 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 41,
+"label": "訓練 FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 42,
+"label": "延伸 FLOPs",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 43,
+"label": "延伸 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 45,
+"label": "SFT token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 46,
+"label": "序列長",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 47,
+"label": "平均被注意 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 48,
+"label": "訓練 FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 49,
+"label": "SFT FLOPs",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 50,
+"label": "SFT MFU 係數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 51,
+"label": "SFT GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 53,
+"label": "rollout 輸出 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 54,
+"label": "每樣本輸入",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 55,
+"label": "每樣本輸出",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 56,
+"label": "樣本數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 57,
+"label": "GRPO 每題取樣數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 58,
+"label": "新鮮 prefill token（每題一次）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 59,
+"label": "rollout decode GPU 秒／M（Perf_Batch 本層級）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 60,
+"label": "rollout prefill GPU 秒／M",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 61,
+"label": "rollout decode FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 62,
+"label": "rollout prefill FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 63,
+"label": "rollout 效率倍數（H_ROLL）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 64,
+"label": "rollout 效率（採用）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 65,
+"label": "rollout GPU 小時（含閒置）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 66,
+"label": "rollout FLOPs（接受 token）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 67,
+"label": "trainer 處理 token（輸入＋輸出）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 68,
+"label": "trainer 平均被注意 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 69,
+"label": "trainer FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 70,
+"label": "trainer FLOPs",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 71,
+"label": "RL trainer MFU 係數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 72,
+"label": "trainer GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 73,
+"label": "參考模型前向（0／1）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 74,
+"label": "參考模型前向 GPU 小時（推論型）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 75,
+"label": "RL GPU 小時合計",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 76,
+"label": "RL FLOPs 合計",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 77,
+"label": "RL 有效 MFU（FLOPs ÷ GPU 小時 ÷ 訓練峰值）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 78,
+"label": "RL ÷ 預訓練（GPU 小時）",
+"nf": 2,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 81,
+"label": "學生 rollout 輸出 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 82,
+"label": "教師層級",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 83,
+"label": "教師評分 token（輸入＋輸出）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 84,
+"label": "教師 prefill GPU 秒／M",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 85,
+"label": "教師 prefill FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 86,
+"label": "學生 rollout GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 87,
+"label": "教師評分 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 88,
+"label": "學生更新 FLOPs",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 89,
+"label": "學生更新 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 90,
+"label": "蒸餾 GPU 小時合計",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 91,
+"label": "蒸餾 FLOPs 合計",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 93,
+"label": "合成資料 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 94,
+"label": "生成層級",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 95,
+"label": "生成層級 decode GPU 秒／M",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 97,
+"label": "合成資料 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 99,
+"label": "評測 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 100,
+"label": "評測 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 103,
+"label": "預訓練側 GPU 小時（預訓練＋長上下文）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 104,
+"label": "後訓練 GPU 小時（SFT＋RL＋蒸餾）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 105,
+"label": "合成資料與評測 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 106,
+"label": "最終訓練 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 107,
+"label": "預訓練側 FLOPs",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 108,
+"label": "後訓練 FLOPs",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 110,
+"label": "後訓練占比（FLOPs 口徑）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 111,
+"label": "後訓練占比（GPU 小時口徑）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 117,
+"label": "最終訓練占 1 GW 一年",
+"nf": 2,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 119,
+"label": "研發倍數",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 120,
+"label": "研發計畫 GPU 小時",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Training",
+"r": 123,
+"label": "研發計畫占 1 GW 一年",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 22,
+"label": "商業壽命 基準",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Cap_In",
+"r": 36,
+"label": "儲存層（1＝SSD；2＝DRAM；3＝HBM）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 37,
+"label": "保留時間",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 38,
+"label": "每次寫入在保留期內的平均命中次數",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 39,
+"label": "DRAM 取得成本",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 40,
+"label": "DRAM 折舊年限",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 41,
+"label": "SSD 取得成本",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 42,
+"label": "SSD 折舊年限",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 104,
+"label": "程式代理輸入占全部 token（Requesty 情境）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Cap_In",
+"r": 105,
+"label": "程式代理快取命中率 χ",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 106,
+"label": "程式代理 Sol 每 M token 實收（OpenAI 有效價）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 107,
+"label": "對照：程式代理單價結構倍數（÷ IF_PriceRef_Sol；m 的 token 組合成分）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 115,
+"label": "利用率修正（上限）＝CTL_ProdDerate（J13）",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 118,
+"label": "機隊付費 token 上限（上限讀法）＝服務 GW × CTL_ProdDerate ÷（1 ÷ 付費產能 ＋ r ÷ 免費產能）　→ L1_TokCeiling",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 167,
+"label": "Anthropic 2025 用量計費占營收＝SRC_DEM_034 ÷（SRC_DEM_034 ＋ SRC_DEM_035）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 168,
+"label": "Anthropic 雲端分潤比＝SRC_DEM_037 ÷ SRC_DEM_036",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 171,
+"label": "付費 token — 需求路線＝AL_DPaid（H3 第 83 列）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 172,
+"label": "付費 token — 支出路線（機隊點估計；H7 第 116 列）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 174,
+"label": "殘差：需求 ÷ 機隊（點估計）　→ Checks M4（< 0.5 或 > 2 為 WARN）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 226,
+"label": "中階 token 牌價年變化率 g（I-1；Assumed）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Cap_In",
+"r": 227,
+"label": "降級前服務中階的年數 T1（年；I-2；Assumed）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Cap_In",
+"r": 228,
+"label": "降級後價值比 ρ（I-3；Assumed；D 欄＝IF_PriceRef_Luna ÷ IF_PriceRef_Sol）",
+"nf": 1,
+"ni": 2
+},
+{
+"sh": "Cap_In",
+"r": 229,
+"label": "壽命 T（年；I-4）＝IF_DeprLifeIT（Interface I 節 IT 折舊年限，Hopper 基準欄；三欄同值）",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 232,
+"label": "L_price＝((1+g)^T − 1) ÷ (T × k)　→ L1_LPrice",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 233,
+"label": "L_total＝[((1+g)^T1 − 1) ＋ ρ × ((1+g)^T − (1+g)^T1)] ÷ (T × k)　→ L1_LTotal",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 234,
+"label": "L_demote＝L_total ÷ L_price　→ L1_LDemote",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 256,
+"label": "驗算差：恆等式 − 1 ÷ 第 174 列（須為 0；容差 1e-9；Checks M5）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 258,
+"label": "2025 中階牌價：GPT-4o（C＝參考請求單價 $/M；D＝2025 年在線月數）",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Cap_In",
+"r": 259,
+"label": "2025 中階牌價：GPT-5（C＝參考請求單價 $/M；D＝2025 年在線月數）",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Cap_In",
+"r": 260,
+"label": "2025 中階牌價：GPT-5.2（C＝參考請求單價 $/M；D＝2025 年在線月數）",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Cap_In",
+"r": 261,
+"label": "2026-09 快照 Sol 參考請求單價（未折扣）＝IF_PriceRef_Sol ÷ (1 − B4_Disc)",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 262,
+"label": "2025 中階牌價（時間加權）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Cap_In",
+"r": 263,
+"label": "價格時間錯配 ρ＝2025 中階牌價（時間加權）÷ 快照 Sol　→ L1_PriceRho（D＝下限：三者最低 ÷ Sol；E＝上限：三者最高 ÷ Sol）",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 11,
+"label": "理論營收 — OpenAI 有效單價　[IF_RevGW_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 17,
+"label": "服務成本 $/M（參考請求，含快取儲存，基準利用率）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 18,
+"label": "全成本 $/M（服務＋自下而上攤提）　[IF_FullCost_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 20,
+"label": "全成本 $/M（服務＋K6 預設 (c) 攤提）　[IF_FullCostDefault_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 29,
+"label": "理論營收 — OpenAI 有效單價　[IF_RevGW_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 35,
+"label": "服務成本 $/M（參考請求，含快取儲存，基準利用率）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 36,
+"label": "全成本 $/M（服務＋自下而上攤提）　[IF_FullCost_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 38,
+"label": "全成本 $/M（服務＋K6 預設 (c) 攤提）　[IF_FullCostDefault_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 47,
+"label": "理論營收 — OpenAI 有效單價　[IF_RevGW_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 53,
+"label": "服務成本 $/M（參考請求，含快取儲存，基準利用率）",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 54,
+"label": "全成本 $/M（服務＋自下而上攤提）　[IF_FullCost_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 56,
+"label": "全成本 $/M（服務＋K6 預設 (c) 攤提）　[IF_FullCostDefault_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 64,
+"label": "Luna（低層） 貢獻 — OpenAI 有效單價　[IF_RevGWFleet_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 65,
+"label": "Sol（中層） 貢獻 — OpenAI 有效單價　[IF_RevGWFleet_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 66,
+"label": "Astra（頂層） 貢獻 — OpenAI 有效單價　[IF_RevGWFleet_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 68,
+"label": "Luna（低層） 貢獻 — 前緣單價　[IF_RevGWFleetFront_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 69,
+"label": "Sol（中層） 貢獻 — 前緣單價　[IF_RevGWFleetFront_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 70,
+"label": "Astra（頂層） 貢獻 — 前緣單價　[IF_RevGWFleetFront_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 72,
+"label": "整個 GW 年持有成本（服務＋訓練＋研發）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 73,
+"label": "機隊營收 ÷ 持有成本",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 90,
+"label": "理論營收 — OpenAI 有效單價（× 壽命期價格係數 L × 變現率 m）　[IF_RevGW_Luna_Life]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 91,
+"label": "理論營收 — OpenAI 有效單價（× 壽命期價格係數 L × 變現率 m）　[IF_RevGW_Sol_Life]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 92,
+"label": "理論營收 — OpenAI 有效單價（× 壽命期價格係數 L × 變現率 m）　[IF_RevGW_Astra_Life]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 93,
+"label": "付費服務營收合計（層級組合：付費 token 依 B4_MixPaid）— OpenAI 有效單價（× 壽命期價格係數 L × 變現率 m）　[IF_RevGWFleet_Life]",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 96,
+"label": "IF_RevGW_Luna_Life：Interface 列 vs IF_RevGW_Luna × L × m",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 97,
+"label": "IF_RevGW_Sol_Life：Interface 列 vs IF_RevGW_Sol × L × m",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 98,
+"label": "IF_RevGW_Astra_Life：Interface 列 vs IF_RevGW_Astra × L × m",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Theory_Rev",
+"r": 99,
+"label": "IF_RevGWFleet_Life：Interface 列 vs IF_RevGWFleet × L × m",
+"nf": 15,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 5,
+"label": "情境檔案（2＝供應商原生增強；3＝多代理編排）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Har_In",
+"r": 6,
+"label": "選定檔案名稱",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 7,
+"label": "混合權重 w＝T12 開關 × 採用比例",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 8,
+"label": "可靠度下限 p_min（成功任務成本前緣只比較 p ≥ 此值者）",
+"nf": 0,
+"ni": 1
+},
+{
+"sh": "Har_In",
+"r": 12,
+"label": "輪數倍數",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 13,
+"label": "思考保留 ρ",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 14,
+"label": "每輪思考倍數",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 15,
+"label": "歷史保留比 c（壓縮後）",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 16,
+"label": "快取命中變動",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 17,
+"label": "子代理數增量",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 18,
+"label": "狀態保留時間",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 19,
+"label": "時間範圍倍數（本任務）",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 24,
+"label": "輪數倍數",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 25,
+"label": "思考保留 ρ",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 26,
+"label": "每輪思考倍數",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 27,
+"label": "歷史保留比 c（壓縮後）",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 28,
+"label": "快取命中變動",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 29,
+"label": "子代理數增量",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 30,
+"label": "狀態保留時間",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 31,
+"label": "時間範圍倍數（本任務）",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 36,
+"label": "輪數倍數",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 37,
+"label": "思考保留 ρ",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 38,
+"label": "每輪思考倍數",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 39,
+"label": "歷史保留比 c（壓縮後）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 40,
+"label": "快取命中變動",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 41,
+"label": "子代理數增量",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 42,
+"label": "狀態保留時間",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 43,
+"label": "時間範圍倍數（本任務）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 48,
+"label": "50% 時間範圍 基準",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Har_In",
+"r": 49,
+"label": "50% 時間範圍 低",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Har_In",
+"r": 50,
+"label": "50% 時間範圍 高",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Har_In",
+"r": 51,
+"label": "斜率 β（C＝基準、D＝低、E＝高）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Har_In",
+"r": 53,
+"label": "任務長度（人類完成時間）",
+"nf": 0,
+"ni": 5
+},
+{
+"sh": "Har_In",
+"r": 61,
+"label": "輪數倍數",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Har_In",
+"r": 62,
+"label": "每輪思考倍數",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Har_In",
+"r": 63,
+"label": "思考保留 ρ",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Har_In",
+"r": 64,
+"label": "歷史保留比 c",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Har_In",
+"r": 65,
+"label": "時間範圍倍數（長程）",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Har_In",
+"r": 66,
+"label": "狀態保留時間",
+"nf": 0,
+"ni": 2
+},
+{
+"sh": "Har_In",
+"r": 70,
+"label": "ARC-AGI-3：GPT-6 Astra 標準 harness（最高推理）",
+"nf": 2,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 71,
+"label": "ARC-AGI-3：GPT-6 Astra Provider Adapter（最高推理，同檔）",
+"nf": 2,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 72,
+"label": "ARC-AGI-3：GPT-6 Astra Provider Adapter（高推理）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 77,
+"label": "GPT-5",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 78,
+"label": "GPT-5.2（high）",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 79,
+"label": "GPT-5.4（xhigh）",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "Har_In",
+"r": 80,
+"label": "Gemini 3.1 Pro",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 7,
+"label": "輪數 T",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 8,
+"label": "每輪思考 h",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 9,
+"label": "思考保留 ρ",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 10,
+"label": "快取命中 χ",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 11,
+"label": "子代理數 m",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 12,
+"label": "歷史保留比 c",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 13,
+"label": "每輪上下文增量 u＋o＋ρh",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 14,
+"label": "單代理輸入總量",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 15,
+"label": "其中可快取",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 16,
+"label": "單代理 decode",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 17,
+"label": "系統倍數（1＋m）× 殘差倍數",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 18,
+"label": "任務新鮮 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 19,
+"label": "任務快取 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 20,
+"label": "任務 decode",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 21,
+"label": "任務總 token",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 24,
+"label": "輪數 T",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 25,
+"label": "每輪思考 h",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 26,
+"label": "思考保留 ρ",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 27,
+"label": "快取命中 χ",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 28,
+"label": "子代理數 m",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 29,
+"label": "歷史保留比 c",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 30,
+"label": "每輪上下文增量 u＋o＋ρh",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 31,
+"label": "單代理輸入總量",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 32,
+"label": "其中可快取",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 33,
+"label": "單代理 decode",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 34,
+"label": "系統倍數（1＋m）× 殘差倍數",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 35,
+"label": "任務新鮮 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 36,
+"label": "任務快取 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 37,
+"label": "任務 decode",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 38,
+"label": "任務總 token",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 41,
+"label": "任務新鮮 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 42,
+"label": "任務快取 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 43,
+"label": "任務 decode",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 45,
+"label": "選定檔案 ÷ 標準：任務總 token",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 48,
+"label": "保留時間：標準",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 49,
+"label": "保留時間：現行",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 50,
+"label": "保留時間：選定檔案",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 51,
+"label": "時間範圍倍數：標準",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 52,
+"label": "時間範圍倍數：現行",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 53,
+"label": "時間範圍倍數：選定檔案",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 56,
+"label": "Luna（低層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 57,
+"label": "Luna（低層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 58,
+"label": "Luna（低層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 59,
+"label": "Sol（中層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 60,
+"label": "Sol（中層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 61,
+"label": "Sol（中層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 62,
+"label": "Astra（頂層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 63,
+"label": "Astra（頂層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 64,
+"label": "Astra（頂層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 67,
+"label": "VR200 × Luna（低層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 68,
+"label": "VR200 × Luna（低層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 69,
+"label": "VR200 × Luna（低層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 70,
+"label": "VR200 × Sol（中層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 71,
+"label": "VR200 × Sol（中層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 72,
+"label": "VR200 × Sol（中層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 73,
+"label": "VR200 × Astra（頂層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 74,
+"label": "VR200 × Astra（頂層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 75,
+"label": "VR200 × Astra（頂層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 77,
+"label": "GB300 × Luna（低層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 80,
+"label": "GB300 × Sol（中層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 83,
+"label": "GB300 × Astra（頂層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 87,
+"label": "VR200 × Luna（低層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 88,
+"label": "VR200 × Luna（低層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 89,
+"label": "VR200 × Luna（低層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 90,
+"label": "VR200 × Sol（中層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 91,
+"label": "VR200 × Sol（中層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 92,
+"label": "VR200 × Sol（中層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 93,
+"label": "VR200 × Astra（頂層）｜標準 harness",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 94,
+"label": "VR200 × Astra（頂層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 95,
+"label": "VR200 × Astra（頂層）｜選定檔案全採用",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 97,
+"label": "GB300 × Luna（低層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 100,
+"label": "GB300 × Sol（中層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 103,
+"label": "GB300 × Astra（頂層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 117,
+"label": "每次嘗試營收：Luna（低層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 120,
+"label": "每次嘗試營收：Sol（中層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 123,
+"label": "每次嘗試營收：Astra（頂層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 126,
+"label": "每成功任務營收：Luna（低層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 129,
+"label": "每成功任務營收：Sol（中層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 132,
+"label": "每成功任務營收：Astra（頂層）｜現行（依 T12 混合）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 136,
+"label": "VR200 × Luna（低層）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 137,
+"label": "VR200 × Sol（中層）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 138,
+"label": "VR200 × Astra（頂層）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 147,
+"label": "對照（不設下限）：VR200 最低每成功任務成本",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 148,
+"label": "對照（不設下限）：VR200 前緣組合（層級｜檔案）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 151,
+"label": "VR200：最低每成功任務成本（p ≥ p_min）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 152,
+"label": "VR200：前緣組合（層級｜檔案；p ≥ p_min）",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 153,
+"label": "VR200：前緣組合的成功率 p",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 160,
+"label": "有效 50% 時間範圍：Luna（低層）｜現行",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 161,
+"label": "有效 50% 時間範圍：Sol（中層）｜現行",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Harness",
+"r": 162,
+"label": "有效 50% 時間範圍：Astra（頂層）｜現行",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "Alloc_In",
+"r": 6,
+"label": "家族計畫數 N_major（個／年）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Alloc_In",
+"r": 7,
+"label": "改版計畫數 N_refresh（個／年）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Alloc_In",
+"r": 8,
+"label": "計畫規模倍數 k（相對 Block 3）",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Alloc",
+"r": 11,
+"label": "D 合計",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 12,
+"label": "每日 token 合計（供 Epoch 對照）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 29,
+"label": "各世代服務 GW＝合計 × 世代占比",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 33,
+"label": "訓練世代索引（IF_TrainGenDefault，J13）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 34,
+"label": "Interface／Training 欄索引（基準成本欄；Training 另加層級索引）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 36,
+"label": "層級索引",
+"nf": 0,
+"ni": 3
+},
+{
+"sh": "Alloc",
+"r": 37,
+"label": "家族計畫 GW 年（IF_ProgGWyr；含研發倍數；等同 Fleet_1GW 第 33 列）",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 38,
+"label": "後訓練 GPU 小時（SFT＋RL＋蒸餾；單一模型；Training 頁）",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 39,
+"label": "每 GW GPU 數（訓練世代）",
+"nf": 3,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 40,
+"label": "改版計畫 GW 年＝後訓練 GPU 小時 × 研發倍數 ÷（每 GW GPU 數 × 8,760）",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 41,
+"label": "研發 GW 年＝k ×（N_major × 家族計畫＋N_refresh × 改版計畫）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 43,
+"label": "訓練世代每 GW 年經濟持有成本（IF_HoldEcon，基準成本）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 44,
+"label": "研發算力成本（研發 GW × 訓練世代持有成本；Q3 的算力部分）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 47,
+"label": "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 48,
+"label": "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷ 總 GW",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 49,
+"label": "Q2 研發算力成本占比＝研發 GW × 持有成本 ÷（研發 GW × 持有成本＋Σ 各世代服務 GW × 各世代持有成本）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 55,
+"label": "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 56,
+"label": "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 57,
+"label": "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 63,
+"label": "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計",
+"nf": 1,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 72,
+"label": "基準",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 73,
+"label": "N_major 低",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 74,
+"label": "N_major 高",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 75,
+"label": "N_refresh 低",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 76,
+"label": "N_refresh 高",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 77,
+"label": "k 低",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 78,
+"label": "k 高",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 81,
+"label": "API 全年平均比例 低",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 82,
+"label": "API 全年平均比例 高",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 83,
+"label": "免費占比 低",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 84,
+"label": "免費占比 高",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 85,
+"label": "服務世代組合：全 GB200",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 86,
+"label": "服務世代組合：全 VR200",
+"nf": 20,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 88,
+"label": "檢查：基準（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 89,
+"label": "檢查：N_major 低（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 90,
+"label": "檢查：N_major 高（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 91,
+"label": "檢查：N_refresh 低（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 92,
+"label": "檢查：N_refresh 高（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 93,
+"label": "檢查：k 低（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 94,
+"label": "檢查：k 高（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 95,
+"label": "檢查：每則提示 token 數 低（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 96,
+"label": "檢查：每則提示 token 數 高（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 97,
+"label": "檢查：API 全年平均比例 低（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 98,
+"label": "檢查：API 全年平均比例 高（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 99,
+"label": "檢查：免費占比 低（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 100,
+"label": "檢查：免費占比 高（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 101,
+"label": "檢查：服務世代組合：全 GB200（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "Alloc",
+"r": 102,
+"label": "檢查：服務世代組合：全 VR200（輸入全為基準）",
+"nf": 18,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 5,
+"label": "L1_CapexGW_Hopper",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 6,
+"label": "L1_CapexGW_GB200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 7,
+"label": "L1_CapexGW_GB300",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 8,
+"label": "L1_CapexGW_VR200",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 9,
+"label": "L1_NvContentGW_VR200",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 10,
+"label": "L1_FacCapexMW",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 11,
+"label": "L1_HoldEconGW_Hopper",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 12,
+"label": "L1_HoldEconGW_GB200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 13,
+"label": "L1_HoldEconGW_GB300",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 14,
+"label": "L1_HoldEconGW_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 15,
+"label": "L1_GPUhr_Hopper",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 16,
+"label": "L1_GPUhr_GB200",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 17,
+"label": "L1_GPUhr_GB300",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 18,
+"label": "L1_GPUhr_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 19,
+"label": "L1_CostDec_Luna_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 20,
+"label": "L1_CostDec_Luna_GB300",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 21,
+"label": "L1_CostDec_Sol_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 22,
+"label": "L1_CostDec_Sol_GB300",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 23,
+"label": "L1_CostDec_Astra_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 24,
+"label": "L1_CostDec_Astra_GB300",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 25,
+"label": "L1_CostTotTokIX_GB300",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 26,
+"label": "L1_RevGW_Luna_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 27,
+"label": "L1_RevGW_Sol_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 28,
+"label": "L1_RevGW_Astra_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 29,
+"label": "L1_RevGW_Fleet_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 30,
+"label": "L1_GPUhr_GB200_vsCW",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 31,
+"label": "L1_GPUhr_GB300_vsBE",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 32,
+"label": "L1_RLshare_Sol_VR200",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 33,
+"label": "L1_RLshare_Astra_VR200",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 34,
+"label": "L1_FinalTrainShare",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 35,
+"label": "L1_RevGWFleet_OAI2025",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 36,
+"label": "L1_PretrainFLOP_Astra",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 37,
+"label": "L1_Ans1",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 38,
+"label": "L1_Ans2",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 39,
+"label": "L1_Ans3",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 40,
+"label": "L1_Ans4",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 41,
+"label": "L1_Ans5",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 42,
+"label": "L1_Ans6",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 43,
+"label": "L1_Ans7",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 44,
+"label": "L1_Ans8",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 45,
+"label": "L1_Ans9",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 46,
+"label": "L1_ExtServeGW",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 47,
+"label": "L1_ExtFreeShare",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 48,
+"label": "L1_ExtDaily",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 49,
+"label": "L1_Ans5_GM",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 50,
+"label": "L1_Ans5_FullMargin",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 51,
+"label": "L1_Ans6_GPUh",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 53,
+"label": "L1_FleetMargin",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 54,
+"label": "L1_HoldEconMW_Hopper",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 55,
+"label": "L1_HoldEconMW_GB200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 56,
+"label": "L1_HoldEconMW_GB300",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 57,
+"label": "L1_HoldEconMW_VR200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 58,
+"label": "L1_TokMW_Gen_ratio_GB200",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 59,
+"label": "L1_TokMW_Gen_ratio_GB300",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 60,
+"label": "L1_TokMW_Gen_ratio_VR200",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 61,
+"label": "L1_HarVsGen_Chat",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 62,
+"label": "L1_HarVsGen_ReasonChat",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 63,
+"label": "L1_HarVsGen_SingleAgent",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 64,
+"label": "L1_HarVsGen_MultiAgent",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 65,
+"label": "L1_HarVsGen_Coding",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 66,
+"label": "L1_PretrainFLOP_Astra_Ext",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 67,
+"label": "L1_AstraScale",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 68,
+"label": "L1_ScaleRD",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 75,
+"label": "L1_CapexITMW_GB300_vsIREN",
+"nf": 6,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 79,
+"label": "L1_TokCeiling",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 86,
+"label": "L1_LPrice",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 87,
+"label": "L1_LDemote",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 88,
+"label": "L1_LTotal",
+"nf": 4,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 93,
+"label": "L1_PriceReqBE",
+"nf": 5,
+"ni": 0
+},
+{
+"sh": "L1",
+"r": 94,
+"label": "L1_PriceRho",
+"nf": 4,
+"ni": 0
+}
+]

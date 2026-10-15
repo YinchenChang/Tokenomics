@@ -268,8 +268,8 @@ def alloc(wb, AIN):
     for lab, key, stem in (("N_major", "Nmaj", "Nmajor"), ("N_refresh", "Nref", "Nrefresh"), ("k", "k", "k"), ("每則提示 token 數", "tok", "TokPerPrompt"),
                            ("API 全年平均比例", "ratio", "APIratio"), ("免費占比", "free", "FreeShare")):
         scen.append((f"{lab} 低", lab, {key: endp(stem, "Lo")})); scen.append((f"{lab} 高", lab, {key: endp(stem, "Hi")}))
-    scen.append(("服務世代組合：全 GB200", "世代組合", {"m0": "AL_MixHopper_Lo", "m1": "AL_MixGB200_Hi", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Lo"}))
-    scen.append(("服務世代組合：全 VR200", "世代組合", {"m0": "AL_MixHopper_Lo", "m1": "AL_MixGB200_Lo", "m2": "AL_MixGB300_Lo", "m3": "AL_MixVR200_Hi"}))
+    scen.append(("服務世代組合：全 GB200", "世代組合", {"m0": 0, "m1": 1, "m2": 0, "m3": 0}))
+    scen.append(("服務世代組合：全 VR200", "世代組合", {"m0": 0, "m1": 0, "m2": 0, "m3": 1}))
     keys = ["Nmaj", "Nref", "k", "ratio", "tok", "free", "m0", "m1", "m2", "m3"]
     capp = [f"${c}${R['capp']}" for c in "CDEF"]
     capf = [f"${c}${R['capf']}" for c in "CDEF"]
@@ -310,7 +310,8 @@ def alloc(wb, AIN):
                 col = L(3 + i); ic[k] = col
                 src = rep.get(k) if blk == "main" else None
                 fmt = {"m0": "0%", "m1": "0%", "m2": "0%", "m3": "0%", "free": "0%", "ratio": "0.00", "tok": "#,##0", "k": "0.0"}.get(k, "0.0")
-                put(ws, f"{col}{rr}", f"={src or base[k]}", fmt=fmt, fill=FILL_KEY if src else None)
+                if isinstance(src, (int, float)): put(ws, f"{col}{rr}", src, fmt=fmt, fill=FILL_KEY)      # v7.0 J5: pure-generation constants (1／0), not the 2025 average ranges
+                else: put(ws, f"{col}{rr}", f"={src or base[k]}", fmt=fmt, fill=FILL_KEY if src else None)
             m, ch = chain(rr, ic)
             base_c = 3 + len(keys)                      # first chain column
             cols = {n: L(base_c + i) for i, n in enumerate(["dp", "df", "cp", "cf", "sg", "rd", "q1", "q2", "cost", "daily"])}

@@ -1,0 +1,8 @@
+﻿model,date,old,new,unit,note,src,url,docdate,marker,interest
+o3,2025-06-10,10/40（圖說）,2/8,$/M 輸入／輸出（−80%）,舊價僅見於圖說（AI 產生圖說），官方文字只給新價 2/8,OpenAI Developer Community「o3 is 80% cheaper」,https://community.openai.com/t/o3-is-80-cheaper-and-introducing-o3-pro/1284925,2025-06-10,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方
+Gemini 1.5 Pro,2024-10-01,3.5/10.5（推算）,1.25/5（推算）,輸入 −64%／輸出 −52%,官方只給降幅,developers.googleblog.com,https://developers.googleblog.com/en/updated-production-ready-gemini-models-reduced-15-pro-pricing-increased-rate-limits-and-more/,2024-09-24,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方
+GPT-5.6 Luna,2026-07-30,—,—,−80%,官方只給降幅,developers.openai.com changelog,https://developers.openai.com/api/docs/changelog,2026-07-30,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方
+GPT-5.6 Terra,2026-07-30,2.5/15,2/12（推算）,−20%,,openai.com/index/gpt-5-6/,https://openai.com/index/gpt-5-6/,2026-07-30,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方
+GPT-5.6 Sol,2026-08-21,5/30,4/20,輸入 −20%／輸出 −33%（促銷，至少至 2026-11-21）,,developers.openai.com changelog,https://developers.openai.com/api/docs/changelog,2026-08-21,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方
+AWS P5（H100）on-demand,2025-06-01,~12.29/GPU-hr（推算：55.04÷0.56÷8）,6.88/GPU-hr,−44%（Savings Plans −25% 至 −45%）,此項屬算力租賃，列此供對照,AWS 部落格「up to 45% price reduction」；instances.vantage.sh（現價）,https://aws.amazon.com/blogs/aws/announcing-up-to-45-price-reduction-for-amazon-ec2-nvidia-gpu-accelerated-instances/,2025-06,Derived,賣方（雲端商）自家牌價；立場為銷售方
+Claude Sonnet 5,2026-08-10,（原訂 9/1 起 3/15）,2/10 轉為永久,未實現的漲價取消,,anthropic.com/news/claude-sonnet-5,https://www.anthropic.com/news/claude-sonnet-5,2026-08-10,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方

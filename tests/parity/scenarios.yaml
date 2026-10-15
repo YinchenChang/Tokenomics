@@ -139,3 +139,7 @@ scenarios:
   - id: z2_train_e31_100
     description: Train_In!E31＝100（訓練端 Perf_Batch 不可達）：Training 與 Alloc 輸出文字而非 0 GPU 小時；IF_AllocQ1 隨 E31 單調
     inputs: {"Train_In!E31": 100}
+  # ── v6.2 2-1-a：D1(c) 模型規模倍數（J1 預設 R-a；ARCH_ScaleGen 第 1–4 格＝Hopper、GB200、GB300、VR200） ──
+  - id: d1_model_scale
+    description: D1(c) 模型隨世代變大（J1 預設，R-a）：ARCH_ScaleGen＝0.25／0.5／1.0／2.5；Perf 系第 28、32、33 列與 Training 系第 22 列放大，基準 1 時全部不變
+    inputs: {"ARCH_ScaleGen[1]": 0.25, "ARCH_ScaleGen[2]": 0.5, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 2.5}

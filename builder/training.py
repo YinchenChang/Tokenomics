@@ -269,8 +269,8 @@ def train_rows(SP, AR, TI, PB, TR):
       ("gpus", "每 GW GPU 數", "顆", "#,##0", dc(14) + "/CTL_GW"),   # v5.11 F14: DC_Cost is the facility total
       ("ce", "每 GPU 小時持有成本 — 經濟（基準成本）", "$/GPU-hr", "#,##0.00", dc(58)),
       ("ca", "每 GPU 小時持有成本 — 會計（基準成本）", "$/GPU-hr", "#,##0.00", dc(57)),
-      ("§", "B. 架構（連結 Arch）"),
-      ("A", "啟用參數", "B", "#,##0", ar(AR["A"])),
+      ("§", "B. 架構（連結 Arch；啟用參數已乘模型規模倍數 ARCH_ScaleGen，基準＝1；D1(c)，v6.2）"),
+      ("A", "啟用參數", "B", "#,##0", ar(AR["A"]) + "*INDEX(ARCH_ScaleGen,1,{X}$6)"),
       ("attc", "注意力 FLOPs／被注意 token", "FLOP", "#,##0", ar(AR["attc"])),
       ("ff", "全注意力層比例", "%", "0%", ar(AR["ff"])),
       ("cap", "全注意力跨度上限", "tok", "#,##0", ar(AR["cap"])),

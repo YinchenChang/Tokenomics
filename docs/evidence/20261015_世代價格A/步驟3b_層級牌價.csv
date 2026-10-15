@@ -1,0 +1,45 @@
+﻿prov,tier,model,date,i,o,src,url,marker,interest,note
+OpenAI,中階,GPT-4 (8K),2023-03-14,30,60,openai.com/index/gpt-4-research/,https://openai.com/index/gpt-4-research/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,當時為旗艦
+OpenAI,中階,GPT-4 Turbo,2023-11-06,10,30,openai.com DevDay 公告,https://openai.com/index/new-models-and-developer-products-announced-at-devday/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,當時為旗艦
+OpenAI,中階,GPT-4o,2024-05-13,5,15,OpenAI Developer Community 官方公告貼文,https://community.openai.com/t/announcing-gpt-4o-in-the-api/744700,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,當時為旗艦；openai.com 本站頁無絕對價
+OpenAI,中階,GPT-4o-2024-08-06,2024-08-06,2.5,10,openai.com structured outputs 公告,https://openai.com/index/introducing-structured-outputs-in-the-api/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,新快照降價
+OpenAI,中階,GPT-4.1,2025-04-14,2,8,openai.com/index/gpt-4-1/,https://openai.com/index/gpt-4-1/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,中階,GPT-5,2025-08-07,1.25,10,openai.com GPT-5 for developers,https://openai.com/index/introducing-gpt-5-for-developers/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,中階,GPT-5.2,2025-12-11,1.75,14,openai.com/index/introducing-gpt-5-2/,https://openai.com/index/introducing-gpt-5-2/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,中階,GPT-5.4,2026-03-05,2.5,15,openai.com/index/introducing-gpt-5-4/,https://openai.com/index/introducing-gpt-5-4/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,中階,GPT-5.6 Terra（上市價）,2026-07-09,2.5,15,openai.com/index/gpt-5-6/,https://openai.com/index/gpt-5-6/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,2026-07-30 降 20%
+OpenAI,中階,GPT-5.6 Terra（降價後）,2026-07-30,2.0,12,openai.com/index/gpt-5-6/ 與 developers.openai.com changelog,https://developers.openai.com/api/docs/changelog,Derived,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,由 20% 降幅推得（Derived）
+OpenAI,中階,GPT-6 Sol,2026-09-22,2,10,openai.com/index/introducing-gpt-6-sol-and-luna/；changelog,https://openai.com/index/introducing-gpt-6-sol-and-luna/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,層級名換位：GPT-6 的 Sol 為中階
+OpenAI,中階,GPT-6.1 Sol,2026-09-29,2,10,developers.openai.com changelog,https://developers.openai.com/api/docs/changelog,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,快取 0.10
+OpenAI,旗艦,GPT-4 (8K),2023-03-14,30,60,openai.com/index/gpt-4-research/,https://openai.com/index/gpt-4-research/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,旗艦,GPT-4 Turbo,2023-11-06,10,30,openai.com DevDay,https://openai.com/index/new-models-and-developer-products-announced-at-devday/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,旗艦,GPT-4o,2024-05-13,5,15,OpenAI Developer Community 官方公告,https://community.openai.com/t/announcing-gpt-4o-in-the-api/744700,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,旗艦,GPT-5,2025-08-07,1.25,10,openai.com GPT-5 for developers,https://openai.com/index/introducing-gpt-5-for-developers/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,旗艦,GPT-5.2,2025-12-11,1.75,14,openai.com GPT-5.2,https://openai.com/index/introducing-gpt-5-2/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,旗艦,GPT-5.4,2026-03-05,2.5,15,openai.com GPT-5.4,https://openai.com/index/introducing-gpt-5-4/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+OpenAI,旗艦,GPT-5.6 Sol（上市價）,2026-07-09,5,30,openai.com/index/gpt-5-6/,https://openai.com/index/gpt-5-6/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,2026-08-21 起促銷 4/20，至少至 2026-11-21
+OpenAI,旗艦,GPT-6 Astra,2026-09-03,10,50,developers.openai.com changelog（上市日）、openai.com/index/gpt-6-astra/（價格）,https://openai.com/index/gpt-6-astra/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,中階（Sonnet）,Claude 3 Sonnet,2024-03-04,3,15,anthropic.com/news/claude-3-family,https://www.anthropic.com/news/claude-3-family,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,中階（Sonnet）,Claude 3.5 Sonnet,2024-06-21,3,15,anthropic.com/news/claude-3-5-sonnet,https://www.anthropic.com/news/claude-3-5-sonnet,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,中階（Sonnet）,Claude 3.7 Sonnet,2025-02-24,3,15,anthropic.com/news/claude-3-7-sonnet,https://www.anthropic.com/news/claude-3-7-sonnet,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,中階（Sonnet）,Claude Sonnet 4,2025-05-22,3,15,anthropic.com/news/claude-4,https://www.anthropic.com/news/claude-4,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,中階（Sonnet）,Claude Sonnet 4.5,2025-09-29,3,15,anthropic.com/news/claude-sonnet-4-5,https://www.anthropic.com/news/claude-sonnet-4-5,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,中階（Sonnet）,Claude Sonnet 4.6,2026-02-17,3,15,anthropic.com/news/claude-sonnet-4-6,https://www.anthropic.com/news/claude-sonnet-4-6,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,中階（Sonnet）,Claude Sonnet 5,2026-06-30,2,10,anthropic.com/news/claude-sonnet-5,https://www.anthropic.com/news/claude-sonnet-5,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,2026-08-10 起「introductory 2/10 變永久」；新 tokenizer（同文字約 1.0–1.35× token）
+Anthropic,中階（Sonnet）,Claude Sonnet 5.5,2026-09-28,2,10,anthropic.com/news/claude-sonnet-5-5,https://www.anthropic.com/news/claude-sonnet-5-5,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,旗艦（Opus）,Claude 3 Opus,2024-03-04,15,75,anthropic.com/news/claude-3-family,https://www.anthropic.com/news/claude-3-family,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,旗艦（Opus）,Claude Opus 4,2025-05-22,15,75,anthropic.com/news/claude-4,https://www.anthropic.com/news/claude-4,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,旗艦（Opus）,Claude Opus 4.5,2025-11-24,5,25,anthropic.com/news/claude-opus-4-5,https://www.anthropic.com/news/claude-opus-4-5,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,頁面未標輸入／輸出，$5/$25 依 platform.claude.com 定價頁
+Anthropic,旗艦（Opus）,Claude Opus 5,2026-07-24,5,25,anthropic.com/news/claude-opus-5,https://www.anthropic.com/news/claude-opus-5,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,與 Opus 4.8 同價
+Anthropic,旗艦（Opus）,Claude Opus 5.5,2026-09-22,4,20,platform.claude.com/docs/en/models/opus-5-5/overview,https://platform.claude.com/docs/en/models/opus-5-5/overview,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Anthropic,頂層（Fable）,Claude Fable 5,2026-06-09,10,50,platform.claude.com/docs/en/models/fable-5/overview,https://platform.claude.com/docs/en/models/fable-5/overview,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,Fable 價高於 Opus 5.5
+Google,旗艦（Pro）,Gemini 1.5 Pro（≤128K）,2024-05-23,3.5,10.5,Google AI Developers Forum 使用者貼文（輸入 3.50）；輸出 10.5 由 2024-09-24 降幅（輸入 −64%、輸出 −52%）與降後 1.25/5 反推,https://discuss.ai.google.dev/t/pay-as-you-go-plan-of-gemini-pro-1-5-3-5-million-tokens-meaning/3375,Derived,賣方牌價；官方一手頁缺，輸入來自社群貼文,找不到官方頁絕對價；輸出為 Derived
+Google,旗艦（Pro）,Gemini 1.5 Pro（降價後，≤128K）,2024-10-01,1.25,5,developers.googleblog.com（2024-09-24）降幅 + 反推,https://developers.googleblog.com/en/updated-production-ready-gemini-models-reduced-15-pro-pricing-increased-rate-limits-and-more/,Derived,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,官方只給降幅；1.25/5 為推算相符值
+Google,旗艦（Pro）,Gemini 2.5 Pro（≤200K）,2025-04-04,1.25,10,ai.google.dev 現行定價頁（價）；blog.google 2025-04-04（開始計費日，價為圖片）,https://ai.google.dev/gemini-api/docs/pricing,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,日期為首次公開計費日；2025-06-17 GA 同價
+Google,旗艦（Pro）,Gemini 3 Pro（≤200K）,2025-11-18,2,12,blog.google/technology/developers/gemini-3-developers/；changelog（上市日）,https://blog.google/technology/developers/gemini-3-developers/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Google,旗艦（Pro）,Gemini 3.1 Pro Preview（≤200K）,2026-02-19,2,12,ai.google.dev 定價頁；changelog（上市日）,https://ai.google.dev/gemini-api/docs/pricing,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Google,旗艦（Pro）,Gemini 4 Argon（導入價）,2026-10-13,2,10,blog.google Gemini 4 Argon；ai.google.dev 定價頁,https://ai.google.dev/gemini-api/docs/pricing,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,導入價至 2026-11-30，之後 4/20
+Google,中階（Flash）,Gemini 2.5 Flash（GA）,2025-06-17,0.3,2.5,developers.googleblog.com Gemini 2.5 更新,https://developers.googleblog.com/en/gemini-2-5-thinking-model-updates/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Google,中階（Flash）,Gemini 3 Flash,2025-12-17,0.5,3.0,blog.google/products/gemini/gemini-3-flash/,https://blog.google/products/gemini/gemini-3-flash/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,
+Google,中階（Flash）,Gemini 3.6 Flash（原價，由 3.7 公告反推）,2026-07-21,1.5,7.5,blog.google Gemini 3.7 Flash（「導入價為 3.6 Flash 原價的一半」）；changelog 上市日,https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash/,Derived,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,Derived；3.6 Flash 現行頁標導入價 0.75/3.75
+Google,中階（Flash）,Gemini 3.7 Flash（導入價）,2026-08-13,0.75,3.75,blog.google Gemini 3.7 Flash,https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash/,Interested-party,賣方（模型商）自家牌價；價格事實以官方頁確認，立場為銷售方,2027-01-01 起 1.5/7.5

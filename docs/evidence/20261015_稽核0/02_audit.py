@@ -121,6 +121,8 @@ for (s, a), c in cls.items():
     dead.append(dict(sheet=s, cell=a, row=x['r'], label=row_label(s, x['r']), kind='公式' if isformula(x) else inputs.get((s, a), '常數'),
                      formula=str(x['f'])[:300], value=x['v'], reach_via_gov=('是' if (s, a) in reach_all else '否'),
                      users=_user_kind((s, a))))
+core_row_set = {(s_, cells[(s_, a_)]['r']) for (s_, a_), c_ in cls.items() if c_ == '核心'}
+for z in dead: z['row_has_core'] = '是（同列有核心格，多為對照或顯示欄）' if (z['sheet'], z['row']) in core_row_set else '否（整列皆死格）'
 dead.sort(key=lambda r: (SHEETS.index(r['sheet']), r['row'], CI(re.match(r'[A-Z]+', r['cell']).group())))
 # 鏡像／敏感度頁內：是否被任何根追到（資訊用）
 side_unreached = collections.Counter((s) for (s, a), c in cls.items() if c in ('鏡像', '敏感度') and (s, a) not in reach)
@@ -260,7 +262,9 @@ for g in gm:
         elif src[sid]['status'] != 'Active': add1('C1.2c SRC_ID 非 Active', '中', g['sheet'], g['ref'], g['id'], g['label'], f"{sid} 狀態 {src[sid]['status']}")
 # 3 區間與 Verified
 for g in gm:
-    if g['cat'] in ('Analogy', 'Assumed'):
+    if g['cat'] in ('Analogy', 'Assumed') and g['role'] in ('低', '高', '低／高'):
+        pass   # 本格即區間端點（Gov_Map E3 規則同此豁免）
+    elif g['cat'] in ('Analogy', 'Assumed'):
         if not (isnum(g['lo']) and isnum(g['hi'])):
             has_txt = not blank(g['rng'])
             add1('C1.3 Analogy／Assumed 缺數值低高', '中' if has_txt else '高', g['sheet'], g['ref'], g['id'], g['label'],
@@ -345,6 +349,8 @@ def r1c1(formula, own, r0, c0, shift=0):
     except Exception: return formula
     out = []
     for t in toks:
+        if t.type == 'OPERAND' and t.subtype == 'RANGE' and t.value.lower() in _lname_addr:
+            t = type('T', (), dict(type='OPERAND', subtype='RANGE', value=_lname_addr[t.value.lower()]))()   # 具名範圍換成位址
         if t.type == 'OPERAND' and t.subtype == 'RANGE' and t.value.lower() not in _lnames:
             ref = t.value; sh = None
             if '!' in ref:
@@ -386,8 +392,12 @@ def reads_core_not_prod(formula, mp):
             break
     return hits
 _lnames = {n.lower() for n in names}
+_lname_addr = {n.lower(): t for n, t in names.items() if ',' not in t}
 
-c4 = []; c4_stats = collections.defaultdict(collections.Counter)
+c4 = []; c4_stats = collections.defaultdict(collections.Counter); _own_rows_logged = set()
+def mlabel(s_, r_):
+    x = cells.get((s_, f'A{r_}'))
+    return str(x['v']) if x and x['v'] is not None else ''
 DOC_DIFF = {}
 for mp in sorted(MIRROR_PAGES):
     core = mp[:-5]
@@ -399,12 +409,20 @@ for mp in sorted(MIRROR_PAGES):
         else: cc = c; kind = '主體'
         core_a = f'{L(cc)}{r}'; cx = cells.get((core, core_a))
         mf = x['f']
+        ml = cells.get((mp, f'A{r}'))
+        if ml and not isformula(ml) and ml['v'] and str(ml['v']) != row_label(core, r):
+            c4_stats[mp][f'{kind}：鏡像頁專屬列（自我檢查；列位置與核心頁第 {r} 列重疊）'] += 1
+            if (mp, r) not in _own_rows_logged:
+                _own_rows_logged.add((mp, r))
+                c4.append(dict(page=mp, core=core, cell=f'第 {r} 列', core_cell=f'第 {r} 列', label=row_label(core, r) + ' ｜鏡像頁列標籤：' + str(ml['v'])[:60], kind='列位置',
+                               diff='鏡像頁本列是自我檢查列，占用核心頁同列位置；核心頁該列未被鏡像', mirror_f=mf[:250], core_f=str(cx['f'] if cx else '')[:250], documented='待判讀'))
+            continue
         if re.fullmatch(rf"='?{re.escape(core)}'?!\$?{L(cc)}\$?{r}", mf):
             c4_stats[mp][f'{kind}：直接讀原頁同格'] += 1; continue
         if cx is None or not isformula(cx):
             c4_stats[mp][f'{kind}：核心頁同位置非公式'] += 1
             c4.append(dict(page=mp, core=core, cell=f'{L(c)}{r}', core_cell=core_a, label=row_label(core, r), kind=kind,
-                           diff='核心頁同位置不是公式（或空白）', mirror_f=mf[:250], core_f=str(cx['f'] if cx else '')[:250], documented='否'))
+                           diff='核心頁同位置不是公式（或空白）｜鏡像頁列標籤：' + mlabel(mp, r)[:40], mirror_f=mf[:250], core_f=str(cx['f'] if cx else '')[:250], documented='否'))
             continue
         a1 = r1c1(mf, mp, r, cc, 16 if kind == '自我檢查副本' else 0); b1 = r1c1(cx['f'], core, r, cc)
         rc = reads_core_not_prod(mf, mp)
@@ -437,6 +455,8 @@ for sp, core in (('Sens_Perf', 'Perf'), ('Sens_Train', 'Training')):
         g_, t_ = v(sp, f'{L(x["c"])}6'), v(sp, f'{L(x["c"])}7')
         cc = gen_tier_col(core, g_, t_)
         if cc is None: continue
+        if row_label(sp, x['r']) != row_label(core, x['r']):
+            c4_stats[sp]['本頁專屬列（列標籤與核心頁同列不同，不比對）'] += 1; continue
         cx = cells.get((core, f'{L(cc)}{x["r"]}'))
         if (s, a) in scen_cells:
             c4_stats[sp]['情境輸入格（黃底或藍字）'] += 1; continue
@@ -458,19 +478,31 @@ for sp, core in (('Sens_Perf', 'Perf'), ('Sens_Train', 'Training')):
         c4.append(dict(page=sp, core=core, cell=a, core_cell=f'{L(cc)}{x["r"]}', label=row_label(sp, x['r']), kind='敏感度',
                        diff='R1C1 結構不同', mirror_f=x['f'][:250], core_f=cx['f'][:250], documented='待判讀（可能為情境機制）'))
 # 其他敏感度頁：同列跨情境欄的結構一致性
-for sp in ('Sensitivity', 'Sens_Rev', 'Sens_Har'):
+c4_stats['Sens_Rev']['封閉式重算頁（各欄為不同指標、各列為不同情境），無逐格對應的核心頁；不比對'] = sum(1 for (s, a), x in cells.items() if s == 'Sens_Rev' and isformula(x))
+SUMMARY_FROM = {'Sensitivity': 64}
+for sp in ('Sensitivity', 'Sens_Har'):
     rows = collections.defaultdict(list)
     for (s, a), x in cells.items():
-        if s == sp and x['c'] >= 3 and isformula(x): rows[x['r']].append(x)
+        if s == sp and x['c'] >= 3 and isformula(x):
+            if x['r'] >= SUMMARY_FROM.get(sp, 10**6): c4_stats[sp]['摘要表（第 64 列起，各欄意義不同；不比對）'] += 1; continue
+            rows[x['r']].append(x)
     for r, xs in sorted(rows.items()):
         xs.sort(key=lambda z: z['c'])
         base = xs[0]; bf = r1c1(base['f'], sp, r, base['c'])
         for x in xs[1:]:
             xf = r1c1(x['f'], sp, r, x['c'])
             if xf == bf: c4_stats[sp]['與同列首欄結構相同'] += 1; continue
+            if x['f'] == base['f']: c4_stats[sp]['與同列首欄指向同一格（寫法相同）'] += 1; continue
+            if re.sub(r'(Inputs|Spec_Rack|Har_In)!\$?[C-G]\$?', r'\1!#', x['f']) == re.sub(r'(Inputs|Spec_Rack|Har_In)!\$?[C-G]\$?', r'\1!#', base['f']):
+                c4_stats[sp]['改讀輸入頁另一欄（低／基準／高）'] += 1
+                c4.append(dict(page=sp, core='（同列首欄 ' + L(base['c']) + '）', cell=f'{L(x["c"])}{r}', core_cell=f'{L(base["c"])}{r}', label=row_label(sp, r), kind='敏感度（列內）',
+                               diff='改讀輸入頁的低／基準／高另一欄｜本欄情境：' + str(v(sp, f'{L(x["c"])}4') or v(sp, f'{L(x["c"]-1)}4') or ''), mirror_f=x['f'][:250], core_f=base['f'][:250],
+                               documented='黃底情境格（預期差異）' if x['fill'] in ('FFFFF2CC', 'FFFFFF00') else '推定為本欄情境的改動變數；未上黃底，待人工確認'))
+                continue
             c4_stats[sp]['與同列首欄結構不同'] += 1
             c4.append(dict(page=sp, core='（同列首欄 ' + L(base['c']) + '）', cell=f'{L(x["c"])}{r}', core_cell=f'{L(base["c"])}{r}', label=row_label(sp, r), kind='敏感度（列內）',
-                           diff='同列跨情境欄結構不同', mirror_f=x['f'][:250], core_f=base['f'][:250], documented='待判讀（可能為情境改動列）'))
+                           diff='同列跨情境欄結構不同｜本欄情境：' + str(v(sp, f'{L(x["c"])}4') or v(sp, f'{L(x["c"]-1)}4') or ''), mirror_f=x['f'][:250], core_f=base['f'][:250],
+                           documented='黃底情境格（預期差異）' if x['fill'] in ('FFFFF2CC', 'FFFFFF00') else '推定為本欄情境的改動變數（同列只有情境欄不同）；未上黃底，待人工確認'))
 
 # ================= C5 =================
 ALLOWED = {0, 1, 2, 100, 1000, 1e6, 1e9, 1e12, 24, 365, 8760, 3600}
@@ -566,13 +598,15 @@ def row_multi(s, r):
     return len(vals) >= 2 and len(set(vals)) >= 2
 # m 路徑根
 MRX = r'變現|Monetiz|閉合|缺口|落差|κ|Kappa|計價倍數'
-m_roots = []
+m_roots = []; m_excluded = []
 for n in sorted(names):
     t = names[n]; sh, rg = t.split('!'); a0 = rg.replace('$', '').split(':')[0]
     r0 = int(re.search(r'\d+', a0).group()); lab = row_label(sh, r0)
     if sh == 'L1': lab = str(v('L1', f'B{r0}') or '')
     hit = re.search(MRX, n + ' ' + lab) or n in ('CTL_Monetize',) or re.match(r'L1_M(Implied|Fleet|API|Sub|Seat|ixFactor)', n) \
         or n.startswith(('L1_Gap', 'L1_PriceReal', 'L1_LReq', 'L1_TokPerPromptClose', 'L1_ScaleServe', 'AL_SpendBasis', 'AL_Kappa'))
+    if hit and (n.startswith('DRV_') or n == 'AL_J8Gap'):
+        m_excluded.append(f'{n}（{sh}!{rg}）：{lab[:50]}'); continue
     if hit: m_roots.append((('NAME', n), f'{n}（{sh}!{rg}）：{lab[:60]}'))
 for r in range(1, 400):
     lab = str(v('Cap_In', f'A{r}') or '')
@@ -610,7 +644,7 @@ for k in allin:
 
 out = dict(c1=c1, c2=c2, c3_page={k: dict(v_) for k, v_ in c3_page.items()}, dead=dead, core_rows=core_row_list, slim=dict(slim), nform=nform,
            side_unreached=dict(side_unreached), c4=c4, c4_stats={k: dict(v_) for k, v_ in c4_stats.items()}, c5=c5, c6=c6, no_unit_pages=no_unit_pages,
-           c7=c7, m_roots=[t for _, t in m_roots], m_rows=m_row_list, m_inputs=len(m_inputs), m_src=len(m_src),
+           c7=c7, m_roots=[t for _, t in m_roots], m_excluded=m_excluded, m_num_inputs=sum(1 for k in m_inputs if inputs[k] != '藍字文字'), m_rows=m_row_list, m_inputs=len(m_inputs), m_src=len(m_src),
            contract_named=contract_named, n_roots=len(roots), root_names=len(root_names), func_use=dict(G['func_use']), dynamic=G['dynamic'],
            n_inputs=collections.Counter(inputs.values()), n_gm=len(gm), gm_target_kind={k: dict(v_) for k, v_ in gm_target_kind.items()},
            reach_n=len([k for k in reach if k[0] not in ('NAME', 'RANGE')]), dead_via_gov=sum(1 for z in dead if z['reach_via_gov'] == '是'))

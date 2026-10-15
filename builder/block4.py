@@ -618,7 +618,7 @@ def checks_b4(wb, P, F, A, T, U):
     put(ws, f"H{r0+1}", "對帳常數", F_BOLD)
     import v518
     # v5.18 D4: Hopper 占機隊 0.6→0.57（Analogy；區間 0.5–0.6；Epoch 轉述 NVIDIA 出貨：至 2025-10 累計 Hopper 4 M、Blackwell 3 M＝4/7，全球口徑）
-    consts = [("OpenAI 2025 營收 $B", 13.07), ("2024 年底 GW", 0.6), ("2025 年底 GW", 1.9), ("2025 Hopper 占機隊", 0.57 if v518.step_on("D4") else 0.6)]
+    consts = [("OpenAI 2025 營收 $B", 13.07), ("2024 年底 GW", 0.6), ("2025 年底 GW", 1.9), ("2025 Hopper 占機隊（對照；v8.0 起 B43 不讀本格，改讀 AL_MixHopper）", 0.57 if v518.step_on("D4") else 0.6)]
     cr = {}
     for i, (lab, v) in enumerate(consts):
         put(ws, f"H{r0+2+i}", lab, F_NOTE); put(ws, f"I{r0+2+i}", v, F_IN, fmt="0.00"); cr[i] = f"$I${r0+2+i}"
@@ -627,8 +627,8 @@ def checks_b4(wb, P, F, A, T, U):
     pf = lambda j: f"INDEX(B4_MktOut,{j},1)"
     rows = [
       ("OpenAI 2025 對帳：機隊付費營收（Hopper／GB200 加權、OpenAI 有效單價）",
-       f"=IF(AND(ISNUMBER(Theory_Rev!D{T['fl']}),ISNUMBER(Theory_Rev!G{T['fl']})),{cr[3]}*Theory_Rev!D{T['fl']}+(1-{cr[3]})*Theory_Rev!G{T['fl']},\"SLO 不可達\")", f"={cr[0]}/(({cr[1]}+{cr[2]})/2)", "$B/GW 年",
-       "外部參照＝2025 營收 ÷ 平均 GW（GW 口徑未明，D1）；同量級即機隊配置與單價可閉合。2025 實際單價高於 2026 快照", "Cap_In D 節；E010"),
+       f"=IF(AND(ISNUMBER(Theory_Rev!D{T['fl']}),ISNUMBER(Theory_Rev!G{T['fl']})),AL_MixHopper*Theory_Rev!D{T['fl']}+(1-AL_MixHopper)*Theory_Rev!G{T['fl']},\"SLO 不可達\")", f"={cr[0]}/(({cr[1]}+{cr[2]})/2)", "$B/GW 年",
+       "外部參照＝2025 營收 ÷ 平均 GW（GW 口徑未明，D1）；同量級即機隊配置與單價可閉合。2025 實際單價高於 2026 快照。v8.0 L4：Hopper 占比讀 AL_MixHopper（Alloc_In 服務世代組合 0.6），不再讀本頁 I46（0.57）", "Cap_In D 節；E010"),
       ("DeepSeek V4-Pro 尖峰輸出價 ÷ 本模型 Hopper Sol decode 成本（基準利用率）",
        f"=IF(ISNUMBER({ucd(2,'cdu')}),{pf(8)}/{ucd(2,'cdu')},\"SLO 不可達\")", "≈1", "x", "≈1：中國廠商定價接近 Hopper 級物理成本；前緣由接近成本者決定（K4 理由 2）", "S52；E011"),
       ("DeepSeek V4-Pro 離峰輸出價 ÷ Hopper Sol decode 成本（100%）",

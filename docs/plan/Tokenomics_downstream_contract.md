@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.3（2026-10-16；對應 Tokenomics v7.0）
+# Tokenomics 下游資料契約 v0.4（2026-10-16；對應 Tokenomics v8.0）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -44,9 +44,17 @@
 
 - IT 維護（v5.31 X17）：Tokenomics 穩態成本用壽命期等值費率（`IF_MaintIT`）；下游公司模型若逐年追蹤機隊年齡，改用 `IF_MaintITWarr`（前 `IF_WarrantyYrs` 年）與 `IF_MaintITPost`（之後），不得與 `IF_MaintIT` 重複計入。`IF_StaffSW` 不含平台研發，下游另列。
 
+- **Q1、Q2、服務 GW 的定義（v8.0 改寫，D14）**：
+  - `IF_AllocServeGW`（服務 GW 合計）改為**支出路線**＝推論支出（`SRC_DEM_004`）÷（Σ 服務世代占比 × 各世代每 GW 年持有成本）。舊的 token 路線（需求 D ÷ 每 GW 產能）改名保留為 `IF_AllocServeGW_Tok`，只供對照，**不得當產能或主口徑**。
+  - `IF_AllocQ1`（研發算力占比，R1）＝研發 GW ÷（研發 GW ＋ 支出路線服務 GW）。`IF_AllocQ2`（研發算力成本占比）＝研發 GW × 持有成本 ÷（研發 GW × 持有成本 ＋ 支出路線服務 GW × Σ 服務世代占比 × 持有成本）。`IF_AllocQ1_R2` 仍用 token 路線（待 Project 判斷是否一併改）。
+  - 研發 GW（`IF_AllocRDGW`）改按 2025 年研發世代組合加權（Alloc_In 新增 `AL_RDMix*` 四格，基準 Hopper 60%／GB200 38%／GB300 2%／VR200 0%；不可達世代依 D8 排除並重新正規化），不再只用 `IF_TrainGenDefault`（VR200）。
+  - 下游若引用 Q1、Q2，須知 v7.0 → v8.0 基準值由 0.364／0.428 變為 0.211／0.212；兩者的變動來自兩項獨立改動（研發世代組合使研發 GW 增加、支出路線使服務 GW 增加）加上交互作用，拆解見 `docs/reports/20261016_稽核修正2-3.md`。
+- **所需 L 與 m 的 2025 年度口徑（v8.0 改寫，D2）**：`L1_MFleet` 改用 2025 年度層級單價（`CAP_Px25_*`、`AL_PriceFleet25`），`L1_LReqFleet` 的損益兩平改讀 2025 機隊口徑（`L1_FleetBreakeven2025`）。`L1_FleetBreakeven`、`L1_FleetMargin` 維持 VR200 截面（Checks K4 比對的恆等式），不是 2025 機隊。基準下所需 L 由 0.530 變為 1.968，大於 `L1_LTotal`（0.643），回本判讀由「回本」變為「未回本」；依恆等式讀法為 0.756（同樣大於 L_total）。
+
 ## 5. 版本與引用
 
 - 下游 handoff 記錄所用 Tokenomics 版本（`model/CURRENT` 檔名與 master 合併雜湊）。
 - Tokenomics 次版升級（SRC Active 值或公式改變）時，下游在下一版重新取數並在 handoff 註明差異。
 - v6.0（主版，契約改變）起 `_Prod`、`_Life` 的定義變更（第 2 條），並新增「文字＝不可用」語意；受影響的名稱清單與新舊值見 `docs/reports/20261015_稽核修正1.md` 的「下游契約名稱新舊值表」。回本所需單價溢價 `IF_AmortBU_*` 的分母改為付費 token（`IF_FullCost_*`、`IF_FullCostDefault_*` 隨之上升）。
 - v7.0（主版，契約改變）：第 4 節改寫（持平情境改為情境標籤，新增門檻名稱）；`L1_FleetMargin` 的生產折減改讀重解值（基準 3.388 → 3.118）、`L1_GapUtil` 乘生產折減（1.463 → 1.722，`L1_GapProduct` 1.635 → 1.924）；Alloc 敏感度表的『全 GB200』『全 VR200』改為純世代（不影響 `IF_`／`IFW_`）。名稱新舊值見 `docs/reports/20261016_稽核修正2-2.md` 的「下游契約名稱新舊值表」。
+- v8.0（主版，契約改變）：`IF_AllocQ1`／`IF_AllocQ2`／`IF_AllocServeGW` 改為支出路線定義，`IF_AllocRDGW` 改按 2025 研發世代組合；`L1_MFleet`、`L1_LReqFleet`、`L1_PriceReqBE`、`L1_ScaleRD`、`L1_RevGWFleet_OAI2025` 與 `L1_Ans1–3` 數值改變。新舊值表見 `docs/reports/20261016_稽核修正2-3.md`。

@@ -99,6 +99,8 @@ v536.patch_specs()      # v5.36 B1／B4: Cap_In H7 row 109 (÷ SpendBasis × κ)
 v601.patch_specs()      # v6.1 D13-2: Cap_In rows 114 (H7 corr_pt), 218 (H10 q_gw) and 255 (J j_ident) read (AL_UtilActual*CTL_ProdDerate) — patched in place after v536 and before any of them is written
 import v603
 v603.patch_specs()      # v6.3 K1: Cap_In H7 / H10 m_fleet read the fleet-basis price (patched in place after v601, before they are written)
+import v800
+v800.patch_specs()      # v8.0 L1／L4: the same rows read the 2025 fleet-basis price AL_PriceFleet25; Cap_In I-7 required L reads L1_FleetBreakeven2025 (patched after v603, before they are written)
 V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
 import v533
 V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
@@ -110,6 +112,7 @@ V536_CAP = v536.cap_in_j(wb, V535_CAP)      # v5.36 B4／B5／B6: Cap_In J secti
 V603_K = v603.cap_in_k(wb, V536_CAP)      # v6.3 K1: Cap_In K section (fleet-basis price for H10; below the reading row, nothing above moves)
 import v700
 V700_L = v700.cap_in_l(wb, V603_K)      # v7.0 B-1: Cap_In L section (CAP_GenGap_*; below K, nothing above moves)
+V800_M = v800.cap_in_m(wb, V700_L)      # v8.0 L1／L4／D14: Cap_In M section (2025 annual tier prices, m／required-L comparisons, Astra Epoch implied tokens; below L, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -134,10 +137,13 @@ AIN = alloc_in(wb)
 import v529
 AIN_529 = v529.alloc_in_rows(wb)       # v5.29 X14 (m): two Assumed inputs and the v5.28 constant (appended after the existing content; restored by preserve)
 AIN_536 = v536.alloc_in_kappa(wb)       # v5.36 B4: Alloc_In request-shape correction κ (AL_Kappa／_Lo／_Hi; appended after the existing content)
+AIN_800 = v800.alloc_in_rd_mix(wb)       # v8.0 L3: Alloc_In 2025 R&D generation mix (AL_RDMix*; appended after the existing content)
 AL6 = alloc(wb, AIN)
 import v600
 v600.alloc_prod_ratio(wb, AL6, F4)       # v6.0 D7-2: Alloc H section (paid-capacity ratio at the production derate; Cap_In row 115 reads AL_ProdRatioPaid)
 v603.alloc_fleet_price(wb, AL6)       # v6.3 K1: Alloc I section (AL_PriceGen／AL_PriceFleet; appended after H)
+v800.alloc_sections(wb, AL6)       # v8.0: Alloc J (R&D mix), K (2025 price and fleet breakeven), L (token-route comparison) sections (appended after I)
+V800_LOG = v800.alloc_patch(wb, AL6)       # v8.0 L3: Alloc rows 46／49／52 read the J section
 interface_b6(wb, last_row(wb["Interface"]) + 2)
 sources(wb)
 sources_b4(wb)
@@ -241,6 +247,7 @@ v600.patch_j_header(wb, IFJ)
 v600.life_alias(wb, IFJ)               # v6.0 D7-3: IF_*_Life／Theory_Rev D section become aliases of IFW_*_Life
 ID_ROWS = v600.prod_identity(wb, IFJ)    # v6.0 D7-1: _Prod revenue / _Prod token = tier price (flags on Theory_Rev; Checks Z1 is written after Checks M so no Checks row moves)
 I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuation after J (IF_MaintITWarr, IF_MaintITPost, IF_WarrantyYrs); IF_StaffSW label (X19)
+IFK = v800.interface_k(wb)            # v8.0 L5: Interface K section (IF_AllocServeGW_Tok; appended last, before the contract columns are built)
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
@@ -253,10 +260,13 @@ CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap ident
 V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
 Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
 print("v600 Checks Z1 row:", Z1)
+Z2 = v800.checks_z2(wb)                # v8.0 L3: Checks Z2 (ERROR, counted in GOV_Errors; research mix sums to 100%)
+print("v800 Checks Z2 row:", Z2)
 V518_LOG += v603.unavail_text(wb)       # v6.3 K2: Cap_In H7 onward and L1 fallbacks read AL_UnavailTxt (整代不可達 propagates)
 V518_LOG += v700.interface_a231(wb, IFJ["start"])       # v7.0 2-2-b: Interface A231 title text
 print("v700 Checks K4 row:", v700.checks_k4(wb))       # v7.0 2-2-b: Checks K4 reads the re-solved fleet revenue
 V518_LOG += v700.text_update(wb, v518._append_text)       # v7.0: Serving F18, Calib J68, Cap_In g note, DB_Evidence E338/E339/E341 notes
+V518_LOG += v800.text_update(wb, v518._append_text) + V800_LOG       # v8.0: Cap_In K section 2025 price link and labels; Alloc rows 46／49／52
 V518_LOG += v602.notes_patch(wb, v518._append_text)       # v6.2 D1(c): fixed-model-basis note on Interface B／C／D headers and L1 TokMW_Gen_ratio rows
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))

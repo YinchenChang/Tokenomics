@@ -97,6 +97,8 @@ v522.cap_in_g(wb)      # v5.22 X7: CTL_PriceLife／CTL_Monetize (Cap_In G sectio
 import v532
 v536.patch_specs()      # v5.36 B1／B4: Cap_In H7 row 109 (÷ SpendBasis × κ), H10 rows 216 (2025 = SRC_DEM_004) and 218 (× κ) patched in place before they are written
 v601.patch_specs()      # v6.1 D13-2: Cap_In rows 114 (H7 corr_pt), 218 (H10 q_gw) and 255 (J j_ident) read (AL_UtilActual*CTL_ProdDerate) — patched in place after v536 and before any of them is written
+import v603
+v603.patch_specs()      # v6.3 K1: Cap_In H7 / H10 m_fleet read the fleet-basis price (patched in place after v601, before they are written)
 V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
 import v533
 V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
@@ -105,6 +107,7 @@ v535.patch_h10()      # v5.35 B1 (J23): H10 spec patched in place before it is w
 V534_CAP = v534.cap_in_h8_h10(wb, V532_CAP, V533_CAP)      # v5.34 B2／B3／B5: Cap_In H8–H10 (before the H reading row, which is rewritten after them; B4_Disc_Lo／_Hi names added; no defined name moves)
 V535_CAP = v535.cap_in_i(wb, V534_CAP)      # v5.35 B2 (J22): Cap_In I section「L 拆分」(before the H reading row, which is rewritten after it; no defined name moves)
 V536_CAP = v536.cap_in_j(wb, V535_CAP)      # v5.36 B4／B5／B6: Cap_In J section (kappa, tau closed form, gap identity, rho inputs; before the reading row, which is rewritten after it)
+V603_K = v603.cap_in_k(wb, V536_CAP)      # v6.3 K1: Cap_In K section (fleet-basis price for H10; below the reading row, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -132,6 +135,7 @@ AIN_536 = v536.alloc_in_kappa(wb)       # v5.36 B4: Alloc_In request-shape corre
 AL6 = alloc(wb, AIN)
 import v600
 v600.alloc_prod_ratio(wb, AL6, F4)       # v6.0 D7-2: Alloc H section (paid-capacity ratio at the production derate; Cap_In row 115 reads AL_ProdRatioPaid)
+v603.alloc_fleet_price(wb, AL6)       # v6.3 K1: Alloc I section (AL_PriceGen／AL_PriceFleet; appended after H)
 interface_b6(wb, last_row(wb["Interface"]) + 2)
 sources(wb)
 sources_b4(wb)
@@ -158,6 +162,8 @@ _t601, _ = v601.text_update(wb)
 V518_LOG += _t601       # v6.1 3B: notes and markers (old-text guards), Serving notes appended once
 V518_LOG += v601.decisions_update(wb)
 V518_LOG += v602.decisions_update(wb)       # v6.2: AF1-D8 status (TTFT part superseded)
+V518_LOG += v603.inputs_update(wb)       # v6.3 J1 r1: Spec_Rack ARCH_ScaleGen_Lo／_Hi (old-value guards)
+V518_LOG += v603.decisions_update(wb)       # v6.3: AF2-D1c r1 note
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -245,6 +251,7 @@ CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap ident
 V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
 Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
 print("v600 Checks Z1 row:", Z1)
+V518_LOG += v603.unavail_text(wb)       # v6.3 K2: Cap_In H7 onward and L1 fallbacks read AL_UnavailTxt (整代不可達 propagates)
 V518_LOG += v602.notes_patch(wb, v518._append_text)       # v6.2 D1(c): fixed-model-basis note on Interface B／C／D headers and L1 TokMW_Gen_ratio rows
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))

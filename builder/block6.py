@@ -10,6 +10,13 @@ SLO = "SLO 不可達"
 SPEND_SID = "SRC_DEM_004"    # v5.36 B1: OpenAI-side inference spend (8.4; 7.5–8.8) drives the spend route; was SRC_DEM_018 (Microsoft-side 12.6, now a comparison row) in v5.29–v5.35. v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
 TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+GENX = "整代不可達"      # v6.3 K2: a generation with mix share > 0 whose tiers are all unreachable -> text flag (the generation mix is an observed fleet fact, never transferred)
+
+
+def gx(f, name="AL_ServeGW"):
+    """v6.3 K2: propagate the text flag 整代不可達 through a formula that reads `name` (the flag is a text; the old formula would answer SLO 不可達)."""
+    assert f.startswith("=")
+    return f'=IF({name}="{GENX}","{GENX}",' + f[1:] + ")"
 
 
 def nm(wb, n, ref):
@@ -159,17 +166,20 @@ def alloc(wb, AIN):
     line("gsum", "世代組合中可服務世代的占比合計（重新正規化的分母）", "%", f"={den_expr}", "0.0%", "AL_GenShareOK",
          "世代的所有層級皆不可達時，該世代被排除，其餘世代的占比重新正規化；全部世代皆不可達時以下各列為文字")
     line("xg", "未服務世代占比＝被排除世代的世代占比合計", "%", f"=SUM(C{R['share']}:F{R['share']})-C{R['gsum']}", "0.0%", "AL_UnservedGen")
+    # v6.3 K2: the generation mix is an observed fleet fact. A generation with share > 0 whose tiers are all unreachable is NOT dropped and its share is NOT
+    #      transferred to the others (v6.2 2-1-c second point withdrawn): the fleet-closure names become the text flag "整代不可達". AL_UnservedGen keeps showing the share.
+    unserved_any = "OR(" + ",".join(f"AND({s}>0,{o}=0)" for s, o in zip(ss, ok)) + ")"
     def blend(caprow):
         cc = [f"{c}${caprow}" for c in "CDEF"]
         num = "+".join(f"IF(AND({s}>0,{o}=1),{s}*{k},0)" for s, o, k in zip(ss, ok, cc))
-        return f'=IF(C{R["gsum"]}>0,({num})/C{R["gsum"]},"{SLO}")'
+        return f'=IF({unserved_any},"{GENX}",IF(C{R["gsum"]}>0,({num})/C{R["gsum"]},"{SLO}"))'
     line("bp", "世代組合後每 GW 年產能（付費）＝Σ 世代占比 × 各世代產能（只含可服務世代，占比重新正規化）", "M tok/GW/年", blend(R["capp"]), "#,##0", "AL_BlendPaid")
     line("bf", "世代組合後每 GW 年產能（免費）", "M tok/GW/年", blend(R["capf"]), "#,##0", "AL_BlendFree")
-    line("sgp", "服務 GW（付費）＝付費 D ÷ 付費產能", "GW", f'=IF(AND(ISNUMBER(AL_BlendPaid),AL_DPaid>=0),IF(AL_BlendPaid>0,AL_DPaid/AL_BlendPaid,"{SLO}"),"{SLO}")', "0.0000", "AL_ServeGWPaid")
-    line("sgf", "服務 GW（免費）＝免費 D ÷ 免費產能", "GW", f'=IF(AND(ISNUMBER(AL_BlendFree),AL_DFree>=0),IF(AL_BlendFree>0,AL_DFree/AL_BlendFree,"{SLO}"),"{SLO}")', "0.0000", "AL_ServeGWFree")
-    line("sg", "服務 GW 合計", "GW", f'=IF(AND(ISNUMBER(AL_ServeGWPaid),ISNUMBER(AL_ServeGWFree)),AL_ServeGWPaid+AL_ServeGWFree,"{SLO}")', "0.0000", "AL_ServeGW", key_fill=True)
-    line("sgg", "各世代服務 GW＝合計 × 世代占比（可服務世代的占比重新正規化；被排除世代為 0）", "GW",
-         {c: f'=IF(AND(ISNUMBER(AL_ServeGW),AL_GenShareOK>0),AL_ServeGW*IF({c}{R["ok"]}=1,{c}{R["share"]}/AL_GenShareOK,0),"{SLO}")' for c in "CDEF"}, "0.0000", "AL_ServeGen", span=("C", "F"))
+    line("sgp", "服務 GW（付費）＝付費 D ÷ 付費產能", "GW", f'=IF(AL_BlendPaid="{GENX}","{GENX}",IF(AND(ISNUMBER(AL_BlendPaid),AL_DPaid>=0),IF(AL_BlendPaid>0,AL_DPaid/AL_BlendPaid,"{SLO}"),"{SLO}"))', "0.0000", "AL_ServeGWPaid")
+    line("sgf", "服務 GW（免費）＝免費 D ÷ 免費產能", "GW", f'=IF(AL_BlendFree="{GENX}","{GENX}",IF(AND(ISNUMBER(AL_BlendFree),AL_DFree>=0),IF(AL_BlendFree>0,AL_DFree/AL_BlendFree,"{SLO}"),"{SLO}"))', "0.0000", "AL_ServeGWFree")
+    line("sg", "服務 GW 合計", "GW", f'=IF(OR(AL_ServeGWPaid="{GENX}",AL_ServeGWFree="{GENX}"),"{GENX}",IF(AND(ISNUMBER(AL_ServeGWPaid),ISNUMBER(AL_ServeGWFree)),AL_ServeGWPaid+AL_ServeGWFree,"{SLO}"))', "0.0000", "AL_ServeGW", key_fill=True)
+    line("sgg", "各世代服務 GW＝合計 × 世代占比（任一世代整代不可達時為文字「整代不可達」，不轉移占比；v6.3 K2）", "GW",
+         {c: f'=IF(AL_ServeGW="{GENX}","{GENX}",IF(AND(ISNUMBER(AL_ServeGW),AL_GenShareOK>0),AL_ServeGW*IF({c}{R["ok"]}=1,{c}{R["share"]}/AL_GenShareOK,0),"{SLO}"))' for c in "CDEF"}, "0.0000", "AL_ServeGen", span=("C", "F"))
     line("hold", "各世代每 GW 年經濟持有成本（IF_HoldEcon，基準成本）", "$B/GW/年",
          {c: f"=INDEX(IF_HoldEcon,1,{c}{R['col']})" for c in "CDEF"}, "0.000", "AL_HoldGen", span=("C", "F"))
     r += 1
@@ -206,24 +216,24 @@ def alloc(wb, AIN):
 
     # ---------------- D. Q1, Q2
     hdr("D. Q1、Q2（R1 基準，R2 並列；A7）")
-    line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）", "%", f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1", key_fill=True)
+    line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）", "%", gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW/(AL_RDGW+AL_ServeGW),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1", key_fill=True)
     line("q1b", "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷ 總 GW", "%",
-         f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),(AL_RDGW+AL_ServeGWFree)/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1R2")
+         gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),(AL_RDGW+AL_ServeGWFree)/(AL_RDGW+AL_ServeGW),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1R2")
     line("q2", "Q2 研發算力成本占比＝研發 GW × 持有成本 ÷（研發 GW × 持有成本＋Σ 各世代服務 GW × 各世代持有成本）", "%",
-         f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
-    line("q1g", "Q1（R1；成長情境 g）", "%", f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg/(AL_RDGWg+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1g")
+         gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
+    line("q1g", "Q1（R1；成長情境 g）", "%", gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg/(AL_RDGWg+AL_ServeGW),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1g")
     line("q2g", "Q2（成長情境 g）", "%",
-         f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg*AL_HoldTrain/(AL_RDGWg*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2g")
+         gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg*AL_HoldTrain/(AL_RDGWg*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q2g")
     line("r3", "R3（內部使用）", "", "缺口：無參數（A7）", None, note="R3 不設公式")
     r += 1
 
     # ---------------- E. calibration back-solve (A3)
     hdr("E. 校準反推（A3；2025 支出比不用來校準 k，只反推隱含 N × k）")
     line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", "=SRC_DEM_006/(SRC_DEM_004+SRC_DEM_006)", "0.0%", "AL_SpendRatio", "SRC_DEM_006 ÷（SRC_DEM_004＋SRC_DEM_006）（約 58.8%）")
-    line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計", "GW", f'=IF(ISNUMBER(AL_ServeGW),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGW,"{SLO}")', "0.0000", "AL_ImpliedRDGW")
-    line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", f'=IF(AND(ISNUMBER(AL_ImpliedRDGW),ISNUMBER(AL_FamGWyr)),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "0.00", "AL_ImpliedNk", key_fill=True)
+    line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計", "GW", gx(f'=IF(ISNUMBER(AL_ServeGW),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGW,"{SLO}")', "AL_ServeGW"), "0.0000", "AL_ImpliedRDGW")
+    line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", gx(f'=IF(AND(ISNUMBER(AL_ImpliedRDGW),ISNUMBER(AL_FamGWyr)),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "AL_ImpliedRDGW"), "0.00", "AL_ImpliedNk", key_fill=True)
     line("j8", "J8 落差＝隱含 N × k ÷（N_major＋N_refresh × 改版÷家族）", "x",
-         f'=IF(AND(ISNUMBER(AL_ImpliedNk),ISNUMBER(AL_RefGWyr),ISNUMBER(AL_FamGWyr)),AL_ImpliedNk/(AL_Nmajor+AL_Nrefresh*AL_RefGWyr/AL_FamGWyr),"{SLO}")', "0.00", "AL_J8Gap",
+         gx(f'=IF(AND(ISNUMBER(AL_ImpliedNk),ISNUMBER(AL_RefGWyr),ISNUMBER(AL_FamGWyr)),AL_ImpliedNk/(AL_Nmajor+AL_Nrefresh*AL_RefGWyr/AL_FamGWyr),"{SLO}")', "AL_ImpliedNk"), "0.00", "AL_J8Gap",
          "相對 Alloc_In 基準的規模落差：1 表示基準 N、k 已吻合支出比")
     r += 1
 
@@ -233,7 +243,7 @@ def alloc(wb, AIN):
          f"單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）；v5.29 X14 (k)：SRC_DEM_004 → SRC_DEM_018；v5.36 B1：SRC_DEM_018 → {SPEND_SID}（OpenAI 端 8.4；7.5–8.8）")
     line("sgxm", "對照：Microsoft 端 Azure 推論（SRC_DEM_018）÷ Σ（世代占比 × 各世代持有成本）", "GW", "=SRC_DEM_018/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", None,
          "顯示用，不被任何公式引用。Microsoft 稱為推論的 126 億中，約一半未進 OpenAI 營業成本，最可能是研究用推論列在研發（v5.36A 補充第 2 節）")
-    line("fsh", "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGWFree/AL_ServeGW,"{SLO}")', "0.0%", "AL_FreeServeShare")
+    line("fsh", "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計", "%", gx(f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGWFree/AL_ServeGW,"{SLO}")', "AL_ServeGW"), "0.0%", "AL_FreeServeShare")
     line("fsx", "免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ SRC_DEM_004", "%", "=SRC_DEM_005/SRC_DEM_004", "0.0%", "AL_FreeSpendShare")
     line("dlo", "Epoch 每日 token 低（SRC_DEM_013_Lo）", "T tok/日", "=SRC_DEM_013_Lo", "#,##0.0")
     line("dhi", "Epoch 每日 token 高（SRC_DEM_013_Hi）", "T tok/日", "=SRC_DEM_013_Hi", "#,##0.0")
@@ -275,9 +285,10 @@ def alloc(wb, AIN):
         out["df"] = f"={dchat}*{ic['free']}{rr}"
         okc = [f"${c}${R['ok']}" for c in "CDEF"]      # v6.2 2-1-c: generations with no reachable tier drop out and the row's mix is renormalised over the rest
         den = "(" + "+".join(f"IF(AND({s}>0,{o}=1),{s},0)" for s, o in zip(m, okc)) + ")"
+        unserved = "OR(" + ",".join(f"AND({s}>0,{o}=0)" for s, o in zip(m, okc)) + ")"      # v6.3 K2: no transfer of the share of a generation that is entirely unreachable
         def bl(cap):
             num = "+".join(f"IF(AND({s}>0,{o}=1),{s}*{k},0)" for s, o, k in zip(m, okc, cap))
-            return f'=IF({den}>0,({num})/{den},"{SLO}")'
+            return f'=IF({unserved},"{GENX}",IF({den}>0,({num})/{den},"{SLO}"))'
         out["cp"] = bl(capp); out["cf"] = bl(capf)
         out["den"] = den
         out["hnum"] = "+".join(f"IF(AND({s}>0,{o}=1),{s}*{h},0)" for s, o, h in zip(m, okc, holds))
@@ -306,12 +317,12 @@ def alloc(wb, AIN):
             put(ws, f"{cols['dp']}{rr}", ch["dp"], fmt="#,##0"); put(ws, f"{cols['df']}{rr}", ch["df"], fmt="#,##0")
             put(ws, f"{cols['cp']}{rr}", ch["cp"], fmt="#,##0"); put(ws, f"{cols['cf']}{rr}", ch["cf"], fmt="#,##0")
             cp, cf, dp, df_ = (f"{cols[x]}{rr}" for x in ("cp", "cf", "dp", "df"))
-            put(ws, f"{cols['sg']}{rr}", f'=IF(AND(ISNUMBER({cp}),ISNUMBER({cf})),IF(AND({cp}>0,{cf}>0),{dp}/{cp}+{df_}/{cf},"{SLO}"),"{SLO}")', fmt="0.0000")
+            put(ws, f"{cols['sg']}{rr}", f'=IF({cp}="{GENX}","{GENX}",IF(AND(ISNUMBER({cp}),ISNUMBER({cf})),IF(AND({cp}>0,{cf}>0),{dp}/{cp}+{df_}/{cf},"{SLO}"),"{SLO}"))', fmt="0.0000")
             sg = f"{cols['sg']}{rr}"
             put(ws, f"{cols['rd']}{rr}", f'=IF(AND(ISNUMBER(AL_FamGWyr),ISNUMBER(AL_RefGWyr)),{ic["k"]}{rr}*({ic["Nmaj"]}{rr}*AL_FamGWyr+{ic["Nref"]}{rr}*AL_RefGWyr),"{SLO}")', fmt="0.0000")
             rd = f"{cols['rd']}{rr}"
-            put(ws, f"{cols['q1']}{rr}", f'=IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}/({rd}+{sg}),"{SLO}")', fmt="0.0%")
-            put(ws, f"{cols['q2']}{rr}", f'=IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({ch["hnum"]})/{ch["den"]}),"{SLO}")', fmt="0.0%")
+            put(ws, f"{cols['q1']}{rr}", f'=IF({sg}="{GENX}","{GENX}",IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}/({rd}+{sg}),"{SLO}"))', fmt="0.0%")
+            put(ws, f"{cols['q2']}{rr}", f'=IF({sg}="{GENX}","{GENX}",IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({ch["hnum"]})/{ch["den"]}),"{SLO}"))', fmt="0.0%")
             put(ws, f"{cols['cost']}{rr}", f'=IF(ISNUMBER({rd}),{rd}*AL_HoldTrain,"{SLO}")', fmt="0.000")
             put(ws, f"{cols['daily']}{rr}", f"=({dp}+{df_})/365/1E6", fmt="#,##0.00")
             rows_here.append((rr, cols))

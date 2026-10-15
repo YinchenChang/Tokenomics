@@ -211,7 +211,8 @@ def _CAP(col, kind, m):
     cp = [f"INDEX(AL_Cap{kind},1,{i + 1})" for i in range(4)]
     den = "(" + "+".join(f"IF(AND({s}>0,ISNUMBER({c})),{s},0)" for s, c in zip(sh, cp)) + ")"
     num = "+".join(f"IF(AND({s}>0,ISNUMBER({c})),{s}*{c},0)" for s, c in zip(sh, cp))
-    return f'=IF({den}>0,({num})/{den},"SLO 不可達")'
+    un = "OR(" + ",".join(f"AND({s}>0,NOT(ISNUMBER({c})))" for s, c in zip(sh, cp)) + ")"      # v6.3 K2: a generation that is entirely unreachable is not dropped (no transfer of its share)
+    return f'=IF({un},"整代不可達",IF({den}>0,({num})/{den},"SLO 不可達"))'
 _MIX = ("q_mix_h", "q_mix_gb200", "q_mix_gb300", "q_mix_vr")
 _HOLD = lambda col: "=" + "+".join(f"{col}{{{k}}}*INDEX(AL_HoldGen,1,{i + 1})" for i, k in enumerate(_MIX))
 

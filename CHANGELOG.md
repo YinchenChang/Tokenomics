@@ -2,6 +2,21 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v8.0.xlsx（取代 v7.0；主版：`IF_AllocQ1`／`Q2`／`ServeGW` 改支出路線，契約改變；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` 4r1 第 2-3 段）
+
+- 分支 `claude/audit-fix-2-3`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-3.md`；進度檔：`docs/reports/20261016_稽核修正2-3_進度.md`。底稿：master（v7.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v8.0。
+- Excel（CC 以 `builder/v800.py` 等自 v7.0 產生，經 LibreOffice 重算存檔）：
+  - L1（D2）：Cap_In 新增 M 節（第 276 列起）：2025 年度層級單價（Luna 0.1035／Sol 2.184／Astra 7.174 $/M，Derived，含低高）、2025 混合有效單價 `CAP_Price25Mix` 1.680（C90 的 0.857 倍）；`L1_MFleet` 改用 2025 機隊口徑單價 `AL_PriceFleet25`（0.5565 → 0.6171），2026 牌價值保留為 `L1_MFleet_Px2026`。
+  - L2（D2 × D1(c)）：基準維持固定模型產能（R1）；新增情境 `d2_model_2025`、`_lo`、`_hi`（`ARCH_ScaleGen` Hopper、GB200 兩格 0.65／0.35／1.1）。
+  - L3（D2）：Alloc_In 新增研發世代組合 `AL_RDMix*`（Hopper 0.60／GB200 0.38／GB300 0.02／VR200 0，含低高；Derived）；Alloc J 節以 GW 占比加權計算 `AL_FamGWyr`、`AL_RefGWyr`、`AL_HoldTrain`；不可達世代依 D8 排除並重新正規化（`AL_RDShareExcl` 另列）。`IF_AllocRDGW` 0.0907 → 0.2402。Checks Z2（合計 100%，ERROR）。
+  - L4（D2）：`L1_LReqFleet` 改 2025 機隊口徑（Alloc K 節 `L1_FleetBreakeven2025`），原 VR200 讀法與恆等式讀法並列（`L1_LReqFleet_VR200`、`L1_LReqFleet_Id`）；`L1_PriceReqBE` 同口徑；`L1_FleetBreakeven`、`L1_FleetMargin` 維持 VR200 截面並改標籤；Checks B43 的 Hopper 占比改讀 `AL_MixHopper`。基準所需 L 0.530 → 1.968，大於 `L1_LTotal` 0.643，判讀由「回本」變「未回本」。
+  - L5（D14）：`AL_Q1`／`AL_Q2`／`AL_ImpliedRDGW` 與 `IF_AllocQ1`／`Q2`／`ServeGW` 改支出路線（`IF_AllocServeGW` 0.1584 → 0.8981；Q1 0.3641 → 0.2110；Q2 0.4281 → 0.2117）；token 路線保留為 `AL_Q1_Tok`、`AL_Q2_Tok`、`IF_AllocServeGW_Tok`；`L1_ScaleServe` 改標未解釋差距、數值不變；L1!L69 來源標籤改 SRC_DEM_004；新增 `L1_AstraExtTok_180B／400B／800B` 與 Epoch 1e27 上限欄。
+  - Decisions 新增 `AF2d-L1`–`L5`；DB_Evidence 新增 E374–E377；Gov_Map 新增 16 列；Alloc G 敏感度表新增「服務 GW（支出路線）」欄，自我檢查欄後移一欄。
+  - 具名範圍 +77（1,245 → 1,322）；公式格 48,399 → 48,906；GOV_Errors 0、Warnings 271、Info 177（174 → 177）。
+- 契約（相對 v7.0）：IF_ 6 個、L1_ 24 個數值改變（含 _Lo／_Hi），IFW_ 0；新增名稱見報告。`docs/plan/Tokenomics_downstream_contract.md` 改為 v0.4（Q1、Q2、服務 GW、所需 L 定義段改寫）。
+- 驗證：parity 71 項全過（新增 `test_v800_audit_fix2_3`、3 個 L2 情境）；預期值更新逐項記於報告；冪等重建差異 0；與 v7.0 逐格比較無範圍外差異；`restore_log` unmatched 0、Excel 保留值 30 格與 v7.0 相同。
+- `docs/builder/Tokenomics_builder_v5.md` 已重新產生（新增 `v800.py`）。
+
 ## 20261016_Tokenomics_v7.0.xlsx（取代 v6.3；主版：下游契約第 4 節改寫、新增名稱；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r0 第 3 節＝2-2 段與 `docs/workorders/20261015_世代價格B.md` r0）
 
 - 分支 `claude/audit-fix-2-2`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-2.md`；進度檔：`docs/reports/20261016_稽核修正2-2_進度.md`。底稿：master（v6.3，已移至 `model/archive/`）；`model/CURRENT` 改為 v7.0。

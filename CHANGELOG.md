@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261015_Tokenomics_v6.0.xlsx（取代 v5.36；主版：下游契約定義變更；D7 _Prod／_Life 統一、D8「SLO 不可達」文字語意、D11 回本溢價分母＝付費 token；判斷類，依工作單 `docs/workorders/20261015_稽核修正1.md`）
+
+- 分支 `claude/audit-fix-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_稽核修正1.md`；進度檔：`docs/reports/20261015_稽核修正1_進度.md`。底稿：v5.36（已移至 `model/archive/`）；`model/CURRENT` 改為 v6.0。
+- Excel（CC 以 `builder/v600.py` 等自 v5.36 產生，經 LibreOffice 重算存檔）：
+  - D7：`IFW_*_Prod` 讀 Theory_Rev_Prod（生產折減下重解 SLO），不再是 `_Util` × CTL_ProdDerate；`IF_*_Life` 為 `IFW_*_Life` 的過渡別名；Theory_Rev 新增 E 節 `_Prod` 恆等式與 Checks Z1（ERROR）；Alloc H 節新增 `AL_CapPaidProd`、`AL_BlendPaidProd`、`AL_ProdRatioPaid`，Cap_In 利用率修正（上限）改讀付費產能比。
+  - D8：Perf／Unit_Cost／Training／Amortize／Theory_Rev／Fleet_1GW／Alloc 等所有「SLO 不可達」改輸出文字，下游判斷改 ISNUMBER；Fleet_1GW 排除不可達層級並重新正規化（新 D 節）。
+  - D11：Amortize 回本溢價分母改為付費 token（`IF_AmortBU_*`、`IF_FullCost_*`、`IF_FullCostDefault_*` 隨之上升）。
+  - Decisions 新增 `AF1-D7`、`AF1-D8`、`AF1-D11`。
+- 契約文件 `docs/plan/Tokenomics_downstream_contract.md` 升 v0.2；builder md 重新產生。
+- 驗證：parity 全數通過（見報告），新增情境 `z1_c18_07_text`、`z2_train_e31_100` 與兩個新測試；預期值更新逐項記於報告表 1。
+
 ## 20261015_Tokenomics_v5.36.xlsx（取代 v5.35；支出路線改 SRC_DEM_004、計價倍數 1.3、κ、缺口恆等式與 L1 價格列；判斷類，依工作單 `docs/workorders/20261015_v5.36.md` r0）
 
 - 分支 `claude/v5.36-build`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_v5.36.md`；進度檔：`docs/reports/20261015_v5.36_進度.md`。底稿：master `9dff7f5`（v5.35）；`model/CURRENT` 原為 v5.35。

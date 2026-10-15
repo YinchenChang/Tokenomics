@@ -124,6 +124,8 @@ import v529
 AIN_529 = v529.alloc_in_rows(wb)       # v5.29 X14 (m): two Assumed inputs and the v5.28 constant (appended after the existing content; restored by preserve)
 AIN_536 = v536.alloc_in_kappa(wb)       # v5.36 B4: Alloc_In request-shape correction κ (AL_Kappa／_Lo／_Hi; appended after the existing content)
 AL6 = alloc(wb, AIN)
+import v600
+v600.alloc_prod_ratio(wb, AL6, F4)       # v6.0 D7-2: Alloc H section (paid-capacity ratio at the production derate; Cap_In row 115 reads AL_ProdRatioPaid)
 interface_b6(wb, last_row(wb["Interface"]) + 2)
 sources(wb)
 sources_b4(wb)
@@ -215,7 +217,10 @@ print("v526 interface I from:", X26["start"], "dc rows:", X26["dc_rows"], "check
 from deps import Deps, gov_map_cells
 N_GMH = v529.gov_map_helpers(wb)
 import v530
-IFJ = v530.interface_j(wb)            # v5.30 X15 (a): running-product waterfall; self-check = source equality + monotonic (replaces v529.interface_j)
+IFJ = v530.interface_j(wb, v600.prod_override(wb, F4))            # v5.30 X15 (a): running-product waterfall; v6.0 D7: _Prod token／Front rows read the re-solved SLO source
+v600.patch_j_header(wb, IFJ)
+v600.life_alias(wb, IFJ)               # v6.0 D7-3: IF_*_Life／Theory_Rev D section become aliases of IFW_*_Life
+ID_ROWS = v600.prod_identity(wb, IFJ)    # v6.0 D7-1: _Prod revenue / _Prod token = tier price (flags on Theory_Rev; Checks Z1 is written after Checks M so no Checks row moves)
 I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuation after J (IF_MaintITWarr, IF_MaintITPost, IF_WarrantyYrs); IF_StaffSW label (X19)
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
@@ -227,6 +232,8 @@ CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (afte
 CK_M4 = v534.checks_m4(wb)                # v5.34 B3: Checks M4, WARN (after M3; counted in GOV_Warnings)
 CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap identity check; after M4; counted in GOV_Info)
 V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
+Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
+print("v600 Checks Z1 row:", Z1)
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))
 print("v534 Cap_In H8–H10 from:", V534_CAP["start"], "to:", V534_CAP["end"], "| L1 rows:", V534_L1P, "| Checks M4 row:", CK_M4)

@@ -307,8 +307,8 @@ def l1_rows_new():
     c90 = "Cap_In!$C$90"
     none = ("無外部對照", DASH, DASH)
     TXT = "m 非數字（本情境）"
-    px = lambda m, p=c90: f'=IF(ISNUMBER({m}),{m}*{p},"{TXT}")'          # m is text when a generation in the mix cannot serve (SLO), like L1_LReqFleet
-    req = lambda lt: f'=IF(AND(ISNUMBER(L1_FleetBreakeven),ISNUMBER({lt})),L1_FleetBreakeven/(IF_Util*CTL_ProdDerate)*AL_PriceFleet/{lt},"{TXT}")'      # v6.3 K1: fleet-basis price
+    px = lambda m, p=c90: f'=IF(AND(ISNUMBER({m}),ISNUMBER({p})),{m}*{p},"{TXT}")'          # m is text when a generation in the mix cannot serve (SLO), like L1_LReqFleet
+    req = lambda lt: f'=IF(AND(ISNUMBER(L1_FleetBreakeven),ISNUMBER({lt}),ISNUMBER(AL_PriceFleet)),L1_FleetBreakeven/(IF_Util*CTL_ProdDerate)*AL_PriceFleet/{lt},"{TXT}")'      # v6.3 K1: fleet-basis price
     return [
         ("ScaleServe2000", "服務端規模係數（τ＝2,000 基準）：支出路線服務 GW ÷ token 路線服務 GW（τ＝CST_TokPerPromptV528）", "Decision Use＝下游校準用，不得當產能；X47",
          f"=Cap_In!$C${R['j_scale2000']}", f"=Cap_In!$D${R['j_scale2000']}", f"=Cap_In!$E${R['j_scale2000']}", "x", "無區間（τ 固定 2,000；支出路線不隨 τ 變）",

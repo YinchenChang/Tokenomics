@@ -39,6 +39,10 @@ def patch_specs():
         for k in range(3, 6):
             if isinstance(it[k], str):
                 for X in "CDE": it[k] = it[k].replace(f"{X}{{P_price}}", "AL_PriceFleet")
+        if key.startswith("need"):       # AL_PriceFleet may be the text 整代不可達 (K2): text passes through, never #VALUE!
+            it[3] = f'=IF(ISNUMBER(AL_PriceFleet),{it[3][1:]},AL_PriceFleet)'
+            it[4] = f'=IF(ISNUMBER(C{{{key}}}),C{{{key}}}/AL_DPaid,C{{{key}}})'
+            it[5] = it[5].replace("ISNUMBER(C{tok_ceil})", f"AND(ISNUMBER(C{{tok_ceil}}),ISNUMBER(C{{{key}}}))", 1)
         it[1] = it[1].replace("混合有效單價", tag).replace("單價", "機隊口徑單價（AL_PriceFleet）") if key.startswith("need") else it[1].replace("混合有效單價", tag)
         assert "P_price" not in "".join(str(x) for x in it[3:6]), key
         sp[i] = tuple(it)

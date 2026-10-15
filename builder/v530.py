@@ -25,7 +25,8 @@ REV, TOK, TAG, LAYERS = v529.REV, v529.TOK, v529.TAG, v529.LAYERS
 
 
 # ================================================================== X15 (a): Interface J (running product) and self-check rows
-def interface_j(wb):
+def interface_j(wb, prod_override=None):
+    prod_override = prod_override or {}      # v6.0 D7-1／D7-2: name -> (callable X -> formula, note) for the _Prod layer rows (re-solved SLO source)
     ws = wb["Interface"]
     start = v529._last_row(ws) + 2
     section(ws, start, "J. 四層瀑布並列（X14 (b) v5.29；X15 (a) v5.30 起逐層累乘）：_100（100% 口徑）→ _Util＝_100 × IF_Util → _Prod＝_Util × CTL_ProdDerate "
@@ -45,6 +46,7 @@ def interface_j(wb):
             name = f"IFW_{stem}_{suf}"
             note = ""; src = None
             u = at.get(f"IFW_{stem}_Util"); p = at.get(f"IFW_{stem}_Prod")
+            ov_ = prod_override.get(name) if suf == "Prod" else None
             if is_tok:
                 if suf == "100": f = lambda X: f"={X}{b}"; src = ("Interface", b)
                 elif suf == "Util": f = lambda X: f"=IF(ISNUMBER({X}{b}),{X}{b}*IF_Util,{X}{b})"; note = "（B 節 100% 列 × IF_Util；無 D 節對應）"
@@ -63,6 +65,7 @@ def interface_j(wb):
                 else:
                     f = lambda X, p=p: f"=IF(ISNUMBER({X}{p}),{X}{p}*CTL_PriceLife*CTL_Monetize,{X}{p})"
                     note = "（＝Prod 列 × CTL_PriceLife × CTL_Monetize；H 節 _Life 不含折減，並列保留）"
+            if ov_ is not None: f, note = ov_
             put(ws, f"A{r}", f"{lab}｜{ltxt}{note}　[{name}]"); put(ws, f"B{r}", ws.cell(b, 2).value)
             for c in COLS:
                 X = L(c); put(ws, f"{X}{r}", f(X), fmt=fmt_of(b))

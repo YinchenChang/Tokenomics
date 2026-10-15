@@ -21,7 +21,7 @@ def perf_sheet(wb, SP, AR, CAL, TR):
     R["vreq"] = r
     put(ws, f"A{r}", "VR-eq 係數"); put(ws, f"B{r}", "x")
     for X in COLS15:
-        put(ws, f"{X}{r}", f"=IF(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7)>0,{X}{R['gwtot']}/INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7),0)", fmt="0.00", fill=FILL_KEY)
+        put(ws, f"{X}{r}", f"=IF(AND(ISNUMBER({X}{R['gwtot']}),ISNUMBER(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7))),IF(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7)>0,{X}{R['gwtot']}/INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7),0),\"SLO 不可達\")", fmt="0.00", fill=FILL_KEY)
     ws.freeze_panes = "C8"
     return R
 
@@ -98,14 +98,14 @@ def unit_cost(wb, PR):
         rows = [
           ("gsf", "GPU 秒／M 新鮮 prefill", "GPU-s", "#,##0.0", pl("gsf")),
           ("gsc", "GPU 秒／M 快取命中 prefill", "GPU-s", "#,##0.000", pl("gsc")),
-          ("gsd", "GPU 秒／M decode（含思考 token；0＝SLO 不可達）", "GPU-s", "#,##0.0", pl("gsd")),
+          ("gsd", "GPU 秒／M decode（含思考 token；文字「SLO 不可達」＝不可達）", "GPU-s", "#,##0.0", pl("gsd")),
           ("cf", "新鮮 prefill $/M — 經濟、100%", "$/M", "#,##0.000", "={X}$8/3600*{X}{gsf}"),
           ("cc", "快取命中 prefill $/M — 經濟、100%", "$/M", "#,##0.0000", "={X}$8/3600*{X}{gsc}"),
-          ("cd", "decode（含思考 token）$/M — 經濟、100%", "$/M", "#,##0.000", "=IF({X}{gsd}>0,{X}$8/3600*{X}{gsd},\"SLO 不可達\")"),
+          ("cd", "decode（含思考 token）$/M — 經濟、100%", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{gsd}),{X}$8/3600*{X}{gsd},\"SLO 不可達\")"),
           ("cfu", "新鮮 prefill $/M — 經濟、基準利用率", "$/M", "#,##0.000", "={X}{cf}/{X}$10"),
           ("ccu", "快取命中 prefill $/M — 經濟、基準利用率", "$/M", "#,##0.0000", "={X}{cc}/{X}$10"),
           ("cdu", "decode（含思考 token）$/M — 經濟、基準利用率", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{cd}),{X}{cd}/{X}$10,{X}{cd})"),
-          ("cda", "decode（含思考 token）$/M — 會計、100%", "$/M", "#,##0.000", "=IF({X}{gsd}>0,{X}$9/3600*{X}{gsd},\"SLO 不可達\")"),
+          ("cda", "decode（含思考 token）$/M — 會計、100%", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{gsd}),{X}$9/3600*{X}{gsd},\"SLO 不可達\")"),
           ("cref", "參考請求混合 $/M 總 token — 經濟、100%", "$/M", "#,##0.000",
            f"=IF(ISNUMBER({{X}}{{cd}}),(Serving!${'CDE'[t-1]}$23*{{X}}{{cf}}+Serving!${'CDE'[t-1]}$24*{{X}}{{cd}})/(Serving!${'CDE'[t-1]}$23+Serving!${'CDE'[t-1]}$24),{{X}}{{cd}})"),
         ]

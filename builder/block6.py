@@ -129,7 +129,7 @@ def alloc(wb, AIN):
          {"C": "=AL_MixHopper", "D": "=AL_MixGB200", "E": "=AL_MixGB300", "F": "=AL_MixVR200"}, "0%", "AL_ShareGen", span=("C", "F"))
     mp, mf = "B4_MixPaid", "B4_MixFree"
     def reach(mix, c):
-        return "AND(" + ",".join(f"OR(INDEX({mix},1,{t})=0,INDEX(IF_TokGW_{tn},1,{c}${R['col']})>0)" for t, (tn, _) in enumerate(TIERS, 1)) + ")"
+        return "AND(" + ",".join(f"OR(INDEX({mix},1,{t})=0,IF(ISNUMBER(INDEX(IF_TokGW_{tn},1,{c}${R['col']})),INDEX(IF_TokGW_{tn},1,{c}${R['col']})>0,FALSE))" for t, (tn, _) in enumerate(TIERS, 1)) + ")"
     line("ok", "可服務（付費與免費組合內各層級皆 SLO 可達＝1；同 Fleet_1GW 第 18 列）", "旗標",
          {c: f"=IF(AND({reach(mp, c)},{reach(mf, c)}),1,0)" for c in "CDEF"}, "0", "AL_GenOK", span=("C", "F"))
     def invsum(mix, c):
@@ -166,36 +166,36 @@ def alloc(wb, AIN):
     line("tier", "層級索引", "索引", {"C": 1, "D": 2, "E": 3}, "0")
     for c in "CDE": ws[f"{c}{R['tier']}"].font = F_CALC
     line("fam", "家族計畫 GW 年（IF_ProgGWyr；含研發倍數；等同 Fleet_1GW 第 33 列）", "GW·年",
-         {**{c: f"=INDEX(IF_ProgGWyr_{tk},1,AL_TrainCol)" for c, (tk, tn) in zip("CDE", TIERS)}, "F": f"=SUM(C{r}:E{r})"}, "0.0000", "AL_FamGWyr",
+         {**{c: f"=INDEX(IF_ProgGWyr_{tk},1,AL_TrainCol)" for c, (tk, tn) in zip("CDE", TIERS)}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "0.0000", "AL_FamGWyr",
          "每個家族計畫：三層級最終訓練 GPU 小時 × 研發倍數，換算為訓練世代的 GW 年", key_fill=False)
     nm(wb, "AL_FamGWyr", f"Alloc!$F${R['fam']}")
     tr = wb["Training"]
     r104 = _row_of(tr, "後訓練 GPU 小時（SFT＋RL＋蒸餾）"); r18 = _row_of(tr, "每 GW GPU 數")
     line("post", "後訓練 GPU 小時（SFT＋RL＋蒸餾；單一模型；Training 頁）", "GPU-hr",
-         {**{c: f"=INDEX(Training!$C${r104}:$Q${r104},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "F": f"=SUM(C{r}:E{r})"}, "#,##0",
+         {**{c: f"=INDEX(Training!$C${r104}:$Q${r104},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "#,##0",
          note="Training 第 104 列「後訓練 GPU 小時（SFT＋RL＋蒸餾）」，不含第 105 列；依訓練世代與層級取值；依欄 A 標籤定位（工作單 r3 更正 2）")
     line("gpugw", "每 GW GPU 數（訓練世代）", "顆", {c: f"=INDEX(Training!$C${r18}:$Q${r18},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "#,##0")
     line("ref", "改版計畫 GW 年＝後訓練 GPU 小時 × 研發倍數 ÷（每 GW GPU 數 × 8,760）", "GW·年",
-         {**{c: f"={c}{R['post']}*IF_RDMult/({c}{R['gpugw']}*8760)" for c in "CDE"}, "F": f"=SUM(C{r}:E{r})"}, "0.0000",
+         {**{c: f'=IF(ISNUMBER({c}{R["post"]}),{c}{R["post"]}*IF_RDMult/({c}{R["gpugw"]}*8760),{c}{R["post"]})' for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "0.0000",
          note="改版（refresh）計畫：後訓練 GPU 小時 × 研發倍數（IF_RDMult，A2）；GW 年換算同 Training「占 1 GW 一年」")
     nm(wb, "AL_RefGWyr", f"Alloc!$F${R['ref']}")
     line("rd", "研發 GW 年＝k ×（N_major × 家族計畫＋N_refresh × 改版計畫）", "GW·年",
-         "=AL_k*(AL_Nmajor*AL_FamGWyr+AL_Nrefresh*AL_RefGWyr)", "0.0000", "AL_RDGW", key_fill=True)
-    line("rdg", "研發 GW 年（成長情境，A6）＝研發 GW 年 ×（1＋g）；服務 GW 不變", "GW·年", "=AL_RDGW*(1+AL_g)", "0.0000", "AL_RDGWg")
+         f'=IF(AND(ISNUMBER(AL_FamGWyr),ISNUMBER(AL_RefGWyr)),AL_k*(AL_Nmajor*AL_FamGWyr+AL_Nrefresh*AL_RefGWyr),"{SLO}")', "0.0000", "AL_RDGW", key_fill=True)
+    line("rdg", "研發 GW 年（成長情境，A6）＝研發 GW 年 ×（1＋g）；服務 GW 不變", "GW·年", f'=IF(ISNUMBER(AL_RDGW),AL_RDGW*(1+AL_g),"{SLO}")', "0.0000", "AL_RDGWg")
     line("ht", "訓練世代每 GW 年經濟持有成本（IF_HoldEcon，基準成本）", "$B/GW/年", "=INDEX(IF_HoldEcon,1,AL_TrainCol)", "0.000", "AL_HoldTrain")
-    line("rdcost", "研發算力成本（研發 GW × 訓練世代持有成本；Q3 的算力部分）", "$B/年", "=AL_RDGW*AL_HoldTrain", "0.000", "AL_RDCost")
+    line("rdcost", "研發算力成本（研發 GW × 訓練世代持有成本；Q3 的算力部分）", "$B/年", f'=IF(ISNUMBER(AL_RDGW),AL_RDGW*AL_HoldTrain,"{SLO}")', "0.000", "AL_RDCost")
     r += 1
 
     # ---------------- D. Q1, Q2
     hdr("D. Q1、Q2（R1 基準，R2 並列；A7）")
-    line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_RDGW/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1", key_fill=True)
+    line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）", "%", f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1", key_fill=True)
     line("q1b", "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷ 總 GW", "%",
-         f'=IF(ISNUMBER(AL_ServeGW),(AL_RDGW+AL_ServeGWFree)/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1R2")
+         f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),(AL_RDGW+AL_ServeGWFree)/(AL_RDGW+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1R2")
     line("q2", "Q2 研發算力成本占比＝研發 GW × 持有成本 ÷（研發 GW × 持有成本＋Σ 各世代服務 GW × 各世代持有成本）", "%",
-         f'=IF(ISNUMBER(AL_ServeGW),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
-    line("q1g", "Q1（R1；成長情境 g）", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_RDGWg/(AL_RDGWg+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1g")
+         f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
+    line("q1g", "Q1（R1；成長情境 g）", "%", f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg/(AL_RDGWg+AL_ServeGW),"{SLO}")', "0.0%", "AL_Q1g")
     line("q2g", "Q2（成長情境 g）", "%",
-         f'=IF(ISNUMBER(AL_ServeGW),AL_RDGWg*AL_HoldTrain/(AL_RDGWg*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2g")
+         f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg*AL_HoldTrain/(AL_RDGWg*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2g")
     line("r3", "R3（內部使用）", "", "缺口：無參數（A7）", None, note="R3 不設公式")
     r += 1
 
@@ -203,9 +203,9 @@ def alloc(wb, AIN):
     hdr("E. 校準反推（A3；2025 支出比不用來校準 k，只反推隱含 N × k）")
     line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", "=SRC_DEM_006/(SRC_DEM_004+SRC_DEM_006)", "0.0%", "AL_SpendRatio", "SRC_DEM_006 ÷（SRC_DEM_004＋SRC_DEM_006）（約 58.8%）")
     line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計", "GW", f'=IF(ISNUMBER(AL_ServeGW),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGW,"{SLO}")', "0.0000", "AL_ImpliedRDGW")
-    line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", f'=IF(ISNUMBER(AL_ImpliedRDGW),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "0.00", "AL_ImpliedNk", key_fill=True)
+    line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", f'=IF(AND(ISNUMBER(AL_ImpliedRDGW),ISNUMBER(AL_FamGWyr)),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "0.00", "AL_ImpliedNk", key_fill=True)
     line("j8", "J8 落差＝隱含 N × k ÷（N_major＋N_refresh × 改版÷家族）", "x",
-         f'=IF(ISNUMBER(AL_ImpliedNk),AL_ImpliedNk/(AL_Nmajor+AL_Nrefresh*AL_RefGWyr/AL_FamGWyr),"{SLO}")', "0.00", "AL_J8Gap",
+         f'=IF(AND(ISNUMBER(AL_ImpliedNk),ISNUMBER(AL_RefGWyr),ISNUMBER(AL_FamGWyr)),AL_ImpliedNk/(AL_Nmajor+AL_Nrefresh*AL_RefGWyr/AL_FamGWyr),"{SLO}")', "0.00", "AL_J8Gap",
          "相對 Alloc_In 基準的規模落差：1 表示基準 N、k 已吻合支出比")
     r += 1
 
@@ -286,12 +286,12 @@ def alloc(wb, AIN):
             cp, cf, dp, df_ = (f"{cols[x]}{rr}" for x in ("cp", "cf", "dp", "df"))
             put(ws, f"{cols['sg']}{rr}", f'=IF(AND(ISNUMBER({cp}),ISNUMBER({cf})),IF(AND({cp}>0,{cf}>0),{dp}/{cp}+{df_}/{cf},"{SLO}"),"{SLO}")', fmt="0.0000")
             sg = f"{cols['sg']}{rr}"
-            put(ws, f"{cols['rd']}{rr}", f"={ic['k']}{rr}*({ic['Nmaj']}{rr}*AL_FamGWyr+{ic['Nref']}{rr}*AL_RefGWyr)", fmt="0.0000")
+            put(ws, f"{cols['rd']}{rr}", f'=IF(AND(ISNUMBER(AL_FamGWyr),ISNUMBER(AL_RefGWyr)),{ic["k"]}{rr}*({ic["Nmaj"]}{rr}*AL_FamGWyr+{ic["Nref"]}{rr}*AL_RefGWyr),"{SLO}")', fmt="0.0000")
             rd = f"{cols['rd']}{rr}"
-            put(ws, f"{cols['q1']}{rr}", f'=IF(ISNUMBER({sg}),{rd}/({rd}+{sg}),"{SLO}")', fmt="0.0%")
+            put(ws, f"{cols['q1']}{rr}", f'=IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}/({rd}+{sg}),"{SLO}")', fmt="0.0%")
             hmix = "+".join(f"{s}*{h}" for s, h in zip(m, holds))
-            put(ws, f"{cols['q2']}{rr}", f'=IF(ISNUMBER({sg}),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({hmix})),"{SLO}")', fmt="0.0%")
-            put(ws, f"{cols['cost']}{rr}", f"={rd}*AL_HoldTrain", fmt="0.000")
+            put(ws, f"{cols['q2']}{rr}", f'=IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({hmix})),"{SLO}")', fmt="0.0%")
+            put(ws, f"{cols['cost']}{rr}", f'=IF(ISNUMBER({rd}),{rd}*AL_HoldTrain,"{SLO}")', fmt="0.000")
             put(ws, f"{cols['daily']}{rr}", f"=({dp}+{df_})/365/1E6", fmt="#,##0.00")
             rows_here.append((rr, cols))
             r += 1

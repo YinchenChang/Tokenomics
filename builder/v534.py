@@ -204,10 +204,14 @@ SPEC_H9 = [
      '=IF(ISNUMBER(E{tchat}),(E{tchat}*AL_FreeShare/E{Q_cap_free})/E{eff_gw},"SLO 不可達")', "Derived", "錨點 ≈ 0.21；低於支出口徑 IF_FreeShare（0.46）：免費 token 每 GW 產能高（Luna 為主）"),
 ]
 # H10 rows: (key, label, unit, C, D, E, F, tag, note); columns C＝2025 年度、D＝2026 Q1 年化、E＝2026 Q2 年化、F＝FY2026 預測。
-_CAP = lambda col, kind, m: (f'=IF(OR(AND({col}{{{m[0]}}}>0,NOT(ISNUMBER(INDEX(AL_Cap{kind},1,1)))),AND({col}{{{m[1]}}}>0,NOT(ISNUMBER(INDEX(AL_Cap{kind},1,2)))),'
-                             f'AND({col}{{{m[2]}}}>0,NOT(ISNUMBER(INDEX(AL_Cap{kind},1,3)))),AND({col}{{{m[3]}}}>0,NOT(ISNUMBER(INDEX(AL_Cap{kind},1,4))))),"SLO 不可達",'
-                             f'IF({col}{{{m[0]}}}>0,{col}{{{m[0]}}}*INDEX(AL_Cap{kind},1,1),0)+IF({col}{{{m[1]}}}>0,{col}{{{m[1]}}}*INDEX(AL_Cap{kind},1,2),0)'
-                             f'+IF({col}{{{m[2]}}}>0,{col}{{{m[2]}}}*INDEX(AL_Cap{kind},1,3),0)+IF({col}{{{m[3]}}}>0,{col}{{{m[3]}}}*INDEX(AL_Cap{kind},1,4),0))')
+def _CAP(col, kind, m):
+    """Generation blend of the per-generation capacity (AL_CapPaid／AL_CapFree) at this column's mix. v6.2 2-1-c: a generation whose capacity is text
+    (no reachable tier) drops out and the mix is renormalised over the remaining generations (same rule as Alloc section B); all text -> "SLO 不可達"."""
+    sh = [f"{col}{{{k}}}" for k in m]
+    cp = [f"INDEX(AL_Cap{kind},1,{i + 1})" for i in range(4)]
+    den = "(" + "+".join(f"IF(AND({s}>0,ISNUMBER({c})),{s},0)" for s, c in zip(sh, cp)) + ")"
+    num = "+".join(f"IF(AND({s}>0,ISNUMBER({c})),{s}*{c},0)" for s, c in zip(sh, cp))
+    return f'=IF({den}>0,({num})/{den},"SLO 不可達")'
 _MIX = ("q_mix_h", "q_mix_gb200", "q_mix_gb300", "q_mix_vr")
 _HOLD = lambda col: "=" + "+".join(f"{col}{{{k}}}*INDEX(AL_HoldGen,1,{i + 1})" for i, k in enumerate(_MIX))
 

@@ -147,9 +147,11 @@ def alloc_prod_ratio(wb, R, F):
     wb.defined_names["AL_CapPaidProd"] = DefinedName("AL_CapPaidProd", attr_text=f"Alloc!$C${r}:$F${r}")
     cap = r; r += 1
     ss = [f"{c}${R['share']}" for c in "CDEF"]; cc = [f"{c}${cap}" for c in "CDEF"]
-    bad = "OR(" + ",".join(f"AND({s}>0,NOT(ISNUMBER({k})))" for s, k in zip(ss, cc)) + ")"
-    put(ws, f"A{r}", "世代組合後每 GW 年付費產能（生產折減）＝Σ 世代占比 × 各世代產能", wrap=True); put(ws, f"B{r}", "M tok/GW/年")
-    put(ws, f"C{r}", f'=IF({bad},"{SLO}",' + "+".join(f"IF({s}>0,{s}*{k},0)" for s, k in zip(ss, cc)) + ")", fmt="#,##0")
+    # v6.2 2-1-c: a generation whose re-solved capacity is text (no reachable tier) drops out and the mix is renormalised over the rest (same rule as Alloc section B)
+    den = "(" + "+".join(f"IF(AND({s}>0,ISNUMBER({k})),{s},0)" for s, k in zip(ss, cc)) + ")"
+    num = "+".join(f"IF(AND({s}>0,ISNUMBER({k})),{s}*{k},0)" for s, k in zip(ss, cc))
+    put(ws, f"A{r}", "世代組合後每 GW 年付費產能（生產折減）＝Σ 世代占比 × 各世代產能（只含可服務世代，占比重新正規化）", wrap=True); put(ws, f"B{r}", "M tok/GW/年")
+    put(ws, f"C{r}", f'=IF({den}>0,({num})/{den},"{SLO}")', fmt="#,##0")
     wb.defined_names["AL_BlendPaidProd"] = DefinedName("AL_BlendPaidProd", attr_text=f"Alloc!$C${r}"); r += 1
     put(ws, f"A{r}", "付費產能比（生產折減重解 ÷ 基準）　→ Cap_In 第 115 列「利用率修正（上限）」", wrap=True); put(ws, f"B{r}", "x")
     put(ws, f"C{r}", f'=IF(AND(ISNUMBER(AL_BlendPaidProd),ISNUMBER(AL_BlendPaid)),IF(AL_BlendPaid>0,AL_BlendPaidProd/AL_BlendPaid,"{SLO}"),"{SLO}")', fmt="0.0000", fill=FILL_KEY)

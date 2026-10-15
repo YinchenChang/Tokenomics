@@ -128,30 +128,48 @@ def alloc(wb, AIN):
     line("share", "世代占比（Alloc_In）", "%",
          {"C": "=AL_MixHopper", "D": "=AL_MixGB200", "E": "=AL_MixGB300", "F": "=AL_MixVR200"}, "0%", "AL_ShareGen", span=("C", "F"))
     mp, mf = "B4_MixPaid", "B4_MixFree"
-    def reach(mix, c):
-        return "AND(" + ",".join(f"OR(INDEX({mix},1,{t})=0,IF(ISNUMBER(INDEX(IF_TokGW_{tn},1,{c}${R['col']})),INDEX(IF_TokGW_{tn},1,{c}${R['col']})>0,FALSE))" for t, (tn, _) in enumerate(TIERS, 1)) + ")"
-    line("ok", "可服務（付費與免費組合內各層級皆 SLO 可達＝1；同 Fleet_1GW 第 18 列）", "旗標",
-         {c: f"=IF(AND({reach(mp, c)},{reach(mf, c)}),1,0)" for c in "CDEF"}, "0", "AL_GenOK", span=("C", "F"))
-    def invsum(mix, c):
-        return "+".join(f"INDEX({mix},1,{t})/INDEX(IF_TokGW_{tn},1,{c}${R['col']})" for t, (tn, _) in enumerate(TIERS, 1))
-    line("ip", "Σ（付費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mp, c)},"{SLO}")' for c in "CDEF"}, "0.00E+00",
+    # ---- v6.2 2-1-c: unreachable tiers are excluded and the tier weights renormalised over the reachable tiers (same as Fleet_1GW rows 19-20, 37-49);
+    #      a generation with no reachable tier is text and the generation mix is renormalised over the remaining generations. Nothing is silently dropped:
+    #      the unserved weight is shown per generation (AL_UnservedPaid／AL_UnservedFree) and for the mix (AL_UnservedGen).
+    for key, (tn, tl) in zip(("rl", "rs", "ra"), TIERS):
+        line(key, f"{tl.split('（')[0]} 可達旗標（IF_TokGW 為數值且 > 0＝1；SLO 或 TTFT 不可達＝0；v6.2）", "旗標",
+             {c: f"=IF(ISNUMBER(INDEX(IF_TokGW_{tn},1,{c}${R['col']})),IF(INDEX(IF_TokGW_{tn},1,{c}${R['col']})>0,1,0),0)" for c in "CDEF"}, "0",
+             note="同 Fleet_1GW 第 38–40 列" if key == "rl" else None)
+    flag = lambda c: [f"{c}{R[k]}" for k in ("rl", "rs", "ra")]
+    wsum = lambda mix, c: "+".join(f"INDEX({mix},1,{t})*{f}" for t, f in enumerate(flag(c), 1))
+    line("wp", "付費組合：可達層級的權重合計（重新正規化的分母）", "%", {c: f"={wsum(mp, c)}" for c in "CDEF"}, "0.0%", note="同 Fleet_1GW 第 41 列")
+    line("wf", "免費組合：可達層級的權重合計（重新正規化的分母）", "%", {c: f"={wsum(mf, c)}" for c in "CDEF"}, "0.0%", note="同 Fleet_1GW 第 42 列")
+    line("xp", "未服務需求占比（付費）＝被排除層級的付費組合權重合計", "%", {c: f"=SUM({mp})-{c}{R['wp']}" for c in "CDEF"}, "0.0%", "AL_UnservedPaid",
+         "排除不是消失：這一部分的需求沒有被該世代的產能服務；基準下 Hopper 欄＝Astra 的付費組合權重（TTFT 不可達）", span=("C", "F"))
+    line("xf", "未服務需求占比（免費）＝被排除層級的免費組合權重合計", "%", {c: f"=SUM({mf})-{c}{R['wf']}" for c in "CDEF"}, "0.0%", "AL_UnservedFree", span=("C", "F"))
+    line("ok", "可服務（付費與免費組合各至少一個層級可達＝1；同 Fleet_1GW 第 18 列）", "旗標",
+         {c: f"=IF(AND({c}{R['wp']}>0,{c}{R['wf']}>0),1,0)" for c in "CDEF"}, "0", "AL_GenOK", span=("C", "F"))
+    def invsum(mix, w, c):
+        return "(" + "+".join(f"IF({f}=1,INDEX({mix},1,{t})/INDEX(IF_TokGW_{tn},1,{c}${R['col']}),0)" for t, (f, (tn, _)) in enumerate(zip(flag(c), TIERS), 1)) + f")/{c}{R[w]}"
+    line("ip", "Σ（付費層級組合 ÷ 每 GW 總產出；只含可達層級，權重已重新正規化）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mp, "wp", c)},"{SLO}")' for c in "CDEF"}, "0.00E+00",
          note="付費 token 的層級組合（Cap_In）依各層級每 GW 總產出（IF_TokGW_*）加權：每 M tok 佔用的 GW·年（100% 利用率）")
-    line("if", "Σ（免費層級組合 ÷ 每 GW 總產出）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mf, c)},"{SLO}")' for c in "CDEF"}, "0.00E+00")
+    line("if", "Σ（免費層級組合 ÷ 每 GW 總產出；只含可達層級，權重已重新正規化）", "GW·年／M tok", {c: f'=IF({c}{R["ok"]}=1,{invsum(mf, "wf", c)},"{SLO}")' for c in "CDEF"}, "0.00E+00")
     line("capp", "每 GW 年產能（付費；基準利用率）", "M tok/GW/年",
          {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["ip"]},"{SLO}")' for c in "CDEF"}, "#,##0", "AL_CapPaid", "利用率 IF_Util ÷ Σ；與 Fleet_1GW 第 19 列同式（每 GW）", span=("C", "F"))
     line("capf", "每 GW 年產能（免費；基準利用率）", "M tok/GW/年",
          {c: f'=IF({c}{R["ok"]}=1,IF_Util/{c}{R["if"]},"{SLO}")' for c in "CDEF"}, "#,##0", "AL_CapFree", "與 Fleet_1GW 第 20 列同式（每 GW）", span=("C", "F"))
-    def blend(caprow, sharecells=("C", "D", "E")):
-        ss = [f"{c}${R['share']}" for c in "CDEF"]; cc = [f"{c}${caprow}" for c in "CDEF"]
-        bad = "OR(" + ",".join(f"AND({s}>0,NOT(ISNUMBER({k})))" for s, k in zip(ss, cc)) + ")"
-        return f'=IF({bad},"{SLO}",' + "+".join(f"IF({s}>0,{s}*{k},0)" for s, k in zip(ss, cc)) + ")"
-    line("bp", "世代組合後每 GW 年產能（付費）＝Σ 世代占比 × 各世代產能", "M tok/GW/年", blend(R["capp"]), "#,##0", "AL_BlendPaid")
+    ok = [f"{c}${R['ok']}" for c in "CDEF"]
+    ss = [f"{c}${R['share']}" for c in "CDEF"]
+    den_expr = "(" + "+".join(f"IF(AND({s}>0,{o}=1),{s},0)" for s, o in zip(ss, ok)) + ")"
+    line("gsum", "世代組合中可服務世代的占比合計（重新正規化的分母）", "%", f"={den_expr}", "0.0%", "AL_GenShareOK",
+         "世代的所有層級皆不可達時，該世代被排除，其餘世代的占比重新正規化；全部世代皆不可達時以下各列為文字")
+    line("xg", "未服務世代占比＝被排除世代的世代占比合計", "%", f"=SUM(C{R['share']}:F{R['share']})-C{R['gsum']}", "0.0%", "AL_UnservedGen")
+    def blend(caprow):
+        cc = [f"{c}${caprow}" for c in "CDEF"]
+        num = "+".join(f"IF(AND({s}>0,{o}=1),{s}*{k},0)" for s, o, k in zip(ss, ok, cc))
+        return f'=IF(C{R["gsum"]}>0,({num})/C{R["gsum"]},"{SLO}")'
+    line("bp", "世代組合後每 GW 年產能（付費）＝Σ 世代占比 × 各世代產能（只含可服務世代，占比重新正規化）", "M tok/GW/年", blend(R["capp"]), "#,##0", "AL_BlendPaid")
     line("bf", "世代組合後每 GW 年產能（免費）", "M tok/GW/年", blend(R["capf"]), "#,##0", "AL_BlendFree")
     line("sgp", "服務 GW（付費）＝付費 D ÷ 付費產能", "GW", f'=IF(AND(ISNUMBER(AL_BlendPaid),AL_DPaid>=0),IF(AL_BlendPaid>0,AL_DPaid/AL_BlendPaid,"{SLO}"),"{SLO}")', "0.0000", "AL_ServeGWPaid")
     line("sgf", "服務 GW（免費）＝免費 D ÷ 免費產能", "GW", f'=IF(AND(ISNUMBER(AL_BlendFree),AL_DFree>=0),IF(AL_BlendFree>0,AL_DFree/AL_BlendFree,"{SLO}"),"{SLO}")', "0.0000", "AL_ServeGWFree")
     line("sg", "服務 GW 合計", "GW", f'=IF(AND(ISNUMBER(AL_ServeGWPaid),ISNUMBER(AL_ServeGWFree)),AL_ServeGWPaid+AL_ServeGWFree,"{SLO}")', "0.0000", "AL_ServeGW", key_fill=True)
-    line("sgg", "各世代服務 GW＝合計 × 世代占比", "GW",
-         {c: f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGW*{c}{R["share"]},"{SLO}")' for c in "CDEF"}, "0.0000", "AL_ServeGen", span=("C", "F"))
+    line("sgg", "各世代服務 GW＝合計 × 世代占比（可服務世代的占比重新正規化；被排除世代為 0）", "GW",
+         {c: f'=IF(AND(ISNUMBER(AL_ServeGW),AL_GenShareOK>0),AL_ServeGW*IF({c}{R["ok"]}=1,{c}{R["share"]}/AL_GenShareOK,0),"{SLO}")' for c in "CDEF"}, "0.0000", "AL_ServeGen", span=("C", "F"))
     line("hold", "各世代每 GW 年經濟持有成本（IF_HoldEcon，基準成本）", "$B/GW/年",
          {c: f"=INDEX(IF_HoldEcon,1,{c}{R['col']})" for c in "CDEF"}, "0.000", "AL_HoldGen", span=("C", "F"))
     r += 1
@@ -255,10 +273,14 @@ def alloc(wb, AIN):
         out = {}
         out["dp"] = f"={dapi}+{dchat}*(1-{ic['free']}{rr})"
         out["df"] = f"={dchat}*{ic['free']}{rr}"
+        okc = [f"${c}${R['ok']}" for c in "CDEF"]      # v6.2 2-1-c: generations with no reachable tier drop out and the row's mix is renormalised over the rest
+        den = "(" + "+".join(f"IF(AND({s}>0,{o}=1),{s},0)" for s, o in zip(m, okc)) + ")"
         def bl(cap):
-            bad = "OR(" + ",".join(f"AND({s}>0,NOT(ISNUMBER({k})))" for s, k in zip(m, cap)) + ")"
-            return f'=IF({bad},"{SLO}",' + "+".join(f"IF({s}>0,{s}*{k},0)" for s, k in zip(m, cap)) + ")"
+            num = "+".join(f"IF(AND({s}>0,{o}=1),{s}*{k},0)" for s, o, k in zip(m, okc, cap))
+            return f'=IF({den}>0,({num})/{den},"{SLO}")'
         out["cp"] = bl(capp); out["cf"] = bl(capf)
+        out["den"] = den
+        out["hnum"] = "+".join(f"IF(AND({s}>0,{o}=1),{s}*{h},0)" for s, o, h in zip(m, okc, holds))
         return m, out
 
     sens_cells = {}
@@ -289,8 +311,7 @@ def alloc(wb, AIN):
             put(ws, f"{cols['rd']}{rr}", f'=IF(AND(ISNUMBER(AL_FamGWyr),ISNUMBER(AL_RefGWyr)),{ic["k"]}{rr}*({ic["Nmaj"]}{rr}*AL_FamGWyr+{ic["Nref"]}{rr}*AL_RefGWyr),"{SLO}")', fmt="0.0000")
             rd = f"{cols['rd']}{rr}"
             put(ws, f"{cols['q1']}{rr}", f'=IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}/({rd}+{sg}),"{SLO}")', fmt="0.0%")
-            hmix = "+".join(f"{s}*{h}" for s, h in zip(m, holds))
-            put(ws, f"{cols['q2']}{rr}", f'=IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({hmix})),"{SLO}")', fmt="0.0%")
+            put(ws, f"{cols['q2']}{rr}", f'=IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({ch["hnum"]})/{ch["den"]}),"{SLO}")', fmt="0.0%")
             put(ws, f"{cols['cost']}{rr}", f'=IF(ISNUMBER({rd}),{rd}*AL_HoldTrain,"{SLO}")', fmt="0.000")
             put(ws, f"{cols['daily']}{rr}", f"=({dp}+{df_})/365/1E6", fmt="#,##0.00")
             rows_here.append((rr, cols))

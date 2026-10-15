@@ -62,6 +62,8 @@ for n in list(wb.defined_names.keys()):
                  "IF_GPUhrEcon","IF_GPUsPerGW","IF_HoldAcct","IF_HoldEcon","IF_PowerCost","IF_RacksPerGW"):
         del wb.defined_names[n]
 SP = spec_rack(wb)
+import v602
+V602_SC = v602.spec_rack_scale(wb, SP)       # v6.2 D1(c): Spec_Rack model-scale section (ARCH_ScaleGen／_Lo／_Hi)
 AR = arch(wb)
 serving(wb)
 CAL = calib(wb, SP, AR)
@@ -155,6 +157,7 @@ V518_LOG += v601.inputs_update(wb)       # v6.1 3B: D3 Alloc_In D9:E12, D10 C23:
 _t601, _ = v601.text_update(wb)
 V518_LOG += _t601       # v6.1 3B: notes and markers (old-text guards), Serving notes appended once
 V518_LOG += v601.decisions_update(wb)
+V518_LOG += v602.decisions_update(wb)       # v6.2: AF1-D8 status (TTFT part superseded)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -242,6 +245,7 @@ CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap ident
 V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
 Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
 print("v600 Checks Z1 row:", Z1)
+V518_LOG += v602.notes_patch(wb, v518._append_text)       # v6.2 D1(c): fixed-model-basis note on Interface B／C／D headers and L1 TokMW_Gen_ratio rows
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))
 print("v534 Cap_In H8–H10 from:", V534_CAP["start"], "to:", V534_CAP["end"], "| L1 rows:", V534_L1P, "| Checks M4 row:", CK_M4)

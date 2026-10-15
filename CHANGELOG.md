@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v6.2.xlsx（取代 v6.1；次版：D1(c) 模型規模倍數、TTFT 進可達判斷、Alloc 重新正規化；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r0 第 2 節＝2-1 段）
+
+- 分支 `claude/audit-fix-2-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-1.md`；進度檔：`docs/reports/20261016_稽核修正2-1_進度.md`。底稿：master `728ff30`（v6.1，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.2。
+- Excel（CC 以 `builder/v602.py` 等自 v6.1 產生，經 LibreOffice 重算存檔）：
+  - 2-1-a：Spec_Rack 新增「模型規模倍數」節三列（具名範圍 `ARCH_ScaleGen`／`_Lo`／`_Hi`，1×5，Assumed）；Perf／Perf_Batch／Sens_Perf 第 28、32、33 列與 Training／Sens_Train 第 22 列乘倍數（基準 1，數值不變）；Calib 第 30 列不乘。新增 parity 情境 `d1_model_scale`。Interface B／C／D 節標題與 `L1_TokMW_Gen_ratio_*` 說明加註「固定模型口徑」。
+  - 2-1-b：Perf／Perf_Batch／Sens_Perf／Perf_Prod 第 90、93 列讀第 77 列 TTFT，不符輸出「TTFT 不可達」；Checks B27 同時計兩種旗標。基準下 Hopper × Astra 的 `IF_TokGW_Astra` 等由數值變文字旗標。
+  - 2-1-c：Alloc 排除不可達層級後層級權重重新正規化，全不可達的世代排除、世代組合重新正規化；新增「未服務需求占比」顯示列（`AL_UnservedPaid`／`AL_UnservedFree`／`AL_UnservedGen`／`AL_GenShareOK`／`AL_GenOK`）。`AL_ServeGW`、`IF_AllocQ1`／`Q2`、`L1_ScaleServe`、`L1_MFleet` 等隨之改變。
+  - Decisions 新增 `AF2-D1c`、`AF2-TTFT`、`AF2-ALLOC`；`AF1-D8` 狀態標「TTFT 部分由 AF2-TTFT 取代」（不刪）；Gov_Map 新增 3 列。
+
 ## 20261015_Tokenomics_v6.1.xlsx（取代 v6.0；次版：輸入值與一處公式改變；D3、D6、D10、D13、Q3、Q6；判斷類，依工作單 `docs/workorders/20261015_稽核修正3B.md` r0）
 
 - 分支 `claude/audit-fix-3b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_稽核修正3B.md`；進度檔：`docs/reports/20261015_稽核修正3B_進度.md`。底稿：master `43ccdd7`（v6.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.1。

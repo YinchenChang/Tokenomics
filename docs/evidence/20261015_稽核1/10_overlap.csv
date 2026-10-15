@@ -1,0 +1,223 @@
+GM_ID,頁,格,列標籤,單位,目前值,標記,被模型公式引用次數
+GM003,Inputs,E8,機架外 IT 電力占比,%,0.08,Assumed,38
+GM005,Inputs,D9,PUE,x,1.1,Assumed,6
+GM004,Inputs,E9,PUE,x,1.2,Assumed,26
+GM006,Inputs,F9,PUE,x,1.3,Assumed,6
+GM008,Inputs,D10,平均用電 ÷ 配電設計功率,%,0.7,Assumed,6
+GM007,Inputs,E10,平均用電 ÷ 配電設計功率,%,0.8,Assumed,91
+GM009,Inputs,F10,平均用電 ÷ 配電設計功率,%,0.9,Assumed,6
+GM017,Inputs,D14,儲存與管理設備,$/GPU,300,Assumed,5
+GM016,Inputs,E14,儲存與管理設備,$/GPU,500,Assumed,28
+GM018,Inputs,F14,儲存與管理設備,$/GPU,800,Assumed,5
+GM020,Inputs,D16,土地,$M/MW,0.02,Assumed,5
+GM019,Inputs,E16,土地,$M/MW,0.02,Assumed,28
+GM021,Inputs,F16,土地,$M/MW,0.02,Assumed,5
+GM023,Inputs,D17,建物與基地工程,$M/MW,3,Assumed,6
+GM022,Inputs,E17,建物與基地工程,$M/MW,3.6,Assumed,26
+GM024,Inputs,F17,建物與基地工程,$M/MW,4.5,Assumed,6
+GM026,Inputs,D18,電力設施（變電、中壓、發電機、UPS）,$M/MW,3.8,Assumed,6
+GM025,Inputs,E18,電力設施（變電、中壓、發電機、UPS）,$M/MW,4.5,Assumed,26
+GM027,Inputs,F18,電力設施（變電、中壓、發電機、UPS）,$M/MW,5.5,Assumed,6
+GM029,Inputs,D19,機械與散熱（液冷迴路、散熱設備）,$M/MW,2,Assumed,5
+GM028,Inputs,E19,機械與散熱（液冷迴路、散熱設備）,$M/MW,2.5,Assumed,28
+GM030,Inputs,F19,機械與散熱（液冷迴路、散熱設備）,$M/MW,3.2,Assumed,5
+GM032,Inputs,D20,光纖、佈線、保全、BMS,$M/MW,0.3,Assumed,5
+GM031,Inputs,E20,光纖、佈線、保全、BMS,$M/MW,0.4,Assumed,28
+GM033,Inputs,F20,光纖、佈線、保全、BMS,$M/MW,0.5,Assumed,5
+GM035,Inputs,D21,設計、管理與預備費,% 廠房,0.12,Assumed,5
+GM034,Inputs,E21,設計、管理與預備費,% 廠房,0.15,Assumed,28
+GM036,Inputs,F21,設計、管理與預備費,% 廠房,0.18,Assumed,5
+GM061,Inputs,E24,建物年限,年,30,Assumed,58
+GM062,Inputs,E25,電力設施年限,年,20,Assumed,58
+GM063,Inputs,E26,機械與散熱年限,年,15,Assumed,58
+GM064,Inputs,E27,光纖與保全年限,年,10,Assumed,58
+GM038,Inputs,D28,WACC（經濟口徑）,%,0.08,Assumed,7
+GM039,Inputs,F28,WACC（經濟口徑）,%,0.13,Assumed,7
+GM044,Inputs,D31,廠房維護,% 廠房資本/年,0.015,Assumed,5
+GM043,Inputs,E31,廠房維護,% 廠房資本/年,0.02,Assumed,28
+GM045,Inputs,F31,廠房維護,% 廠房資本/年,0.025,Assumed,5
+GM047,Inputs,D32,人員,$M/GW/年,50,Assumed,5
+GM046,Inputs,E32,人員,$M/GW/年,75,Assumed,28
+GM048,Inputs,F32,人員,$M/GW/年,100,Assumed,5
+GM050,Inputs,D33,軟體授權與連線,$M/GW/年,150,Assumed,5
+GM049,Inputs,E33,軟體授權與連線,$M/GW/年,200,Assumed,28
+GM051,Inputs,F33,軟體授權與連線,$M/GW/年,250,Assumed,5
+GM053,Inputs,D34,水與耗材,$M/MW/年,0.04,Assumed,5
+GM052,Inputs,E34,水與耗材,$M/MW/年,0.05,Assumed,28
+GM054,Inputs,F34,水與耗材,$M/MW/年,0.06,Assumed,5
+GM056,Inputs,D35,財產稅與保險,% 總資本/年,0.003,Assumed,5
+GM055,Inputs,E35,財產稅與保險,% 總資本/年,0.005,Assumed,28
+GM057,Inputs,F35,財產稅與保險,% 總資本/年,0.008,Assumed,5
+GM070,Spec_Rack,C8,配電設計功率 低（kW）,（本頁無單位欄）,38,Assumed,3
+GM074,Spec_Rack,G8,配電設計功率 低（kW）,（本頁無單位欄）,300,Derived,3
+GM079,Spec_Rack,G9,配電設計功率 基準（kW）,（本頁無單位欄）,340,Derived,3
+GM080,Spec_Rack,C10,配電設計功率 高（kW）,（本頁無單位欄）,44,Assumed,3
+GM081,Spec_Rack,D10,配電設計功率 高（kW）,（本頁無單位欄）,140,Assumed,3
+GM084,Spec_Rack,G10,配電設計功率 高（kW）,（本頁無單位欄）,454,Derived,3
+GM114,Spec_Rack,G25,HBM 容量 GB/GPU,（本頁無單位欄）,1024,Assumed,90
+GM124,Spec_Rack,G27,EP 通訊頻寬 TB/s/GPU（單向）,（本頁無單位欄）,1.8,Assumed,75
+GM134,Spec_Rack,G29,decode EP 基準寬度,（本頁無單位欄）,64,Assumed,75
+GM140,Spec_Rack,C31,非專家權重 bytes/param,（本頁無單位欄）,1,Assumed,73
+GM141,Spec_Rack,D31,非專家權重 bytes/param,（本頁無單位欄）,1,Assumed,73
+GM142,Spec_Rack,E31,非專家權重 bytes/param,（本頁無單位欄）,1,Assumed,73
+GM143,Spec_Rack,F31,非專家權重 bytes/param,（本頁無單位欄）,1,Assumed,73
+GM144,Spec_Rack,G31,非專家權重 bytes/param,（本頁無單位欄）,1,Assumed,73
+GM203,Arch,E6,總參數,B,4000,Assumed,2
+GM204,Arch,E7,啟用參數,B,180,Assumed,113
+GM205,Arch,E8,層數,層,100,Assumed,70
+GM206,Arch,E9,d_model,,12288,Assumed,65
+GM207,Arch,E10,query heads,,96,Assumed,1
+GM208,Arch,E11,head_dim,,128,Assumed,2
+GM209,Arch,E12,routed experts,,512,Assumed,1
+GM210,Arch,E13,每 token 啟用 routed experts,,16,Assumed,66
+GM212,Arch,E14,shared experts,,1,Assumed,1
+GM213,Arch,E16,全注意力層比例,%,1,Assumed,111
+GM214,Arch,E17,全注意力層跨度上限（0＝全上下文）,tok,0,Assumed,111
+GM215,Arch,E18,其他層壓縮比,x,1,Assumed,111
+GM216,Arch,E19,其他層滑動窗,tok,0,Assumed,111
+GM570,Arch,C34,每層 KV bytes/token（壓縮後平均，FP8）,B,65,Assumed,3
+GM570,Arch,D34,每層 KV bytes/token（壓縮後平均，FP8）,B,65,Assumed,3
+GM572,Arch,E36,MLA 層比例（Astra 情境 1 混合）,%,0.26,Assumed,1
+GM573,Arch,E37,GQA KV heads（Astra 情境 3）,個,8,Assumed,1
+GM229,Serving,C9,HBM 保留比例（啟用值、工作區）,%,0.1,Assumed,75
+GM230,Serving,C10,非專家權重占可用 HBM 上限,%,0.2,Assumed,75
+GM231,Serving,C11,專家權重占可用 HBM 上限,%,0.4,Assumed,75
+GM232,Serving,C12,EP 啟用值 bytes/元素（dispatch＋combine）,B,3,Assumed,76
+GM233,Serving,C13,KV 讀取頻寬效率 η_mem,%,0.7,Assumed,76
+GM234,Serving,C14,EP 通訊效率 η_link,%,0.7,Assumed,76
+GM245,Serving,C23,參考 ISL（每次請求輸入）,tok,8192,Assumed,239
+GM246,Serving,D23,參考 ISL（每次請求輸入）,tok,16384,Assumed,239
+GM247,Serving,E23,參考 ISL（每次請求輸入）,tok,32768,Assumed,239
+GM248,Serving,C24,參考 OSL（含思考）,tok,1024,Assumed,242
+GM249,Serving,D24,參考 OSL（含思考）,tok,2048,Assumed,242
+GM250,Serving,E24,參考 OSL（含思考）,tok,4096,Assumed,242
+GM305,Calib,C10,世代索引,,3,情境選擇,11
+GM305,Calib,D10,世代索引,,3,情境選擇,11
+GM346,Calib,C68,每層延遲倍數,x,1.5,Assumed,1
+GM347,Calib,D68,每層延遲倍數,x,1,Assumed,1
+GM348,Calib,E68,每層延遲倍數,x,1,Assumed,1
+GM349,Calib,F68,每層延遲倍數,x,1,Assumed,1
+GM350,Calib,G68,每層延遲倍數,x,1,Assumed,1
+GM352,Calib,D69,η_p 倍數,x,1,Assumed,1
+GM353,Calib,E69,η_p 倍數,x,1,Assumed,1
+GM354,Calib,F69,η_p 倍數,x,1,Assumed,1
+GM355,Calib,G69,η_p 倍數,x,1,Assumed,1
+GM506,Tech_Registry,E5,T01,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,F5,T01,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,G5,T01,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H5,T01,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N5,T01,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,E6,T02,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,F6,T02,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,G6,T02,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H6,T02,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N6,T02,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,E7,T03,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,F7,T03,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,G7,T03,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H7,T03,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N7,T03,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,E8,T04,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,F8,T04,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,G8,T04,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H8,T04,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N8,T04,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,E9,T05,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,F9,T05,（本頁無單位欄）,1,Assumed,1
+GM506,Tech_Registry,G9,T05,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H9,T05,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N9,T05,（本頁無單位欄）,1,Assumed,1
+GM507,Tech_Registry,E10,T06,（本頁無單位欄）,0.7,Assumed,1
+GM507,Tech_Registry,F10,T06,（本頁無單位欄）,0.85,Assumed,1
+GM507,Tech_Registry,G10,T06,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H10,T06,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N10,T06,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H11,T07,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N11,T07,（本頁無單位欄）,1,Assumed,1
+GM509,Tech_Registry,E12,T08,（本頁無單位欄）,1.5,Assumed,1
+GM509,Tech_Registry,F12,T08,（本頁無單位欄）,2,Assumed,1
+GM509,Tech_Registry,G12,T08,（本頁無單位欄）,4,Assumed,1
+GM514,Tech_Registry,H12,T08,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N12,T08,（本頁無單位欄）,1,Assumed,1
+GM510,Tech_Registry,E13,T09,（本頁無單位欄）,1.5,Assumed,1
+GM510,Tech_Registry,F13,T09,（本頁無單位欄）,2,Assumed,1
+GM510,Tech_Registry,G13,T09,（本頁無單位欄）,4,Assumed,1
+GM514,Tech_Registry,H13,T09,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N13,T09,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H14,T10,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N14,T10,（本頁無單位欄）,1,Assumed,1
+GM512,Tech_Registry,E15,T11,（本頁無單位欄）,0.5,Assumed,1
+GM512,Tech_Registry,F15,T11,（本頁無單位欄）,0.5,Assumed,1
+GM512,Tech_Registry,G15,T11,（本頁無單位欄）,0.75,Assumed,1
+GM514,Tech_Registry,H15,T11,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N15,T11,（本頁無單位欄）,1,Assumed,1
+GM513,Tech_Registry,E16,T12,（本頁無單位欄）,1,Assumed,1
+GM513,Tech_Registry,F16,T12,（本頁無單位欄）,1,Assumed,1
+GM513,Tech_Registry,G16,T12,（本頁無單位欄）,1,Assumed,1
+GM514,Tech_Registry,H16,T12,（本頁無單位欄）,2,情境選擇,1
+GM517,Tech_Registry,N16,T12,（本頁無單位欄）,1,Assumed,2
+GM415,Perf,C6,世代索引,（本頁無單位欄）,1,情境選擇,28
+GM415,Perf,D6,世代索引,（本頁無單位欄）,1,情境選擇,28
+GM415,Perf,E6,世代索引,（本頁無單位欄）,1,情境選擇,28
+GM415,Perf,F6,世代索引,（本頁無單位欄）,2,情境選擇,28
+GM415,Perf,G6,世代索引,（本頁無單位欄）,2,情境選擇,28
+GM415,Perf,H6,世代索引,（本頁無單位欄）,2,情境選擇,28
+GM415,Perf,I6,世代索引,（本頁無單位欄）,3,情境選擇,28
+GM415,Perf,J6,世代索引,（本頁無單位欄）,3,情境選擇,28
+GM415,Perf,K6,世代索引,（本頁無單位欄）,3,情境選擇,28
+GM415,Perf,L6,世代索引,（本頁無單位欄）,4,情境選擇,28
+GM415,Perf,M6,世代索引,（本頁無單位欄）,4,情境選擇,28
+GM415,Perf,N6,世代索引,（本頁無單位欄）,4,情境選擇,28
+GM415,Perf,O6,世代索引,（本頁無單位欄）,5,情境選擇,28
+GM415,Perf,P6,世代索引,（本頁無單位欄）,5,情境選擇,28
+GM415,Perf,Q6,世代索引,（本頁無單位欄）,5,情境選擇,28
+GM416,Perf,C7,層級索引,（本頁無單位欄）,1,情境選擇,20
+GM416,Perf,D7,層級索引,（本頁無單位欄）,2,情境選擇,20
+GM416,Perf,E7,層級索引,（本頁無單位欄）,3,情境選擇,20
+GM416,Perf,F7,層級索引,（本頁無單位欄）,1,情境選擇,20
+GM416,Perf,G7,層級索引,（本頁無單位欄）,2,情境選擇,20
+GM416,Perf,H7,層級索引,（本頁無單位欄）,3,情境選擇,20
+GM416,Perf,I7,層級索引,（本頁無單位欄）,1,情境選擇,20
+GM416,Perf,J7,層級索引,（本頁無單位欄）,2,情境選擇,20
+GM416,Perf,K7,層級索引,（本頁無單位欄）,3,情境選擇,20
+GM416,Perf,L7,層級索引,（本頁無單位欄）,1,情境選擇,20
+GM416,Perf,M7,層級索引,（本頁無單位欄）,2,情境選擇,20
+GM416,Perf,N7,層級索引,（本頁無單位欄）,3,情境選擇,20
+GM416,Perf,O7,層級索引,（本頁無單位欄）,1,情境選擇,20
+GM416,Perf,P7,層級索引,（本頁無單位欄）,2,情境選擇,20
+GM416,Perf,Q7,層級索引,（本頁無單位欄）,3,情境選擇,20
+GM417,Sens_Perf,W6,世代索引,（本頁無單位欄）,4,情境選擇,20
+GM418,Sens_Perf,W7,層級索引,（本頁無單位欄）,2,情境選擇,16
+GM421,Sens_Perf,W43,參考 ISL,（本頁無單位欄）,4096,情境值,7
+GM426,Unit_Cost,C6,世代索引,（本頁無單位欄）,1,情境選擇,74
+GM426,Unit_Cost,D6,世代索引,（本頁無單位欄）,1,情境選擇,74
+GM426,Unit_Cost,E6,世代索引,（本頁無單位欄）,1,情境選擇,74
+GM426,Unit_Cost,F6,世代索引,（本頁無單位欄）,2,情境選擇,74
+GM426,Unit_Cost,G6,世代索引,（本頁無單位欄）,2,情境選擇,74
+GM426,Unit_Cost,H6,世代索引,（本頁無單位欄）,2,情境選擇,74
+GM426,Unit_Cost,I6,世代索引,（本頁無單位欄）,3,情境選擇,74
+GM426,Unit_Cost,J6,世代索引,（本頁無單位欄）,3,情境選擇,74
+GM426,Unit_Cost,K6,世代索引,（本頁無單位欄）,3,情境選擇,74
+GM426,Unit_Cost,L6,世代索引,（本頁無單位欄）,4,情境選擇,74
+GM426,Unit_Cost,M6,世代索引,（本頁無單位欄）,4,情境選擇,74
+GM426,Unit_Cost,N6,世代索引,（本頁無單位欄）,4,情境選擇,74
+GM426,Unit_Cost,O6,世代索引,（本頁無單位欄）,5,情境選擇,74
+GM426,Unit_Cost,P6,世代索引,（本頁無單位欄）,5,情境選擇,74
+GM426,Unit_Cost,Q6,世代索引,（本頁無單位欄）,5,情境選擇,74
+GM441,Cap_In,C12,有效折扣（Batch／Flex 半價＋企業議價，加權）,%,0.2,Assumed,24
+GM442,Cap_In,D12,有效折扣（Batch／Flex 半價＋企業議價，加權）,%,0.1,Assumed,1
+GM442,Cap_In,E12,有效折扣（Batch／Flex 半價＋企業議價，加權）,%,0.4,Assumed,1
+GM443,Cap_In,C13,參考請求快取命中率 χ（輸入中屬快取命中的比例）,%,0.55,Assumed,179
+GM447,Cap_In,C15,有效訓練算力倍數（相對 Block 3 基準；情境用）,x,1,情境值,3
+GM475,Cap_In,F50,Claude Opus 5,Anthropic,0.5,Assumed,1
+GM476,Cap_In,F51,Claude Opus 5.5,Anthropic,0.2,Assumed,1
+GM590,Alloc_In,C9,服務世代組合：Hopper,%,0.6,Assumed,32
+GM590,Alloc_In,C10,服務世代組合：GB200,%,0.4,Assumed,32
+GM590,Alloc_In,C11,服務世代組合：GB300,%,0,Assumed,32
+GM590,Alloc_In,C12,服務世代組合：VR200,%,0,Assumed,32
+GM585,Alloc_In,D14,API 全年平均 ÷ 10 月時點值,x,0.6,Assumed,2
+GM585,Alloc_In,E14,API 全年平均 ÷ 10 月時點值,x,0.9,Assumed,2
+GM587,Alloc_In,D15,每則提示 token 數,tok,2000,Assumed,7
+GM587,Alloc_In,E15,每則提示 token 數,tok,11000,Assumed,7
+GM589,Alloc_In,D16,ChatGPT token 中免費用戶占比,%,0.4,Assumed,2
+GM589,Alloc_In,E16,ChatGPT token 中免費用戶占比,%,0.8,Assumed,2

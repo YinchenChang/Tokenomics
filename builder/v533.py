@@ -207,17 +207,17 @@ SPEC = [
      "免費推論支出占比 IF_FreeShare（SRC_DEM_005 ÷ 004）換算為 token 比：付費每 token 用的算力＝免費的（AL_BlendFree ÷ AL_BlendPaid）倍；只作對照，Alloc_In C16 不改"),
     ("corr_pt", "利用率修正（點估計）＝AL_UtilActual ÷ IF_Util（J13）", "x", "=AL_UtilActual/IF_Util", "=AL_UtilActual_Hi/IF_Util", "=AL_UtilActual_Lo/IF_Util",
      "Derived（輸入 Assumed）", "Alloc 第 22 列已含 IF_Util（0.6），換成實際利用率 × 生產折減（Alloc_In C24，0.35；m 低端取 0.4、高端取 0.3）"),
-    ("corr_cap", "利用率修正（上限）＝CTL_ProdDerate（J13）", "x", "=CTL_ProdDerate", "=CTL_ProdDerate", "=CTL_ProdDerate", "Derived",
-     "最大產出：IF_Util × CTL_ProdDerate（0.6 × 0.85）；Alloc 第 22 列已含 IF_Util，只再乘 CTL_ProdDerate"),
+    ("corr_cap", "利用率修正（上限）＝付費產能比（生產折減 CTL_ProdDerate 重解 SLO 後 ÷ 基準；AL_ProdRatioPaid；J13；v6.0 D7-2）", "x", "=AL_ProdRatioPaid", "=AL_ProdRatioPaid", "=AL_ProdRatioPaid", "Derived",
+     "最大產出：生產折減下重解 SLO 的付費產能 ÷ 基準付費產能（Alloc H 節；2025 組合約 0.712），取代 v5.36 的線性 CTL_ProdDerate（0.85）；Alloc 第 22 列已含 IF_Util，只再乘此比"),
     ("tok_fleet", "機隊付費 token（點估計）＝服務 GW × 修正 ÷（1 ÷ 付費產能 ＋ r ÷ 免費產能）", "M tok/年",
      "=IF(AND(ISNUMBER(C{cap_paid}),ISNUMBER(C{cap_free}),ISNUMBER(C{r_model})),C{gw_az}*C{corr_pt}/(1/C{cap_paid}+C{r_model}/C{cap_free}),\"SLO 不可達\")", "=IF(AND(ISNUMBER(D{cap_paid}),ISNUMBER(D{cap_free}),ISNUMBER(D{r_model})),D{gw_az}*D{corr_pt}/(1/D{cap_paid}+D{r_model}/D{cap_free}),\"SLO 不可達\")",
      "=IF(AND(ISNUMBER(E{cap_paid}),ISNUMBER(E{cap_free}),ISNUMBER(E{r_model})),E{gw_az}*E{corr_pt}/(1/E{cap_paid}+E{r_model}/E{cap_free}),\"SLO 不可達\")", "Derived", "r 取模型（第 r 列）；A 段 3.2 節 2025 組合變體約 8.2 × 10⁹"),
     ("tok_fleet_rs", "對照：機隊付費 token（點估計，r 取支出口徑）", "M tok/年",
      "=IF(AND(ISNUMBER(C{cap_paid}),ISNUMBER(C{cap_free}),ISNUMBER(C{r_spend})),C{gw_az}*C{corr_pt}/(1/C{cap_paid}+C{r_spend}/C{cap_free}),\"SLO 不可達\")", "=IF(AND(ISNUMBER(D{cap_paid}),ISNUMBER(D{cap_free}),ISNUMBER(D{r_spend})),D{gw_az}*D{corr_pt}/(1/D{cap_paid}+D{r_spend}/D{cap_free}),\"SLO 不可達\")",
      "=IF(AND(ISNUMBER(E{cap_paid}),ISNUMBER(E{cap_free}),ISNUMBER(E{r_spend})),E{gw_az}*E{corr_pt}/(1/E{cap_paid}+E{r_spend}/E{cap_free}),\"SLO 不可達\")", "Derived", "免費 token 較多時付費 token 較少"),
-    ("tok_ceil", "機隊付費 token 上限（上限讀法）＝服務 GW × CTL_ProdDerate ÷（1 ÷ 付費產能 ＋ r ÷ 免費產能）　→ L1_TokCeiling", "M tok/年",
-     "=IF(AND(ISNUMBER(C{cap_paid}),ISNUMBER(C{cap_free}),ISNUMBER(C{r_model})),C{gw_az}*C{corr_cap}/(1/C{cap_paid}+C{r_model}/C{cap_free}),\"SLO 不可達\")", "=IF(AND(ISNUMBER(D{cap_paid}),ISNUMBER(D{cap_free}),ISNUMBER(D{r_model})),D{gw_az}*D{corr_cap}/(1/D{cap_paid}+D{r_model}/D{cap_free}),\"SLO 不可達\")",
-     "=IF(AND(ISNUMBER(E{cap_paid}),ISNUMBER(E{cap_free}),ISNUMBER(E{r_model})),E{gw_az}*E{corr_cap}/(1/E{cap_paid}+E{r_model}/E{cap_free}),\"SLO 不可達\")", "Derived", "A 段 3.2 節約 12.0 × 10⁹；上限 ÷ 需求路線＝L1_ScaleServe ÷（L1_GapSpendBasis × L1_GapUtil）"),
+    ("tok_ceil", "機隊付費 token 上限（上限讀法）＝服務 GW × 付費產能比 ÷（1 ÷ 付費產能 ＋ r ÷ 免費產能）　→ L1_TokCeiling", "M tok/年",
+     "=IF(AND(ISNUMBER(C{cap_paid}),ISNUMBER(C{cap_free}),ISNUMBER(C{r_model}),ISNUMBER(C{corr_cap})),C{gw_az}*C{corr_cap}/(1/C{cap_paid}+C{r_model}/C{cap_free}),\"SLO 不可達\")", "=IF(AND(ISNUMBER(D{cap_paid}),ISNUMBER(D{cap_free}),ISNUMBER(D{r_model}),ISNUMBER(D{corr_cap})),D{gw_az}*D{corr_cap}/(1/D{cap_paid}+D{r_model}/D{cap_free}),\"SLO 不可達\")",
+     "=IF(AND(ISNUMBER(E{cap_paid}),ISNUMBER(E{cap_free}),ISNUMBER(E{r_model}),ISNUMBER(E{corr_cap})),E{gw_az}*E{corr_cap}/(1/E{cap_paid}+E{r_model}/E{cap_free}),\"SLO 不可達\")", "Derived", "A 段 3.2 節約 12.0 × 10⁹；上限 ÷ 需求路線＝L1_ScaleServe ÷（L1_GapSpendBasis × L1_GapUtil）"),
     ("m_fleet", "機隊 m（點估計）＝營收 ÷（機隊付費 token × 混合有效單價）　→ L1_MFleet", "x",
      "=IF(ISNUMBER(C{tok_fleet}),SRC_DEM_007*1000000000/(C{tok_fleet}*C{P_price}),\"SLO 不可達\")", "=IF(ISNUMBER(D{tok_fleet}),SRC_DEM_007*1000000000/(D{tok_fleet}*D{P_price}),\"SLO 不可達\")", "=IF(ISNUMBER(E{tok_fleet}),SRC_DEM_007*1000000000/(E{tok_fleet}*E{P_price}),\"SLO 不可達\")",
      "Derived", "分子同 H1（毛額，SRC_DEM_007）；單價同 H4；A 段 2025 組合約 0.81"),
@@ -271,7 +271,7 @@ def cap_in_h7(wb, h32):
         for col, v in (("C", c), ("D", d), ("E", e)):
             if isinstance(v, str) and v.startswith("="):
                 v = v.format(**ROWS, **P)
-                font = F_LINK if v in ("=AL_BlendPaid", "=AL_BlendFree", "=CTL_ProdDerate") else F_CALC
+                font = F_LINK if v in ("=AL_BlendPaid", "=AL_BlendFree", "=CTL_ProdDerate", "=AL_ProdRatioPaid") else F_CALC
                 put(ws, f"{col}{r}", v, font, fmt=("0.00" if key.startswith("need_") and col == "D" else fmt),
                     fill=FILL_KEY if key in ("m_fleet", "tok_ceil", "m_floor") and col == "C" else None)
             elif isinstance(v, (int, float)):

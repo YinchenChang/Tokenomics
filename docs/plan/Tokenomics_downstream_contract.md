@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.1（2026-10-08）
+# Tokenomics 下游資料契約 v0.2（2026-10-15；對應 Tokenomics v6.0）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -13,7 +13,7 @@
 ## 2. 取數規則
 
 1. 只取 `IF_`、`IFW_`、`IFC_`、`L1_` 具名範圍與 `SRC_` Active 紀錄；`DRV_`、`CAL_`、`B4_`、`B5_`、`CST_`、`IDX_`、`IF_Hdr*` 禁止連結。
-2. 每 GW 產能與理論營收必須同時取四層瀑布（`IFW_*_100`／`_Util`／`_Prod`／`_Life`），不得只取 100% 層；取用時依 `IFC_Use` 欄的用途限制（「上限，不得作預測」者不得當收入預測）。v5.30 起四層為逐層累乘、單調遞減（`_Util`＝`_100` × IF_Util、`_Prod`＝`_Util` × CTL_ProdDerate、`_Life`＝`_Prod` × L × m；X15 (a)）。
+2. 每 GW 產能與理論營收必須同時取四層瀑布（`IFW_*_100`／`_Util`／`_Prod`／`_Life`），不得只取 100% 層；取用時依 `IFC_Use` 欄的用途限制（「上限，不得作預測」者不得當收入預測）。四層單調遞減（v6.0 起定義如下，稽核修正 1 D7）：`_Util`＝`_100` × IF_Util；`_Prod`＝生產折減（CTL_ProdDerate）下**重解 SLO** 後的產能（營收讀 Interface G 節，token 產能與前緣單價營收讀 Theory_Rev_Prod／Fleet_1GW_Prod），**不是** `_Util` × CTL_ProdDerate；同一層級的 `_Prod` 營收 ÷ `_Prod` token＝該層級單價（Checks Z1，容差 1e-9）；`_Life`＝`_Prod` × L × m，唯一定義為 `IFW_*_Life`。`IF_RevGW_*_Life`、`IF_RevGWFleet_Life` 為**過渡別名**（＝對應 `IFW_*_Life`），下一個主版刪除，下游請改取 `IFW_*_Life`。名稱輸出為文字時，代表不可用（SLO 不可達或無法計算），下游不得以 0 代入。
 3. 公司特有變數（WACC、合約價、價值捕獲率、簽約率、交付進度、產品組合）在下游覆寫，不回寫 Tokenomics。
 4. 下游發現的產業級缺口（例如新的市場 GPU-hr 價格點、新 benchmark）走 G2 流程進 DB_Evidence，不自行建表。
 5. 規模校準：Tokenomics 的代表性模型與需求 D 相對 OpenAI 2025 實際規模偏小（`L1_ScaleRD` 約 10、`L1_ScaleServe` 約 14，X13）。服務端落差已分解為四項口徑差（X14 (m)，`L1_Gap*`）：每則提示 token 數、支出計價口徑（Azure 帳單對持有成本）、參考請求 ISL 對實際混合、實際利用率對 60%。下游以自身的請求組合、計價口徑與利用率逐項換算，不得把 `IF_TokGW_*` 直接當成生產環境產能；OpenAI 模型校準後若四項乘積與觀測落差不符，差額回報 Tokenomics。
@@ -41,3 +41,4 @@
 
 - 下游 handoff 記錄所用 Tokenomics 版本（`model/CURRENT` 檔名與 master 合併雜湊）。
 - Tokenomics 次版升級（SRC Active 值或公式改變）時，下游在下一版重新取數並在 handoff 註明差異。
+- v6.0（主版，契約改變）起 `_Prod`、`_Life` 的定義變更（第 2 條），並新增「文字＝不可用」語意；受影響的名稱清單與新舊值見 `docs/reports/20261015_稽核修正1.md` 的「下游契約名稱新舊值表」。回本所需單價溢價 `IF_AmortBU_*` 的分母改為付費 token（`IF_FullCost_*`、`IF_FullCostDefault_*` 隨之上升）。

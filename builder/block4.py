@@ -329,24 +329,44 @@ def fleet(wb, K):
         row15(ws, r, lab, "GW", f, "0.000", key=(key in ("pd", "tr"))); F[key] = r; r += 1
     r += 1
     section(ws, r, "B. 服務 token（基準利用率；M tok/年）", 17); r += 1
-    inv = lambda mix: "+".join(f"INDEX({mix},1,{t+1})/{IF(f'IF_TokGW_{tk}')}" for t, (tk, _) in enumerate(TIERS))
-    # v5.9：SLO 不可達保護（CC 第 7 輪第 6 節第 1 項）——組合權重 > 0 的層級若每 GW 產出為 0，該欄機隊無法服務
-    ok = lambda mix: "AND(" + ",".join(f"OR(INDEX({mix},1,{t+1})=0,{IF(f'IF_TokGW_{tk}')}>0)" for t, (tk, _) in enumerate(TIERS)) + ")"
-    row15(ws, r, "可服務（組合內各層級皆 SLO 可達＝1）", "旗標", f"=IF(AND({ok('B4_MixPaid')},{ok('B4_MixFree')}),1,0)", "0"); F["ok"] = r; r += 1
-    row15(ws, r, "付費服務 token 總量", "M tok/年", f"=IF({{X}}{F['ok']}=1,{{X}}{F['pd']}*IF_Util/({inv('B4_MixPaid')}),\"SLO 不可達\")", "#,##0"); F["Tp"] = r; r += 1
-    row15(ws, r, "免費服務 token 總量", "M tok/年", f"=IF({{X}}{F['ok']}=1,{{X}}{F['fr']}*IF_Util/({inv('B4_MixFree')}),\"SLO 不可達\")", "#,##0"); F["Tf"] = r; r += 1
+    # ---- v6.0 D8-2: tiers whose SLO is unreachable are excluded; the remaining mix weights are renormalised (section D, below the existing rows)
+    D0 = 37                                   # section D header row (B and C keep the v5.36 row positions)
+    RC = [D0 + 1 + t for t in range(3)]       # reach flags (Luna, Sol, Astra)
+    WP, WF, EXC = D0 + 4, D0 + 5, D0 + 6      # retained weight sums (before renormalisation) and the excluded-tier text
+    EP = [D0 + 7 + t for t in range(3)]       # effective paid weights
+    EF = [D0 + 10 + t for t in range(3)]      # effective free weights
+    tok = lambda t: IF(f"IF_TokGW_{TIERS[t][0]}")
+    inv = lambda eff: "+".join(f"IF({{X}}{RC[t]}=1,{{X}}{eff[t]}/{tok(t)},0)" for t in range(3))
+    row15(ws, r, "可服務（至少一個組合內層級 SLO 可達＝1；付費與免費組合各自須有可達層級；v6.0 D8-2）", "旗標", f"=IF(AND({{X}}{WP}>0,{{X}}{WF}>0),1,0)", "0"); F["ok"] = r; r += 1
+    row15(ws, r, "付費服務 token 總量（只含可達層級，權重已重新正規化）", "M tok/年", f"=IF({{X}}{F['ok']}=1,{{X}}{F['pd']}*IF_Util/({inv(EP)}),\"SLO 不可達\")", "#,##0"); F["Tp"] = r; r += 1
+    row15(ws, r, "免費服務 token 總量（只含可達層級，權重已重新正規化）", "M tok/年", f"=IF({{X}}{F['ok']}=1,{{X}}{F['fr']}*IF_Util/({inv(EF)}),\"SLO 不可達\")", "#,##0"); F["Tf"] = r; r += 1
     for t, (tk, tn) in enumerate(TIERS):
-        row15(ws, r, f"{tn} 付費 token", "M tok/年", f"=IF({{X}}{F['ok']}=1,{{X}}{F['Tp']}*INDEX(B4_MixPaid,1,{t+1}),\"SLO 不可達\")", "#,##0"); F[f"p{t}"] = r; r += 1
-        row15(ws, r, f"{tn} 免費 token", "M tok/年", f"=IF({{X}}{F['ok']}=1,{{X}}{F['Tf']}*INDEX(B4_MixFree,1,{t+1}),\"SLO 不可達\")", "#,##0"); F[f"f{t}"] = r; r += 1
-        row15(ws, r, f"{tn} 服務 GW", "GW", f"=IF({{X}}{F['ok']}=1,IF({IF(f'IF_TokGW_{tk}')}>0,({{X}}{F[f'p{t}']}+{{X}}{F[f'f{t}']})/({IF(f'IF_TokGW_{tk}')}*IF_Util),0),\"SLO 不可達\")", "0.000"); F[f"g{t}"] = r; r += 1
-    row15(ws, r, "檢查：各層級服務 GW 合計 − 對外服務 GW（應為 0）", "GW",
-          f"=IF({{X}}{F['ok']}=1,{{X}}{F['g0']}+{{X}}{F['g1']}+{{X}}{F['g2']}-{{X}}{F['sv']},\"SLO 不可達\")", "0.000000"); F["chk"] = r; r += 2
+        okt = f"AND({{X}}{F['ok']}=1,{{X}}{RC[t]}=1)"
+        row15(ws, r, f"{tn} 付費 token", "M tok/年", f"=IF({okt},{{X}}{F['Tp']}*{{X}}{EP[t]},\"SLO 不可達\")", "#,##0"); F[f"p{t}"] = r; r += 1
+        row15(ws, r, f"{tn} 免費 token", "M tok/年", f"=IF({okt},{{X}}{F['Tf']}*{{X}}{EF[t]},\"SLO 不可達\")", "#,##0"); F[f"f{t}"] = r; r += 1
+        row15(ws, r, f"{tn} 服務 GW", "GW", f"=IF({okt},({{X}}{F[f'p{t}']}+{{X}}{F[f'f{t}']})/({tok(t)}*IF_Util),\"SLO 不可達\")", "0.000"); F[f"g{t}"] = r; r += 1
+    row15(ws, r, "檢查：各可達層級服務 GW 合計 − 對外服務 GW（應為 0）", "GW",
+          f"=IF({{X}}{F['ok']}=1,SUM({{X}}{F['g0']},{{X}}{F['g1']},{{X}}{F['g2']})-{{X}}{F['sv']},\"SLO 不可達\")", "0.000000"); F["chk"] = r; r += 2
     section(ws, r, "C. 與 Block 3 一致性", 17); r += 1
     row15(ws, r, "家族研發計畫占 1 GW 年（三層級合計）", "%",
-          "=" + "+".join(IF(f"IF_ProgGWyr_{tk}") for tk, _ in TIERS), "0.00%"); F["fam"] = r; r += 1
-    row15(ws, r, "隱含每 GW 年可容納的家族研發計畫數（訓練＋研發 ÷ 家族計畫）", "個", f"={{X}}{F['tr']}/{{X}}{F['fam']}", "0.0", key=True)
+          "=IF(COUNT(" + ",".join(IF(f"IF_ProgGWyr_{tk}") for tk, _ in TIERS) + ")=3," + "+".join(IF(f"IF_ProgGWyr_{tk}") for tk, _ in TIERS) + ',"SLO 不可達")', "0.00%"); F["fam"] = r; r += 1
+    row15(ws, r, "隱含每 GW 年可容納的家族研發計畫數（訓練＋研發 ÷ 家族計畫）", "個", f"=IF(ISNUMBER({{X}}{F['fam']}),{{X}}{F['tr']}/{{X}}{F['fam']},{{X}}{F['fam']})", "0.0", key=True)
     F["nprog"] = r; r += 1
     put(ws, f"A{r}", "解讀：前沿實驗室每年約 1–3 個旗艦家族；遠高於此代表 Block 3 單一計畫規模偏小（J8）或機隊訓練占比偏高", F_NOTE)
+    assert r + 2 == D0, (r, D0)
+    r = D0
+    section(ws, r, "D. 不可達層級的排除與權重重新正規化（v6.0 D8-2）：只排除 SLO 不可達的層級，其餘層級的組合權重依原比例重新正規化；全部層級不可達時才整欄為文字", 17); r += 1
+    for t, (tk, tn) in enumerate(TIERS):
+        row15(ws, r, f"{tn} 可達旗標（IF_TokGW 為數值且 > 0＝1）", "旗標", f"=IF(ISNUMBER({tok(t)}),IF({tok(t)}>0,1,0),0)", "0"); assert r == RC[t]; r += 1
+    row15(ws, r, "付費組合：保留層級的權重合計（重新正規化前）", "%", "=" + "+".join(f"INDEX(B4_MixPaid,1,{t+1})*{{X}}{RC[t]}" for t in range(3)), "0.0%"); assert r == WP; r += 1
+    row15(ws, r, "免費組合：保留層級的權重合計（重新正規化前）", "%", "=" + "+".join(f"INDEX(B4_MixFree,1,{t+1})*{{X}}{RC[t]}" for t in range(3)), "0.0%"); assert r == WF; r += 1
+    row15(ws, r, "排除層級（SLO 不可達者；無＝全部可達）", "文字",
+          f"=IF({{X}}{RC[0]}*{{X}}{RC[1]}*{{X}}{RC[2]}=1,\"無\",TRIM(IF({{X}}{RC[0]}=0,\"Luna \",\"\")&IF({{X}}{RC[1]}=0,\"Sol \",\"\")&IF({{X}}{RC[2]}=0,\"Astra\",\"\")))", None); assert r == EXC; r += 1
+    for t, (tk, tn) in enumerate(TIERS):
+        row15(ws, r, f"{tn} 付費有效權重（重新正規化後）", "%", f"=IF({{X}}{WP}>0,INDEX(B4_MixPaid,1,{t+1})*{{X}}{RC[t]}/{{X}}{WP},0)", "0.0%"); assert r == EP[t]; r += 1
+    for t, (tk, tn) in enumerate(TIERS):
+        row15(ws, r, f"{tn} 免費有效權重（重新正規化後）", "%", f"=IF({{X}}{WF}>0,INDEX(B4_MixFree,1,{t+1})*{{X}}{RC[t]}/{{X}}{WF},0)", "0.0%"); assert r == EF[t]; r += 1
+    F["rc"] = RC; F["wp"] = WP; F["wf"] = WF; F["exc"] = EXC; F["ep"] = EP; F["ef"] = EF
     return F
 
 # ---------------------------------------------------------------- Amortize
@@ -365,10 +385,10 @@ def amortize(wb, F, P, S):
         row15(ws, r, "研發計畫成本（IF_ProgCost）", "$M", f"={IF(f'IF_ProgCost_{tk}')}", "#,##0.0"); pc = r; A[f"pc{t}"] = r; r += 1
         p_, f_ = f"Fleet_1GW!{{X}}{F[f'p{t}']}", f"Fleet_1GW!{{X}}{F[f'f{t}']}"
         row15(ws, r, "年服務 token（付費＋免費）", "M tok/年", f"=IF({num(p_, f_)},{p_}+{f_},{NA})", "#,##0"); A[f"yr{t}"] = r; r += 1
-        row15(ws, r, "商業壽命內服務 token（付費＋免費）", "M tok",
-              f"=IF(ISNUMBER({{X}}{A[f'yr{t}']}),{{X}}{A[f'yr{t}']}*INDEX(B4_Life,1,{t+1})/12,{NA})", "#,##0"); sv = r; r += 1
-        row15(ws, r, f"自下而上攤提＝回本所需單價溢價　[IF_AmortBU_{tk}]", "$/M",
-              f"=IF(ISNUMBER({{X}}{sv}),IF({{X}}{sv}>0,{{X}}{pc}*1E6/{{X}}{sv},0),{NA})", "#,##0.00000", key=True)
+        row15(ws, r, "商業壽命內服務 token（分母＝付費 token；v6.0 D11 起不含免費 token）", "M tok",
+              f"=IF(ISNUMBER({p_}),{p_}*INDEX(B4_Life,1,{t+1})/12,{NA})", "#,##0"); sv = r; r += 1
+        row15(ws, r, f"自下而上攤提＝回本所需單價溢價（分母＝付費 token）　[IF_AmortBU_{tk}]", "$/M",
+              f"=IF(AND(ISNUMBER({{X}}{sv}),ISNUMBER({{X}}{pc})),IF({{X}}{sv}>0,{{X}}{pc}*1E6/{{X}}{sv},0),{NA})", "#,##0.00000", key=True)
         A[f"bu{t}"] = r; r += 1
         cost = (f"(INDEX(B4_ISL,1,{t+1})*((1-B4_CacheHit)*{IF(f'IF_CostPre_{tk}')}+B4_CacheHit*({IF(f'IF_CostCache_{tk}')}+Cache_Store!{{X}}{S[tk]}))"
                 f"+INDEX(B4_OSL,1,{t+1})*{IF(f'IF_CostDec_{tk}')})/(INDEX(B4_ISL,1,{t+1})+INDEX(B4_OSL,1,{t+1}))/IF_Util")
@@ -386,18 +406,20 @@ def amortize(wb, F, P, S):
         r += 1
     # ---- v5.9 K6：(c)、(d) 與下游預設
     section(ws, r, "K6 下游預設（Andy 2026-10-01）：(c) 由上而下總額 × 自下而上權重（預設）；(d) 由上而下總額 × 營收權重（並列）", 17); r += 1
-    allnum = lambda key: num(*[f"{{X}}{A[f'{key}{t}']}" for t in range(3)])
-    tdsum = "+".join(f"{{X}}{A[f'td{t}']}*{{X}}{A[f'yr{t}']}" for t in range(3))
-    row15(ws, r, "由上而下年化總額（三層級合計）", "$M/年", f"=IF({allnum('td')},({tdsum})/1E6,{NA})", "#,##0.0")
+    # v6.0 D8-2: only reachable (numeric) tiers enter the totals; all tiers unreachable -> text
+    incl = lambda t: f"AND(ISNUMBER({{X}}{A[f'td{t}']}),ISNUMBER({{X}}{A[f'yr{t}']}),ISNUMBER({{X}}{A[f'bu{t}']}))"      # tier counted in the totals only if its serving and R&D cost are both numbers
+    anyn = "OR(" + ",".join(incl(t) for t in range(3)) + ")"
+    tdsum = "+".join(f"IF({incl(t)},{{X}}{A[f'td{t}']}*{{X}}{A[f'yr{t}']},0)" for t in range(3))
+    row15(ws, r, "由上而下年化總額（可達層級合計）", "$M/年", f"=IF({anyn},({tdsum})/1E6,{NA})", "#,##0.0")
     A["tdtot"] = r; r += 1
-    row15(ws, r, "自下而上年化總額（研發計畫成本 × 12 ÷ 商業壽命，合計）", "$M/年",
-          "=" + "+".join(f"{{X}}{A[f'pc{t}']}*12/INDEX(B4_Life,1,{t+1})" for t in range(3)), "#,##0.0"); A["butot"] = r; r += 1
+    row15(ws, r, "自下而上年化總額（研發計畫成本 × 12 ÷ 商業壽命，可達層級合計）", "$M/年",
+          "=" + "+".join(f"IF({incl(t)},{{X}}{A[f'pc{t}']}*12/INDEX(B4_Life,1,{t+1}),0)" for t in range(3)), "#,##0.0"); A["butot"] = r; r += 1
     row15(ws, r, "縮放倍數（由上而下 ÷ 自下而上總額）", "x",
           f"=IF(ISNUMBER({{X}}{A['tdtot']}),IF({{X}}{A['butot']}>0,{{X}}{A['tdtot']}/{{X}}{A['butot']},0),{NA})", "0.00", key=True); A["scale"] = r; r += 1
     pay = lambda t: f"Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX(B4_EffRef,1,{t+1})"
     paidrefs = [f"Fleet_1GW!{{X}}{F[f'p{t}']}" for t in range(3)]
-    paysum = "+".join(pay(t) for t in range(3))
-    row15(ws, r, "付費營收合計（OpenAI 有效單價）", "$M/年", f"=IF({num(*paidrefs)},({paysum})/1E6,{NA})", "#,##0.0")
+    paysum = "+".join(f"IF({incl(t)},{pay(t)},0)" for t in range(3))
+    row15(ws, r, "付費營收合計（OpenAI 有效單價，可達層級）", "$M/年", f"=IF({anyn},({paysum})/1E6,{NA})", "#,##0.0")
     A["revtot"] = r; r += 1
     for t, (tk, tn) in enumerate(TIERS):
         row15(ws, r, f"{tn}：(c) 由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_{tk}]", "$/M",
@@ -426,14 +448,15 @@ def theory_rev(wb, F, A, S, WL=None):
     for t, (tk, tn) in enumerate(TIERS):
         cs = S[tk]
         section(ws, r, f"A. {tn}：1 GW 只服務本層級", 17); r += 1
-        row15(ws, r, "每 GW 產出（基準利用率）", "M tok/年", f"={IF(f'IF_TokGW_{tk}')}*IF_Util", "#,##0"); tok = r; r += 1
-        row15(ws, r, f"理論營收 — OpenAI 有效單價　[IF_RevGW_{tk}]", "$B/年", f"={{X}}{tok}*INDEX(B4_EffRef,1,{t+1})/1E9", "#,##0.0", key=True)
+        tg_ = IF(f'IF_TokGW_{tk}')
+        row15(ws, r, "每 GW 產出（基準利用率；SLO 不可達時為文字）", "M tok/年", f"=IF(ISNUMBER({tg_}),{tg_}*IF_Util,{tg_})", "#,##0"); tok = r; r += 1
+        row15(ws, r, f"理論營收 — OpenAI 有效單價　[IF_RevGW_{tk}]", "$B/年", f"=IF(ISNUMBER({{X}}{tok}),{{X}}{tok}*INDEX(B4_EffRef,1,{t+1})/1E9,{{X}}{tok})", "#,##0.0", key=True)
         T[f"rev{t}"] = r; r += 1
-        row15(ws, r, f"理論營收 — 前緣單價　[IF_RevGWFront_{tk}]", "$B/年", f"={{X}}{tok}*INDEX(B4_FrontRef,1,{t+1})/1E9", "#,##0.0"); T[f"revf{t}"] = r; r += 1
-        row15(ws, r, "理論營收 — 100% 利用率（OpenAI）", "$B/年", f"={IF(f'IF_TokGW_{tk}')}*INDEX(B4_EffRef,1,{t+1})/1E9", "#,##0.0"); r += 1
+        row15(ws, r, f"理論營收 — 前緣單價　[IF_RevGWFront_{tk}]", "$B/年", f"=IF(ISNUMBER({{X}}{tok}),{{X}}{tok}*INDEX(B4_FrontRef,1,{t+1})/1E9,{{X}}{tok})", "#,##0.0"); T[f"revf{t}"] = r; r += 1
+        row15(ws, r, "理論營收 — 100% 利用率（OpenAI）", "$B/年", f"=IF(ISNUMBER({tg_}),{tg_}*INDEX(B4_EffRef,1,{t+1})/1E9,{tg_})", "#,##0.0"); r += 1
         row15(ws, r, "年持有成本 — 經濟（IF_HoldEcon）", "$B/年", f"={IF('IF_HoldEcon')}", "#,##0.0"); hold = r; r += 1
-        row15(ws, r, "理論營收 ÷ 持有成本", "x", f"={{X}}{T[f'rev{t}']}/{{X}}{hold}", "0.0", key=True); T[f"rh{t}"] = r; r += 1
-        row15(ws, r, "前緣營收 ÷ 持有成本", "x", f"={{X}}{T[f'revf{t}']}/{{X}}{hold}", "0.0"); r += 1
+        row15(ws, r, "理論營收 ÷ 持有成本", "x", f"=IF(ISNUMBER({{X}}{T[f'rev{t}']}),{{X}}{T[f'rev{t}']}/{{X}}{hold},{{X}}{T[f'rev{t}']})", "0.0", key=True); T[f"rh{t}"] = r; r += 1
+        row15(ws, r, "前緣營收 ÷ 持有成本", "x", f"=IF(ISNUMBER({{X}}{T[f'revf{t}']}),{{X}}{T[f'revf{t}']}/{{X}}{hold},{{X}}{T[f'revf{t}']})", "0.0"); r += 1
         row15(ws, r, "服務成本 $/M（參考請求，含快取儲存，基準利用率）", "$/M", f"=Amortize!{{X}}{A[f'sc{t}']}", "#,##0.0000"); sc = r; r += 1
         g = lambda am: f"=IF(AND(ISNUMBER({{X}}{sc}),ISNUMBER(Amortize!{{X}}{am})),{{X}}{sc}+Amortize!{{X}}{am},{NA})"
         row15(ws, r, f"全成本 $/M（服務＋自下而上攤提）　[IF_FullCost_{tk}]", "$/M", g(A[f'bu{t}']), "#,##0.0000", key=True); T[f"fc{t}"] = r; r += 1
@@ -447,16 +470,16 @@ def theory_rev(wb, F, A, S, WL=None):
         row15(ws, r, "理論毛利率（前緣單價；由上而下全成本）", "%", gm(T[f'fct{t}'], "B4_FrontRef"), "0%"); r += 2
     section(ws, r, "B. 1 GW 參考機隊（Fleet_1GW 配置）", 17); r += 1
     ok = f"Fleet_1GW!{{X}}{F['ok']}=1"
-    pay = lambda ref: "+".join(f"Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX({ref},1,{t+1})" for t in range(3))
+    pay = lambda ref: "+".join(f"IF(ISNUMBER(Fleet_1GW!{{X}}{F[f'p{t}']}),Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX({ref},1,{t+1}),0)" for t in range(3))
     # v5.9（Andy 決定 (b)）：機隊合計保留，另列各層級貢獻，使混合數字可拆解（CLAUDE.md 1a）
     for t, (tk, tn) in enumerate(TIERS):
         row15(ws, r, f"{tn} 貢獻 — OpenAI 有效單價　[IF_RevGWFleet_{tk}]", "$B/年",
-              f"=IF({ok},Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX(B4_EffRef,1,{t+1})/1E9,{NA})", "#,##0.00"); T[f"flt{t}"] = r; r += 1
+              f"=IF(AND({ok},ISNUMBER(Fleet_1GW!{{X}}{F[f'p{t}']})),Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX(B4_EffRef,1,{t+1})/1E9,{NA})", "#,##0.00"); T[f"flt{t}"] = r; r += 1
     row15(ws, r, "付費服務營收合計（層級組合：付費 token 依 B4_MixPaid）— OpenAI 有效單價　[IF_RevGWFleet]", "$B/年",
           f"=IF({ok},({pay('B4_EffRef')})/1E9,{NA})", "#,##0.0", key=True); T["fl"] = r; r += 1
     for t, (tk, tn) in enumerate(TIERS):
         row15(ws, r, f"{tn} 貢獻 — 前緣單價　[IF_RevGWFleetFront_{tk}]", "$B/年",
-              f"=IF({ok},Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX(B4_FrontRef,1,{t+1})/1E9,{NA})", "#,##0.00"); T[f"flft{t}"] = r; r += 1
+              f"=IF(AND({ok},ISNUMBER(Fleet_1GW!{{X}}{F[f'p{t}']})),Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX(B4_FrontRef,1,{t+1})/1E9,{NA})", "#,##0.00"); T[f"flft{t}"] = r; r += 1
     row15(ws, r, "付費服務營收合計（層級組合）— 前緣單價　[IF_RevGWFleetFront]", "$B/年", f"=IF({ok},({pay('B4_FrontRef')})/1E9,{NA})", "#,##0.0"); T["flf"] = r; r += 1
     row15(ws, r, "整個 GW 年持有成本（服務＋訓練＋研發）", "$B/年", f"={IF('IF_HoldEcon')}", "#,##0.0"); fh = r; r += 1
     row15(ws, r, "機隊營收 ÷ 持有成本", "x", f"=IF(ISNUMBER({{X}}{T['fl']}),{{X}}{T['fl']}/{{X}}{fh},{NA})", "0.00", key=True); T["flr"] = r; r += 1
@@ -529,8 +552,8 @@ def sens_rev(wb, K, T, A):
     put(ws, f"A{r}", "攤提（自下而上，Sol）對商業壽命", F_BOLD); r += 1
     for lab, m in [("壽命 6 個月", 6), ("壽命 24 個月", 24)]:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", m, fmt="0")
-        put(ws, f"C{r}", f"=Amortize!{col}{A['bu1']}*INDEX(B4_Life,1,2)/B{r}", fmt="0.00000", fill=FILL_KEY)
-        put(ws, f"D{r}", f"=C{r}/Amortize!{col}{A['bu1']}", fmt="0.00"); put(ws, f"G{r}", "$/M；與 Sol 有效混合單價相比仍極小", F_NOTE); r += 1
+        put(ws, f"C{r}", f"=IF(ISNUMBER(Amortize!{col}{A['bu1']}),Amortize!{col}{A['bu1']}*INDEX(B4_Life,1,2)/B{r},Amortize!{col}{A['bu1']})", fmt="0.00000", fill=FILL_KEY)
+        put(ws, f"D{r}", f"=IF(ISNUMBER(C{r}),C{r}/Amortize!{col}{A['bu1']},C{r})", fmt="0.00"); put(ws, f"G{r}", "$/M；與 Sol 有效混合單價相比仍極小", F_NOTE); r += 1
     put(ws, f"A{r+1}", "未列入：生產折減（Serving!C18）與利用率之外的產能變動需重算 Perf，見 Sens_Perf；本頁不重算物理產能", F_NOTE)
 
 # ---------------------------------------------------------------- Interface D, Checks, Sources
@@ -618,9 +641,9 @@ def checks_b4(wb, P, F, A, T, U):
       ("中國合格者最低 ÷ OpenAI（Luna）", f"=Price_Frontier!C{P['cnr']}", ">1", "x", ">1：同能力下中國廠商未比 OpenAI 便宜", "Price_Frontier"),
       ("隱含每 GW 年家族研發計畫數（VR200）", f"=Fleet_1GW!M{F['nprog']}", "1–3", "個", "遠高於 1–3：J8 單一計畫規模偏小或訓練占比偏高", "Fleet_1GW"),
       ("Fleet_1GW 服務 GW 閉合（VR200；應為 0）", f"=Fleet_1GW!M{F['chk']}", "0", "GW", "", "Fleet_1GW"),
-      ("自下而上攤提 ÷ Sol 有效混合單價（VR200）", f"=Amortize!M{A['bu1']}/INDEX(B4_EffRef,1,2)", "—", "%", "回本所需溢價占單價的比例", "Amortize"),
+      ("自下而上攤提 ÷ Sol 有效混合單價（VR200）", f"=IF(ISNUMBER(Amortize!M{A['bu1']}),Amortize!M{A['bu1']}/INDEX(B4_EffRef,1,2),Amortize!M{A['bu1']})", "—", "%", "回本所需溢價占單價的比例", "Amortize"),
       ("K6 縮放倍數：由上而下 ÷ 自下而上年化總額（VR200）", f"=Amortize!M{A['scale']}", "1–3 個計畫時約 1", "x", "與『隱含家族研發計畫數』同源（J8）；(c) 以此倍數放大自下而上攤提", "Amortize"),
-      ("K6 (c)：Astra 預設攤提 ÷ Astra 有效混合單價（VR200）", f"=Amortize!M{A['dc2']}/INDEX(B4_EffRef,1,3)", "—", "%", "預設口徑下 Astra 單價中訓練攤提所占比例", "Amortize"),
+      ("K6 (c)：Astra 預設攤提 ÷ Astra 有效混合單價（VR200）", f"=IF(ISNUMBER(Amortize!M{A['dc2']}),Amortize!M{A['dc2']}/INDEX(B4_EffRef,1,3),Amortize!M{A['dc2']})", "—", "%", "預設口徑下 Astra 單價中訓練攤提所占比例", "Amortize"),
       ("機隊各層級貢獻合計 − 機隊合計（VR200；應為 0）", f"=Theory_Rev!M{T['flt0']}+Theory_Rev!M{T['flt1']}+Theory_Rev!M{T['flt2']}-Theory_Rev!M{T['fl']}", "0", "$B/年", "", "Theory_Rev B 節"),
     ]
     for i, (a, b, c, d, e, f) in enumerate(rows):

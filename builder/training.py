@@ -382,14 +382,24 @@ def train_rows(SP, AR, TI, PB, TR):
 
 TKEY = {"Hp", "Hrl", "Hfin", "psF", "psH", "rlmfu", "Ufin", "GWf", "Hprog", "Uprog", "GWp", "rlH"}
 
+import re as _re
+TAINT_SRC = ("gsdr", "gsdg")      # v6.0 D8-3: Perf_Batch decode GPU-s/M is text "SLO 不可達" when the tier cannot be served; never 0 GPU-hours
+_PH = _re.compile(r"\{(\w+)\}")
+
 def write_train(ws, cols, SP, AR, TI, PB, TR, start=9, overrides=None):
     overrides = overrides or {}
     R = {}; r = start
+    tainted = set(TAINT_SRC)
     for item in train_rows(SP, AR, TI, PB, TR):
         if item[0] == "§":
             section(ws, r, item[1], 2 + len(cols)); r += 1; continue
         key, lab, unit, fmt, tpl = item
         R[key] = r
+        # v6.0 D8-3 generic wrapper: a row that reads a tainted row (directly or transitively) outputs the text instead of a number
+        deps = [k for k in dict.fromkeys(_PH.findall(tpl)) if k in tainted and k != "X"]
+        if key not in TAINT_SRC and deps:
+            tainted.add(key)
+            tpl = '=IF(AND(' + ",".join("ISNUMBER({X}{%s})" % k for k in deps) + '),' + tpl[1:] + ',"SLO 不可達")'
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
         for X in cols:
             ov = overrides.get(X, {})
@@ -423,7 +433,8 @@ def training_sheet(wb, SP, AR, TI, PB, TR):
                                      ("fGWp", "家族研發計畫占 1 GW 一年", "%", "0.00%", "GWp")]:
         R[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
         for X in COLS15:
-            put(ws, f"{X}{r}", f"=SUMPRODUCT(($C$6:$Q$6={X}$6)*$C${R[src]}:$Q${R[src]})", fmt=fmt, fill=FILL_KEY)
+            rg = f"$C${R[src]}:$Q${R[src]}"      # v6.0 D8-3: any unreachable tier in the family makes the family total text (SUMPRODUCT would raise #VALUE!)
+            put(ws, f"{X}{r}", f'=IF(COUNT(INDEX({rg},1,3*({X}$6-1)+1):INDEX({rg},1,3*({X}$6-1)+3))=3,SUMIF($C$6:$Q$6,{X}$6,{rg}),"SLO 不可達")', fmt=fmt, fill=FILL_KEY)
         r += 1
     ws.freeze_panes = "C8"
     return R
@@ -486,7 +497,7 @@ def sens_train(wb, SP, AR, TI, PB, TR):
         R["r_" + key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", "x")
         for i, X in enumerate(cols):
             base = "C" if i % 2 == 0 else "D"
-            put(ws, f"{X}{r}", f"={X}{R[key]}/${base}${R[key]}", fmt="0.00", fill=FILL_KEY)
+            put(ws, f"{X}{r}", f'=IF(AND(ISNUMBER({X}{R[key]}),ISNUMBER(${base}${R[key]})),{X}{R[key]}/${base}${R[key]},"SLO 不可達")', fmt="0.00", fill=FILL_KEY)
         r += 1
     ws.freeze_panes = "C8"
     return R

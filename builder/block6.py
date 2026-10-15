@@ -216,21 +216,21 @@ def alloc(wb, AIN):
 
     # ---------------- D. Q1, Q2
     hdr("D. Q1、Q2（R1 基準，R2 並列；A7）")
-    line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）", "%", gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW/(AL_RDGW+AL_ServeGW),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1", key_fill=True)
-    line("q1b", "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷ 總 GW", "%",
+    line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）；服務 GW 為支出路線（AL_ServeGWSpend；v8.0 D14 主口徑，token 路線見 Alloc L 節 AL_Q1_Tok）", "%", f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGW)),AL_RDGW/(AL_RDGW+AL_ServeGWSpend),"{SLO}")', "0.0%", "AL_Q1", key_fill=True)
+    line("q1b", "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷ 總 GW（token 路線；v8.0 未改，列待 Project 判斷）", "%",
          gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),(AL_RDGW+AL_ServeGWFree)/(AL_RDGW+AL_ServeGW),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1R2")
-    line("q2", "Q2 研發算力成本占比＝研發 GW × 持有成本 ÷（研發 GW × 持有成本＋Σ 各世代服務 GW × 各世代持有成本）", "%",
-         gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
-    line("q1g", "Q1（R1；成長情境 g）", "%", gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg/(AL_RDGWg+AL_ServeGW),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1g")
-    line("q2g", "Q2（成長情境 g）", "%",
-         gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGWg)),AL_RDGWg*AL_HoldTrain/(AL_RDGWg*AL_HoldTrain+SUMPRODUCT(AL_ServeGen,AL_HoldGen)),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q2g")
+    line("q2", "Q2 研發算力成本占比＝研發 GW × 持有成本 ÷（研發 GW × 持有成本＋服務持有成本）；服務持有成本為支出路線＝AL_ServeGWSpend × Σ（世代占比 × 各世代持有成本）＝SRC_DEM_004（v8.0 D14）", "%",
+         f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGW)),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+AL_ServeGWSpend*SUMPRODUCT(AL_ShareGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
+    line("q1g", "Q1（R1；成長情境 g；支出路線）", "%", f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGWg)),AL_RDGWg/(AL_RDGWg+AL_ServeGWSpend),"{SLO}")', "0.0%", "AL_Q1g")
+    line("q2g", "Q2（成長情境 g；支出路線）", "%",
+         f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGWg)),AL_RDGWg*AL_HoldTrain/(AL_RDGWg*AL_HoldTrain+AL_ServeGWSpend*SUMPRODUCT(AL_ShareGen,AL_HoldGen)),"{SLO}")', "0.0%", "AL_Q2g")
     line("r3", "R3（內部使用）", "", "缺口：無參數（A7）", None, note="R3 不設公式")
     r += 1
 
     # ---------------- E. calibration back-solve (A3)
     hdr("E. 校準反推（A3；2025 支出比不用來校準 k，只反推隱含 N × k）")
     line("sr", "2025 支出比＝訓練支出 ÷（推論支出＋訓練支出）", "%", "=SRC_DEM_006/(SRC_DEM_004+SRC_DEM_006)", "0.0%", "AL_SpendRatio", "SRC_DEM_006 ÷（SRC_DEM_004＋SRC_DEM_006）（約 58.8%）")
-    line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW 合計", "GW", gx(f'=IF(ISNUMBER(AL_ServeGW),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGW,"{SLO}")', "AL_ServeGW"), "0.0000", "AL_ImpliedRDGW")
+    line("irdg", "隱含研發 GW＝支出比 ÷（1 − 支出比）× 服務 GW（支出路線 AL_ServeGWSpend；v8.0 D14）", "GW", f'=IF(ISNUMBER(AL_ServeGWSpend),AL_SpendRatio/(1-AL_SpendRatio)*AL_ServeGWSpend,"{SLO}")', "0.0000", "AL_ImpliedRDGW")
     line("ink", "隱含 N × k（以家族計畫當量）＝隱含研發 GW ÷ 家族計畫 GW 年", "個", gx(f'=IF(AND(ISNUMBER(AL_ImpliedRDGW),ISNUMBER(AL_FamGWyr)),AL_ImpliedRDGW/AL_FamGWyr,"{SLO}")', "AL_ImpliedRDGW"), "0.00", "AL_ImpliedNk", key_fill=True)
     line("j8", "J8 落差＝隱含 N × k ÷（N_major＋N_refresh × 改版÷家族）", "x",
          gx(f'=IF(AND(ISNUMBER(AL_ImpliedNk),ISNUMBER(AL_RefGWyr),ISNUMBER(AL_FamGWyr)),AL_ImpliedNk/(AL_Nmajor+AL_Nrefresh*AL_RefGWyr/AL_FamGWyr),"{SLO}")', "AL_ImpliedNk"), "0.00", "AL_J8Gap",
@@ -252,10 +252,10 @@ def alloc(wb, AIN):
 
     # ---------------- G. sensitivity table (closed-form; one input at a time; self-check block)
     hdr("G. 敏感度表（一次動一個輸入，取區間低與高；每列以閉式公式重寫 A–D 節推導鏈；端點值引用 Alloc_In 的區間格）")
-    put(ws, f"A{r}", "左側 C–L 為該列輸入；M–V 為推導鏈；W 為自我檢查（同一公式、輸入全改回基準，須等於 D 節 Q1、Q2；容差 1e-12；0＝通過）。"
+    put(ws, f"A{r}", "左側 C–L 為該列輸入；M–W 為推導鏈（M–Q、V 為 token 路線診斷；W 為支出路線服務 GW，Q1、Q2 讀它，v8.0 D14）；X 為自我檢查（同一公式、輸入全改回基準，須等於 D 節 Q1、Q2；容差 1e-12；0＝通過）。"
                      "不使用運算列表，也不在 Python 端計算。", F_NOTE); r += 1
     heads_in = ["N_major", "N_refresh", "k", "API 比例", "每則 token", "免費占比", "Hopper", "GB200", "GB300", "VR200"]
-    heads_ch = ["付費 D", "免費 D", "付費產能", "免費產能", "服務 GW", "研發 GW", "Q1（R1）", "Q2", "研發算力成本 $B", "每日 T tok"]
+    heads_ch = ["付費 D", "免費 D", "付費產能", "免費產能", "服務 GW", "研發 GW", "Q1（R1）", "Q2", "研發算力成本 $B", "每日 T tok", "服務 GW（支出路線）"]
     put(ws, f"A{r}", "情境", F_BOLD); put(ws, f"B{r}", "動的輸入", F_BOLD)
     for i, h in enumerate(heads_in + heads_ch + ["自我檢查"]): put(ws, f"{L(3+i)}{r}", h, F_BOLD, wrap=True)
     for i in range(3, 3 + len(heads_in) + len(heads_ch) + 1): ws.column_dimensions[L(i)].width = max(ws.column_dimensions[L(i)].width or 0, 13)
@@ -292,6 +292,7 @@ def alloc(wb, AIN):
         out["cp"] = bl(capp); out["cf"] = bl(capf)
         out["den"] = den
         out["hnum"] = "+".join(f"IF(AND({s}>0,{o}=1),{s}*{h},0)" for s, o, h in zip(m, okc, holds))
+        out["mixhold"] = "+".join(f"{s}*{h}" for s, h in zip(m, holds))      # v8.0 D14: raw shares (spend route has no reachability exclusion)
         return m, out
 
     sens_cells = {}
@@ -314,7 +315,7 @@ def alloc(wb, AIN):
                 else: put(ws, f"{col}{rr}", f"={src or base[k]}", fmt=fmt, fill=FILL_KEY if src else None)
             m, ch = chain(rr, ic)
             base_c = 3 + len(keys)                      # first chain column
-            cols = {n: L(base_c + i) for i, n in enumerate(["dp", "df", "cp", "cf", "sg", "rd", "q1", "q2", "cost", "daily"])}
+            cols = {n: L(base_c + i) for i, n in enumerate(["dp", "df", "cp", "cf", "sg", "rd", "q1", "q2", "cost", "daily", "sgs"])}
             put(ws, f"{cols['dp']}{rr}", ch["dp"], fmt="#,##0"); put(ws, f"{cols['df']}{rr}", ch["df"], fmt="#,##0")
             put(ws, f"{cols['cp']}{rr}", ch["cp"], fmt="#,##0"); put(ws, f"{cols['cf']}{rr}", ch["cf"], fmt="#,##0")
             cp, cf, dp, df_ = (f"{cols[x]}{rr}" for x in ("cp", "cf", "dp", "df"))
@@ -322,8 +323,10 @@ def alloc(wb, AIN):
             sg = f"{cols['sg']}{rr}"
             put(ws, f"{cols['rd']}{rr}", f'=IF(AND(ISNUMBER(AL_FamGWyr),ISNUMBER(AL_RefGWyr)),{ic["k"]}{rr}*({ic["Nmaj"]}{rr}*AL_FamGWyr+{ic["Nref"]}{rr}*AL_RefGWyr),"{SLO}")', fmt="0.0000")
             rd = f"{cols['rd']}{rr}"
-            put(ws, f"{cols['q1']}{rr}", f'=IF({sg}="{GENX}","{GENX}",IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}/({rd}+{sg}),"{SLO}"))', fmt="0.0%")
-            put(ws, f"{cols['q2']}{rr}", f'=IF({sg}="{GENX}","{GENX}",IF(AND(ISNUMBER({sg}),ISNUMBER({rd})),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{sg}*({ch["hnum"]})/{ch["den"]}),"{SLO}"))', fmt="0.0%")
+            sgs = f"{cols['sgs']}{rr}"      # v8.0 D14: spend-route serve GW of this row = SRC_DEM_004 / sum(row mix x generation holding cost) (same as AL_ServeGWSpend; no reachability exclusion)
+            put(ws, sgs, f'=IF(({ch["mixhold"]})>0,{SPEND_SID}/({ch["mixhold"]}),"{SLO}")', fmt="0.0000")
+            put(ws, f"{cols['q1']}{rr}", f'=IF(AND(ISNUMBER({sgs}),ISNUMBER({rd})),{rd}/({rd}+{sgs}),"{SLO}")', fmt="0.0%")
+            put(ws, f"{cols['q2']}{rr}", f'=IF(AND(ISNUMBER({sgs}),ISNUMBER({rd})),{rd}*AL_HoldTrain/({rd}*AL_HoldTrain+{SPEND_SID}),"{SLO}")', fmt="0.0%")
             put(ws, f"{cols['cost']}{rr}", f'=IF(ISNUMBER({rd}),{rd}*AL_HoldTrain,"{SLO}")', fmt="0.000")
             put(ws, f"{cols['daily']}{rr}", f"=({dp}+{df_})/365/1E6", fmt="#,##0.00")
             rows_here.append((rr, cols))
@@ -331,7 +334,7 @@ def alloc(wb, AIN):
         sens_cells[blk] = rows_here
         if blk == "main": r += 1
     main_rows, chk_rows = sens_cells["main"], sens_cells["check"]
-    ckcol = L(3 + len(keys) + 10)
+    ckcol = L(3 + len(keys) + 11)
     for (rr, cols), (rc, colsc) in zip(main_rows, chk_rows):
         q1, q2, q1c, q2c = f"{cols['q1']}{rc}", f"{cols['q2']}{rc}", f"{cols['q1']}{rc}", f"{cols['q2']}{rc}"
         q1c, q2c = f"{colsc['q1']}{rc}", f"{colsc['q2']}{rc}"
@@ -355,11 +358,11 @@ def alloc(wb, AIN):
 def interface_b6(wb, start):
     ws = wb["Interface"]; r = start; names = []
     section(ws, r, "F. Block 6 產出（研發與服務的算力配置；2025 穩態年度；服務世代組合與訓練世代見 Alloc_In／Alloc；SLO 不可達時為文字）", 17); r += 1
-    rows = [("IF_AllocQ1", "研發算力占比 Q1（R1：研發 GW ÷ 研發＋服務 GW）", "%", "=AL_Q1", "0.0%", True),
-            ("IF_AllocQ1_R2", "研發算力占比 Q1（R2：免費服務算作產品改良）", "%", "=AL_Q1R2", "0.0%", False),
-            ("IF_AllocQ2", "研發算力成本占比 Q2（已裝 GW × 各世代每 GW 年持有成本；利用率不進入）", "%", "=AL_Q2", "0.0%", True),
-            ("IF_AllocServeGW", "服務 GW 合計（token 路線；付費＋免費；IT 關鍵電力）", "GW", "=AL_ServeGW", "0.0000", False),
-            ("IF_AllocRDGW", "研發 GW 年（k ×（N_major × 家族＋N_refresh × 改版）；訓練世代＝IF_TrainGenDefault）", "GW·年", "=AL_RDGW", "0.0000", False),
+    rows = [("IF_AllocQ1", "研發算力占比 Q1（R1：研發 GW ÷ 研發＋服務 GW；服務 GW＝支出路線，v8.0 D14 主口徑）", "%", "=AL_Q1", "0.0%", True),
+            ("IF_AllocQ1_R2", "研發算力占比 Q1（R2：免費服務算作產品改良；token 路線，v8.0 未改）", "%", "=AL_Q1R2", "0.0%", False),
+            ("IF_AllocQ2", "研發算力成本占比 Q2（研發 GW × 持有成本 ÷（＋服務持有成本＝SRC_DEM_004，支出路線，v8.0 D14）；利用率不進入）", "%", "=AL_Q2", "0.0%", True),
+            ("IF_AllocServeGW", "服務 GW 合計（支出路線＝SRC_DEM_004 ÷ Σ 世代占比 × 持有成本；v8.0 D14 主口徑；IT 關鍵電力）", "GW", "=AL_ServeGWSpend", "0.0000", False),
+            ("IF_AllocRDGW", "研發 GW 年（k ×（N_major × 家族＋N_refresh × 改版）；v8.0 L3：2025 研發世代組合加權，Alloc J 節）", "GW·年", "=AL_RDGW", "0.0000", False),
             ("IF_AllocDemand", "需求 D 合計（API＋ChatGPT；付費＋免費 token；2025）", "M tok/年", "=AL_D", "#,##0", False),
             ("IF_AllocImpliedNk", "隱含 N × k（2025 支出比反推；以家族計畫當量；A3）", "個", "=AL_ImpliedNk", "0.00", False)]
     for n, lab, unit, f, fmt, key in rows:

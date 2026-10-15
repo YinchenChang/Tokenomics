@@ -306,17 +306,19 @@ def l1_rows_new():
     R = ROWS
     c90 = "Cap_In!$C$90"
     none = ("無外部對照", DASH, DASH)
-    req = lambda lt: f"=L1_FleetBreakeven/(IF_Util*CTL_ProdDerate)*{c90}/{lt}"
+    TXT = "m 非數字（本情境）"
+    px = lambda m: f'=IF(ISNUMBER({m}),{m}*{c90},"{TXT}")'          # m is text when a generation in the mix cannot serve (SLO), like L1_LReqFleet
+    req = lambda lt: f'=IF(AND(ISNUMBER(L1_FleetBreakeven),ISNUMBER({lt})),L1_FleetBreakeven/(IF_Util*CTL_ProdDerate)*{c90}/{lt},"{TXT}")'
     return [
         ("ScaleServe2000", "服務端規模係數（τ＝2,000 基準）：支出路線服務 GW ÷ token 路線服務 GW（τ＝CST_TokPerPromptV528）", "Decision Use＝下游校準用，不得當產能；X47",
          f"=Cap_In!$C${R['j_scale2000']}", f"=Cap_In!$D${R['j_scale2000']}", f"=Cap_In!$E${R['j_scale2000']}", "x", "無區間（τ 固定 2,000；支出路線不隨 τ 變）",
          "L1_GapProduct 的外部對照；與 L1_ScaleServe（τ＝Alloc_In C15）的差＝GapPrompt 有效倍數 1.3013", "每則提示 token 數（2,000 固定）、推論支出口徑、世代組合", "推論支出：二手（SRC_DEM_004／073）",
          "SRC_DEM_004（分子）", None, None, "AL_ServeGWSpend", f"Cap_In 第 {R['j_scale2000']} 列", "本列本身即對照（分子為外部值），外部欄不另填"),
         ("PriceRealFleet", "實收單價（機隊口徑，2025）＝L1_MFleet × 混合有效單價", "OpenAI 2025；m_fleet × Cap_In 第 90 列；v5.36 B6",
-         f"=L1_MFleet*{c90}", f"=L1_MFleet_Lo*{c90}", f"=L1_MFleet_Hi*{c90}", "$/M", "低／高＝L1_MFleet 低／高 × 單價", READ_PRICE,
+         px("L1_MFleet"), px("L1_MFleet_Lo"), px("L1_MFleet_Hi"), "$/M", "低／高＝L1_MFleet 低／高 × 單價", READ_PRICE,
          "機隊 m、混合有效單價", "L1_MFleet：Assumed 分母（計價倍數、實際利用率、κ）", *none, "L1_MFleet", "L1 本頁；Cap_In 第 90 列", "顯示用"),
         ("PriceRealDemand", "實收單價（需求口徑，2025）＝L1_MImplied × 混合有效單價", "OpenAI 2025；m_整體 × Cap_In 第 90 列；v5.36 B6",
-         f"=L1_MImplied*{c90}", f"=L1_MImplied_Lo*{c90}", f"=L1_MImplied_Hi*{c90}", "$/M", "低／高＝L1_MImplied 低／高 × 單價", READ_PRICE,
+         px("L1_MImplied"), px("L1_MImplied_Lo"), px("L1_MImplied_Hi"), "$/M", "低／高＝L1_MImplied 低／高 × 單價", READ_PRICE,
          "需求路線 m、混合有效單價", "分母為模型 token 需求（Assumed）；已知偏低（L1_ScaleServe）", *none, "L1_MImplied", "L1 本頁；Cap_In 第 90 列", "顯示用"),
         ("PriceReqBE", "回本所需實收單價（L＝L1_LTotal）", "L1_FleetBreakeven ÷（IF_Util × CTL_ProdDerate）× 混合有效單價 ÷ L_total；v5.36 B6",
          req("L1_LTotal"), req("L1_LTotal_Hi"), req("L1_LTotal_Lo"), "$/M", "低＝L 取高端（0.498）、高＝L 取低端（1.692）", READ_PRICE,

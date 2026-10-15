@@ -38,7 +38,7 @@ PREWARM = {
     "test_prod_derate_expected_values": [{"CTL_ProdDerate": 0.7}],
     "test_price_life_expected_values": [{"CTL_PriceLife": 0.5, "CTL_Monetize": 0.8}],
     "test_batch_etad_expected_values": [{"CAL_BatchEtaD[4]": 1.0}],
-    "test_v602_model_scale_ttft_alloc": [{"ARCH_ScaleGen[1]": 0.25, "ARCH_ScaleGen[2]": 0.5, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 2.5}],
+    "test_v602_model_scale_ttft_alloc": [{"ARCH_ScaleGen[1]": 0.8, "ARCH_ScaleGen[2]": 0.55, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.4}],
     "test_v600_audit_fix1_slo_text": [{"Serving!C18": 0.7}, {"Train_In!E31": 20}, {"Train_In!E31": 80}, {"Train_In!E31": 100}, {"Train_In!E31": 150}],
 }
 

@@ -102,7 +102,7 @@ def perf_rows(SP, AR, CAL, TR):
       ("§", "I. 每 M token GPU 秒（供 Unit_Cost）與速覽成本"),
       ("gsf", "新鮮 prefill", "GPU-s/M", "#,##0.0", "=1E6/{X}{Pp}"),
       ("gsc", "快取命中 prefill（KV 載入）", "GPU-s/M", "#,##0.000", "=1E6*{X}{kv}/({X}{loadbw}*1E12)"),
-      ("gsd", "decode（含思考 token；文字「SLO 不可達」＝不可達）", "GPU-s/M", "#,##0.0", "=IF({X}{D}>0,1E6/{X}{D},\"SLO 不可達\")"),
+      ("gsd", "decode（含思考 token；文字「SLO 不可達」＝decode 不可達；「TTFT 不可達」＝首 token 時間超過上限；v6.3 K3）", "GPU-s/M", "#,##0.0", "=IF(ISNUMBER({X}{D}),IF({X}{D}>0,IF({X}{ttok}=\"是\",1E6/{X}{D},\"TTFT 不可達\"),\"SLO 不可達\"),\"SLO 不可達\")"),
       ("cfq", "速覽：新鮮 prefill $/M（經濟、基準成本、100%）", "$/M", "#,##0.000", "=INDEX(DC_Cost!$C$58:$Q$58,3*({X}$6-1)+2)/3600*{X}{gsf}"),
       ("cdq", "速覽：decode $/M（經濟、基準成本、100%）", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{gsd}),INDEX(DC_Cost!$C$58:$Q$58,3*({X}$6-1)+2)/3600*{X}{gsd},{X}{gsd})"),
       ("§", "J. 能量下限與閉合（能量閉合：物理下限功率 ≤ 機架平均用電）"),

@@ -1,0 +1,3572 @@
+[
+{
+"sheet": "Spec_Rack",
+"row": 33,
+"label": "GPU 功率 W/封裝（能量用）",
+"nf": 4,
+"ni": 1
+},
+{
+"sheet": "Spec_Rack",
+"row": 34,
+"label": "HBM 存取能量 pJ/byte",
+"nf": 1,
+"ni": 4
+},
+{
+"sheet": "Spec_Rack",
+"row": 40,
+"label": "FP8 dense PF/GPU（訓練基準，J7）",
+"nf": 4,
+"ni": 1
+},
+{
+"sheet": "Serving",
+"row": 15,
+"label": "快取命中 KV 載入頻寬",
+"nf": 0,
+"ni": 1
+},
+{
+"sheet": "Workload",
+"row": 5,
+"label": "輪數 T",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 6,
+"label": "初始上下文 S（系統提示、歷史、工具定義）",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 7,
+"label": "每輪新輸入 u（使用者或工具結果）",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 8,
+"label": "每輪思考 token h",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 9,
+"label": "每輪可見輸出 o",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 10,
+"label": "思考保留於上下文比例 ρ",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 11,
+"label": "歷史快取命中率 χ",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 12,
+"label": "並行子代理數 m",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 13,
+"label": "harness token 倍數",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 14,
+"label": "歷史保留比 c（壓縮後保留的歷史比例；1＝不壓縮）",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Workload",
+"row": 18,
+"label": "有效輪數 T",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 19,
+"label": "有效每輪思考 h",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 20,
+"label": "有效思考保留 ρ",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 21,
+"label": "有效快取命中 χ",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 22,
+"label": "有效子代理數 m",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 23,
+"label": "有效歷史保留比 c",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 26,
+"label": "每輪上下文增量 u＋o＋ρh",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 27,
+"label": "單代理輸入總量",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 28,
+"label": "其中可快取（前綴）",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 29,
+"label": "其中新鮮",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 30,
+"label": "單代理 decode（思考＋可見）",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 31,
+"label": "系統倍數（1＋m）× harness 殘差倍數",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 32,
+"label": "任務新鮮 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 33,
+"label": "任務快取 prefill",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 34,
+"label": "任務 decode",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Workload",
+"row": 35,
+"label": "任務總 token",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 26,
+"label": "EP 通訊頻寬",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 32,
+"label": "d_model",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 33,
+"label": "啟用專家",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 36,
+"label": "KV bytes/token",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 75,
+"label": "η_d（該世代）",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 76,
+"label": "每層延遲（該世代）",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 77,
+"label": "η_p（該世代）",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 78,
+"label": "prefill tok/s/GPU",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 79,
+"label": "每步固定延遲",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 80,
+"label": "每序列每步時間",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 81,
+"label": "SLO 批次上限",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 82,
+"label": "容量批次上限",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 83,
+"label": "B*",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 84,
+"label": "decode tok/s/GPU",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 85,
+"label": "模型 tok/s/GPU（總 token）",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 86,
+"label": "模型 ÷ 實測",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 100,
+"label": "總參數",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 101,
+"label": "啟用參數",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 102,
+"label": "層數",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 103,
+"label": "d_model",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 104,
+"label": "routed experts",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 105,
+"label": "啟用 experts",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 106,
+"label": "shared experts",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 108,
+"label": "KV bytes/token（MLA 576 × 61 層，FP8）",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 109,
+"label": "注意力 FLOPs／被注意 token（MLA：2×128×192＋2×128×128，× 61）",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 110,
+"label": "平均 ISL（MLCommons 資料集）",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 111,
+"label": "平均 OSL",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 112,
+"label": "每 routed expert 參數",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 113,
+"label": "非專家參數",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 114,
+"label": "專家參數",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 117,
+"label": "世代索引",
+"nf": 0,
+"ni": 3
+},
+{
+"sheet": "Calib",
+"row": 118,
+"label": "每用戶速度下限（1000 ÷ TPOT）",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 119,
+"label": "推測解碼（1＝有）",
+"nf": 0,
+"ni": 3
+},
+{
+"sheet": "Calib",
+"row": 120,
+"label": "MLPerf 實測輸出 tok/s/GPU（總量 ÷ 72）",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 124,
+"label": "計算用峰值",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 125,
+"label": "HBM",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 126,
+"label": "HBM 頻寬",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 127,
+"label": "EP 頻寬",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 128,
+"label": "EP 基準",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 129,
+"label": "專家 B/param",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 130,
+"label": "非專家 B/param",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 131,
+"label": "可用 HBM",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 132,
+"label": "注意力 TP",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 133,
+"label": "EP 寬度",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 134,
+"label": "每 GPU 權重",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 135,
+"label": "decode 平均上下文",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 136,
+"label": "decode FLOPs/token",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 137,
+"label": "prefill FLOPs/token",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 138,
+"label": "草稿數",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 139,
+"label": "每步接受",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 140,
+"label": "η_d（該世代）",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 141,
+"label": "每層延遲（該世代）",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 142,
+"label": "η_p（該世代）",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 143,
+"label": "prefill tok/s/GPU",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 144,
+"label": "每步固定延遲",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 145,
+"label": "每序列每步時間",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 146,
+"label": "B*",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 147,
+"label": "decode tok/s/GPU",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 148,
+"label": "模型輸出 tok/s/GPU（含 prefill 分攤）",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 149,
+"label": "模型 ÷ MLPerf",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 150,
+"label": "VR200 ÷ GB300（interactive）：模型",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 151,
+"label": "VR200 ÷ GB300（interactive）：MLPerf v6.1",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 152,
+"label": "GB300 ÷ GB200（interactive）：模型 ／ MLPerf",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Calib",
+"row": 156,
+"label": "批次口徑 η_d 倍數（X10；CAL_BatchEtaD）",
+"nf": 0,
+"ni": 5
+},
+{
+"sheet": "Tech_Registry",
+"row": 25,
+"label": "H_TPK",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Tech_Registry",
+"row": 26,
+"label": "H_MFU",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Tech_Registry",
+"row": 27,
+"label": "H_TOK",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Tech_Registry",
+"row": 28,
+"label": "H_ROLL",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 23,
+"label": "GPU 功率",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 24,
+"label": "HBM 存取能量",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 26,
+"label": "每架配電設計功率",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 62,
+"label": "快取載入頻寬",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 84,
+"label": "每序列綁定項",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 90,
+"label": "綁定約束",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 96,
+"label": "每架 decode tok/s",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 97,
+"label": "每架 prefill tok/s",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 101,
+"label": "新鮮 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 102,
+"label": "快取命中 prefill（KV 載入）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 103,
+"label": "decode（含思考 token；0＝SLO 不可達）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 107,
+"label": "運算能量",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 108,
+"label": "EP 通訊能量",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 109,
+"label": "decode FLOPs/接受 token（含草稿驗證）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 110,
+"label": "decode HBM 讀取/接受 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 111,
+"label": "decode EP 傳輸/接受 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 112,
+"label": "decode 物理下限能量",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 113,
+"label": "prefill 物理下限能量",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 114,
+"label": "物理下限功率（每架）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 115,
+"label": "機架平均用電（Block 1 假設）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 116,
+"label": "閉合比（下限 ÷ 平均用電；須 ≤ 100%）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 117,
+"label": "tokens／焦耳（總 token，平均用電口徑）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf",
+"row": 120,
+"label": "VR-eq 係數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 8,
+"label": "每 GPU 小時持有成本 — 經濟",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 9,
+"label": "每 GPU 小時持有成本 — 會計",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 10,
+"label": "基準利用率",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 13,
+"label": "GPU 秒／M 新鮮 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 14,
+"label": "GPU 秒／M 快取命中 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 15,
+"label": "GPU 秒／M decode（含思考 token；0＝SLO 不可達）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 16,
+"label": "新鮮 prefill $/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 17,
+"label": "快取命中 prefill $/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 18,
+"label": "decode（含思考 token）$/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 19,
+"label": "新鮮 prefill $/M — 經濟、基準利用率",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 20,
+"label": "快取命中 prefill $/M — 經濟、基準利用率",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 21,
+"label": "decode（含思考 token）$/M — 經濟、基準利用率",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 22,
+"label": "decode（含思考 token）$/M — 會計、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 26,
+"label": "GPU 秒／M 新鮮 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 27,
+"label": "GPU 秒／M 快取命中 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 28,
+"label": "GPU 秒／M decode（含思考 token；0＝SLO 不可達）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 29,
+"label": "新鮮 prefill $/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 30,
+"label": "快取命中 prefill $/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 31,
+"label": "decode（含思考 token）$/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 32,
+"label": "新鮮 prefill $/M — 經濟、基準利用率",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 33,
+"label": "快取命中 prefill $/M — 經濟、基準利用率",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 34,
+"label": "decode（含思考 token）$/M — 經濟、基準利用率",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 35,
+"label": "decode（含思考 token）$/M — 會計、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 39,
+"label": "GPU 秒／M 新鮮 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 40,
+"label": "GPU 秒／M 快取命中 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 41,
+"label": "GPU 秒／M decode（含思考 token；0＝SLO 不可達）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 42,
+"label": "新鮮 prefill $/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 43,
+"label": "快取命中 prefill $/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 44,
+"label": "decode（含思考 token）$/M — 經濟、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 45,
+"label": "新鮮 prefill $/M — 經濟、基準利用率",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 46,
+"label": "快取命中 prefill $/M — 經濟、基準利用率",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 47,
+"label": "decode（含思考 token）$/M — 經濟、基準利用率",
+"nf": 2,
+"ni": 0
+},
+{
+"sheet": "Unit_Cost",
+"row": 48,
+"label": "decode（含思考 token）$/M — 會計、100%",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "DC_Cost",
+"row": 16,
+"label": "設施電力（IT × PUE）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "DC_Cost",
+"row": 36,
+"label": "每 MW IT 廠房資本支出",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "DC_Cost",
+"row": 39,
+"label": "IT 折舊",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "DC_Cost",
+"row": 40,
+"label": "廠房折舊（土地不折舊）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "DC_Cost",
+"row": 49,
+"label": "年持有成本 — 會計口徑",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "DC_Cost",
+"row": 57,
+"label": "每 GPU 小時持有成本 — 會計",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "DC_Cost",
+"row": 58,
+"label": "每 GPU 小時持有成本 — 經濟",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 6,
+"label": "世代索引",
+"nf": 0,
+"ni": 15
+},
+{
+"sheet": "Perf_Batch",
+"row": 7,
+"label": "層級索引",
+"nf": 0,
+"ni": 15
+},
+{
+"sheet": "Perf_Batch",
+"row": 10,
+"label": "FLOPs/token 倍數（H_FLOP）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 11,
+"label": "KV bytes/token 倍數（H_KV）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 12,
+"label": "權重 bytes/param 倍數（H_WB）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 14,
+"label": "計算用峰值",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 15,
+"label": "HBM 容量",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 16,
+"label": "HBM 頻寬",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 17,
+"label": "EP 通訊頻寬（單向）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 18,
+"label": "decode EP 基準寬度",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 19,
+"label": "專家權重 bytes/param（含 H_WB）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 20,
+"label": "非專家權重 bytes/param（含 H_WB）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 28,
+"label": "啟用參數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 29,
+"label": "層數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 30,
+"label": "d_model",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 31,
+"label": "啟用 routed experts",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 32,
+"label": "非專家參數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 33,
+"label": "專家參數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 34,
+"label": "KV bytes/token（含 H_KV）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 35,
+"label": "注意力 FLOPs／被注意 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 36,
+"label": "全注意力層比例",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 37,
+"label": "全注意力跨度上限",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 38,
+"label": "其他層壓縮比",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 39,
+"label": "其他層滑動窗",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 41,
+"label": "SLO：每用戶 decode 速度下限",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 43,
+"label": "參考 ISL",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 44,
+"label": "參考 OSL（含思考）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 45,
+"label": "decode 平均上下文",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 46,
+"label": "prefill 平均位置",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 47,
+"label": "MTP 草稿數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 48,
+"label": "草稿接受率",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 49,
+"label": "每步期望接受 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 50,
+"label": "實測→生產效率折減",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 51,
+"label": "η_p（prefill 占峰值；含折減）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 52,
+"label": "η_d 倍數（Tech_Registry H_ETAD；Sens_Perf 情境覆寫）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 53,
+"label": "η_d（decode 每序列算力效率；含折減）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 54,
+"label": "每層延遲倍數（Tech_Registry H_TL；Sens_Perf 情境覆寫）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 55,
+"label": "每層每次前向固定延遲（含折減）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 56,
+"label": "HBM 保留比例",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 57,
+"label": "非專家權重占 HBM 上限",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 58,
+"label": "專家權重占 HBM 上限",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 59,
+"label": "EP 啟用值 bytes/元素",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 60,
+"label": "KV 讀取效率",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 61,
+"label": "EP 通訊效率",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 64,
+"label": "decode 被注意 token 數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 65,
+"label": "decode FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 66,
+"label": "prefill 被注意 token 數",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 67,
+"label": "prefill FLOPs/token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 69,
+"label": "可用 HBM",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 70,
+"label": "注意力 TP 度（自動）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 71,
+"label": "decode EP 寬度（自動）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 72,
+"label": "每 GPU 權重",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 75,
+"label": "prefill tok/s（每 prefill GPU）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 79,
+"label": "每步固定延遲（權重讀取＋逐層延遲）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 80,
+"label": "每序列每步 — 算力項",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 81,
+"label": "每序列每步 — KV 讀取項",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 82,
+"label": "每序列每步 — EP 通訊項",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 83,
+"label": "每序列每步（取最大，假設三者可重疊）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 85,
+"label": "SLO 允許的批次上限",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 86,
+"label": "HBM 容量允許的批次上限",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 87,
+"label": "採用批次 B*",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 88,
+"label": "decode tok/s（每 decode GPU）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 101,
+"label": "新鮮 prefill",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Perf_Batch",
+"row": 103,
+"label": "decode（含思考 token；0＝SLO 不可達）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Price_Frontier",
+"row": 24,
+"label": "OpenAI 層級模型 混合單價（表列）",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Price_Frontier",
+"row": 26,
+"label": "前緣模型",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Price_Frontier",
+"row": 31,
+"label": "中國廠商 合格者最低 混合單價",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Price_Frontier",
+"row": 33,
+"label": "中國合格者最低 ÷ OpenAI 層級模型",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Price_Frontier",
+"row": 43,
+"label": "思考 $/M（有效；依輸出價計費）",
+"nf": 3,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 6,
+"label": "世代索引",
+"nf": 0,
+"ni": 15
+},
+{
+"sheet": "Cache_Store",
+"row": 10,
+"label": "SSD",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 11,
+"label": "DRAM",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 12,
+"label": "HBM（上限）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 13,
+"label": "採用儲存層",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 16,
+"label": "KV bytes/token（Arch 採用列）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 17,
+"label": "儲存 $/M 快取命中 token　[IF_CacheStore_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 22,
+"label": "KV bytes/token（Arch 採用列）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 23,
+"label": "儲存 $/M 快取命中 token　[IF_CacheStore_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 28,
+"label": "KV bytes/token（Arch 採用列）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Cache_Store",
+"row": 29,
+"label": "儲存 $/M 快取命中 token　[IF_CacheStore_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 10,
+"label": "對外服務",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 12,
+"label": "免費服務",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 13,
+"label": "訓練＋研發",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 20,
+"label": "免費服務 token 總量",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 22,
+"label": "Luna（低層） 免費 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 23,
+"label": "Luna（低層） 服務 GW",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 25,
+"label": "Sol（中層） 免費 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 26,
+"label": "Sol（中層） 服務 GW",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 28,
+"label": "Astra（頂層） 免費 token",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 29,
+"label": "Astra（頂層） 服務 GW",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 30,
+"label": "檢查：各層級服務 GW 合計 − 對外服務 GW（應為 0）",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 33,
+"label": "家族研發計畫占 1 GW 年（三層級合計）",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Fleet_1GW",
+"row": 34,
+"label": "隱含每 GW 年可容納的家族研發計畫數（訓練＋研發 ÷ 家族計畫）",
+"nf": 1,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 7,
+"label": "欄索引",
+"nf": 0,
+"ni": 15
+},
+{
+"sheet": "Amortize",
+"row": 10,
+"label": "研發計畫成本（IF_ProgCost）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 11,
+"label": "年服務 token（付費＋免費）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 12,
+"label": "商業壽命內服務 token（付費＋免費）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 13,
+"label": "自下而上攤提＝回本所需單價溢價　[IF_AmortBU_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 14,
+"label": "服務成本（參考請求混合，含快取儲存，基準利用率）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 15,
+"label": "由上而下攤提　[IF_AmortTD_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 19,
+"label": "研發計畫成本（IF_ProgCost）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 20,
+"label": "年服務 token（付費＋免費）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 21,
+"label": "商業壽命內服務 token（付費＋免費）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 22,
+"label": "自下而上攤提＝回本所需單價溢價　[IF_AmortBU_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 23,
+"label": "服務成本（參考請求混合，含快取儲存，基準利用率）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 24,
+"label": "由上而下攤提　[IF_AmortTD_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 29,
+"label": "研發計畫成本（IF_ProgCost）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 30,
+"label": "年服務 token（付費＋免費）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 31,
+"label": "商業壽命內服務 token（付費＋免費）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 32,
+"label": "自下而上攤提＝回本所需單價溢價　[IF_AmortBU_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 33,
+"label": "服務成本（參考請求混合，含快取儲存，基準利用率）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 34,
+"label": "由上而下攤提　[IF_AmortTD_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 39,
+"label": "由上而下年化總額（三層級合計）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 40,
+"label": "自下而上年化總額（研發計畫成本 × 12 ÷ 商業壽命，合計）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 41,
+"label": "縮放倍數（由上而下 ÷ 自下而上總額）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 42,
+"label": "付費營收合計（OpenAI 有效單價）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 43,
+"label": "Luna（低層）：(c) 由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 44,
+"label": "Luna（低層）：(d) 由上而下總額 × 營收權重　[IF_AmortRev_Luna]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 45,
+"label": "Sol（中層）：(c) 由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 46,
+"label": "Sol（中層）：(d) 由上而下總額 × 營收權重　[IF_AmortRev_Sol]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 47,
+"label": "Astra（頂層）：(c) 由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Amortize",
+"row": 48,
+"label": "Astra（頂層）：(d) 由上而下總額 × 營收權重　[IF_AmortRev_Astra]",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 4,
+"label": "指標",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 6,
+"label": "每 GW 機架數",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 7,
+"label": "每 GW GPU 數",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 8,
+"label": "每 IT GW 對應設施電力",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 9,
+"label": "每 GW 資本支出 — IT 設備",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 10,
+"label": "每 GW 資本支出 — 廠房",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 11,
+"label": "每 GW 資本支出 — 合計",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 12,
+"label": "每 GW 年持有成本 — 會計口徑",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 14,
+"label": "每 GPU 小時持有成本 — 經濟",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 15,
+"label": "其中：每 GW 年電費",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 19,
+"label": "每架總 tok/s（參考任務 P:D）　[IF_TokRack_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 20,
+"label": "每架 decode tok/s　[IF_TokRackD_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 22,
+"label": "VR-eq 係數（每 GW 產出 ÷ VR200）　[IF_VReq_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 23,
+"label": "新鮮 prefill $/M（經濟、100%）　[IF_CostPre_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 24,
+"label": "快取命中 prefill $/M（經濟、100%）　[IF_CostCache_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 25,
+"label": "decode（含思考 token）$/M（經濟、100%）　[IF_CostDec_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 26,
+"label": "decode（含思考 token）$/M（會計、100%）　[IF_CostDecAcct_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 27,
+"label": "tokens／焦耳（平均用電口徑）　[IF_TokPerJ_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 29,
+"label": "每架總 tok/s（參考任務 P:D）　[IF_TokRack_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 30,
+"label": "每架 decode tok/s　[IF_TokRackD_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 32,
+"label": "VR-eq 係數（每 GW 產出 ÷ VR200）　[IF_VReq_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 33,
+"label": "新鮮 prefill $/M（經濟、100%）　[IF_CostPre_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 34,
+"label": "快取命中 prefill $/M（經濟、100%）　[IF_CostCache_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 35,
+"label": "decode（含思考 token）$/M（經濟、100%）　[IF_CostDec_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 36,
+"label": "decode（含思考 token）$/M（會計、100%）　[IF_CostDecAcct_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 37,
+"label": "tokens／焦耳（平均用電口徑）　[IF_TokPerJ_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 39,
+"label": "每架總 tok/s（參考任務 P:D）　[IF_TokRack_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 40,
+"label": "每架 decode tok/s　[IF_TokRackD_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 42,
+"label": "VR-eq 係數（每 GW 產出 ÷ VR200）　[IF_VReq_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 43,
+"label": "新鮮 prefill $/M（經濟、100%）　[IF_CostPre_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 44,
+"label": "快取命中 prefill $/M（經濟、100%）　[IF_CostCache_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 45,
+"label": "decode（含思考 token）$/M（經濟、100%）　[IF_CostDec_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 46,
+"label": "decode（含思考 token）$/M（會計、100%）　[IF_CostDecAcct_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 47,
+"label": "tokens／焦耳（平均用電口徑）　[IF_TokPerJ_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 54,
+"label": "最終訓練 GPU 小時（單一模型）　[IF_TrainGPUh_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 55,
+"label": "最終訓練成本 — 經濟（依成本情境）　[IF_TrainCost_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 56,
+"label": "後訓練占比（FLOPs 口徑）　[IF_PostShareFLOP_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 57,
+"label": "後訓練占比（GPU 小時口徑）　[IF_PostShareGPUh_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 58,
+"label": "RL 有效 MFU（訓練峰值分母）　[IF_RLMFU_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 59,
+"label": "研發計畫 GPU 小時（含研發倍數分攤）　[IF_ProgGPUh_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 60,
+"label": "研發計畫成本 — 經濟（依成本情境）　[IF_ProgCost_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 61,
+"label": "研發計畫占 1 GW 一年　[IF_ProgGWyr_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 63,
+"label": "最終訓練 GPU 小時（單一模型）　[IF_TrainGPUh_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 64,
+"label": "最終訓練成本 — 經濟（依成本情境）　[IF_TrainCost_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 65,
+"label": "後訓練占比（FLOPs 口徑）　[IF_PostShareFLOP_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 66,
+"label": "後訓練占比（GPU 小時口徑）　[IF_PostShareGPUh_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 67,
+"label": "RL 有效 MFU（訓練峰值分母）　[IF_RLMFU_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 68,
+"label": "研發計畫 GPU 小時（含研發倍數分攤）　[IF_ProgGPUh_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 69,
+"label": "研發計畫成本 — 經濟（依成本情境）　[IF_ProgCost_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 70,
+"label": "研發計畫占 1 GW 一年　[IF_ProgGWyr_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 72,
+"label": "最終訓練 GPU 小時（單一模型）　[IF_TrainGPUh_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 73,
+"label": "最終訓練成本 — 經濟（依成本情境）　[IF_TrainCost_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 74,
+"label": "後訓練占比（FLOPs 口徑）　[IF_PostShareFLOP_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 75,
+"label": "後訓練占比（GPU 小時口徑）　[IF_PostShareGPUh_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 76,
+"label": "RL 有效 MFU（訓練峰值分母）　[IF_RLMFU_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 77,
+"label": "研發計畫 GPU 小時（含研發倍數分攤）　[IF_ProgGPUh_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 78,
+"label": "研發計畫成本 — 經濟（依成本情境）　[IF_ProgCost_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 79,
+"label": "研發計畫占 1 GW 一年　[IF_ProgGWyr_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 80,
+"label": "研發倍數（第 0 層基準；下游可覆寫）　[IF_RDMult]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 81,
+"label": "下游預設訓練世代（索引；J13）　[IF_TrainGenDefault]",
+"nf": 7,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 82,
+"label": "並列訓練世代（索引；J13）　[IF_TrainGenAlt]",
+"nf": 7,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 86,
+"label": "新鮮輸入 $/M — OpenAI 有效　[IF_PriceFresh_Luna]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 87,
+"label": "快取輸入 $/M — OpenAI 有效　[IF_PriceCached_Luna]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 88,
+"label": "思考 $/M — OpenAI 有效（依輸出計費）　[IF_PriceThink_Luna]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 89,
+"label": "可見輸出 $/M — OpenAI 有效　[IF_PriceOut_Luna]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 91,
+"label": "參考請求混合 $/M — 前緣有效　[IF_FrontRef_Luna]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 92,
+"label": "前緣模型（顯示）　[IF_FrontModel_Luna]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 93,
+"label": "商業壽命　[IF_Life_Luna]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 94,
+"label": "快取儲存 $/M 快取命中 token　[IF_CacheStore_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 95,
+"label": "訓練攤提 自下而上＝回本所需溢價　[IF_AmortBU_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 96,
+"label": "訓練攤提 由上而下（機隊訓練占比）　[IF_AmortTD_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 97,
+"label": "全成本 $/M（服務＋快取儲存＋自下而上攤提；基準利用率）　[IF_FullCost_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 98,
+"label": "訓練攤提 K6 預設 (c)：由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 99,
+"label": "訓練攤提 (d)：由上而下總額 × 營收權重　[IF_AmortRev_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 100,
+"label": "全成本 $/M（服務＋快取儲存＋K6 預設攤提；基準利用率；下游預設）　[IF_FullCostDefault_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 101,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）　[IF_RevGW_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 104,
+"label": "新鮮輸入 $/M — OpenAI 有效　[IF_PriceFresh_Sol]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 105,
+"label": "快取輸入 $/M — OpenAI 有效　[IF_PriceCached_Sol]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 106,
+"label": "思考 $/M — OpenAI 有效（依輸出計費）　[IF_PriceThink_Sol]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 107,
+"label": "可見輸出 $/M — OpenAI 有效　[IF_PriceOut_Sol]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 109,
+"label": "參考請求混合 $/M — 前緣有效　[IF_FrontRef_Sol]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 110,
+"label": "前緣模型（顯示）　[IF_FrontModel_Sol]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 111,
+"label": "商業壽命　[IF_Life_Sol]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 112,
+"label": "快取儲存 $/M 快取命中 token　[IF_CacheStore_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 113,
+"label": "訓練攤提 自下而上＝回本所需溢價　[IF_AmortBU_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 114,
+"label": "訓練攤提 由上而下（機隊訓練占比）　[IF_AmortTD_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 115,
+"label": "全成本 $/M（服務＋快取儲存＋自下而上攤提；基準利用率）　[IF_FullCost_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 116,
+"label": "訓練攤提 K6 預設 (c)：由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 117,
+"label": "訓練攤提 (d)：由上而下總額 × 營收權重　[IF_AmortRev_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 118,
+"label": "全成本 $/M（服務＋快取儲存＋K6 預設攤提；基準利用率；下游預設）　[IF_FullCostDefault_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 119,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）　[IF_RevGW_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 122,
+"label": "新鮮輸入 $/M — OpenAI 有效　[IF_PriceFresh_Astra]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 123,
+"label": "快取輸入 $/M — OpenAI 有效　[IF_PriceCached_Astra]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 124,
+"label": "思考 $/M — OpenAI 有效（依輸出計費）　[IF_PriceThink_Astra]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 125,
+"label": "可見輸出 $/M — OpenAI 有效　[IF_PriceOut_Astra]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 127,
+"label": "參考請求混合 $/M — 前緣有效　[IF_FrontRef_Astra]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 128,
+"label": "前緣模型（顯示）　[IF_FrontModel_Astra]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 129,
+"label": "商業壽命　[IF_Life_Astra]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 130,
+"label": "快取儲存 $/M 快取命中 token　[IF_CacheStore_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 131,
+"label": "訓練攤提 自下而上＝回本所需溢價　[IF_AmortBU_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 132,
+"label": "訓練攤提 由上而下（機隊訓練占比）　[IF_AmortTD_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 133,
+"label": "全成本 $/M（服務＋快取儲存＋自下而上攤提；基準利用率）　[IF_FullCost_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 134,
+"label": "訓練攤提 K6 預設 (c)：由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 135,
+"label": "訓練攤提 (d)：由上而下總額 × 營收權重　[IF_AmortRev_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 136,
+"label": "全成本 $/M（服務＋快取儲存＋K6 預設攤提；基準利用率；下游預設）　[IF_FullCostDefault_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 137,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）　[IF_RevGW_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 140,
+"label": "付費服務營收 Luna（低層） 貢獻 — OpenAI 有效單價　[IF_RevGWFleet_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 141,
+"label": "付費服務營收 Sol（中層） 貢獻 — OpenAI 有效單價　[IF_RevGWFleet_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 142,
+"label": "付費服務營收 Astra（頂層） 貢獻 — OpenAI 有效單價　[IF_RevGWFleet_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 144,
+"label": "付費服務營收 Luna（低層） 貢獻 — 前緣單價　[IF_RevGWFleetFront_Luna]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 145,
+"label": "付費服務營收 Sol（中層） 貢獻 — 前緣單價　[IF_RevGWFleetFront_Sol]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 146,
+"label": "付費服務營收 Astra（頂層） 貢獻 — 前緣單價　[IF_RevGWFleetFront_Astra]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 148,
+"label": "對外服務占機隊（第 0 層參考；下游覆寫）　[IF_ServeShare]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 152,
+"label": "任務　[IF_HdrTask]",
+"nf": 5,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 153,
+"label": "harness 混合權重 w（T12 開關 × 採用比例）　[IF_HarW]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 154,
+"label": "選定 harness 檔案（情境）　[IF_HarProfile]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 155,
+"label": "任務長度（人類完成時間）　[IF_TaskLen]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 156,
+"label": "每次嘗試 新鮮輸入 token（現行）　[IF_TaskTokFresh]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 157,
+"label": "每次嘗試 快取輸入 token（現行）　[IF_TaskTokCached]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 158,
+"label": "每次嘗試 decode token（思考＋可見；現行）　[IF_TaskTokDec]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 159,
+"label": "每次嘗試 總 token（選定檔案全採用；情境）　[IF_TaskTokSel]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 160,
+"label": "總 token：選定檔案 ÷ 標準　[IF_HarTokRatio]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 162,
+"label": "成功率 p（現行）　[IF_TaskSucc_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 163,
+"label": "成功率 p（選定檔案全採用；情境）　[IF_TaskSuccSel_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 164,
+"label": "每成功任務成本 — VR200（現行；經濟、基準成本、基準利用率）　[IF_CostSuccVR_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 165,
+"label": "每成功任務成本 — GB300（現行）　[IF_CostSuccGB_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 166,
+"label": "每成功任務營收 — OpenAI 有效單價（現行）　[IF_RevSucc_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 167,
+"label": "R＝每成功任務成本 選定 ÷ 標準（VR200）　[IF_HarR_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 169,
+"label": "成功率 p（現行）　[IF_TaskSucc_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 170,
+"label": "成功率 p（選定檔案全採用；情境）　[IF_TaskSuccSel_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 171,
+"label": "每成功任務成本 — VR200（現行；經濟、基準成本、基準利用率）　[IF_CostSuccVR_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 172,
+"label": "每成功任務成本 — GB300（現行）　[IF_CostSuccGB_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 173,
+"label": "每成功任務營收 — OpenAI 有效單價（現行）　[IF_RevSucc_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 174,
+"label": "R＝每成功任務成本 選定 ÷ 標準（VR200）　[IF_HarR_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 176,
+"label": "成功率 p（現行）　[IF_TaskSucc_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 177,
+"label": "成功率 p（選定檔案全採用；情境）　[IF_TaskSuccSel_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 178,
+"label": "每成功任務成本 — VR200（現行；經濟、基準成本、基準利用率）　[IF_CostSuccVR_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 179,
+"label": "每成功任務成本 — GB300（現行）　[IF_CostSuccGB_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 180,
+"label": "每成功任務營收 — OpenAI 有效單價（現行）　[IF_RevSucc_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 181,
+"label": "R＝每成功任務成本 選定 ÷ 標準（VR200）　[IF_HarR_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 183,
+"label": "Luna（低層）｜每次嘗試成本 — VR200（現行；經濟、基準成本、基準利用率；÷ p＝每成功任務成本）　[IF_CostAttVR_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 184,
+"label": "Luna（低層）｜有效 50% 時間範圍（層級基準 × 時間範圍倍數；現行）　[IF_HzEff_Luna]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 185,
+"label": "Sol（中層）｜每次嘗試成本 — VR200（現行；經濟、基準成本、基準利用率；÷ p＝每成功任務成本）　[IF_CostAttVR_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 186,
+"label": "Sol（中層）｜有效 50% 時間範圍（層級基準 × 時間範圍倍數；現行）　[IF_HzEff_Sol]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 187,
+"label": "Astra（頂層）｜每次嘗試成本 — VR200（現行；經濟、基準成本、基準利用率；÷ p＝每成功任務成本）　[IF_CostAttVR_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 188,
+"label": "Astra（頂層）｜有效 50% 時間範圍（層級基準 × 時間範圍倍數；現行）　[IF_HzEff_Astra]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 189,
+"label": "可靠度下限 p_min（M1 (b)）　[IF_PFloor]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 190,
+"label": "成功任務成本前緣 — VR200（p ≥ p_min；3 層級 × 標準／選定檔案）　[IF_FrontSuccVR]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 191,
+"label": "成功任務成本前緣組合 — VR200（層級｜檔案；『無合格』＝無組合達下限）　[IF_FrontSuccVRName]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 192,
+"label": "成功任務成本前緣組合的成功率 p — VR200　[IF_FrontSuccVRP]",
+"nf": 10,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 195,
+"label": "研發算力占比 Q1（R1：研發 GW ÷ 研發＋服務 GW）　[IF_AllocQ1]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 196,
+"label": "研發算力占比 Q1（R2：免費服務算作產品改良）　[IF_AllocQ1_R2]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 197,
+"label": "研發算力成本占比 Q2（已裝 GW × 各世代每 GW 年持有成本；利用率不進入）　[IF_AllocQ2]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 198,
+"label": "服務 GW 合計（token 路線；付費＋免費；IT 關鍵電力）　[IF_AllocServeGW]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 199,
+"label": "研發 GW 年（k ×（N_major × 家族＋N_refresh × 改版）；訓練世代＝IF_TrainGenDefault）　[IF_AllocRDGW]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 200,
+"label": "需求 D 合計（API＋ChatGPT；付費＋免費 token；2025）　[IF_AllocDemand]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 201,
+"label": "隱含 N × k（2025 支出比反推；以家族計畫當量；A3）　[IF_AllocImpliedNk]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 204,
+"label": "全成本 $/M（服務＋快取儲存＋自下而上攤提；基準利用率）（生產折減 CTL_ProdDerate）　[IF_FullCost_Luna_Prod]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 205,
+"label": "全成本 $/M（服務＋快取儲存＋自下而上攤提；基準利用率）（生產折減 CTL_ProdDerate）　[IF_FullCost_Sol_Prod]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 206,
+"label": "全成本 $/M（服務＋快取儲存＋自下而上攤提；基準利用率）（生產折減 CTL_ProdDerate）　[IF_FullCost_Astra_Prod]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 213,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）（× L × m）　[IF_RevGW_Luna_Life]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 214,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）（× L × m）　[IF_RevGW_Sol_Life]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 215,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）（× L × m）　[IF_RevGW_Astra_Life]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 216,
+"label": "付費服務營收合計（層級組合）— OpenAI 有效單價（理想上限）（× L × m）　[IF_RevGWFleet_Life]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 219,
+"label": "IT 折舊年限　[IF_DeprLifeIT]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 220,
+"label": "每 GW IT 折舊　[IF_DeprIT]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 221,
+"label": "每 GW 廠房折舊（土地不折舊）　[IF_DeprFac]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 222,
+"label": "平均用電 ÷ 配電設計功率　[IF_AvgDraw]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 223,
+"label": "電價　[IF_PowerPrice]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 224,
+"label": "每 GW IT 維護　[IF_MaintIT]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 225,
+"label": "每 GW 廠房維護　[IF_MaintFac]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 226,
+"label": "每 GW 人員、軟體、水與耗材（站點營運；不含平台研發）　[IF_StaffSW]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 227,
+"label": "每 GW 財產稅與保險　[IF_TaxIns]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 228,
+"label": "每 GW 營運費用小計（不含折舊；含電費）　[IF_OpexGW]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 229,
+"label": "加總核對：IF_DeprIT＋IF_DeprFac＋IF_OpexGW − IF_HoldAcct（每欄應為 0；顯示用，不設名稱）",
+"nf": 5,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 233,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGW_Luna_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 234,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）｜× IF_Util　[IFW_RevGW_Luna_Util]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 238,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGW_Sol_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 239,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）｜× IF_Util　[IFW_RevGW_Sol_Util]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 243,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGW_Astra_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 244,
+"label": "每 GW 理論營收 — OpenAI 有效單價（理想上限）｜× IF_Util　[IFW_RevGW_Astra_Util]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 248,
+"label": "付費服務營收合計（層級組合）— OpenAI 有效單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGWFleet_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 249,
+"label": "付費服務營收合計（層級組合）— OpenAI 有效單價（理想上限）｜× IF_Util　[IFW_RevGWFleet_Util]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 253,
+"label": "每 GW 理論營收 — 前緣單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGWFront_Luna_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 258,
+"label": "每 GW 理論營收 — 前緣單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGWFront_Sol_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 263,
+"label": "每 GW 理論營收 — 前緣單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGWFront_Astra_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 268,
+"label": "付費服務營收合計（層級組合）— 前緣單價（理想上限）｜100%（D 節列 ÷ IF_Util）　[IFW_RevGWFleetFront_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 273,
+"label": "每 GW 總產出（100%）｜100%　[IFW_TokGW_Luna_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 274,
+"label": "每 GW 總產出（100%）｜× IF_Util（B 節 100% 列 × IF_Util；無 D 節對應）　[IFW_TokGW_Luna_Util]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 275,
+"label": "每 GW 總產出（100%）｜× CTL_ProdDerate（＝Util 列 × CTL_ProdDerate，線性；Interface_Prod 同列為 100% 口徑重解值，保留原處作對照）　[IFW_TokGW_Luna_Prod]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 276,
+"label": "每 GW 總產出（100%）｜× L × m（無 H 節對應：＝Prod 列 × 1；L、m 不作用於產能）　[IFW_TokGW_Luna_Life]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 278,
+"label": "每 GW 總產出（100%）｜100%　[IFW_TokGW_Sol_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 279,
+"label": "每 GW 總產出（100%）｜× IF_Util（B 節 100% 列 × IF_Util；無 D 節對應）　[IFW_TokGW_Sol_Util]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 280,
+"label": "每 GW 總產出（100%）｜× CTL_ProdDerate（＝Util 列 × CTL_ProdDerate，線性；Interface_Prod 同列為 100% 口徑重解值，保留原處作對照）　[IFW_TokGW_Sol_Prod]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 281,
+"label": "每 GW 總產出（100%）｜× L × m（無 H 節對應：＝Prod 列 × 1；L、m 不作用於產能）　[IFW_TokGW_Sol_Life]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 283,
+"label": "每 GW 總產出（100%）｜100%　[IFW_TokGW_Astra_100]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 284,
+"label": "每 GW 總產出（100%）｜× IF_Util（B 節 100% 列 × IF_Util；無 D 節對應）　[IFW_TokGW_Astra_Util]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 285,
+"label": "每 GW 總產出（100%）｜× CTL_ProdDerate（＝Util 列 × CTL_ProdDerate，線性；Interface_Prod 同列為 100% 口徑重解值，保留原處作對照）　[IFW_TokGW_Astra_Prod]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 286,
+"label": "每 GW 總產出（100%）｜× L × m（無 H 節對應：＝Prod 列 × 1；L、m 不作用於產能）　[IFW_TokGW_Astra_Life]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 289,
+"label": "IFW_RevGW_Luna_Util：Interface 列 vs Interface 第 101 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 290,
+"label": "IFW_RevGW_Sol_Util：Interface 列 vs Interface 第 119 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 291,
+"label": "IFW_RevGW_Astra_Util：Interface 列 vs Interface 第 137 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 292,
+"label": "IFW_RevGWFleet_Util：Interface 列 vs Interface 第 143 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 293,
+"label": "IFW_RevGWFront_Luna_Util：Interface 列 vs Interface 第 102 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 294,
+"label": "IFW_RevGWFront_Sol_Util：Interface 列 vs Interface 第 120 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 295,
+"label": "IFW_RevGWFront_Astra_Util：Interface 列 vs Interface 第 138 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 296,
+"label": "IFW_RevGWFleetFront_Util：Interface 列 vs Interface 第 147 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 297,
+"label": "IFW_TokGW_Luna_100：Interface 列 vs Interface 第 21 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 298,
+"label": "IFW_TokGW_Sol_100：Interface 列 vs Interface 第 31 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 299,
+"label": "IFW_TokGW_Astra_100：Interface 列 vs Interface 第 41 列",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 300,
+"label": "IFW_RevGW_Luna：Interface 四層單調（第 233–236 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 301,
+"label": "IFW_RevGW_Sol：Interface 四層單調（第 238–241 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 302,
+"label": "IFW_RevGW_Astra：Interface 四層單調（第 243–246 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 303,
+"label": "IFW_RevGWFleet：Interface 四層單調（第 248–251 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 304,
+"label": "IFW_RevGWFront_Luna：Interface 四層單調（第 253–256 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 305,
+"label": "IFW_RevGWFront_Sol：Interface 四層單調（第 258–261 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 306,
+"label": "IFW_RevGWFront_Astra：Interface 四層單調（第 263–266 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 307,
+"label": "IFW_RevGWFleetFront：Interface 四層單調（第 268–271 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 308,
+"label": "IFW_TokGW_Luna：Interface 四層單調（第 273–276 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 309,
+"label": "IFW_TokGW_Sol：Interface 四層單調（第 278–281 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 310,
+"label": "IFW_TokGW_Astra：Interface 四層單調（第 283–286 列：_100 ≥ _Util ≥ _Prod ≥ _Life）",
+"nf": 15,
+"ni": 0
+},
+{
+"sheet": "Interface",
+"row": 313,
+"label": "每 GW IT 維護 — 保固期內（＝IT 資本 × 保固期內費率）　[IF_MaintITWarr]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 314,
+"label": "每 GW IT 維護 — 保固期滿後（＝IT 資本 × 保固期滿後費率）　[IF_MaintITPost]",
+"nf": 20,
+"ni": 1
+},
+{
+"sheet": "Interface",
+"row": 315,
+"label": "IT 原廠保固年限（單格；保固期內費率適用的年數）　[IF_WarrantyYrs]",
+"nf": 6,
+"ni": 1
+},
+{
+"sheet": "Energy",
+"row": 5,
+"label": "GPU 功率中可歸於運算的比例",
+"nf": 0,
+"ni": 1
+},
+{
+"sheet": "Energy",
+"row": 6,
+"label": "EP 通訊能量 NVLink",
+"nf": 0,
+"ni": 1
+},
+{
+"sheet": "Energy",
+"row": 7,
+"label": "EP 通訊能量 IB（Hopper）",
+"nf": 0,
+"ni": 1
+}
+]

@@ -13,7 +13,7 @@ for r in sysrows:
         if '!' not in part: continue
         sh,cs=part.split('!',1)
         for c in cs.split(','): ymap[(sh.strip(),c.strip())].add(r[0])
-METRICS=[('L1_MImplied','L1','D76'),('L1_MFleet','L1','D78'),('L1_MAPI','L1','D80'),('m 下限（Cap_In C121）','Cap_In','C121'),
+METRICS=[('L1_MImplied','L1','D76'),('L1_MFleet','L1','D78'),('L1_MAPI','L1','D80'),('L1_MSub','L1','D81'),('L1_MSeat','L1','D82'),('m 下限（Cap_In C121）','Cap_In','C121'),
  ('缺口＝機隊÷需求（1÷Cap_In C174）','Cap_In','C174'),('L1_GapProduct','L1','D74'),('L1_ScaleServe','L1','D69'),('L1_LReqFleet','L1','D89'),
  ('L1_FleetBreakeven','L1','D52'),('IFW_RevGWFleet_Life（VR200 基準）','Interface','M251')]
 def read():

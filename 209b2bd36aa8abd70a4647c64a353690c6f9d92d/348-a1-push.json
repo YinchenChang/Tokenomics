@@ -1,0 +1,46 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "209b2bd36aa8abd70a4647c64a353690c6f9d92d",
+ "github_sha": "209b2bd36aa8abd70a4647c64a353690c6f9d92d",
+ "ref": "refs/heads/claude/audit-fix-2-wo",
+ "event": "push",
+ "run_id": 38824023639,
+ "run_number": 348,
+ "run_attempt": 1,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 116727114249,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-10-15T23:30:51Z",
+   "completed_at": "2026-10-15T23:39:07Z",
+   "seconds": 496,
+   "python": "3.11.17"
+  },
+  {
+   "id": 116727114454,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-15T23:30:52Z",
+   "completed_at": "2026-10-15T23:31:43Z",
+   "seconds": 51,
+   "python": "3.11.17"
+  },
+  {
+   "id": 116729784776,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-15T23:39:09Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.12.3"
+  }
+ ],
+ "failures": [],
+ "log_excerpts": {},
+ "recalc_seconds": null,
+ "generated_at": "2026-10-15T23:39:15Z",
+ "errors": []
+}

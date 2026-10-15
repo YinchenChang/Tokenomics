@@ -69,8 +69,8 @@ def sens_sheet(wb, SP, AR, CAL, TR):
     put(ws, f"A{r+1}", "VR200 ÷ GB300：decode $/M（經濟、基準）"); put(ws, f"B{r+1}", "x")
     for i in range(len(SCEN)):
         xv, xg = L(3 + 2 * i), L(4 + 2 * i)
-        put(ws, f"{xv}{r}", f"=IF({xg}{R['gwtot']}>0,{xv}{R['gwtot']}/{xg}{R['gwtot']},0)", fmt="0.00", fill=FILL_KEY)
-        put(ws, f"{xv}{r+1}", f"=IF(AND({xg}{R['cdq']}>0,{xv}{R['cdq']}>0),{xv}{R['cdq']}/{xg}{R['cdq']},0)", fmt="0.00", fill=FILL_KEY)
+        put(ws, f"{xv}{r}", f"=IF(AND(ISNUMBER({xg}{R['gwtot']}),ISNUMBER({xv}{R['gwtot']})),IF({xg}{R['gwtot']}>0,{xv}{R['gwtot']}/{xg}{R['gwtot']},0),\"SLO 不可達\")", fmt="0.00", fill=FILL_KEY)
+        put(ws, f"{xv}{r+1}", f"=IF(AND(ISNUMBER({xg}{R['cdq']}),ISNUMBER({xv}{R['cdq']})),IF(AND({xg}{R['cdq']}>0,{xv}{R['cdq']}>0),{xv}{R['cdq']}/{xg}{R['cdq']},0),\"SLO 不可達\")", fmt="0.00", fill=FILL_KEY)
     ws.freeze_panes = "C8"
     return R
 

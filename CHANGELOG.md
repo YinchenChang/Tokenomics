@@ -2,6 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v7.0.xlsx（取代 v6.3；主版：下游契約第 4 節改寫、新增名稱；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r0 第 3 節＝2-2 段與 `docs/workorders/20261015_世代價格B.md` r0）
+
+- 分支 `claude/audit-fix-2-2`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-2.md`；進度檔：`docs/reports/20261016_稽核修正2-2_進度.md`。底稿：master（v6.3，已移至 `model/archive/`）；`model/CURRENT` 改為 v7.0。
+- Excel（CC 以 `builder/v700.py` 等自 v6.3 產生，經 LibreOffice 重算存檔）：
+  - 世代價格 B 段：Cap_In L 節（第 271–274 列）新增世代上市間隔 `CAP_GenGap_GB200／GB300／VR200`（基準／低／高 1.88／1.88／2.17、0.41／0.41／0.54、1.18／1.11／1.24 年，Analogy 單一樣本）；L1 新增 `L1_GenPxThr_Rev_*`、`L1_GenPxThr_Pay_*`（各世代，含 `_Lo`／`_Hi`；不含價格；固定模型口徑，情境 `d1_model_scale` 見報告）。DB_Evidence 新增 E366–E373，E338／E339／E341 附註。
+  - 2-2-b：新增 `L1_FleetProdRatio`；`L1_FleetMargin` 與 Checks K4 改讀重解值（3.3876 → 3.1176）；`L1_GapUtil` 分母乘 `CTL_ProdDerate`（1.4634 → 1.7217，`L1_GapProduct` 1.6352 → 1.9238）；Interface A231 標題；Serving C18 固定 1.0（說明欄；情境 b_prod_derate 改驅動 `CTL_ProdDerate`）；Alloc『全 GB200』『全 VR200』兩列改純世代常數；Calib C68 標記由 Assumed 改倒推（數值不變，Load_Bearing 56 → 55）；Decisions 新增 AF2c-*（GEN、Q3R1、J1–J5、D7R、K3）。GOV K3（f_registry）查明未修，見報告。
+  - 具名範圍 +30（1,215 → 1,245）；公式格 48,273 → 48,399；GOV_Errors 0、Warnings 271、Info 174（175 → 174）。
+- 下游契約：`docs/plan/Tokenomics_downstream_contract.md` 改為 v0.3（第 4 節改寫）。IF_／IFW_ 名稱數值不變。
+- `docs/builder/Tokenomics_builder_v5.md` 已重新產生（新增 `v700.py`）。
+
 ## 20261016_Tokenomics_v6.3.xlsx（取代 v6.2；次版：機隊口徑單價、整代不可達、TTFT 進 decode 成本列、J1 r1 規模倍數；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r1 第 2b 節＝2-1b 段）
 
 - 分支 `claude/audit-fix-2-1b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-1b.md`；進度檔：`docs/reports/20261016_稽核修正2-1b_進度.md`。底稿：master（v6.2，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.3。

@@ -108,6 +108,8 @@ V534_CAP = v534.cap_in_h8_h10(wb, V532_CAP, V533_CAP)      # v5.34 B2／B3／B5:
 V535_CAP = v535.cap_in_i(wb, V534_CAP)      # v5.35 B2 (J22): Cap_In I section「L 拆分」(before the H reading row, which is rewritten after it; no defined name moves)
 V536_CAP = v536.cap_in_j(wb, V535_CAP)      # v5.36 B4／B5／B6: Cap_In J section (kappa, tau closed form, gap identity, rho inputs; before the reading row, which is rewritten after it)
 V603_K = v603.cap_in_k(wb, V536_CAP)      # v6.3 K1: Cap_In K section (fleet-basis price for H10; below the reading row, nothing above moves)
+import v700
+V700_L = v700.cap_in_l(wb, V603_K)      # v7.0 B-1: Cap_In L section (CAP_GenGap_*; below K, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -252,6 +254,9 @@ V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement co
 Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
 print("v600 Checks Z1 row:", Z1)
 V518_LOG += v603.unavail_text(wb)       # v6.3 K2: Cap_In H7 onward and L1 fallbacks read AL_UnavailTxt (整代不可達 propagates)
+V518_LOG += v700.interface_a231(wb, IFJ["start"])       # v7.0 2-2-b: Interface A231 title text
+print("v700 Checks K4 row:", v700.checks_k4(wb))       # v7.0 2-2-b: Checks K4 reads the re-solved fleet revenue
+V518_LOG += v700.text_update(wb, v518._append_text)       # v7.0: Serving F18, Calib J68, Cap_In g note, DB_Evidence E338/E339/E341 notes
 V518_LOG += v602.notes_patch(wb, v518._append_text)       # v6.2 D1(c): fixed-model-basis note on Interface B／C／D headers and L1 TokMW_Gen_ratio rows
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))

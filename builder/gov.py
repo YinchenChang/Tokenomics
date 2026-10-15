@@ -23,6 +23,7 @@ import v520                       # v5.20: X3 evidence rows, GM578 range, C2 lis
 import v521                       # v5.21: X6 (X4 closed; MLPerf v6.1 primary results: SRC_Perf, E245, GM344 note, Decisions X6)
 import v600                       # v6.0: audit fix 1 (D7／D8／D11)
 import v602                       # v6.2: audit fix 2-1 (D1(c) model scale, TTFT, Alloc renormalisation)
+import v700                       # v7.0: audit fix 2-2 (generation price B, leftovers)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
 import v601                       # v6.1: audit fix 3B (D3／D6／D10／D13／Q3／Q6 judgement columns, Gov_Map rows, Decisions AF3B-*)
 import v536                       # v5.36: token-denominator closure (SRC_DEM_073, Gov_Map rows, L1 patches／new rows, E344–E365, X45–X47)
@@ -162,7 +163,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows() + v531.evidence_rows() + v532.evidence_rows() + v533.evidence_rows() + v534.evidence_rows() + v535.evidence_rows() + v536.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows() + v531.evidence_rows() + v532.evidence_rows() + v533.evidence_rows() + v534.evidence_rows() + v535.evidence_rows() + v536.evidence_rows() + v700.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -206,7 +207,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -356,7 +357,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -407,7 +408,7 @@ def gov_map(wb, src_index):
     n_rp = v535.gov_map_repoint(wb, ws)      # v5.35 B5: GM629–GM633 (Cap_In H10 cells that moved one row down) re-pointed before the cell-keyed append (label guard; 0 on a v5.35-based rebuild)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text)      # v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text)      # v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -537,7 +538,7 @@ def _rows_l1(wb):
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     R = v527.l1_rows(R)             # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
-    return v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()   # v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
+    return v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()   # v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
 
 def l1_sheet(wb):
     global _REV_ROW

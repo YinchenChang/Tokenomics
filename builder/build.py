@@ -35,6 +35,9 @@ SNAP_RETIRED = [("Arch", (lab, 0), c) for lab in ("KV bytes/token — 情境 1",
                 for c in (3, 4, 5)] + [("Cap_In", (row[0], 0), 14) for row in PRICE_ROWS]
 import v535
 SNAP_RETIRED += v535.SNAP_RETIRED       # v5.35 B2: Cap_In H10 mid-tier price index row (four blue 1s) is now a link to I-section L_price
+import v536
+for _old, _new in v536.SNAP_MOVES:      # v5.36 B2: the Alloc_In pricing-multiple label was renamed; the Excel values follow it
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
@@ -87,6 +90,7 @@ K4 = cap_in(wb)
 import v522
 v522.cap_in_g(wb)      # v5.22 X7: CTL_PriceLife／CTL_Monetize (Cap_In G section, after the existing content)
 import v532
+v536.patch_specs()      # v5.36 B1／B4: Cap_In H7 row 109 (÷ SpendBasis × κ), H10 rows 216 (2025 = SRC_DEM_004) and 218 (× κ) patched in place before they are written
 V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
 import v533
 V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
@@ -94,6 +98,7 @@ import v534
 v535.patch_h10()      # v5.35 B1 (J23): H10 spec patched in place before it is written (ads per column, revenue rows on the m numerator, 0.65 share row, L_price link row)
 V534_CAP = v534.cap_in_h8_h10(wb, V532_CAP, V533_CAP)      # v5.34 B2／B3／B5: Cap_In H8–H10 (before the H reading row, which is rewritten after them; B4_Disc_Lo／_Hi names added; no defined name moves)
 V535_CAP = v535.cap_in_i(wb, V534_CAP)      # v5.35 B2 (J22): Cap_In I section「L 拆分」(before the H reading row, which is rewritten after it; no defined name moves)
+V536_CAP = v536.cap_in_j(wb, V535_CAP)      # v5.36 B4／B5／B6: Cap_In J section (kappa, tau closed form, gap identity, rho inputs; before the reading row, which is rewritten after it)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -117,6 +122,7 @@ from block6 import alloc_in, alloc, interface_b6, checks_h
 AIN = alloc_in(wb)
 import v529
 AIN_529 = v529.alloc_in_rows(wb)       # v5.29 X14 (m): two Assumed inputs and the v5.28 constant (appended after the existing content; restored by preserve)
+AIN_536 = v536.alloc_in_kappa(wb)       # v5.36 B4: Alloc_In request-shape correction κ (AL_Kappa／_Lo／_Hi; appended after the existing content)
 AL6 = alloc(wb, AIN)
 interface_b6(wb, last_row(wb["Interface"]) + 2)
 sources(wb)
@@ -138,6 +144,7 @@ import v531
 V518_LOG += v531.inputs_update(wb)       # v5.31 X16–X19: Spec_Rack E12 4.3 and text, Inputs rows 30／36–38, DC_Cost A46 label (old-value guards)
 V518_LOG += v533.inputs_update(wb)       # v5.33 J8／J9: Alloc_In C9 0 -> 0.6, C11 0.4 -> 0, C12 0.2 -> 0, E15 6400 -> 11000 (old-value guards) and G notes
 V518_LOG += v534.inputs_update(wb)       # v5.34 J20: Cap_In E12 0.3 -> 0.4 (old-value guard)
+V518_LOG += v536.inputs_update(wb)       # v5.36 B2: Alloc_In pricing multiple 2 -> 1.3 (1.5–3.0 -> 1.0–1.6) (old-value guards)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -218,6 +225,9 @@ CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
 CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
 CK_M4 = v534.checks_m4(wb)                # v5.34 B3: Checks M4, WARN (after M3; counted in GOV_Warnings)
+CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap identity check; after M4; counted in GOV_Info)
+V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
+print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))
 print("v534 Cap_In H8–H10 from:", V534_CAP["start"], "to:", V534_CAP["end"], "| L1 rows:", V534_L1P, "| Checks M4 row:", CK_M4)
 print("v533 Cap_In H7 from:", V533_CAP["start"], "to:", V533_CAP["end"], "| L1 rows:", V533_L1P, "| Checks M2/M3 rows:", CK_M23)

@@ -2,6 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261015_Tokenomics_v5.36.xlsx（取代 v5.35；支出路線改 SRC_DEM_004、計價倍數 1.3、κ、缺口恆等式與 L1 價格列；判斷類，依工作單 `docs/workorders/20261015_v5.36.md` r0）
+
+- 分支 `claude/v5.36-build`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_v5.36.md`；進度檔：`docs/reports/20261015_v5.36_進度.md`。底稿：master `9dff7f5`（v5.35）；`model/CURRENT` 原為 v5.35。
+- Excel（CC 以 `builder/v536.py` 自 v5.35 產生，經 LibreOffice 重算存檔；藍字輸入以「仍為舊值才寫」守衛寫入）：
+  - B1：支出路線改 `SRC_DEM_004`（D 7.5／E 8.8）；新增 `SRC_DEM_073`（稽核後營收成本 7.5）；`SRC_DEM_018` 降為顯示對照列。
+  - B2：計價倍數 C／D／E 2.0／1.5／3.0 → 1.3／1.0／1.6，標籤更名。
+  - B4：新增 `AL_Kappa`（1.0；0.65–1.2）乘入有效服務 GW；`L1_GapISL`＝1/κ。
+  - B5：`L1_GapPrompt` 1.3013、`L1_GapUtil` 1.7143；缺口恆等式與 Checks M5（基準欄）置於 Cap_In J 節（第 244–264 列）。
+  - B6：L1 新增 `L1_ScaleServe2000`、`L1_PriceRealFleet`、`L1_PriceRealDemand`、`L1_PriceReqBE`、`L1_PriceRho`（各含 `_Lo`／`_Hi`）。
+  - B7：DB_Evidence E344–E365、Decisions X45–X47、README。
+- 所有 `IF_` 名稱數值逐格不變；變動的既有名稱 37 個，皆在工作單預期範圍（`AL_ServeGWSpend`、`L1_ScaleServe`、`L1_MFleet`、`L1_LReqFleet`、`L1_TokCeiling`、`L1_TokPerPromptClose`、`L1_Gap*` 等）。
+- 測試：`formula_cells` 47,391 → 47,602、`defined_names` 1,180 → 1,201、`src_names` 432 → 435、`l1_names` 255 → 270、`al_names` 86 → 89；GOV_Errors 0／Warnings 271／Info 169；舊期望值依工作單預期變動更新；新增 `test_v536_spend_route_kappa_price`。
+
 ## 工程類：修訂八-B 停用公式引擎與網站（不改 Excel；Excel 仍為 20261014_Tokenomics_v5.35.xlsx）
 
 - 分支 `claude/parity-rev8`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_修訂八B_停用引擎.md`；進度檔：`docs/reports/20261015_修訂八B_進度.md`；工作單：`docs/workorders/20261015_修訂八B_停用引擎.md`。

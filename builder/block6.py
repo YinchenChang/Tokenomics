@@ -7,7 +7,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 SLO = "SLO 不可達"
-SPEND_SID = "SRC_DEM_018"    # v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
+SPEND_SID = "SRC_DEM_004"    # v5.36 B1: OpenAI-side inference spend (8.4; 7.5–8.8) drives the spend route; was SRC_DEM_018 (Microsoft-side 12.6, now a comparison row) in v5.29–v5.35. v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
 TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
 
@@ -211,8 +211,10 @@ def alloc(wb, AIN):
 
     # ---------------- F. external comparisons
     hdr("F. 外部對照（同時寫入 L1；支出路線與 SRC_DEM_013）")
-    line("sgx", f"支出路線服務 GW＝{SPEND_SID}（$B；Azure 計價）÷ Σ（世代占比 × 各世代持有成本）", "GW", f"={SPEND_SID}/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
-         f"單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）；v5.29 X14 (k)：SRC_DEM_004 → {SPEND_SID}")
+    line("sgx", f"支出路線服務 GW＝{SPEND_SID}（$B；OpenAI 端推論支出）÷ Σ（世代占比 × 各世代持有成本）", "GW", f"={SPEND_SID}/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", "AL_ServeGWSpend",
+         f"單位：$B ÷ ($B/GW/年) ＝ GW（不乘 1e9；工作單 r3 更正 1，Andy／chat 2026-10-04）；v5.29 X14 (k)：SRC_DEM_004 → SRC_DEM_018；v5.36 B1：SRC_DEM_018 → {SPEND_SID}（OpenAI 端 8.4；7.5–8.8）")
+    line("sgxm", "對照：Microsoft 端 Azure 推論（SRC_DEM_018）÷ Σ（世代占比 × 各世代持有成本）", "GW", "=SRC_DEM_018/SUMPRODUCT(AL_ShareGen,AL_HoldGen)", "0.0000", None,
+         "顯示用，不被任何公式引用。Microsoft 稱為推論的 126 億中，約一半未進 OpenAI 營業成本，最可能是研究用推論列在研發（v5.36A 補充第 2 節）")
     line("fsh", "免費服務算力占比（token 路線）＝免費服務 GW ÷ 服務 GW 合計", "%", f'=IF(ISNUMBER(AL_ServeGW),AL_ServeGWFree/AL_ServeGW,"{SLO}")', "0.0%", "AL_FreeServeShare")
     line("fsx", "免費推論支出占比（支出口徑）＝SRC_DEM_005 ÷ SRC_DEM_004", "%", "=SRC_DEM_005/SRC_DEM_004", "0.0%", "AL_FreeSpendShare")
     line("dlo", "Epoch 每日 token 低（SRC_DEM_013_Lo）", "T tok/日", "=SRC_DEM_013_Lo", "#,##0.0")

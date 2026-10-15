@@ -10,7 +10,7 @@ for p in sys.argv[3:]:
     ns={}; exec(open(p,encoding='utf-8').read(),ns); J.update(ns['J'])
 out=[]; missing=[]
 for g in ctx:
-    k=(g['sheet'],g['row']); jj=J.get(k)
+    k=(g['sheet'],g['row']); jj=J.get(k) or (J.get((g['sheet'],'*')))
     if jj is None: missing.append(k)
     for c in g['cells']:
         gv=g['gov'].get(c['gm']) if c['gm'] else None

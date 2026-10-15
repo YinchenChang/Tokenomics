@@ -38,6 +38,9 @@ SNAP_RETIRED += v535.SNAP_RETIRED       # v5.35 B2: Cap_In H10 mid-tier price in
 import v536
 for _old, _new in v536.SNAP_MOVES:      # v5.36 B2: the Alloc_In pricing-multiple label was renamed; the Excel values follow it
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
+import v601
+for _old, _new in v601.SNAP_MOVES:      # v6.1 D13: the Alloc_In pure-utilisation label was renamed; the Excel values follow it
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
@@ -91,6 +94,7 @@ import v522
 v522.cap_in_g(wb)      # v5.22 X7: CTL_PriceLife／CTL_Monetize (Cap_In G section, after the existing content)
 import v532
 v536.patch_specs()      # v5.36 B1／B4: Cap_In H7 row 109 (÷ SpendBasis × κ), H10 rows 216 (2025 = SRC_DEM_004) and 218 (× κ) patched in place before they are written
+v601.patch_specs()      # v6.1 D13-2: Cap_In rows 114 (H7 corr_pt), 218 (H10 q_gw) and 255 (J j_ident) read (AL_UtilActual*CTL_ProdDerate) — patched in place after v536 and before any of them is written
 V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
 import v533
 V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
@@ -147,6 +151,10 @@ V518_LOG += v531.inputs_update(wb)       # v5.31 X16–X19: Spec_Rack E12 4.3 an
 V518_LOG += v533.inputs_update(wb)       # v5.33 J8／J9: Alloc_In C9 0 -> 0.6, C11 0.4 -> 0, C12 0.2 -> 0, E15 6400 -> 11000 (old-value guards) and G notes
 V518_LOG += v534.inputs_update(wb)       # v5.34 J20: Cap_In E12 0.3 -> 0.4 (old-value guard)
 V518_LOG += v536.inputs_update(wb)       # v5.36 B2: Alloc_In pricing multiple 2 -> 1.3 (1.5–3.0 -> 1.0–1.6) (old-value guards)
+V518_LOG += v601.inputs_update(wb)       # v6.1 3B: D3 Alloc_In D9:E12, D10 C23:E23, D13-1 C24:E24, D6 Calib C67, Q3 Har_In C61:D61 (old-value guards)
+_t601, _ = v601.text_update(wb)
+V518_LOG += _t601       # v6.1 3B: notes and markers (old-text guards), Serving notes appended once
+V518_LOG += v601.decisions_update(wb)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",

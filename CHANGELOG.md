@@ -2,6 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261015_Tokenomics_v6.1.xlsx（取代 v6.0；次版：輸入值與一處公式改變；D3、D6、D10、D13、Q3、Q6；判斷類，依工作單 `docs/workorders/20261015_稽核修正3B.md` r0）
+
+- 分支 `claude/audit-fix-3b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_稽核修正3B.md`；進度檔：`docs/reports/20261015_稽核修正3B_進度.md`。底稿：master `43ccdd7`（v6.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.1。
+- Excel（CC 以 `builder/v601.py` 自 v6.0 產生，經 LibreOffice 重算存檔）：
+  - D3：Alloc_In D9:E12 2025 組合低／高端（Hopper 0.5–0.7、GB200 0.25–0.4、GB300 0–0.1、VR200 0）；Derived。
+  - D6：Calib C67 η_d 倍數 1.5 → 1.2。
+  - D10：Alloc_In C23:E23 計價倍數 0.85／0.73／1.17；Derived。
+  - D13：Alloc_In C24:E24 改為純利用率 0.41／0.30／0.65；Cap_In 第 114、218、255 列（及產生它們的 v533／v534／v536 規格）乘 `CTL_ProdDerate`。暫定、待證據。
+  - Q3：Har_In C61／D61 0.7／1.7；Train_In 第 34 列 RL token 區間登錄為高段 Assumed。Q6：Inputs H9／H17／H19、Spec_Rack C16 僅改說明。
+  - Decisions 新增 `AF3B-D3`、`D6`、`D10`、`D13`、`Q3`、`Q6`。
+- 契約：185 個 IF_／IFW_／L1_ 名稱數值改變（IF_ 90、IFW_ 44、L1_ 51；向量變動僅在 Hopper 欄）；名稱與形狀不變。完整新舊值表見報告表 3。不發下游同步，併入 CoreWeave 後那一次。
+- 驗證：parity 全數通過；新增情境 `h_alloc_mix_2025ye`；預期值更新逐項記於報告表 1；冪等重建差異 0。
+
 ## 20261015_Tokenomics_v6.0.xlsx（取代 v5.36；主版：下游契約定義變更；D7 _Prod／_Life 統一、D8「SLO 不可達」文字語意、D11 回本溢價分母＝付費 token；判斷類，依工作單 `docs/workorders/20261015_稽核修正1.md`）
 
 - 分支 `claude/audit-fix-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_稽核修正1.md`；進度檔：`docs/reports/20261015_稽核修正1_進度.md`。底稿：v5.36（已移至 `model/archive/`）；`model/CURRENT` 改為 v6.0。

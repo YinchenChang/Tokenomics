@@ -110,7 +110,8 @@ def inputs_update(wb):
 
 # ================================================================== 3b inputs: Alloc_In new rows (code defaults apply only to NEW input rows)
 LAB_SPEND = "推論支出 ÷ 持有成本（計價倍數；含供應商利潤與資本回收）"      # v5.36 B2: label renamed (value moves with v536.SNAP_MOVES); was「推論支出計價 ÷ 持有成本（v5.29 X14 (m)）」
-LAB_UTIL = "實際利用率 × 生產折減（v5.29 X14 (m)）"
+LAB_UTIL_OLD = "實際利用率 × 生產折減（v5.29 X14 (m)）"      # v6.1 D13: label renamed (value moves with v601.SNAP_MOVES)
+LAB_UTIL = "實際利用率（純；不含生產折減）"
 LAB_CST = "每則提示 token 數 v5.28 基準（常數，落差分解分母；CST_TokPerPromptV528）"
 NEW_IN = [  # (label, unit, base, lo, hi, tag, note, stem)
     (LAB_SPEND, "x", 2.0, 1.5, 3.0, "Assumed",

@@ -117,6 +117,9 @@ scenarios:
   - id: h_alloc_mix_2025
     description: v5.33 J8 起基準即為 Hopper 60%／GB200 40%，本情境改設 v5.32 前的基準組合 0／40／40／20（AL_MixHopper、AL_MixGB200、AL_MixGB300、AL_MixVR200），保留「另一組世代組合」的覆蓋；服務 GW、Q1、Q2 與支出路線對照改變（v5.15–v5.32 為補充 2 的 60／40 情境）
     inputs: {"AL_MixHopper": 0, "AL_MixGB200": 0.4, "AL_MixGB300": 0.4, "AL_MixVR200": 0.2}
+  - id: h_alloc_mix_2025ye
+    description: 2025 年底組合（稽核修正 3B D3 敏感度；3A Q1 基準列 Hopper 37／GB200 40／GB300 23／VR200 0）；服務 GW、Q1、Q2 與支出路線對照改變
+    inputs: {"AL_MixHopper": 0.37, "AL_MixGB200": 0.40, "AL_MixGB300": 0.23, "AL_MixVR200": 0}
   # ── v5.19：X1 生產折減並列輸出（輸入用具名範圍 CTL_ProdDerate） ──
   - id: h_prod_derate_070
     description: 並列輸出用生產折減 CTL_ProdDerate＝0.7（區間下限）；Serving!C18 仍為 1.0、基準列不變；Hopper 欄 _Prod 的 FullCost 為文字「SLO 不可達」，其餘 _Prod 列改變

@@ -2,6 +2,37 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v7.0.xlsx（取代 v6.3；主版：下游契約第 4 節改寫、新增名稱；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r0 第 3 節＝2-2 段與 `docs/workorders/20261015_世代價格B.md` r0）
+
+- 分支 `claude/audit-fix-2-2`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-2.md`；進度檔：`docs/reports/20261016_稽核修正2-2_進度.md`。底稿：master（v6.3，已移至 `model/archive/`）；`model/CURRENT` 改為 v7.0。
+- Excel（CC 以 `builder/v700.py` 等自 v6.3 產生，經 LibreOffice 重算存檔）：
+  - 世代價格 B 段：Cap_In L 節（第 271–274 列）新增世代上市間隔 `CAP_GenGap_GB200／GB300／VR200`（基準／低／高 1.88／1.88／2.17、0.41／0.41／0.54、1.18／1.11／1.24 年，Analogy 單一樣本）；L1 新增 `L1_GenPxThr_Rev_*`、`L1_GenPxThr_Pay_*`（各世代，含 `_Lo`／`_Hi`；不含價格；固定模型口徑，情境 `d1_model_scale` 見報告）。DB_Evidence 新增 E366–E373，E338／E339／E341 附註。
+  - 2-2-b：新增 `L1_FleetProdRatio`；`L1_FleetMargin` 與 Checks K4 改讀重解值（3.3876 → 3.1176）；`L1_GapUtil` 分母乘 `CTL_ProdDerate`（1.4634 → 1.7217，`L1_GapProduct` 1.6352 → 1.9238）；Interface A231 標題；Serving C18 固定 1.0（說明欄；情境 b_prod_derate 改驅動 `CTL_ProdDerate`）；Alloc『全 GB200』『全 VR200』兩列改純世代常數；Calib C68 標記由 Assumed 改倒推（數值不變，Load_Bearing 56 → 55）；Decisions 新增 AF2c-*（GEN、Q3R1、J1–J5、D7R、K3）。GOV K3（f_registry）查明未修，見報告。
+  - 具名範圍 +30（1,215 → 1,245）；公式格 48,273 → 48,399；GOV_Errors 0、Warnings 271、Info 174（175 → 174）。
+- 下游契約：`docs/plan/Tokenomics_downstream_contract.md` 改為 v0.3（第 4 節改寫）。IF_／IFW_ 名稱數值不變。
+- `docs/builder/Tokenomics_builder_v5.md` 已重新產生（新增 `v700.py`）。
+
+## 20261016_Tokenomics_v6.3.xlsx（取代 v6.2；次版：機隊口徑單價、整代不可達、TTFT 進 decode 成本列、J1 r1 規模倍數；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r1 第 2b 節＝2-1b 段）
+
+- 分支 `claude/audit-fix-2-1b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-1b.md`；進度檔：`docs/reports/20261016_稽核修正2-1b_進度.md`。底稿：master（v6.2，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.3。
+- Excel（CC 以 `builder/v603.py` 等自 v6.2 產生，經 LibreOffice 重算存檔）：
+  - K1：新增 Alloc I 節（`AL_PriceGen`、`AL_PriceFleet`）與 Cap_In K 節（`B4_PriceFleet`）。機隊口徑單價＝可達層級重新正規化、以付費 token 加權；Cap_In H7（m_fleet、m 下限、所需 token 三列）、H10 m_fleet、L1 `PriceRealFleet`／`PriceReqBE` 改讀它。需求路線（H5／H8）仍用第 90 列完整層級組合單價。基準值 1.5844 $/M（完整組合 1.9606）。
+  - K2：任一占比 > 0 的世代整代不可達時，Alloc／Cap_In 輸出文字「整代不可達」，不再把該世代權重併入其餘世代（`f_registry_t07_t09_on`：`IF_AllocQ1`／`Q2`／`IF_AllocServeGW` 由數值變文字；`b_prod_derate` 不受影響）。文字一路傳到單價、H7 所需 token 與 L1 機隊閉合名稱（`L1_ScaleServe`、`L1_MFleet`、`L1_TokPerPromptClose`、`L1_Gap*` 等；新增 `AL_UnavailTxt` 取代 Cap_In H7 起與 L1 寫死的「SLO 不可達」），無數值、負值或 #VALUE!。
+  - K3：Perf／Perf_Batch／Sens_Perf／Perf_Prod 第 103 列（decode GPU 秒）讀 TTFT 旗標，Hopper × Astra 為文字；`IF_CostDec_Astra`、`IF_CostDecAcct_Astra`、`IF_AmortTD_Astra` 的 Hopper 三欄由數值變文字。Perf_Batch_Prod 因第 103 列依賴而多出第 76／77 列鏡像。
+  - J1 r1：`ARCH_ScaleGen_Lo`／`_Hi` 依 2Q 報告 Q2 改為 0.5／0.3／—／— 與 1.3／1.0／—／2.5（基準仍 1）；情境 `d1_model_scale` 改為 0.8／0.55／1.0／1.4。
+  - Decisions 新增 `AF2b-K1`、`K2`、`K3`；`AF2-D1c` 加 r1 註記；Gov_Map 範圍文字與註記更新。
+- 契約（相對 v6.2）：名稱 IF_ 3、L1_ 9 個數值改變，IFW_ 0；新增名稱 `AL_PriceGen`、`AL_PriceFleet`、`AL_UnavailTxt`、`B4_PriceFleet`。相對 v6.1：IF_ 45、IFW_ 20、L1_ 43 個改變。完整新舊值表見報告。
+- 驗證：parity 全數通過；新增 `test_v603_fleet_price_k2_k3`；預期值更新逐項記於報告；冪等重建差異 0；與 v6.2 逐格比較無範圍外差異。
+
+## 20261016_Tokenomics_v6.2.xlsx（取代 v6.1；次版：D1(c) 模型規模倍數、TTFT 進可達判斷、Alloc 重新正規化；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r0 第 2 節＝2-1 段）
+
+- 分支 `claude/audit-fix-2-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-1.md`；進度檔：`docs/reports/20261016_稽核修正2-1_進度.md`。底稿：master `728ff30`（v6.1，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.2。
+- Excel（CC 以 `builder/v602.py` 等自 v6.1 產生，經 LibreOffice 重算存檔）：
+  - 2-1-a：Spec_Rack 新增「模型規模倍數」節三列（具名範圍 `ARCH_ScaleGen`／`_Lo`／`_Hi`，1×5，Assumed）；Perf／Perf_Batch／Sens_Perf 第 28、32、33 列與 Training／Sens_Train 第 22 列乘倍數（基準 1，數值不變）；Calib 第 30 列不乘。新增 parity 情境 `d1_model_scale`。Interface B／C／D 節標題與 `L1_TokMW_Gen_ratio_*` 說明加註「固定模型口徑」。
+  - 2-1-b：Perf／Perf_Batch／Sens_Perf／Perf_Prod 第 90、93 列讀第 77 列 TTFT，不符輸出「TTFT 不可達」；Checks B27 同時計兩種旗標。基準下 Hopper × Astra 的 `IF_TokGW_Astra` 等由數值變文字旗標。
+  - 2-1-c：Alloc 排除不可達層級後層級權重重新正規化，全不可達的世代排除、世代組合重新正規化；新增「未服務需求占比」顯示列（`AL_UnservedPaid`／`AL_UnservedFree`／`AL_UnservedGen`／`AL_GenShareOK`／`AL_GenOK`）。`AL_ServeGW`、`IF_AllocQ1`／`Q2`、`L1_ScaleServe`、`L1_MFleet` 等隨之改變。
+  - Decisions 新增 `AF2-D1c`、`AF2-TTFT`、`AF2-ALLOC`；`AF1-D8` 狀態標「TTFT 部分由 AF2-TTFT 取代」（不刪）；Gov_Map 新增 3 列。
+
 ## 20261015_Tokenomics_v6.1.xlsx（取代 v6.0；次版：輸入值與一處公式改變；D3、D6、D10、D13、Q3、Q6；判斷類，依工作單 `docs/workorders/20261015_稽核修正3B.md` r0）
 
 - 分支 `claude/audit-fix-3b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261015_稽核修正3B.md`；進度檔：`docs/reports/20261015_稽核修正3B_進度.md`。底稿：master `43ccdd7`（v6.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.1。

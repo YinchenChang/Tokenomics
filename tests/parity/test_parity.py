@@ -309,8 +309,8 @@ def test_alloc_expected_values_and_slo_text(model, lo):
             assert eng.get_name("AL_GenOK") == [0, 1, 1, 1] and [round(x, 9) for x in eng.get_name("AL_UnservedPaid")] == [1, 0, 0.15, 0], (eng.get_name("AL_GenOK"), eng.get_name("AL_UnservedPaid"))
             # v6.3 K2：整代不可達文字須一路傳到機隊 m、價格與 Cap_In H7 所需 token，不得出現數值、負值或 #VALUE!（K1 的 AL_PriceFleet 同為文字）
             assert eng.get_name("AL_PriceFleet") == "整代不可達" and eng.get_name("AL_GenShareOK") == 0.4 and eng.get_name("B4_PriceFleet") == ["整代不可達"] * 4
-            for n in ("L1_MFleet", "L1_TokCeiling", "L1_ScaleServe"):
-                assert eng.get_name(n) == "SLO 不可達", (sid, n, eng.get_name(n))      # 下游包裝仍用「SLO 不可達」（待 Project 判斷：是否改為整代不可達字樣）
+            for n in ("L1_MFleet", "L1_TokCeiling", "L1_ScaleServe", "L1_TokPerPromptClose", "L1_GapPrompt"):
+                assert eng.get_name(n) == "整代不可達", (sid, n, eng.get_name(n))      # 機隊閉合名稱：文字旗標一路傳到（AL_UnavailTxt），不得為數值或負值
             for r_ in (123, 124, 125):
                 assert all(isinstance(eng.get("Cap_In", f"{c_}{r_}"), str) and not eng.get("Cap_In", f"{c_}{r_}").startswith("#") for c_ in "CD"), (sid, r_)
         if sid == "b_prod_derate":                                                          # v5.33 B3 → v6.2：Cap_In H7 與 L1_MFleet 在 C18＝0.7 時改為數值（Hopper 排除 Astra 後重新正規化）
@@ -976,7 +976,9 @@ def test_v603_fleet_price_k2_k3(model, lo):
     assert not errs, errs[:10]
     for n in ("IF_AllocQ1", "IF_AllocQ2", "IF_AllocServeGW", "AL_PriceFleet", "AL_ServeGW"):
         assert f.get_name(n) == "整代不可達", n
-    assert f.get_name("L1_MFleet") == "SLO 不可達" and f.get_name("L1_PriceRealFleet") == "m 非數字（本情境）"
+    for n in ("L1_MFleet", "L1_TokCeiling", "L1_ScaleServe", "L1_TokPerPromptClose", "L1_GapPrompt", "AL_UnavailTxt"):
+        assert f.get_name(n) == "整代不可達", n
+    assert f.get_name("L1_PriceRealFleet") == "m 非數字（本情境）" and eng.get_name("AL_UnavailTxt") == "SLO 不可達"
     # C18＝0.7（各世代皆至少有一層可達）：機隊口徑單價為數值
     b = lo.view({"Serving!C18": 0.7})
     assert abs(b.get_name("AL_PriceFleet") - 1.648857820) < 5e-8

@@ -251,6 +251,7 @@ CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap ident
 V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
 Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
 print("v600 Checks Z1 row:", Z1)
+V518_LOG += v603.unavail_text(wb)       # v6.3 K2: Cap_In H7 onward and L1 fallbacks read AL_UnavailTxt (整代不可達 propagates)
 V518_LOG += v602.notes_patch(wb, v518._append_text)       # v6.2 D1(c): fixed-model-basis note on Interface B／C／D headers and L1 TokMW_Gen_ratio rows
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))

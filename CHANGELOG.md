@@ -7,11 +7,11 @@
 - 分支 `claude/audit-fix-2-1b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-1b.md`；進度檔：`docs/reports/20261016_稽核修正2-1b_進度.md`。底稿：master（v6.2，已移至 `model/archive/`）；`model/CURRENT` 改為 v6.3。
 - Excel（CC 以 `builder/v603.py` 等自 v6.2 產生，經 LibreOffice 重算存檔）：
   - K1：新增 Alloc I 節（`AL_PriceGen`、`AL_PriceFleet`）與 Cap_In K 節（`B4_PriceFleet`）。機隊口徑單價＝可達層級重新正規化、以付費 token 加權；Cap_In H7（m_fleet、m 下限、所需 token 三列）、H10 m_fleet、L1 `PriceRealFleet`／`PriceReqBE` 改讀它。需求路線（H5／H8）仍用第 90 列完整層級組合單價。基準值 1.5844 $/M（完整組合 1.9606）。
-  - K2：任一占比 > 0 的世代整代不可達時，Alloc／Cap_In 輸出文字「整代不可達」，不再把該世代權重併入其餘世代（`f_registry_t07_t09_on`：`IF_AllocQ1`／`Q2`／`IF_AllocServeGW` 由數值變文字；`b_prod_derate` 不受影響）。文字一路傳到單價與 H7 所需 token，無 #VALUE!。
+  - K2：任一占比 > 0 的世代整代不可達時，Alloc／Cap_In 輸出文字「整代不可達」，不再把該世代權重併入其餘世代（`f_registry_t07_t09_on`：`IF_AllocQ1`／`Q2`／`IF_AllocServeGW` 由數值變文字；`b_prod_derate` 不受影響）。文字一路傳到單價、H7 所需 token 與 L1 機隊閉合名稱（`L1_ScaleServe`、`L1_MFleet`、`L1_TokPerPromptClose`、`L1_Gap*` 等；新增 `AL_UnavailTxt` 取代 Cap_In H7 起與 L1 寫死的「SLO 不可達」），無數值、負值或 #VALUE!。
   - K3：Perf／Perf_Batch／Sens_Perf／Perf_Prod 第 103 列（decode GPU 秒）讀 TTFT 旗標，Hopper × Astra 為文字；`IF_CostDec_Astra`、`IF_CostDecAcct_Astra`、`IF_AmortTD_Astra` 的 Hopper 三欄由數值變文字。Perf_Batch_Prod 因第 103 列依賴而多出第 76／77 列鏡像。
   - J1 r1：`ARCH_ScaleGen_Lo`／`_Hi` 依 2Q 報告 Q2 改為 0.5／0.3／—／— 與 1.3／1.0／—／2.5（基準仍 1）；情境 `d1_model_scale` 改為 0.8／0.55／1.0／1.4。
   - Decisions 新增 `AF2b-K1`、`K2`、`K3`；`AF2-D1c` 加 r1 註記；Gov_Map 範圍文字與註記更新。
-- 契約（相對 v6.2）：名稱 IF_ 3、L1_ 9 個數值改變，IFW_ 0；新增名稱 `AL_PriceGen`、`AL_PriceFleet`、`B4_PriceFleet`。相對 v6.1：IF_ 45、IFW_ 20、L1_ 43 個改變。完整新舊值表見報告。
+- 契約（相對 v6.2）：名稱 IF_ 3、L1_ 9 個數值改變，IFW_ 0；新增名稱 `AL_PriceGen`、`AL_PriceFleet`、`AL_UnavailTxt`、`B4_PriceFleet`。相對 v6.1：IF_ 45、IFW_ 20、L1_ 43 個改變。完整新舊值表見報告。
 - 驗證：parity 全數通過；新增 `test_v603_fleet_price_k2_k3`；預期值更新逐項記於報告；冪等重建差異 0；與 v6.2 逐格比較無範圍外差異。
 
 ## 20261016_Tokenomics_v6.2.xlsx（取代 v6.1；次版：D1(c) 模型規模倍數、TTFT 進可達判斷、Alloc 重新正規化；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` r0 第 2 節＝2-1 段）

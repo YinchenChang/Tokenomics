@@ -25619,8 +25619,28 @@ def alloc_fleet_price(wb, R):
     pc = r; r += 1
     put(ws, f"A{r}", "機隊口徑單價 ÷ 完整層級組合單價（<1：被排除的層級單價較高）", wrap=True); put(ws, f"B{r}", "x")
     put(ws, f"C{r}", f'=IF(ISNUMBER(C{pf}),C{pf}/C{pc},C{pf})', fmt="0.0000")
-    R["pg"], R["pf"] = pg, pf
+    r += 1
+    put(ws, f"A{r}", "不可用文字（K2）：服務 GW 因整代不可達而為文字時＝「整代不可達」，否則「SLO 不可達」；Cap_In／L1 的機隊閉合名稱以它取代寫死的「SLO 不可達」，使旗標一路傳到下游", wrap=True)
+    put(ws, f"C{r}", f'=IF(AL_ServeGW="{GENX}","{GENX}","{SLO}")')
+    wb.defined_names["AL_UnavailTxt"] = DefinedName("AL_UnavailTxt", attr_text=f"Alloc!$C${r}")
+    R["pf"] = pf
+    R["pg"] = pg
     return r
+
+
+def unavail_text(wb):
+    """K2: in Cap_In H7 onward (rows >= 113) and the L1 sheet, the hard-coded fallback text "SLO 不可達" becomes AL_UnavailTxt, which reads
+    "整代不可達" exactly when AL_ServeGW is that text (else "SLO 不可達", so the base and every other scenario are unchanged)."""
+    lit = f'"{SLO}"'
+    n = 0
+    for sh, r_min in (("Cap_In", 113), ("L1", 1)):
+        ws = wb[sh]
+        for row in ws.iter_rows(min_row=r_min):
+            for c in row:
+                v = c.value
+                if isinstance(v, str) and v.startswith("=") and lit in v and "AL_UnavailTxt" not in v:
+                    c.value = v.replace(lit, "AL_UnavailTxt"); n += 1
+    return [f"v603 K2: {n} Cap_In／L1 fallback texts now read AL_UnavailTxt"]
 
 
 # ================================================================== K1: Cap_In K section (below the reading row; no row above moves)
@@ -27063,6 +27083,7 @@ CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap ident
 V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
 Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
 print("v600 Checks Z1 row:", Z1)
+V518_LOG += v603.unavail_text(wb)       # v6.3 K2: Cap_In H7 onward and L1 fallbacks read AL_UnavailTxt (整代不可達 propagates)
 V518_LOG += v602.notes_patch(wb, v518._append_text)       # v6.2 D1(c): fixed-model-basis note on Interface B／C／D headers and L1 TokMW_Gen_ratio rows
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))

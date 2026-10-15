@@ -87,8 +87,28 @@ def alloc_fleet_price(wb, R):
     pc = r; r += 1
     put(ws, f"A{r}", "機隊口徑單價 ÷ 完整層級組合單價（<1：被排除的層級單價較高）", wrap=True); put(ws, f"B{r}", "x")
     put(ws, f"C{r}", f'=IF(ISNUMBER(C{pf}),C{pf}/C{pc},C{pf})', fmt="0.0000")
-    R["pg"], R["pf"] = pg, pf
+    r += 1
+    put(ws, f"A{r}", "不可用文字（K2）：服務 GW 因整代不可達而為文字時＝「整代不可達」，否則「SLO 不可達」；Cap_In／L1 的機隊閉合名稱以它取代寫死的「SLO 不可達」，使旗標一路傳到下游", wrap=True)
+    put(ws, f"C{r}", f'=IF(AL_ServeGW="{GENX}","{GENX}","{SLO}")')
+    wb.defined_names["AL_UnavailTxt"] = DefinedName("AL_UnavailTxt", attr_text=f"Alloc!$C${r}")
+    R["pf"] = pf
+    R["pg"] = pg
     return r
+
+
+def unavail_text(wb):
+    """K2: in Cap_In H7 onward (rows >= 113) and the L1 sheet, the hard-coded fallback text "SLO 不可達" becomes AL_UnavailTxt, which reads
+    "整代不可達" exactly when AL_ServeGW is that text (else "SLO 不可達", so the base and every other scenario are unchanged)."""
+    lit = f'"{SLO}"'
+    n = 0
+    for sh, r_min in (("Cap_In", 113), ("L1", 1)):
+        ws = wb[sh]
+        for row in ws.iter_rows(min_row=r_min):
+            for c in row:
+                v = c.value
+                if isinstance(v, str) and v.startswith("=") and lit in v and "AL_UnavailTxt" not in v:
+                    c.value = v.replace(lit, "AL_UnavailTxt"); n += 1
+    return [f"v603 K2: {n} Cap_In／L1 fallback texts now read AL_UnavailTxt"]
 
 
 # ================================================================== K1: Cap_In K section (below the reading row; no row above moves)

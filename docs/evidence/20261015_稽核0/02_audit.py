@@ -330,7 +330,7 @@ for r in range(5, 1000):
     if '待查' in jd: reasons.append('判定：待查')
     later = []
     for sid in src_ids(row['M']):
-        if sid in src and src[sid]['date'] and ed and ed > src[sid]['date'] and not jd.startswith('採納'):
+        if sid in src and src[sid]['date'] and ed and ed > src[sid]['date'] and not jd.startswith(('採納', '採用')):
             later.append(f"{sid}（{src[sid]['date_raw']}）")
     if later: reasons.append('日期晚於相關 SRC 文件日期且判定非採納：' + '、'.join(later[:6]) + (f' 等 {len(later)} 筆' if len(later) > 6 else ''))
     if not reasons: continue

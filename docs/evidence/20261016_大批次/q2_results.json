@@ -1,0 +1,279 @@
+{
+ "implied_mfu": [
+  {
+   "點": "MLPerf v6.0 GB200 NVIDIA interactive",
+   "硬體": "GB200",
+   "tok_s_GPU": 3337.8,
+   "每輸出token_GFLOP": 103.36,
+   "隱含MFU": 0.0345,
+   "每用戶tok_s": 66.7,
+   "每GPU序列約": 50
+  },
+  {
+   "點": "MLPerf v6.0 GB200 NVIDIA server",
+   "硬體": "GB200",
+   "tok_s_GPU": 4668.1,
+   "每輸出token_GFLOP": 103.36,
+   "隱含MFU": 0.0483,
+   "每用戶tok_s": 12.5,
+   "每GPU序列約": 373
+  },
+  {
+   "點": "MLPerf v6.0 GB200 NVIDIA offline",
+   "硬體": "GB200",
+   "tok_s_GPU": 6752.0,
+   "每輸出token_GFLOP": 103.36,
+   "隱含MFU": 0.0698,
+   "每用戶tok_s": null,
+   "每GPU序列約": null
+  },
+  {
+   "點": "MLPerf v6.0 GB300 NVIDIA interactive",
+   "硬體": "GB300",
+   "tok_s_GPU": 3481.0,
+   "每輸出token_GFLOP": 103.36,
+   "隱含MFU": 0.024,
+   "每用戶tok_s": 66.7,
+   "每GPU序列約": 52
+  },
+  {
+   "點": "MLPerf v6.0 GB300 NVIDIA server",
+   "硬體": "GB300",
+   "tok_s_GPU": 5561.6,
+   "每輸出token_GFLOP": 103.36,
+   "隱含MFU": 0.0383,
+   "每用戶tok_s": 12.5,
+   "每GPU序列約": 445
+  },
+  {
+   "點": "MLPerf v6.0 GB300 NVIDIA offline",
+   "硬體": "GB300",
+   "tok_s_GPU": 8987.2,
+   "每輸出token_GFLOP": 103.36,
+   "隱含MFU": 0.0619,
+   "每用戶tok_s": null,
+   "每GPU序列約": null
+  },
+  {
+   "點": "TRT-LLM H200 8GPU batch 1（MTP）",
+   "硬體": "H100/H800/H200",
+   "tok_s_GPU": 19.7584,
+   "每輸出token_GFLOP": 122.24,
+   "隱含MFU": 0.0012,
+   "每用戶tok_s": 158.1,
+   "每GPU序列約": 1
+  },
+  {
+   "點": "TRT-LLM H200 8GPU 並行 1024（128/rank）",
+   "硬體": "H100/H800/H200",
+   "tok_s_GPU": 1436.16,
+   "每輸出token_GFLOP": 122.24,
+   "隱含MFU": 0.0887,
+   "每用戶tok_s": 11.35,
+   "每GPU序列約": 128
+  },
+  {
+   "點": "DeepSeek profile（H800，decode-only）",
+   "硬體": "H100/H800/H200",
+   "tok_s_GPU": 2324,
+   "每輸出token_GFLOP": 94.47,
+   "隱含MFU": 0.1109,
+   "每用戶tok_s": 18.2,
+   "每GPU序列約": 128
+  },
+  {
+   "點": "DeepSeek 線上（H800，decode-only）",
+   "硬體": "H100/H800/H200",
+   "tok_s_GPU": 1850,
+   "每輸出token_GFLOP": 98.93,
+   "隱含MFU": 0.0925,
+   "每用戶tok_s": 21,
+   "每GPU序列約": 88
+  },
+  {
+   "點": "LMSYS 96×H100（decode-only）",
+   "硬體": "H100/H800/H200",
+   "tok_s_GPU": 2785,
+   "每輸出token_GFLOP": 88.99,
+   "隱含MFU": 0.1252,
+   "每用戶tok_s": 10,
+   "每GPU序列約": 278
+  },
+  {
+   "點": "vLLM GB200 WideEP（decode-only）",
+   "硬體": "GB200",
+   "tok_s_GPU": 10100,
+   "每輸出token_GFLOP": 88.99,
+   "隱含MFU": 0.0899,
+   "每用戶tok_s": null,
+   "每GPU序列約": null
+  },
+  {
+   "點": "LMSYS GB200 NVL72（decode-only，NVFP4）",
+   "硬體": "GB200",
+   "tok_s_GPU": 13386,
+   "每輸出token_GFLOP": 88.99,
+   "隱含MFU": 0.1191,
+   "每用戶tok_s": 10,
+   "每GPU序列約": 1339
+  },
+  {
+   "點": "Ant H20 InferX Base（TPOT<70 ms，MTP）",
+   "硬體": "H20",
+   "tok_s_GPU": 714,
+   "每輸出token_GFLOP": 88.99,
+   "隱含MFU": 0.2147,
+   "每用戶tok_s": 14.9,
+   "每GPU序列約": 48
+  },
+  {
+   "點": "Ant H20 InferX Pro（TPOT<50 ms，MTP）",
+   "硬體": "H20",
+   "tok_s_GPU": 675,
+   "每輸出token_GFLOP": 88.99,
+   "隱含MFU": 0.2029,
+   "每用戶tok_s": 21.1,
+   "每GPU序列約": 32
+  },
+  {
+   "點": "Ant H20 InferX Max（TPOT<30 ms，MTP）",
+   "硬體": "H20",
+   "tok_s_GPU": 423,
+   "每輸出token_GFLOP": 88.99,
+   "隱含MFU": 0.1272,
+   "每用戶tok_s": 35.3,
+   "每GPU序列約": 12
+  }
+ ],
+ "q3_inferencex_h200": [
+  {
+   "EP": 8,
+   "草稿數": 0,
+   "每用戶tok_s": 30,
+   "InferenceX_總token_tok_s_GPU": 1582,
+   "模型B": 0,
+   "模型decode輸出": 0,
+   "模型總token": 0,
+   "模型除以InferenceX": 0.0
+  },
+  {
+   "EP": 8,
+   "草稿數": 0,
+   "每用戶tok_s": 50,
+   "InferenceX_總token_tok_s_GPU": 1235,
+   "模型B": 0,
+   "模型decode輸出": 0,
+   "模型總token": 0,
+   "模型除以InferenceX": 0.0
+  },
+  {
+   "EP": 8,
+   "草稿數": 0,
+   "每用戶tok_s": 75,
+   "InferenceX_總token_tok_s_GPU": 932,
+   "模型B": 0,
+   "模型decode輸出": 0,
+   "模型總token": 0,
+   "模型除以InferenceX": 0.0
+  },
+  {
+   "EP": 8,
+   "草稿數": 0,
+   "每用戶tok_s": 100,
+   "InferenceX_總token_tok_s_GPU": 739,
+   "模型B": 0,
+   "模型decode輸出": 0,
+   "模型總token": 0,
+   "模型除以InferenceX": 0.0
+  },
+  {
+   "EP": 64,
+   "草稿數": 0,
+   "每用戶tok_s": 30,
+   "InferenceX_總token_tok_s_GPU": 1582,
+   "模型B": 9.8,
+   "模型decode輸出": 293.4,
+   "模型總token": 1511.1,
+   "模型除以InferenceX": 0.955
+  },
+  {
+   "EP": 64,
+   "草稿數": 0,
+   "每用戶tok_s": 50,
+   "InferenceX_總token_tok_s_GPU": 1235,
+   "模型B": 0.1,
+   "模型decode輸出": 7.1,
+   "模型總token": 63.2,
+   "模型除以InferenceX": 0.051
+  },
+  {
+   "EP": 64,
+   "草稿數": 0,
+   "每用戶tok_s": 75,
+   "InferenceX_總token_tok_s_GPU": 932,
+   "模型B": 0,
+   "模型decode輸出": 0,
+   "模型總token": 0,
+   "模型除以InferenceX": 0.0
+  },
+  {
+   "EP": 64,
+   "草稿數": 0,
+   "每用戶tok_s": 100,
+   "InferenceX_總token_tok_s_GPU": 739,
+   "模型B": 0,
+   "模型decode輸出": 0,
+   "模型總token": 0,
+   "模型除以InferenceX": 0.0
+  },
+  {
+   "EP": 64,
+   "草稿數": 3,
+   "每用戶tok_s": 30,
+   "InferenceX_總token_tok_s_GPU": 1582,
+   "模型B": 11.5,
+   "模型decode輸出": 346.4,
+   "模型總token": 1656.2,
+   "模型除以InferenceX": 1.047
+  },
+  {
+   "EP": 64,
+   "草稿數": 3,
+   "每用戶tok_s": 50,
+   "InferenceX_總token_tok_s_GPU": 1235,
+   "模型B": 5.4,
+   "模型decode輸出": 272.2,
+   "模型總token": 1446.7,
+   "模型除以InferenceX": 1.171
+  },
+  {
+   "EP": 64,
+   "草稿數": 3,
+   "每用戶tok_s": 75,
+   "InferenceX_總token_tok_s_GPU": 932,
+   "模型B": 2.4,
+   "模型decode輸出": 179.5,
+   "模型總token": 1108.6,
+   "模型除以InferenceX": 1.189
+  },
+  {
+   "EP": 64,
+   "草稿數": 3,
+   "每用戶tok_s": 100,
+   "InferenceX_總token_tok_s_GPU": 739,
+   "模型B": 0.9,
+   "模型decode輸出": 86.8,
+   "模型總token": 639.6,
+   "模型除以InferenceX": 0.865
+  }
+ ],
+ "model_params": {
+  "eta_d_hopper": 0.0429060401998604,
+  "lat_us_hopper": 241.778007200547,
+  "F_ms": 20.527477146654906,
+  "c_ms": 5.53496523998113,
+  "kv_ms": 0.09101897142857143,
+  "ep_ms": 1.1805696000000003,
+  "cap": 335.62571749845716
+ }
+}

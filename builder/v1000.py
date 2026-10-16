@@ -224,17 +224,21 @@ def _check_nature(wb):
     return cnt
 
 
+SOFT_CAP = ("V1", "V2", "V3")       # v11.0 G4: MLPerf server items (soft upper bound); interactive items V4–V6 stay hard caps
+
+
 def checks_v(wb, CAL):
     ws = wb["Checks"]
     cnt = _check_nature(wb)
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
     section(ws, r, "V. 驗證計數（工作單 稽核修正2 6r1 N3，D5，v10.0）：只計能失敗的檢查；驗證失敗不進 GOV_Errors（不阻擋合併），報告必須列出", 10); r += 1
-    put(ws, f"A{r}", "判準寫在 H（下限）與 I（上限）兩格（chat 端 J2 決定；黑字，不登錄 Gov_Map）。F 欄＝1 通過、0 失敗、—＝不適用（任一側非數字）。MLPerf 為廠商最佳化後的可達上限（模型高於 MLPerf 才判失敗）；"
+    put(ws, f"A{r}", "判準寫在 H（下限）與 I（上限）兩格（chat 端 J2 決定；黑字，不登錄 Gov_Map）。F 欄＝1 通過、0 失敗、警示（v11.0 G4：只用於 V1–V3）、—＝不適用（任一側非數字）。MLPerf interactive 為廠商最佳化後的可達上限（模型高於 MLPerf 才判失敗）；"
+                   "MLPerf server（V1–V3）改為軟上限（v11.0 G4）：> 1 判『警示』，不計失敗（server 的 TPOT 80 ms 是 p99 口徑，模型取平均；同條件 TensorRT-LLM H200 為 MLPerf v5.1 的 2.6 倍）；"
                    "LMSYS 兩點口徑不嚴（無明確 SLO，模型 Sol 級≠DeepSeek-V3 規模），帶寬 0.5–2.0；RL 帶 0.1–0.3；harness 輪數倍數 ≥ 1（SWE Atlas 方向證據，只判方向）", F_NOTE); r += 1
     sum_rows = {}
-    for key, lab in (("T", "驗證項目數（F 欄為數字者）"), ("P", "通過"), ("F", "失敗")):
+    for key, lab in (("T", "驗證項目數（F 欄為數字或『警示』者）"), ("P", "通過"), ("F", "失敗"), ("W", "警示（MLPerf server 軟上限：模型高於上限，不計失敗；v11.0 G4）")):
         sum_rows[key] = r; put(ws, f"A{r}", f"V{key}"); put(ws, f"B{r}", lab, F_BOLD); r += 1
-    for i, h in enumerate(["編號", "驗證項目", "模型值", "對照值（實測或上限）", "模型 ÷ 對照（或模型值）", "結果（1 通過／0 失敗／—）", "性質", "通過帶下限", "通過帶上限", "口徑與來源"]):
+    for i, h in enumerate(["編號", "驗證項目", "模型值", "對照值（實測或上限）", "模型 ÷ 對照（或模型值）", "結果（1 通過／0 失敗／警示／—）", "性質", "通過帶下限", "通過帶上限", "口徑與來源"]):
         put(ws, f"{'ABCDEFGHIJ'[i]}{r}", h, F_BOLD, wrap=True)
     r += 1
     first = r
@@ -245,9 +249,9 @@ def checks_v(wb, CAL):
     _trr = [rr for rr in range(5, _tr.max_row + 1) if re.fullmatch(r"T\d\d", str(_tr.cell(rr, 1).value or ""))]
     TR_FIRST, TR_LAST = min(_trr), max(_trr)       # v10.3 F3: Tech_Registry entry rows (T01–T12)
     for vid, col, lab, src in (
-            ("V1", "G", "MLPerf v5.1 server（DeepSeek-R1）：Hopper——模型 ÷ MLPerf ≤ 1", "SRC_PERF_060；DGX H200（8 GPU，NVIDIA 提交，NVIDIA 註明 Hopper 結果未經 MLCommons 驗證）；模型為 H100 規格（頻寬較 H200 低，上限偏寬）"),
-            ("V2", "H", "MLPerf v6.0 server：GB200 NVL72（NVIDIA 72 GPU）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_075（4,668，NVIDIA，Interested-party；v10.2 E3 取代 v5.1 的 SRC_PERF_061＝2,327）；第二來源 CoreWeave 64 GPU 4,868（SRC_PERF_077）"),
-            ("V3", "F", "MLPerf v6.0 server：GB300 NVL72（NVIDIA 72 GPU 機櫃）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_076（5,562，NVIDIA 72 GPU；v10.2 E3 取代 Nebius 8 GPU 單機 8,064＝SRC_PERF_026）；同輪機櫃範圍 5,562–7,994（Nebius 72 GPU 7,994＝SRC_PERF_078）"),
+            ("V1", "G", "MLPerf v5.1 server（DeepSeek-R1）：Hopper——模型 ÷ MLPerf ≤ 1（軟上限：> 1 為警示，不計失敗）", "SRC_PERF_060；DGX H200（8 GPU，NVIDIA 提交，NVIDIA 註明 Hopper 結果未經 MLCommons 驗證）；模型為 H100 規格（頻寬較 H200 低，上限偏寬）"),
+            ("V2", "H", "MLPerf v6.0 server：GB200 NVL72（NVIDIA 72 GPU）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 為警示，不計失敗）", "SRC_PERF_075（4,668，NVIDIA，Interested-party；v10.2 E3 取代 v5.1 的 SRC_PERF_061＝2,327）；第二來源 CoreWeave 64 GPU 4,868（SRC_PERF_077）"),
+            ("V3", "F", "MLPerf v6.0 server：GB300 NVL72（NVIDIA 72 GPU 機櫃）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 為警示，不計失敗）", "SRC_PERF_076（5,562，NVIDIA 72 GPU；v10.2 E3 取代 Nebius 8 GPU 單機 8,064＝SRC_PERF_026）；同輪機櫃範圍 5,562–7,994（Nebius 72 GPU 7,994＝SRC_PERF_078）"),
             ("V4", "C", "MLPerf v6.1 interactive：GB300 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_028／SRC_HW_047；Calib H 節第 1 驗證點"),
             ("V5", "D", "MLPerf v6.0 interactive：GB200 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_025／SRC_HW_047；Calib H 節第 2 驗證點"),
             ("V6", "E", "MLPerf v6.1 interactive：VR200 NVL72（預覽類）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_027／SRC_HW_047；預覽類提交，Calib H 節第 3 驗證點")):
@@ -278,22 +282,35 @@ def checks_v(wb, CAL):
          f'=COUNTA(Tech_Registry!$T${TR_FIRST}:$T${TR_LAST})', f'=COUNTIF(Tech_Registry!$T${TR_FIRST}:$T${TR_LAST},"一致")',
          f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),C{{r}}-D{{r}},"—")', 0, 0,
          "v10.3 F3（4-2a；原則 4）：T 欄原無任何讀取者。模型值＝檢查列數，對照值＝結果為『一致』的列數，結果欄＝兩者之差；『主流但未入基準：須 Andy 判定』或『非主流卻在基準』即失敗。"
-         "T 欄用 Andy 覆寫 L 欄（有值時取代 K）判讀")
+         "T 欄用 Andy 覆寫 L 欄（有值時取代 K）判讀"),
+        ("V20", "MLPerf v6.0 offline：GB200 NVL72（NVIDIA 72 GPU，無 SLO，大批次）——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑：η_d × CAL_BatchEtaD）", f"=Calib!C{CAL['L']['lout']}", "=SRC_PERF_079", None, 0.5, 2.0,
+         "v11.0 G3：SRC_PERF_079（6,752；第二來源 CoreWeave 64 GPU 7,323＝SRC_PERF_082；Google 72 GPU 4,276 未登錄）；模型值＝Calib L 節 C 欄（輸入 800／輸出 3,880、無 SLO、批次填滿 HBM、η_d × CAL_BatchEtaD、含 prefill 分攤）；"
+         "GB200 的 CAL_BatchEtaD 由 vLLM 10.1K 校準（Calib J 節 D 欄），本點不用於校準"),
+        ("V21", "MLPerf v6.0 offline：GB300 NVL72（NVIDIA 72 GPU，無 SLO，大批次）——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑）", f"=Calib!D{CAL['L']['lout']}", "=SRC_PERF_080", None, 0.5, 2.0,
+         "v11.0 G3：SRC_PERF_080（8,987；第二來源 Nebius 72 GPU 9,360＝SRC_PERF_083）；模型值＝Calib L 節 D 欄（同 V20；GB300 的 CAL_BatchEtaD＝1，未另校準）"),
+        ("V22", "TensorRT-LLM H200 8 GPU（ISL 1K／OSL 2K，並行 1,024＝每 rank 128，EP8，無 SLO）：Hopper——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑）", f"=Calib!E{CAL['L']['lout']}", "=SRC_PERF_081", None, 0.5, 2.0,
+         "v11.0 G3：SRC_PERF_081（1,436；NVIDIA TensorRT-LLM 0.21.0rc1 文件，單一來源）；模型值＝Calib L 節 E 欄（H200 規格 141 GB／4.8 TB/s、EP8、固定批次 128、無 MTP、η_d × CAL_BatchEtaD、含 prefill 分攤）；"
+         "Hopper 的 CAL_BatchEtaD 在 C68＝1.5 下無解而未寫入（＝1），此項的結果隨之偏低；不用於校準")
     ]
     for vid, lab, c, d, e, lo, hi, note in items:
         put(ws, f"A{r}", vid); put(ws, f"B{r}", lab, wrap=True)
         put(ws, f"C{r}", c, fmt="#,##0.000"); put(ws, f"D{r}", d, fmt="#,##0.000")
         put(ws, f"E{r}", (e or ratio(r)).replace("{r}", str(r)), fmt="0.000")
-        put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),1,0),"—")', F_BOLD, fmt="0")
+        if vid in SOFT_CAP:       # v11.0 G4: MLPerf server (V1–V3) is a soft cap: ratio > upper bound is a warning, not a failure
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(E{r}<H{r},0,IF(IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE),1,"警示")),"—")', F_BOLD, fmt="0")
+        else:
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),1,0),"—")', F_BOLD, fmt="0")
         put(ws, f"G{r}", "驗證", F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
         if hi is not None: put(ws, f"I{r}", hi, F_CALC, fmt="0.00")
         put(ws, f"J{r}", note, F_NOTE, wrap=True); r += 1
     last = r - 1
-    for key, f in (("T", f"=COUNT(F{first}:F{last})"), ("P", f"=SUM(F{first}:F{last})"), ("F", f"=F{sum_rows['T']}-F{sum_rows['P']}")):
+    for key, f in (("T", f'=COUNT(F{first}:F{last})+COUNTIF(F{first}:F{last},"警示")'), ("P", f"=SUM(F{first}:F{last})"),
+                   ("F", f"=COUNT(F{first}:F{last})-F{sum_rows['P']}"), ("W", f'=COUNTIF(F{first}:F{last},"警示")')):      # v11.0 G4: T = numeric + warnings; F = numeric − pass; identity P + F + W = T
         put(ws, f"F{sum_rows[key]}", f, F_BOLD, fmt="0")
     wb.defined_names["CHK_VerifyTotal"] = DefinedName("CHK_VerifyTotal", attr_text=f"Checks!$F${sum_rows['T']}")
     wb.defined_names["CHK_VerifyPass"] = DefinedName("CHK_VerifyPass", attr_text=f"Checks!$F${sum_rows['P']}")
     wb.defined_names["CHK_VerifyFail"] = DefinedName("CHK_VerifyFail", attr_text=f"Checks!$F${sum_rows['F']}")
+    wb.defined_names["CHK_VerifyWarn"] = DefinedName("CHK_VerifyWarn", attr_text=f"Checks!$F${sum_rows['W']}")      # v11.0 G4 (major version: new contract name)
     return dict(first=first, last=last, sums=sum_rows, nature=cnt)
 
 

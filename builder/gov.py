@@ -28,6 +28,7 @@ import v800                       # v8.0: audit fix 2-3 (D2 annual basis, D14 se
 import v1000                      # v10.0: audit fix 2-5 (D12 LifeSelf names, D4 nature column, D5 verification counters)
 import v1020                      # v10.2: eta calibration and verification criteria (E1-E4)
 import v1030                      # v10.3: slimming 4-2a (L1_JudgeTol, Rubin Ultra multipliers, Decisions SL42-*)
+import v1100                      # v11.0: big-batch fix (CAL_BatchEtaD, V20–V22, soft cap V1–V3, CHK_VerifyWarn)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
 import v601                       # v6.1: audit fix 3B (D3／D6／D10／D13／Q3／Q6 judgement columns, Gov_Map rows, Decisions AF3B-*)
@@ -108,7 +109,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records():
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records():
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -168,7 +169,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows() + v531.evidence_rows() + v532.evidence_rows() + v533.evidence_rows() + v534.evidence_rows() + v535.evidence_rows() + v536.evidence_rows() + v700.evidence_rows() + v800.evidence_rows() + v1000.evidence_rows() + v1020.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows() + v531.evidence_rows() + v532.evidence_rows() + v533.evidence_rows() + v534.evidence_rows() + v535.evidence_rows() + v536.evidence_rows() + v700.evidence_rows() + v800.evidence_rows() + v1000.evidence_rows() + v1020.evidence_rows() + v1100.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -212,7 +213,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000 + v1020.DECISIONS_V1020 + v1030.DECISIONS_V1030:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000 + v1020.DECISIONS_V1020 + v1030.DECISIONS_V1030 + v1100.DECISIONS_V1100:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -364,7 +365,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))

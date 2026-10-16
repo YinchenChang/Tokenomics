@@ -229,12 +229,13 @@ SPEC = [
      "=C{ext_api}", "=C{ext_api}", "Verified（連結 SRC；年化為 Derived）", "15B tok/min × 525,600；為 2026-03 時點值，與 2025 營收不同期"),
     ("ext_daily", "(ii) 外部 token：Epoch 前沿實驗室每日 token（SRC_DEM_013；基準＝幾何中點）", "T tok/日", "=(SRC_DEM_013_Lo*SRC_DEM_013_Hi)^0.5",
      "=SRC_DEM_013_Hi", "=SRC_DEM_013_Lo", "Verified（連結 SRC）", "SRC_DEM_013 只有低 10、高 100；基準取幾何中點（A 段第 6.2 節「Epoch 中值約 30 T／日」）"),
-    ("paid_share", "付費占比（＝1 − IF_FreeShare）", "%", "=1-IF_FreeShare", "=C{paid_share}", "=C{paid_share}", "Interested-party／Derived",
-     "IF_FreeShare＝免費占服務（Cap_In 第 29 列）"),
+    ("paid_share", "付費占比（token 口徑＝1 − AL_FreeShare；v9.0 M2 由支出口徑 IF_FreeShare 改）", "%", "=1-AL_FreeShare", "=C{paid_share}", "=C{paid_share}", "Assumed（連結 Alloc_In）",
+     "v9.0 M2（D9）：此占比乘在 token 上，一律用 token 口徑 AL_FreeShare（ChatGPT token 中免費用戶占比 0.6；0.4–0.8）；原用支出口徑 IF_FreeShare（免費占服務 0.46，Cap_In 第 29 列）。"
+     "注意：Epoch 為前沿實驗室總量（含 API），ChatGPT 免費占比是否適用於全體為判斷事項，見 2-4 報告待 Project 判斷"),
     ("ext_paid", "(ii) 外部 token：付費合計（Epoch × 365 × 付費占比）", "M tok/年", "=C{ext_daily}*1000000*365*C{paid_share}",
      "=D{ext_daily}*1000000*365*D{paid_share}", "=E{ext_daily}*1000000*365*E{paid_share}", "Derived", "T → M：× 1,000,000"),
     (None, "H4. 單價（J2 (iii)：Cap_In 第 31 列付費層級組合 × IF_PriceRef_*；不新增輸入，三欄相同）"),
-    ("price", "付費 token 混合有效單價（層級組合 Luna／Sol／Astra）", "$/M", "=INDEX(B4_MixPaid,1,1)*IF_PriceRef_Luna+INDEX(B4_MixPaid,1,2)*IF_PriceRef_Sol+INDEX(B4_MixPaid,1,3)*IF_PriceRef_Astra",
+    ("price", "付費 token 混合有效單價（層級組合 Luna／Sol／Astra；× AL_Kappa，v9.0 M3）", "$/M", "=(INDEX(B4_MixPaid,1,1)*IF_PriceRef_Luna+INDEX(B4_MixPaid,1,2)*IF_PriceRef_Sol+INDEX(B4_MixPaid,1,3)*IF_PriceRef_Astra)*AL_Kappa",
      "=C{price}", "=C{price}", "Derived", "參考請求混合有效單價（OpenAI 有效價＝表列 ×（1−折扣））按 Cap_In 第 31 列（B4_MixPaid）加權；A 段第 6 節基準 1.961"),
     (None, "H5. 隱含 m＝付費營收 ÷（付費 token × 混合有效單價）；對照 CTL_Monetize（第 64 列，基準 1；Gov_Map 區間 0.3–1.0，J1 (a′) 不改）"),
     ("m_sub", "隱含 m — 訂閱路線（模型 token）", "x", "=C{rev_sub}*1000000000/(C{tok_chat}*C{price})",
@@ -361,7 +362,7 @@ def gov_update(ws, append_text):
 READ_M = ("(1) 模型 token 分母已知偏低（L1_ScaleServe：支出路線服務算力約為 token 路線的 18 倍），所以 L1_MImplied > 1 代表分母問題，不代表 m > 1；"
           "(2) m < 1 時回本條件改為 L ≥ L1_FleetBreakeven ÷（IF_Util × CTL_ProdDerate × m），例如 m＝0.6 時需 L ≥ 0.49，在 L1_GapUtil 的實際利用率下需 L ≥ 0.72，"
           "超過 L 類比區間上緣 0.70")
-READ_EXT = ("外部分母＝Epoch 每日 token（SRC_DEM_013，10–100 T／日；基準取幾何中點）× 365 ×（1 − IF_FreeShare）；區間跨一個數量級。"
+READ_EXT = ("外部分母＝Epoch 每日 token（SRC_DEM_013，10–100 T／日；基準取幾何中點）× 365 ×（1 − AL_FreeShare，token 口徑；v9.0 M2）；區間跨一個數量級。"
             "(2) m < 1 時回本條件改為 L ≥ L1_FleetBreakeven ÷（IF_Util × CTL_ProdDerate × m），例如 m＝0.6 時需 L ≥ 0.49，在 L1_GapUtil 的實際利用率下需 L ≥ 0.72，"
             "超過 L 類比區間上緣 0.70")
 

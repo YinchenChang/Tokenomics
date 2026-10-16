@@ -425,9 +425,10 @@ def amortize(wb, F, P, S):
         row15(ws, r, f"{tn}：(c) 由上而下總額 × 自下而上權重（下游預設）　[IF_AmortDefault_{tk}]", "$/M",
               f"=IF({num('{X}'+str(A[f'bu{t}']), '{X}'+str(A['scale']))},{{X}}{A[f'bu{t}']}*{{X}}{A['scale']},{NA})", "#,##0.00000", key=True)
         A[f"dc{t}"] = r; r += 1
-        row15(ws, r, f"{tn}：(d) 由上而下總額 × 營收權重　[IF_AmortRev_{tk}]", "$/M",
-              f"=IF({num('{X}'+str(A['revtot']), '{X}'+str(A[f'yr{t}']))},IF(AND({{X}}{A['revtot']}>0,{{X}}{A[f'yr{t}']}>0),"
-              f"{{X}}{A['tdtot']}*({pay(t)}/1E6/{{X}}{A['revtot']})*1E6/{{X}}{A[f'yr{t}']},0),{NA})", "#,##0.00000")
+        pt = f"Fleet_1GW!{{X}}{F[f'p{t}']}"      # v9.0 M4: the (d) denominator is the tier's PAID tokens (was paid + free), as the D11 BU denominator
+        row15(ws, r, f"{tn}：(d) 由上而下總額 × 營收權重（分母＝付費 token，v9.0 M4）　[IF_AmortRev_{tk}]", "$/M",
+              f"=IF({num('{X}'+str(A['revtot']), pt)},IF(AND({{X}}{A['revtot']}>0,{pt}>0),"
+              f"{{X}}{A['tdtot']}*({pay(t)}/1E6/{{X}}{A['revtot']})*1E6/{pt},0),{NA})", "#,##0.00000")
         A[f"dd{t}"] = r; r += 1
     row15(ws, r, "(d) 攤提占付費營收（各層級相同）", "%",
           f"=IF(ISNUMBER({{X}}{A['revtot']}),IF({{X}}{A['revtot']}>0,{{X}}{A['tdtot']}/{{X}}{A['revtot']},0),{NA})", "0.0%"); A["dshare"] = r; r += 1
@@ -578,7 +579,7 @@ def interface_b4(wb, start, P, S, A, T):
                 (f"IF_AmortTD_{tk}", "訓練攤提 由上而下（機隊訓練占比）", "$/M", "#,##0.0000", f"=Amortize!{{X}}{A[f'td{t}']}"),
                 (f"IF_FullCost_{tk}", "全成本 $/M（服務＋快取儲存＋自下而上攤提；基準利用率）", "$/M", "#,##0.0000", f"=Theory_Rev!{{X}}{T[f'fc{t}']}"),
                 (f"IF_AmortDefault_{tk}", "訓練攤提 K6 預設 (c)：由上而下總額 × 自下而上權重（下游預設）", "$/M", "#,##0.00000", f"=Amortize!{{X}}{A[f'dc{t}']}"),
-                (f"IF_AmortRev_{tk}", "訓練攤提 (d)：由上而下總額 × 營收權重", "$/M", "#,##0.00000", f"=Amortize!{{X}}{A[f'dd{t}']}"),
+                (f"IF_AmortRev_{tk}", "訓練攤提 (d)：由上而下總額 × 營收權重（分母＝付費 token，v9.0 M4）", "$/M", "#,##0.00000", f"=Amortize!{{X}}{A[f'dd{t}']}"),
                 (f"IF_FullCostDefault_{tk}", "全成本 $/M（服務＋快取儲存＋K6 預設攤提；基準利用率；下游預設）", "$/M", "#,##0.0000", f"=Theory_Rev!{{X}}{T[f'fcd{t}']}"),
                 (f"IF_RevGW_{tk}", "每 GW 理論營收 — OpenAI 有效單價（理想上限）", "$B/年", "#,##0.0", f"=Theory_Rev!{{X}}{T[f'rev{t}']}"),
                 (f"IF_RevGWFront_{tk}", "每 GW 理論營收 — 前緣單價（理想上限）", "$B/年", "#,##0.0", f"=Theory_Rev!{{X}}{T[f'revf{t}']}")]

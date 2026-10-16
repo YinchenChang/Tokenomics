@@ -147,7 +147,7 @@ def alloc(wb, AIN):
     line("wp", "付費組合：可達層級的權重合計（重新正規化的分母）", "%", {c: f"={wsum(mp, c)}" for c in "CDEF"}, "0.0%", note="同 Fleet_1GW 第 41 列")
     line("wf", "免費組合：可達層級的權重合計（重新正規化的分母）", "%", {c: f"={wsum(mf, c)}" for c in "CDEF"}, "0.0%", note="同 Fleet_1GW 第 42 列")
     line("xp", "未服務需求占比（付費）＝被排除層級的付費組合權重合計", "%", {c: f"=SUM({mp})-{c}{R['wp']}" for c in "CDEF"}, "0.0%", "AL_UnservedPaid",
-         "排除不是消失：這一部分的需求沒有被該世代的產能服務；基準下 Hopper 欄＝Astra 的付費組合權重（TTFT 不可達）", span=("C", "F"))
+         "排除不是消失：這一部分的需求沒有被該世代的產能服務；v9.0 起快取命中進 prefill 產能，基準下 15 欄皆可達、此列為 0；改 Serving 的 SLO／TTFT 或 B4_CacheHit 使某層級不可達時，該世代欄＝該層級的付費組合權重", span=("C", "F"))
     line("xf", "未服務需求占比（免費）＝被排除層級的免費組合權重合計", "%", {c: f"=SUM({mf})-{c}{R['wf']}" for c in "CDEF"}, "0.0%", "AL_UnservedFree", span=("C", "F"))
     line("ok", "可服務（付費與免費組合各至少一個層級可達＝1；同 Fleet_1GW 第 18 列）", "旗標",
          {c: f"=IF(AND({c}{R['wp']}>0,{c}{R['wf']}>0),1,0)" for c in "CDEF"}, "0", "AL_GenOK", span=("C", "F"))
@@ -217,8 +217,8 @@ def alloc(wb, AIN):
     # ---------------- D. Q1, Q2
     hdr("D. Q1、Q2（R1 基準，R2 並列；A7）")
     line("q1", "Q1（R1）研發算力占比＝研發 GW ÷（研發 GW＋服務 GW）；服務 GW 為支出路線（AL_ServeGWSpend；v8.0 D14 主口徑，token 路線見 Alloc L 節 AL_Q1_Tok）", "%", gx(f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGW)),AL_RDGW/(AL_RDGW+AL_ServeGWSpend),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1", key_fill=True)      # v6.3 K2 文字旗標仍由 AL_ServeGW（token 路線）傳遞
-    line("q1b", "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷ 總 GW（token 路線；v8.0 未改，列待 Project 判斷）", "%",
-         gx(f'=IF(AND(ISNUMBER(AL_ServeGW),ISNUMBER(AL_RDGW)),(AL_RDGW+AL_ServeGWFree)/(AL_RDGW+AL_ServeGW),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1R2")
+    line("q1b", "Q1（R2，免費服務算作產品改良）＝（研發 GW＋免費服務 GW）÷（研發 GW＋服務 GW）；服務 GW 為支出路線 AL_ServeGWSpend，免費服務 GW＝AL_ServeGWSpend × AL_FreeSpendShare（支出口徑；v9.0 M6，比照 L5）", "%",
+         gx(f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGW),ISNUMBER(AL_FreeSpendShare)),(AL_RDGW+AL_ServeGWSpend*AL_FreeSpendShare)/(AL_RDGW+AL_ServeGWSpend),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1R2")
     line("q2", "Q2 研發算力成本占比＝研發 GW × 持有成本 ÷（研發 GW × 持有成本＋服務持有成本）；服務持有成本為支出路線＝AL_ServeGWSpend × Σ（世代占比 × 各世代持有成本）＝SRC_DEM_004（v8.0 D14）", "%",
          gx(f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGW)),AL_RDGW*AL_HoldTrain/(AL_RDGW*AL_HoldTrain+AL_ServeGWSpend*SUMPRODUCT(AL_ShareGen,AL_HoldGen)),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q2", "利用率不進入成本占比（A5）", key_fill=True)
     line("q1g", "Q1（R1；成長情境 g；支出路線）", "%", gx(f'=IF(AND(ISNUMBER(AL_ServeGWSpend),ISNUMBER(AL_RDGWg)),AL_RDGWg/(AL_RDGWg+AL_ServeGWSpend),"{SLO}")', "AL_ServeGW"), "0.0%", "AL_Q1g")
@@ -359,7 +359,7 @@ def interface_b6(wb, start):
     ws = wb["Interface"]; r = start; names = []
     section(ws, r, "F. Block 6 產出（研發與服務的算力配置；2025 穩態年度；服務世代組合與訓練世代見 Alloc_In／Alloc；SLO 不可達時為文字）", 17); r += 1
     rows = [("IF_AllocQ1", "研發算力占比 Q1（R1：研發 GW ÷ 研發＋服務 GW；服務 GW＝支出路線，v8.0 D14 主口徑）", "%", "=AL_Q1", "0.0%", True),
-            ("IF_AllocQ1_R2", "研發算力占比 Q1（R2：免費服務算作產品改良；token 路線，v8.0 未改）", "%", "=AL_Q1R2", "0.0%", False),
+            ("IF_AllocQ1_R2", "研發算力占比 Q1（R2：免費服務算作產品改良；服務 GW＝支出路線，免費服務 GW＝服務 GW × AL_FreeSpendShare；v9.0 M6）", "%", "=AL_Q1R2", "0.0%", False),
             ("IF_AllocQ2", "研發算力成本占比 Q2（研發 GW × 持有成本 ÷（＋服務持有成本＝SRC_DEM_004，支出路線，v8.0 D14）；利用率不進入）", "%", "=AL_Q2", "0.0%", True),
             ("IF_AllocServeGW", "服務 GW 合計（支出路線＝SRC_DEM_004 ÷ Σ 世代占比 × 持有成本；v8.0 D14 主口徑；IT 關鍵電力）", "GW", f'=IF(AL_ServeGW="{GENX}","{GENX}",AL_ServeGWSpend)', "0.0000", False),
             ("IF_AllocRDGW", "研發 GW 年（k ×（N_major × 家族＋N_refresh × 改版）；v8.0 L3：2025 研發世代組合加權，Alloc J 節）", "GW·年", "=AL_RDGW", "0.0000", False),

@@ -118,6 +118,6 @@ def test_verify_totals_and_list_complete(lo):
 
 
 def test_gov_counts_new_baseline(lo):
-    """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 181（v12.0：179 → 181，Gov_Map 『標記變更』欄 +1＝C68 更正註記；Load_Bearing 高段 Assumed 列 +1＝新增 Hopper C156 列）。"""
+    """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 182（v13.0：181 → 182，Calib C68 類別更正為 Assumed 進 Load_Bearing；v12.0：179 → 181，Gov_Map 『標記變更』欄 +1＝C68 更正註記；Load_Bearing 高段 Assumed 列 +1＝新增 Hopper C156 列）。"""
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 282, 181)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 282, 182)      # v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）

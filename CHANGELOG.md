@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261017_Tokenomics_v13.1.xlsx（取代 v13.0；次版：無新增契約名稱；D15 來源補齊 B 段＋查核 #96 小項，依工作單 `docs/workorders/20261017_D15_B段.md`）
+
+- 分支 `claude/d15-b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_D15_B段.md`；進度檔：`docs/reports/20261017_D15_B段_進度.md`。底稿：master（v13.0）。
+- Excel（CC 以 `builder/v1310.py` 自 v13.0 產生，經 LibreOffice 重算存檔）：
+  - P1：Gov_Map「無來源也無決策」列 312 → 0（J 欄補決策編號、25 格補 H 欄）；Decisions 新增 D15-01…D15-12；新增 SRC_DC_018／019、SRC_PRC_045／046、SRC_HW_069／070（Lenovo 第二來源）；DB_Evidence 106 筆積壓寫入建議判定（新增 E381–E386）；Arch E6–E8 標 Assumed（修訂九更正例外，原文保留）；SRC_PERF_060 標待回查；V1 與 L1_GapPrompt 註記。
+  - P2：VR200 欄為點值之註記；區間指紋旗標（Alloc P 節，579 個上游常數格；Checks RG3，計入 `GOV_Warnings`）；v13.0／4-2b-1 報告文字更正；GM346 欄 O 改寫。
+- 變動：既有 `IF_`／`IFW_`／`L1_`／`CHK_`／`RNG_` 名稱數值 0 變動；`GOV_Warnings` 282 → 280、`GOV_Info` 182 → 184、`GOV_Errors` 0。
+- 測試：契約快照 `contract_snapshot_v13.0.json` → `contract_snapshot_v13.1.json`；新增指紋、舊名稱不變與 P2-2 專屬測試；沒有刪除或放寬任何測試。
+
 ## 20261017_Tokenomics_v13.0.xlsx（取代 v12.0；主版：新增契約名稱 `RNG_*` 共 110 個；4-2b-1 K1–K5，依工作單 `docs/workorders/20261017_4-2b.md` 第 1 節）
 
 - 分支 `claude/4-2b-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_4-2b-1.md`；進度檔：`docs/reports/20261017_4-2b-1_進度.md`。底稿：master（v12.0）。版號：工作單標題寫 v12.1，因新增契約名稱，依 CLAUDE.md 第 4 節升主版為 v13.0。

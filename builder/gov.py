@@ -26,6 +26,7 @@ import v602                       # v6.2: audit fix 2-1 (D1(c) model scale, TTFT
 import v700                       # v7.0: audit fix 2-2 (generation price B, leftovers)
 import v800                       # v8.0: audit fix 2-3 (D2 annual basis, D14 service GW main basis)
 import v1000                      # v10.0: audit fix 2-5 (D12 LifeSelf names, D4 nature column, D5 verification counters)
+import v1020                      # v10.2: eta calibration and verification criteria (E1-E4)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
 import v601                       # v6.1: audit fix 3B (D3／D6／D10／D13／Q3／Q6 judgement columns, Gov_Map rows, Decisions AF3B-*)
@@ -46,7 +47,7 @@ import v522                       # v5.22: X7 (L, m side-by-side outputs: Gov_Ma
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
-def _fm(): return v531.formula_map(v518.formula_map(ALL_FORMULA_MAP))     # v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
+def _fm(): return v1020.formula_map(v531.formula_map(v518.formula_map(ALL_FORMULA_MAP)))     # v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
 
 SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]   # v5.13: +4
 SRC_LAST = 400                      # record rows 5..SRC_LAST (formula ranges)
@@ -106,7 +107,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records():
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records():
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -166,7 +167,7 @@ def evidence_upgrade(wb):
             for i, v in enumerate(vals):
                 put(ws, f"{L(12+i)}{r}", v if v != "" else DASH, F_CALC, wrap=i in (1, 5))
     r = max(have.values()) + 1 if have else 5
-    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows() + v531.evidence_rows() + v532.evidence_rows() + v533.evidence_rows() + v534.evidence_rows() + v535.evidence_rows() + v536.evidence_rows() + v700.evidence_rows() + v800.evidence_rows() + v1000.evidence_rows():
+    for row in EVID_MIG + EVID_MIG2 + EVID_MIG3 + v518.evidence_rows() + v520.evidence_rows() + v521.evidence_rows() + v522.evidence_rows() + v525.evidence_rows() + v527.evidence_rows() + v529.evidence_rows() + v531.evidence_rows() + v532.evidence_rows() + v533.evidence_rows() + v534.evidence_rows() + v535.evidence_rows() + v536.evidence_rows() + v700.evidence_rows() + v800.evidence_rows() + v1000.evidence_rows() + v1020.evidence_rows():
         if row[0] in have: continue
         for i, v in enumerate(row):
             put(ws, f"{L(i+1)}{r}", v if v != "" else DASH, F_IN if i < 11 else F_CALC, wrap=i in (2, 10, 12))
@@ -210,7 +211,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000 + v1020.DECISIONS_V1020:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -413,7 +414,7 @@ def gov_map(wb, src_index):
     n_rp = v535.gov_map_repoint(wb, ws)      # v5.35 B5: GM629–GM633 (Cap_In H10 cells that moved one row down) re-pointed before the cell-keyed append (label guard; 0 on a v5.35-based rebuild)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text)      # v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text)      # v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):

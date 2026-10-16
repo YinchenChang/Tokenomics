@@ -101,10 +101,11 @@ def cap_in_m(wb, l_sec):
         for nmx, col in ((f"CAP_Px25_{tn}", "C"), (f"CAP_Px25_{tn}_Lo", "D"), (f"CAP_Px25_{tn}_Hi", "E")):
             wb.defined_names[nmx] = DefinedName(nmx, attr_text=f"Cap_In!${col}${r}")
         CM[f"px_{tn}"] = r; r += 1
-    put(ws, f"A{r}", "2025 付費 token 混合有效單價（全層級；B4_MixPaid × 2025 層級單價 ×（1 − B4_Disc）；寫法同第 90 列）", wrap=True); put(ws, f"B{r}", "$/M")
+    put(ws, f"A{r}", "2025 付費 token 混合有效單價（全層級；B4_MixPaid × 2025 層級單價 ×（1 − B4_Disc）× AL_Kappa；寫法同第 90 列；κ 為 v8.1 M3）", wrap=True); put(ws, f"B{r}", "$/M")
     for col, suf in (("C", ""), ("D", "_Lo"), ("E", "_Hi")):
+        # v9.0 M3 (D9): kappa on the price end as on the token end (kappa = 1 in the base case)
         f = "+".join(f"INDEX(B4_MixPaid,1,{t})*CAP_Px25_{tn}{suf}*(1-B4_Disc)" for tn, t in TIERS)
-        put(ws, f"{col}{r}", "=" + f, F_CALC, fmt="0.0000", fill=FILL_KEY if col == "C" else None)
+        put(ws, f"{col}{r}", "=(" + f + ")*AL_Kappa", F_CALC, fmt="0.0000", fill=FILL_KEY if col == "C" else None)
     put(ws, f"F{r}", "Derived"); put(ws, f"G{r}", "基準約 1.680（第 90 列 1.9607 的 0.857 倍）；低 0.874、高 2.899（2Q 第 1.3 節）。機隊口徑（可達層級重新正規化）見 Alloc K 節 AL_PriceFleet25", F_NOTE)
     for nmx, col in (("CAP_Price25Mix", "C"), ("CAP_Price25Mix_Lo", "D"), ("CAP_Price25Mix_Hi", "E")):
         wb.defined_names[nmx] = DefinedName(nmx, attr_text=f"Cap_In!${col}${r}")

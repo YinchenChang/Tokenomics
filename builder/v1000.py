@@ -241,6 +241,9 @@ def checks_v(wb, CAL):
     ratio = lambda rr: f'=IF(AND(ISNUMBER(C{rr}),ISNUMBER(D{rr})),IF(D{rr}>0,C{rr}/D{rr},"—"),"—")'
     items = []
     mT, mO = CAL["mT"], CAL["mO"]
+    _tr = wb["Tech_Registry"]
+    _trr = [rr for rr in range(5, _tr.max_row + 1) if re.fullmatch(r"T\d\d", str(_tr.cell(rr, 1).value or ""))]
+    TR_FIRST, TR_LAST = min(_trr), max(_trr)       # v10.3 F3: Tech_Registry entry rows (T01–T12)
     for vid, col, lab, src in (
             ("V1", "G", "MLPerf v5.1 server（DeepSeek-R1）：Hopper——模型 ÷ MLPerf ≤ 1", "SRC_PERF_060；DGX H200（8 GPU，NVIDIA 提交，NVIDIA 註明 Hopper 結果未經 MLCommons 驗證）；模型為 H100 規格（頻寬較 H200 低，上限偏寬）"),
             ("V2", "H", "MLPerf v6.0 server：GB200 NVL72（NVIDIA 72 GPU）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_075（4,668，NVIDIA，Interested-party；v10.2 E3 取代 v5.1 的 SRC_PERF_061＝2,327）；第二來源 CoreWeave 64 GPU 4,868（SRC_PERF_077）"),
@@ -266,6 +269,16 @@ def checks_v(wb, CAL):
          "SRC_PERF_073（1,850 tok/s/GPU，24 小時平均）；與校準點 2,324 同一家公司，相關性高；模型值＝Calib J 節 E 欄（KV 4,989、EP144、約 21 tok/s/user）；不用於校準"),
         ("V16", "能量閉合：各欄最大閉合比 ≤ 100%（Checks B26）", "—", "—", "=Checks!B26", 0, 1, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
         ("V17", "後訓練占比：GPU 小時口徑 − FLOPs 口徑 ≥ 0（Checks B36）", "—", "—", "=Checks!B36", 0, None, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
+        ("V18", "Tech_Registry K 欄（主流判定）：每一列 K＝『主流』與『公開採用實驗室數 J ≥ 門檻（CST_MainMin）』一致——不一致列數＝0",
+         f'=COUNTIF(Tech_Registry!$K${TR_FIRST}:$K${TR_LAST},"主流")', f'=COUNTIF(Tech_Registry!$J${TR_FIRST}:$J${TR_LAST},">="&CST_MainMin)',
+         f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),SUMPRODUCT(--((Tech_Registry!$K${TR_FIRST}:$K${TR_LAST}="主流")<>(Tech_Registry!$J${TR_FIRST}:$J${TR_LAST}>=CST_MainMin))),"—")', 0, 0,
+         "v10.3 F3（4-2a；原則 4）：K 欄原無任何讀取者。模型值＝K 為『主流』的條目數，對照值＝J ≥ 門檻的條目數，結果欄＝逐列不一致的列數（K 公式被覆寫成手填值而與 J 脫節時失敗）。"
+         "不比對狀態欄 I：T06（狀態『早期採用』、J＝2 ≥ 門檻 2）K 為『主流』而 I 不是，屬狀態欄口徑差，列『待 Project 判斷』"),
+        ("V19", "Tech_Registry T 欄（一致性檢查）：非『一致』的條目數＝0（主流但未入基準、非主流卻在基準）",
+         f'=COUNTA(Tech_Registry!$T${TR_FIRST}:$T${TR_LAST})', f'=COUNTIF(Tech_Registry!$T${TR_FIRST}:$T${TR_LAST},"一致")',
+         f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),C{{r}}-D{{r}},"—")', 0, 0,
+         "v10.3 F3（4-2a；原則 4）：T 欄原無任何讀取者。模型值＝檢查列數，對照值＝結果為『一致』的列數，結果欄＝兩者之差；『主流但未入基準：須 Andy 判定』或『非主流卻在基準』即失敗。"
+         "T 欄用 Andy 覆寫 L 欄（有值時取代 K）判讀")
     ]
     for vid, lab, c, d, e, lo, hi, note in items:
         put(ws, f"A{r}", vid); put(ws, f"B{r}", lab, wrap=True)

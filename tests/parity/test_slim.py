@@ -13,7 +13,11 @@ import deadcells_lib
 REPO = Path(__file__).resolve().parents[2]
 CONTRACT = REPO / "docs" / "plan" / "Tokenomics_downstream_contract.md"
 # 死格基準（v10.1 建置值；與 4-0 同一定義，另加 Sens_／_Prod 頁為根）。新增死格需先在工作單說明，否則此測試失敗。
-DEAD_BASELINE = 3599      # v10.2 E1：+105＝Calib J 節 C、D 欄（校準點複本列，工作單 E1 要求；顯示模型 ÷ 目標與所需倍數，無下游讀取）；v10.1：3494
+DEAD_BASELINE = 3574      # v10.3（4-2a）：3599 → 3574（F3：Tech_Registry K、T 欄接進 Checks V，−25，Tech_Registry 的 K、T 欄不再是死格；下調＝更嚴）；v10.2 E1：+105＝Calib J 節 C、D 欄（校準點複本列，工作單 E1 要求；顯示模型 ÷ 目標與所需倍數，無下游讀取）；v10.1：3494
+
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+PURPOSE = "用途"
 
 
 @lru_cache(maxsize=1)
@@ -95,3 +99,104 @@ def test_gov_map_no_double_registration():
                         dup.append((sheet, cc, rr, seen[k], gid))
                     seen.setdefault(k, gid)
     assert dup == [], dup[:10]
+
+
+def test_dead_cells_have_purpose_mark():
+    """4-2a F4（原則 2）：每個死格都必須有「用途」標記。基準名單＝v10.3 建置時用途欄為空的死格（fixtures/dead_unmarked_baseline_v10.3.json，
+    其中 2,3xx 格屬 4-0 的 B 類『視判斷可刪』，待 4-3 判斷批次逐列決定刪除或標記）；基準之外新增的死格若沒有標記，測試失敗。
+    Calib J 節 105 格與 Alloc 27 格已標記，不在基準名單內，所以拿掉標記也會失敗。"""
+    import json
+    import openpyxl
+    dead, _, _ = deadcells_lib.dead_formula_cells(model_path(), CONTRACT)
+    base = set(json.loads((FIXTURES / "dead_unmarked_baseline_v10.3.json").read_text(encoding="utf-8"))["unmarked"])
+    wb = openpyxl.load_workbook(model_path())
+    pcol = {}
+    for ws in wb.worksheets:
+        for c in range(3, ws.max_column + 2):
+            if ws.cell(3, c).value == PURPOSE:
+                pcol[ws.title] = c
+    new_unmarked = []
+    for s, a in sorted(dead):
+        ws = wb[s]
+        col = pcol.get(s)
+        marked = bool(col and ws.cell(ws[a].row, col).value not in (None, ""))
+        if not marked and f"{s}!{a}" not in base:
+            new_unmarked.append(f"{s}!{a}")
+    assert new_unmarked == [], (len(new_unmarked), new_unmarked[:20])
+    assert all(isinstance(x, str) and "!" in x for x in base)
+
+
+def test_alloc_fleet_1gw_same_formula_rows_agree(lo):
+    """4-2a F2 D11：Alloc（每 GW 口徑，欄 C–F＝服務世代 Hopper／GB200／GB300／VR200）與 Fleet_1GW（1 GW 機隊，欄＝世代 × 3 成本情境）同式的列，換算單位後相等（容差 1e-9）。
+    不合併的理由：單位不同（每 GW 對每 1 GW 機隊）；改一邊漏另一邊時，此測試失敗。對應欄＝Fleet_1GW 第 3*(g−1)+2 個成本欄（Alloc 第 17 列的索引）。"""
+    v = lo.view({})
+    same_rows = [(19, 38), (20, 39), (21, 40), (22, 41), (23, 42), (26, 18)]          # 可達旗標、保留層級權重合計、可服務旗標：兩邊同值
+    conv_rows = [(29, 19, 11), (30, 20, 12)]                                         # 每 GW 年產能 × 服務 GW（Fleet_1GW 第 11／12 列）＝服務 token 總量
+
+    def close(a, b):
+        if isinstance(a, str) or isinstance(b, str):
+            return a == b
+        return abs(a - b) <= 1e-9 * max(1.0, abs(b))
+
+    n = 0
+    for g, ac in enumerate("CDEF", start=1):
+        idx = 3 * (g - 1) + 2
+        fc = openpyxl_col(idx + 2)          # Fleet_1GW 欄 C 為第 1 個成本欄
+        assert v.get("Alloc", f"{ac}17") == idx
+        for ar, fr in same_rows:
+            a, b = v.get("Alloc", f"{ac}{ar}"), v.get("Fleet_1GW", f"{fc}{fr}")
+            assert close(a, b), (g, ar, fr, a, b)
+            n += 1
+        for ar, fr, gr in conv_rows:
+            a, b, gw = v.get("Alloc", f"{ac}{ar}"), v.get("Fleet_1GW", f"{fc}{fr}"), v.get("Fleet_1GW", f"{fc}{gr}")
+            if isinstance(a, str) or isinstance(b, str):
+                assert a == b, (g, ar, fr, a, b)
+            else:
+                assert close(a * gw, b), (g, ar, fr, a, gw, b)
+            n += 1
+    assert n == 4 * (len(same_rows) + len(conv_rows))
+
+
+def openpyxl_col(i):
+    from openpyxl.utils import get_column_letter
+    return get_column_letter(i)
+
+
+def test_sens_rev_life_reads_cap_in(lo):
+    """4-2a F2 D08：Sens_Rev 的商業壽命情境 B20／B21 讀 Cap_In D23／D24（商業壽命低／高，Sol 欄），標籤隨值。"""
+    import openpyxl
+    wb = openpyxl.load_workbook(model_path(), read_only=True)
+    ws = wb["Sens_Rev"]
+    assert ws["B20"].value == "=Cap_In!D23" and ws["B21"].value == "=Cap_In!D24"
+    v = lo.view({})
+    assert v.get("Sens_Rev", "B20") == v.get("Cap_In", "D23") == 6 and v.get("Sens_Rev", "B21") == v.get("Cap_In", "D24") == 24
+    assert v.get("Sens_Rev", "A20") == "壽命 6 個月" and v.get("Sens_Rev", "A21") == "壽命 24 個月"
+
+
+def test_cap_in_h10_2025_column_reads_h_section(lo):
+    """4-2a F2 D09：Cap_In H10 2025 欄（C206–C209、C222–C223）直接引用 H 節對應格；第 224 列一致性檢查保留。"""
+    import openpyxl
+    ws = openpyxl.load_workbook(model_path(), read_only=True)["Cap_In"]
+    for r, src in ((206, 144), (207, 145), (208, 146), (209, 94), (222, 116), (223, 119)):
+        assert ws[f"C{r}"].value == f"=C{src}", (r, ws[f"C{r}"].value)
+    assert "一致性" in str(ws["A224"].value) or "自我檢查" in str(ws["A224"].value)
+    assert lo.view({}).get("Cap_In", "C224") == "一致"
+
+
+def test_exposed_parameters_are_inputs_and_registered(lo):
+    """4-2a F1：L1_JudgeTol＝0.2、SR_RU_PxMultLo＝1.5、SR_RU_PxMultHi＝2.5 是具名輸入；L1 欄 P 與 Spec_Rack G11／G13 讀它們；Gov_Map 有登錄且標 Assumed。"""
+    import openpyxl
+    wb = openpyxl.load_workbook(model_path(), read_only=True)
+    v = lo.view({})
+    assert v.get_name("L1_JudgeTol") == 0.2 and v.get_name("SR_RU_PxMultLo") == 1.5 and v.get_name("SR_RU_PxMultHi") == 2.5
+    sr = wb["Spec_Rack"]
+    assert sr["G11"].value == "=F12*SR_RU_PxMultLo" and sr["G13"].value == "=F12*SR_RU_PxMultHi"
+    l1 = wb["L1"]
+    n = sum(1 for r in range(5, 140) if isinstance(l1[f"P{r}"].value, str) and "L1_JudgeTol" in l1[f"P{r}"].value)
+    assert n == 96, n
+    assert not any(isinstance(l1[f"P{r}"].value, str) and "<=0.2," in l1[f"P{r}"].value for r in range(5, 140))
+    gm = wb["Gov_Map"]
+    rows = {tuple(r[:2]): r for r in gm.iter_rows(min_row=5, max_col=7, values_only=True) if r[0]}
+    reg = [r for r in gm.iter_rows(min_row=5, max_col=7, values_only=True) if r[2] in ("Calib", "Spec_Rack") and r[4] and ("L1_JudgeTol" in str(r[4]) or "SR_RU_PxMult" in str(r[4]))]
+    assert len(reg) == 3 and all(r[5] == "Assumed" for r in reg), reg
+    del rows

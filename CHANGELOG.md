@@ -2,6 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v10.0.xlsx（取代 v9.0；主版：新增名稱與驗證計數，契約改變，既有 `IF_`／`IFW_`／`L1_` 名稱數值不變；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` 6r1 第 2-5 段）
+
+- 分支 `claude/audit-fix-2-5`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-5.md`；進度檔：`docs/reports/20261016_稽核修正2-5_進度.md`。底稿：master（v9.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v10.0。
+- Excel（CC 以 `builder/v1000.py` 自 v9.0 產生，經 LibreOffice 重算存檔）：
+  - N1（D12）：Interface L 節新增 8 個 `IFW_*_LifeSelf`（`_Prod` × `L1_LTotal` × `L1_MFleet`；情境，不回流）。
+  - N2（D4）：L1 新增「性質」欄（估計／殘差／倒推／恆等式／未解釋）；新列 `L1_GapUnexplained`（＋`_Lo`／`_Hi`）；Calib C67／C68、Train_In 第 34 列、Alloc 倒推列加標記。
+  - N3（D5）：Checks V 節與 `CHK_VerifyTotal／Pass／Fail`；Calib 新增 MLPerf v5.1 Hopper、GB200 兩點；新增 SRC_PERF_060–065、SRC_HAR_016、E378。
+  - N4：TTFT、Perf_Batch、Alloc_In 標籤註記；N5：下游契約 v0.6。另依 PR #72 獨立查核修正 L1!P89 文字與契約第 2、5 節（僅標籤與文件）。
+- 驗收：LibreOffice 重算錯誤 0；restore_log unmatched 0；冪等差異 0；既有 `IF_`／`IFW_`／`L1_` 名稱數值變動 0。
+
 ## 20261016_Tokenomics_v9.0.xlsx（取代 v8.0；主版：`IF_TokGW_*` 全部上升、`IF_AllocQ1_R2`／`IF_AmortRev_*`／`L1_MImplied*`／`L1_ExtServeGW` 定義改變，契約改變；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` 5r1 第 2-4 段）
 
 - 分支 `claude/audit-fix-2-4`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-4.md`；進度檔：`docs/reports/20261016_稽核修正2-4_進度.md`。底稿：master（v8.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v9.0。版號判為 v9.0 而非 v8.1：`IF_AllocQ1_R2`、`IF_AmortRev_*`、`L1_ExtServeGW` 的定義改變（契約改變）。

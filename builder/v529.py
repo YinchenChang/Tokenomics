@@ -354,6 +354,7 @@ def _layer(sec, label):
     if "[IF_Util]" in label: return "IF_Util"
     if sec == "B": return "100%"
     if sec == "G": return "CTL_ProdDerate"
+    if sec == "L": return "自算 L×m"      # v10.0 N1: Interface L section (IFW_*_LifeSelf)
     if sec == "H": return "L×m"
     if sec == "J":
         m = re.search(r"\[IFW_\w+_(100|Util|Prod|Life)\]", label)

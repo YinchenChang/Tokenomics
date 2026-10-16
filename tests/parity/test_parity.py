@@ -342,7 +342,7 @@ def test_l1_v516_expected_values_and_h3(model, lo):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 271 and eng.get_name("GOV_Info") == 176      # v8.0：Warnings 271 不變、Info 174 → 177（I3 L1 區間外或差距 >20% 的列 18 → 21）；v7.0：Info 175 → 174（Calib C68 類別 Assumed → 倒推，Load_Bearing 56 → 55）；v6.1：Info 169 → 172（Load_Bearing 列數 50 → 53，K5 計入新增的 3 列高段 Assumed Gov_Map 登錄；Q3 RL 區間）；v5.35：Warnings 270 → 271（W1 +1：SRC_DEM_072 利害關係方 Active、無第二來源）；Info 不變（L1_LTotal 判讀「區間內」、L1_LReqFleet 判讀「回本」、L1_LPrice／LDemote「無外部對照」皆不計入 I3）；v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213      # v6.2：Info 172 → 175（Gov_Map 新增 3 列 Assumed 模型規模倍數，K5 Load_Bearing 53 → 56）
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 276 and eng.get_name("GOV_Info") == 176      # v10.0：Warnings 271 → 276（W1 +5：SRC_PERF_060–064 為利害關係方 Active、無第二來源；SRC_HAR_016 為 Alt 不計）；v8.0：Warnings 271 不變、Info 174 → 177（I3 L1 區間外或差距 >20% 的列 18 → 21）；v7.0：Info 175 → 174（Calib C68 類別 Assumed → 倒推，Load_Bearing 56 → 55）；v6.1：Info 169 → 172（Load_Bearing 列數 50 → 53，K5 計入新增的 3 列高段 Assumed Gov_Map 登錄；Q3 RL 區間）；v5.35：Warnings 270 → 271（W1 +1：SRC_DEM_072 利害關係方 Active、無第二來源）；Info 不變（L1_LTotal 判讀「區間內」、L1_LReqFleet 判讀「回本」、L1_LPrice／LDemote「無外部對照」皆不計入 I3）；v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213      # v6.2：Info 172 → 175（Gov_Map 新增 3 列 Assumed 模型規模倍數，K5 Load_Bearing 53 → 56）
 
 
 def _pct(eng, n, k):
@@ -530,7 +530,7 @@ def test_v529_contract_waterfall_expected_values(model, lo):
     conf, use, layer, upd = (eng.get_name(n) for n in ("IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"))
     assert len(conf) == len(use) == len(layer) == len(upd) >= 300
     assert set(x for x in conf if x not in ("", None)) <= {"A", "B", "C", "—", "（表頭）"}
-    assert set(x for x in layer if x not in ("", None)) <= {"100%", "IF_Util", "CTL_ProdDerate", "L×m", "—"}
+    assert set(x for x in layer if x not in ("", None)) <= {"100%", "IF_Util", "CTL_ProdDerate", "L×m", "自算 L×m", "—"}
     assert sum(1 for x in conf if x == "—") == 0 and conf.count("B") > conf.count("A") > 0
     for b in IFW_BASES:
         for suf in ("100", "Util", "Prod", "Life"):
@@ -608,7 +608,7 @@ def test_v530_waterfall_running_product(model, lo):
     for lab, u in zip(a_col, use):
         if isinstance(lab, str) and ("[IFW_RevGW" in lab or ("[IFW_TokGW_" in lab and "_100]" in lab)):
             assert isinstance(u, str) and "上限，不得作預測" in u, (lab, u); n_cap += 1
-    assert n_cap == 8 * 4 + 3
+    assert n_cap == 8 * 4 + 3 + 8      # v10.0 N1：Interface L 節 8 個 _LifeSelf 列同樣標「上限，不得作預測」
 
 
 
@@ -813,7 +813,7 @@ def test_v535_l_split(model, lo):
         rr = int(re.sub(r"[A-Z]+", "", eng.names[n].rsplit("!", 1)[1].replace("$", "")))
         assert eng.get("L1", f"E{rr}") <= eng.get("L1", f"D{rr}") <= eng.get("L1", f"F{rr}"), n
         if n == "L1_LTotal": assert eng.get("L1", f"M{rr}") == 1 and eng.get("L1", f"P{rr}") == "落在 0.3–1.0 區間內"
-        elif n == "L1_LReqFleet": assert abs(eng.get("L1", f"M{rr}") - eng.get_name("L1_LTotal")) < 1e-12 and eng.get("L1", f"P{rr}").startswith("恆等式讀法為主：未回本（L_total 0.64 對所需 L 0.76）")      # v6.3 K1：所需 L 0.66 → 0.53，判讀由「未回本」回到「回本」（L_total 0.6426 ≥ 0.5304）；v6.2：0.55 → 0.66，由「回本」變「未回本」
+        elif n == "L1_LReqFleet": assert abs(eng.get("L1", f"M{rr}") - eng.get_name("L1_LTotal")) < 1e-12 and eng.get("L1", f"P{rr}").startswith("恆等式讀法：未回本（L_total 0.64 對所需 L 0.76）")      # v6.3 K1：所需 L 0.66 → 0.53，判讀由「未回本」回到「回本」（L_total 0.6426 ≥ 0.5304）；v6.2：0.55 → 0.66，由「回本」變「未回本」
         else: assert eng.get("L1", f"P{rr}") == "無外部對照"
     # 既有 L1（v5.34 六個）與 IF_ 不變
     for n, v in (("L1_MAPI", 0.657758), ("L1_MSub", 4.972653), ("L1_MSeat", 2.131137), ("L1_MixFactorAPI", 0.657758), ("L1_MImplied", 2.033528), ("L1_MFleet", 0.550473), ("IF_PriceRef_Sol", 1.607111)):
@@ -867,7 +867,7 @@ def test_v600_audit_fix1_expected_values(model, lo):
     """v6.0（稽核修正1：D7、D8、D11）基準期望值。錨點為 LibreOffice 重算值（相對容差 1e-4）；工作單預期變動：
     FullCost_Luna(Hopper) +46%、FullCostDefault_Luna +94%、FullCostDefault_Sol(VR200) +21%、Astra 不變；付費產能比約 0.712、m 下限約 0.647；IF_*_Life ÷ 舊值 0.486–0.81。"""
     eng = lo.view({})
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 271 and eng.get_name("GOV_Info") == 176      # v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 276 and eng.get_name("GOV_Info") == 176      # v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）
     rel = lambda got, want, tol=1e-4: abs(got - want) <= tol * abs(want)
     # D11：回本溢價分母＝付費 token（Hopper 基準欄＝第 2 欄、VR200 基準欄＝第 11 欄）
     old = {("IF_FullCost_Luna", 1): 0.184810505721705, ("IF_FullCostDefault_Luna", 1): 0.198387926107027, ("IF_FullCostDefault_Sol", 10): 0.107287815966711}
@@ -1116,3 +1116,49 @@ def test_v800_audit_fix2_3(model, lo):
     # 單調：規模倍數越大，m 越大、Q1 越大
     ms = [lo.view({"ARCH_ScaleGen[1]": v, "ARCH_ScaleGen[2]": v, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0}).get_name("L1_MFleet") for v in (0.35, 0.65, 1.1)]
     assert ms[0] < ms[1] < ms[2]
+
+
+def test_v1000_audit_fix2_5(model, lo):
+    """v10.0 N1：IFW_*_LifeSelf＝_Prod × L1_LTotal × L1_MFleet，且不回流（除 Interface／Load_Bearing／Gov_Map 外，無公式引用 _LifeSelf）；
+    N2：L1 性質欄逐列有值；N3：CHK_Verify* 只計能失敗的檢查，失敗不進 GOV_Errors。基準期望值為 LibreOffice 重算值。"""
+    import openpyxl
+    eng = lo.view({})
+    n = eng.get_name
+    num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
+    stems = ["RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront"]
+    L, m = n("L1_LTotal"), n("L1_MFleet")
+    for s in stems:
+        ls, pr = n(f"IFW_{s}_LifeSelf"), n(f"IFW_{s}_Prod")
+        assert len(ls) == len(pr) == 15, s
+        for a, b in zip(ls, pr):
+            if num(b):
+                assert abs(a - b * L * m) <= 1e-12 * max(1.0, abs(a)), s
+            else:
+                assert a == b, s      # 文字（不可達等）原樣帶過
+    # 不回流：公式文字掃描
+    wb = openpyxl.load_workbook(model)
+    allowed = {"Interface", "Load_Bearing", "Gov_Map"}
+    bad = []
+    for ws in wb:
+        if ws.title in allowed:
+            continue
+        for row in ws.iter_rows():
+            for c in row:
+                if isinstance(c.value, str) and c.value.startswith("=") and "_LifeSelf" in c.value:
+                    bad.append((ws.title, c.coordinate))
+    assert not bad, bad[:5]
+    # N2：L1 性質欄（T）每個有數值列都有五種性質之一
+    ws = wb["L1"]
+    kinds = {"估計", "殘差", "倒推", "恆等式", "未解釋"}
+    cnt = {}
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value and ws.cell(r, 4).value is not None:
+            k = eng.get("L1", f"T{r}")
+            assert k in kinds, (r, k)
+            cnt[k] = cnt.get(k, 0) + 1
+    assert set(cnt) == kinds
+    assert num(n("L1_GapUnexplained")) and abs(n("L1_GapUnexplained") - n("L1_ScaleServe2000") / n("L1_GapProduct")) < 1e-9
+    # N3：驗證計數
+    assert n("CHK_VerifyTotal") == 14 and n("CHK_VerifyPass") == 7 and n("CHK_VerifyFail") == 7
+    assert n("CHK_VerifyPass") + n("CHK_VerifyFail") == n("CHK_VerifyTotal")
+    assert n("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors

@@ -103,6 +103,7 @@ _TOK100 = re.compile(r"\[IFW_TokGW_\w+_100\]")
 def should_cap(sec, label, layer):
     if sec == "B" and layer == "100%": return 1
     if sec == "D" and ("理論營收" in label or "付費服務營收" in label): return 1
+    if sec == "L" and "[IFW_RevGW" in label: return 1      # v10.0 N1: IFW_*_LifeSelf revenue rows are upper-bound readings too
     if sec == "J" and ("[IFW_RevGW" in label or _TOK100.search(label)): return 1      # IFW_RevGW_*, IFW_RevGWFleet*, IFW_RevGWFront* (all layers); IFW_TokGW_*_100
     return 0
 

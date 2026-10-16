@@ -195,7 +195,7 @@ def train_in(wb):
 def perf_batch(wb, SP, AR, CAL, TR, TI):
     ws = wb.create_sheet("Perf_Batch")
     title(ws, "Perf_Batch — 批次推論引擎（RL rollout、蒸餾、合成資料、評測）：與 Perf 同一套公式，只換速度下限與參考任務",
-          "C–Q 欄＝世代 × 層級基準；R、S 欄＝VR200 以 FP8 rollout 的情境（J12 替代）。綠字＝連結 Train_In（非情境改動）；黃底＝情境改動")
+          "C–Q 欄＝世代 × 層級基準；R、S 欄＝VR200 以 FP8 rollout 的情境（J12 替代）。綠字＝連結 Train_In（非情境改動）；黃底＝情境改動。Perf_Batch 為訓練端批次推論，無服務快取（prefill 計全 ISL，不乘 1 − B4_CacheHit；v9.0 D9、v10.0 N4）")
     put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
     put(ws, "A3", "欄位", F_BOLD)
     cols = COLS15 + ["R", "S"]

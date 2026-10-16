@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.5（2026-10-16；對應 Tokenomics v9.0）
+# Tokenomics 下游資料契約 v0.6（2026-10-16；對應 Tokenomics v10.0）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -16,7 +16,7 @@
 2. 每 GW 產能與理論營收必須同時取四層瀑布（`IFW_*_100`／`_Util`／`_Prod`／`_Life`），不得只取 100% 層；取用時依 `IFC_Use` 欄的用途限制（「上限，不得作預測」者不得當收入預測）。四層單調遞減（v6.0 起定義如下，稽核修正 1 D7）：`_Util`＝`_100` × IF_Util；`_Prod`＝生產折減（CTL_ProdDerate）下**重解 SLO** 後的產能（營收讀 Interface G 節，token 產能與前緣單價營收讀 Theory_Rev_Prod／Fleet_1GW_Prod），**不是** `_Util` × CTL_ProdDerate；同一層級的 `_Prod` 營收 ÷ `_Prod` token＝該層級單價（Checks Z1，容差 1e-9）；`_Life`＝`_Prod` × L × m，唯一定義為 `IFW_*_Life`。`IF_RevGW_*_Life`、`IF_RevGWFleet_Life` 為**過渡別名**（＝對應 `IFW_*_Life`），延後到「下游同步（Andy 跑完 CoreWeave）之後的第一個主版」刪除（v9.0 仍保留），下游請改取 `IFW_*_Life`。**凡文字＝不可用，下游不得以 0 代入。** 目前可能的字樣有三種，依成因而異：「SLO 不可達」（decode 不可達）、「TTFT 不可達」（首 token 時間超過上限）、「整代不可達」（某占比大於 0 的世代整代不可用）；下游以「是否為數字」判斷，不以字串比對（字樣日後可能增減）。
 3. 公司特有變數（WACC、合約價、價值捕獲率、簽約率、交付進度、產品組合）在下游覆寫，不回寫 Tokenomics。
 4. 下游發現的產業級缺口（例如新的市場 GPU-hr 價格點、新 benchmark）走 G2 流程進 DB_Evidence，不自行建表。
-5. 規模校準：Tokenomics 的代表性模型與需求 D 相對 OpenAI 2025 實際規模偏小（`L1_ScaleRD` 約 10、`L1_ScaleServe` 約 14，X13）。服務端落差已分解為四項口徑差（X14 (m)，`L1_Gap*`）：每則提示 token 數、支出計價口徑（Azure 帳單對持有成本）、參考請求 ISL 對實際混合、實際利用率對 60%。下游以自身的請求組合、計價口徑與利用率逐項換算，不得把 `IF_TokGW_*` 直接當成生產環境產能；OpenAI 模型校準後若四項乘積與觀測落差不符，差額回報 Tokenomics。
+5. 規模校準：Tokenomics 的代表性模型與需求 D 相對 OpenAI 2025 實際規模偏小（`L1_ScaleRD`、`L1_ScaleServe` 現值見 Interface／L1，X13；v9.0 為 5.318、5.406，隨版本變動，不在此寫死）。服務端落差已分解為四項口徑差（X14 (m)，`L1_Gap*`）：每則提示 token 數、支出計價口徑（Azure 帳單對持有成本）、參考請求 ISL 對實際混合、實際利用率對 60%。下游以自身的請求組合、計價口徑與利用率逐項換算，不得把 `IF_TokGW_*` 直接當成生產環境產能；OpenAI 模型校準後若四項乘積與觀測落差不符，差額回報 Tokenomics。
 
 ## 3. 利用率與簽約率的分工
 
@@ -52,7 +52,7 @@
 - **所需 L 與 m 的 2025 年度口徑（v8.0 改寫，D2）**：`L1_MFleet` 改用 2025 年度層級單價（`CAP_Px25_*`、`AL_PriceFleet25`），`L1_LReqFleet` 的損益兩平改讀 2025 機隊口徑（`L1_FleetBreakeven2025`）。`L1_FleetBreakeven`、`L1_FleetMargin` 維持 VR200 截面（Checks K4 比對的恆等式），不是 2025 機隊。基準下所需 L 由 0.530 變為 1.968，大於 `L1_LTotal`（0.643），回本判讀由「回本」變為「未回本」；依恆等式讀法為 0.756（同樣大於 L_total）。
 
 - **快取命中進產能（v9.0 改，D9）**：`IF_TokGW_*`（及由它推得的 `IFW_*`、`IF_RevGW*`、`IF_Cost*`、`IF_Amort*`）的 prefill 只計新鮮輸入 ISL × (1 − `B4_CacheHit`)；`IF_TokGW_*` 計入的 token 定義不變（每請求 ISL＋OSL，快取輸入仍算已服務 token，以快取價計價）。基準下各世代各層級的 `IF_TokGW_*` 上升 8–22%，Hopper × Astra 由「TTFT 不可達」變為數字（基準 3.63e9 M tok/年）。倍數表見 `docs/reports/20261016_稽核修正2-4.md`。批次推論（Perf_Batch，訓練端）不套用快取，`IF_Train*` 不變。
-- **回本判讀的兩種讀法（v9.0，M5）**：`L1_LReqFleet`（字面讀法）＝`L1_FleetBreakeven2025` ÷（`IF_Util` × `CTL_ProdDerate` × `L1_MFleet`）；`L1_LReqFleet_Id`（恆等式讀法）＝支出路線服務 GW 的持有成本 ÷ 營收。v9.0 基準兩者相差 2.69 倍（字面 2.04、恆等式 0.756；`L1_LTotal` 0.643），來源是機隊每 GW 營收只含付費服務占比（B4_Serve × (1 − B4_Free)＝22%）、實際利用率對 `IF_Util`、免費 token 稀釋三項（拆解見 2-4 報告）。L1 判讀欄以恆等式讀法為主、字面讀法並列；兩者相差 ≤10% 時自動改以字面讀法為主。下游引用「所需 L」時須註明所用讀法。
+- **回本判讀的兩種讀法（v9.0，M5）**：`L1_LReqFleet`（字面讀法）＝`L1_FleetBreakeven2025` ÷（`IF_Util` × `CTL_ProdDerate` × `L1_MFleet`）；`L1_LReqFleet_Id`（恆等式讀法）＝支出路線服務 GW 的持有成本 ÷ 營收。v9.0 基準兩者相差 2.69 倍（字面 2.04、恆等式 0.756；`L1_LTotal` 0.643），來源是機隊每 GW 營收只含付費服務占比（B4_Serve × (1 − B4_Free)＝22%）、實際利用率對 `IF_Util`、免費 token 稀釋三項（兩種讀法差 2.69 倍＝付費服務占比倒數 4.52 × 付費 token 占比 0.873 × 實際÷模型利用率 0.683，此拆解寫在 L1 判讀欄，隨數值更新）。L1 判讀欄以恆等式讀法為主、字面讀法並列；兩者相差 ≤10% 時自動改以字面讀法為主。下游引用「所需 L」時須註明所用讀法。字面讀法的分子（營收）與分母（持有成本）口徑不一致，僅供對照，不作為回本結論；回本結論一律取恆等式讀法 `L1_LReqFleet_Id`（v10.0 N5）。
 - **需求路線 m 與免費占比口徑（v9.0，D9、M6）**：`L1_MImplied`、`L1_MImplied_Ext`、`L1_MAPI`、`L1_MSub`、`L1_MSeat` 的單價改用 2025 年度混合有效單價 `CAP_Price25Mix`（× `AL_Kappa`），與 `L1_MFleet` 同年度口徑；價格區間（`CAP_Px25_*_Lo／_Hi`）不交叉進 m 的 `_Lo`／`_Hi`（m 的低高只反映 token 端）。`L1_MImplied_Ext` 的付費占比改用 token 口徑 1 − `AL_FreeShare`（原用支出口徑 `IF_FreeShare`）。`IF_AmortRev_*`（營收權重攤提）的分母改為該層級付費 token（與 `IF_AmortBU_*` 一致）。`L1_ExtServeGW` 的推算值改回 `IF_AllocServeGW`（支出路線）；token 路線見 `IF_AllocServeGW_Tok`。
 
 ## 5. 版本與引用
@@ -64,4 +64,6 @@
 - v8.0（主版，契約改變）：`IF_AllocQ1`／`IF_AllocQ2`／`IF_AllocServeGW` 改為支出路線定義，`IF_AllocRDGW` 改按 2025 研發世代組合；`L1_MFleet`、`L1_LReqFleet`、`L1_PriceReqBE`、`L1_ScaleRD`、`L1_RevGWFleet_OAI2025` 與 `L1_Ans1–3` 數值改變。新舊值表見 `docs/reports/20261016_稽核修正2-3.md`。
 - v6.2（次版）：新增模型規模倍數 `ARCH_ScaleGen`（基準 1，情境 `d1_model_scale`）；TTFT 納入可達判斷（文字旗標「TTFT 不可達」）；Alloc 排除不可達層級後重新正規化。名稱新舊值見 `docs/reports/20261016_稽核修正2-1.md`。
 - v6.3（次版）：機隊 m 的單價與機隊 token 同用可達層級（`AL_PriceFleet`、`B4_PriceFleet`）；整代不可達輸出文字「整代不可達」（`AL_UnavailTxt`）；TTFT 不可達的 decode 成本列輸出文字；`ARCH_ScaleGen_Lo／_Hi` 依 2Q 報告修訂。名稱新舊值見 `docs/reports/20261016_稽核修正2-1b.md`。
-- v9.0（主版，契約改變）：`IF_TokGW_*` 因快取命中進產能全部上升（各世代 Sol 欄 ×1.17–1.22），Hopper × Astra 恢復可達；`IF_AllocQ1_R2` 改支出路線；`IF_AmortRev_*` 分母改付費 token；`L1_MImplied`／`MImplied_Ext`／`MAPI`／`MSub`／`MSeat` 改 2025 單價（`MImplied_Ext` 並改 token 口徑付費占比）；`L1_ExtServeGW` 推算值改回支出路線；回本判讀以恆等式讀法為主。`IF_AllocQ1`／`Q2`／`ServeGW`、`IF_AllocRDGW`、`L1_LReqFleet_Id`、`L1_LTotal`、Training 頁與 `IF_Train*` 不變。新舊值表見 `docs/reports/20261016_稽核修正2-4.md`。
+- v9.0（主版，契約改變）：`IF_TokGW_*` 因快取命中進產能全部上升（各世代 Sol 欄 ×1.17–1.22），Hopper × Astra 恢復可達；`IF_AllocQ1_R2` 改支出路線；`IF_AmortRev_*` 分母改付費 token；`L1_MImplied`／`MImplied_Ext`／`MAPI`／`MSub`／`MSeat` 改 2025 單價（`MImplied_Ext` 並改 token 口徑付費占比）；`L1_ExtServeGW` 推算值改回支出路線；回本判讀以恆等式讀法為主。`IF_AllocQ1`／`Q2`／`ServeGW`、`IF_AllocRDGW`、`L1_LReqFleet_Id`、`L1_LTotal`、Training 頁與 `IF_Train*` 不變。新舊值表見 `docs/reports/20261016_稽核修正2-4.md`。M1 另以傳遞方式使 `L1_FleetMargin`、`L1_GenPxThr_*`、`L1_TokMW_Gen_ratio_*`、`L1_GapProduct` 等數值改變（上游輸入改變所致，非定義改變）。
+
+- v10.0（主版，契約改變；稽核修正2 第 2-5 段）：既有 `IF_`／`IFW_`／`L1_` 名稱數值不變。新增名稱：（1）`IFW_RevGW_Luna／Sol／Astra／RevGWFleet`、`IFW_RevGWFront_Luna／Sol／Astra／RevGWFleetFront` 各一個 `_LifeSelf`（共 8 個，Interface L 節）＝`_Prod` × `L1_LTotal` × `L1_MFleet`，標示「情境：自算 L、m；不回流，不建議下游作為基準」，不得連回 Tokenomics 其他計算；下游若採 L、m 以自身估計為準，不取此組作基準；（2）`L1_GapUnexplained`（＋`_Lo`／`_Hi`）＝服務端落差中四項口徑差未解釋的部分（`L1_ScaleServe2000` ÷ `L1_GapProduct`）；（3）`CHK_VerifyTotal`／`CHK_VerifyPass`／`CHK_VerifyFail`（唯讀）：只計能失敗的驗證項（MLPerf 上限、LMSYS 獨立點、RL 占比、harness 輪數、樣本外點），恆等式不計入；基準 14 項、7 通過、7 失敗，失敗項不進 GOV_Errors，下游引用 Tokenomics 產能時須知有 7 項驗證未通過；（4）L1 新增「性質」欄（估計／殘差／倒推／恆等式／未解釋），下游引用 L1 數值時依性質判斷可信度；（5）`SRC_PERF_060–065`、`SRC_HAR_016`（MLPerf v5.1 Hopper／GB200 與 harness 檢查來源）。回本判讀字面讀法的口徑不一致已於第 2 節註明。名稱新舊值與驗證清單見 `docs/reports/20261016_稽核修正2-5.md`。

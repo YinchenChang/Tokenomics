@@ -76,7 +76,7 @@ def cap_in(wb):
     singles = [
       ("disc", "有效折扣（Batch／Flex 半價＋企業議價，加權）", "%", 0.2, 0.1, 0.3, "Assumed", "與 OpenAI 模型 v0.5 一致；Batch 半價為 Verified，企業折扣為 Analogy"),
       ("chi", "參考請求快取命中率 χ（輸入中屬快取命中的比例）", "%", 0.55, 0.3, 0.75, "Assumed", "與 OpenAI 模型 v0.5 一致；成本與營收用同一 χ"),
-      ("eps", "能力 → 單價彈性 ε（單價 ∝ 有效算力倍數^ε）", "x", 0, 0, 0.5, "Assumed", "K4 (c)：機制保留、基準 0。斜率無法由公開資料分離（價格由廠商策略與成本決定，見 Capability C 節）"),
+      ("eps", "能力 → 單價彈性 ε（單價 ∝ 有效算力倍數^ε）", "x", 0, 0, 0.5, "Assumed", "K4 (c)：機制保留、基準 0。斜率無法由公開資料分離（價格由廠商策略與成本決定，見 Decisions SL41-1a-1（原 Capability 頁 C 節，v10.1 刪頁））"),
       ("cmult", "有效訓練算力倍數（相對 Block 3 基準；情境用）", "x", 1, 0.5, 7, "Assumed", "與 Tech_Registry H_CAP 相乘後代入 ε；高值 7＝J8 前沿錨點中值相對 Astra 基準的倍數"),
       ("pkmode", "尖峰／離峰口徑（1＝尖峰價；2＝依時數加權）", "選擇", 2, 1, 2, "Decision", "K12：兩者並列，前緣基準用 2"),
       ("pkhr", "尖峰時數（每週）", "hr", 35, None, None, "Verified", "DeepSeek：週一至五 UTC 01–04、06–10，共 7 hr × 5（S52）"),

@@ -425,7 +425,7 @@ README_VERSION = (VERSION + "（判斷類，工作單 docs/workorders/20261008_v
 _T = v530.README_TITLE
 README_TITLE = VERSION.split("_")[-1] + _T[len(v530.VERSION.split("_")[-1]):]
 README_ROW = ("Interface I 節（續）與 IT 維護兩段（v5.31）",
-              "下游名稱（IF_ 開頭且非 IF_Hdr）共 195 個（v5.30 為 192 個，v5.31 加 3）。IT 維護（v5.31 X17／X18）：保固期內費率（Inputs 第 37 列）適用於前 IF_WarrantyYrs 年"
+              "下游名稱（IF_ 開頭且非 IF_Hdr）現況共 196 個（v10.1 核對；歷史：v5.30 為 192 個，v5.31 加 3 個為 195 個）。IT 維護（v5.31 X17／X18）：保固期內費率（Inputs 第 37 列）適用於前 IF_WarrantyYrs 年"
               "（Inputs 第 36 列＝SRC_DC_015，3 年），之後為保固期滿後費率（第 38 列）；IF_MaintIT（DC_Cost 第 44 列）用 Inputs 第 30 列的壽命期等值單一費率"
               "（以同欄 WACC 與 IT 折舊年限年金加權），所以 Tokenomics 的穩態持有成本不隨機齡變動。下游公司模型依自身機隊年齡取 IF_MaintITWarr（＝IT 資本 × 保固期內費率）"
               "或 IF_MaintITPost（＝IT 資本 × 期滿後費率），兩者不加總；金額為 $B/GW/年。IF_StaffSW 為站點營運（人員、軟體授權與連線、水與耗材），不含平台研發，"

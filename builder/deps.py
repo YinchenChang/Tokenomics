@@ -98,6 +98,6 @@ def gov_map_cells(wb):
     for r in range(5, ws.max_row + 1):
         sh, cell = ws.cell(r, 3).value, ws.cell(r, 4).value
         if not sh or not cell or sh not in wb.sheetnames: continue
-        for k in _expand(sh, str(cell)):
+        for k in _expand(sh, str(cell).removeprefix("（停用）")):     # v10.1 4-1：停用列（重複登錄）仍算涵蓋，使旗標公式與 v10.0 一致
             out.setdefault(k, set()).add(r)
     return out

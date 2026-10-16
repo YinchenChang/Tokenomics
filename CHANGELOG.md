@@ -2,6 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v10.1.xlsx（取代 v10.0；工程類（CC 執行）：第 4 批 4-1 瘦身，輸出不變；依工作單 `docs/workorders/20261016_瘦身4.md` 第 1 節）
+
+- 分支 `claude/slim-4-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_瘦身4-1.md`；進度檔：`docs/reports/20261016_瘦身4-1_進度.md`。底稿：master（v10.0，已移至 `model/archive/`）。
+- Excel（CC 以 `builder/v1010.py`、`v1010_marks.py`、`v1010_text.py`、`v1010_gov.py` 自 v10.0 產生，經 LibreOffice 重算存檔）：
+  - 1-a 刪除：Capability 頁（19 公式格）與無人讀取的公式格 136（L1 O 欄 62、Alloc 10、Perf 30、Perf_Batch 34）；Perf／Perf_Batch 速覽列 104–105 清空。Perf_Batch R–S 欄因 Sens_Train W59:X62 仍讀取而保留（列入待 Project 判斷）。
+  - 1-b 標記：23 頁「用途」欄 288 列（1,305 格）、情境格黃底 55 格、NonNV 與 Theory_Rev_Prod 頁首註記。
+  - 1-c 文字：26 格過時說明改為引用現值、標籤與契約文字修正、README 名稱數。
+  - 1-d Gov_Map：重複登錄與標籤整理；新增 GM681（Alloc I94:L95）。
+  - 1-e 新增常設檢查 `tests/parity/test_slim.py`（10 項）。
+- 公式格 49,241 → 49,127；具名範圍 1,346 不變；既有具名範圍與契約名稱數值變動 0。
+- 驗收：LibreOffice 重算錯誤 0；restore_log unmatched 0；冪等差異 0。
+- `docs/builder/Tokenomics_builder_v5.md` 已重新產生。
+
 ## 20261016_Tokenomics_v10.0.xlsx（取代 v9.0；主版：新增名稱與驗證計數，契約改變，既有 `IF_`／`IFW_`／`L1_` 名稱數值不變；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` 6r1 第 2-5 段）
 
 - 分支 `claude/audit-fix-2-5`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-5.md`；進度檔：`docs/reports/20261016_稽核修正2-5_進度.md`。底稿：master（v9.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v10.0。

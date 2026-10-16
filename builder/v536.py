@@ -347,8 +347,13 @@ GM_SPEND_TAIL = (f" ｜v5.36 B2（X46）：基準 2.0 → 1.3、區間 1.5–3.0
                  f"毛利率成本含折舊與營運、不含資本成本，故此倍數為早期 Blackwell 的上限讀法；Microsoft 對 OpenAI 的計價未找到，高端保留 1.6；{WO}")
 
 
+_V1010_RENAMED = {("Train_In", "C34:E34"): "（停用）C34:E34", ("Har_In", "C12:G12"): "C12:D12"}     # v10.1 4-1：Gov_Map 重複登錄整理後的登錄範圍
+
+
 def _gm_row(ws, sheet, cell):
     rows = [r for r in range(5, ws.max_row + 1) if (ws[f"C{r}"].value, ws[f"D{r}"].value) == (sheet, cell)]
+    if not rows and (sheet, cell) in _V1010_RENAMED:
+        rows = [r for r in range(5, ws.max_row + 1) if (ws[f"C{r}"].value, ws[f"D{r}"].value) == (sheet, _V1010_RENAMED[(sheet, cell)])]
     assert len(rows) == 1, (sheet, cell, rows)
     return rows[0]
 

@@ -616,7 +616,7 @@ def load_bearing(wb, deps, gm_cells):
         keys = rev.get(g, [])
         put(ws, f"J{r}", "、".join(keys) if keys else DASH, F_NOTE, wrap=True)
         put(ws, f"K{r}", f'=IF(Gov_Map!${GM_THRESH_COL}${g}="","{DASH}",Gov_Map!${GM_THRESH_COL}${g})', wrap=True); put(ws, f"L{r}", f'=IF(ISNUMBER(Gov_Map!$AF${g}),INDEX(IDX_SrcDate,Gov_Map!$AF${g}),"{DASH}")')
-        put(ws, f"M{r}", f"改 Excel 藍字格 {gm[f'C{g}'].value}!{gm[f'D{g}'].value}（Gov_Map {gm[f'A{g}'].value} 的區間、理由同步）；不改 builder", F_NOTE, wrap=True)
+        put(ws, f"M{r}", f"改 Excel 藍字格 {gm[f'C{g}'].value}!{str(gm[f'D{g}'].value).removeprefix('（停用）')}（Gov_Map {gm[f'A{g}'].value} 的區間、理由同步）；不改 builder", F_NOTE, wrap=True)
         d = f"L{r}"
         put(ws, f"N{r}", f'=IF(AND(ISTEXT({d}),LEN({d})=10),IF(ISNUMBER(VALUE(SUBSTITUTE({d},"-",""))),'
                          f'DATE(VALUE(LEFT($C$3,4)),VALUE(MID($C$3,6,2)),VALUE(RIGHT($C$3,2)))-DATE(VALUE(LEFT({d},4)),VALUE(MID({d},6,2)),VALUE(RIGHT({d},2))),"{DASH}"),"{DASH}")', fmt="0")

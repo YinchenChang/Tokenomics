@@ -98,9 +98,78 @@ README_ROW = ("瘦身 4-1（v10.1）",
               "工程類，輸出不變：刪除 Capability 頁與無人讀取的格；『用途』欄標記顯示用／未接線／複本讀取；情境格黃底；過時說明改引用現值；Gov_Map 登錄整理。細節見 Decisions SL41-*。")
 
 
+# ================================================================== 1-b: marks (column "用途"), yellow fill, header notes
+from v1010_marks import MARKS
+from v518 import _append_text
+
+PURPOSE = "用途"
+PURPOSE_HDR_ROW = 3          # the header goes in row 3 of the new column (rows 1-2 are title and subtitle on every model page)
+PURPOSE_NOTE = "顯示用＝人讀的對照／欄頭／驗證列，不進任何輸出；未接線＝尚未連到任何輸出；複本讀取＝只被 Sens_／_Prod 複本頁讀取（v10.1 4-1 標記，來源：docs/reports/20261016_瘦身盤點4-0_明細.xlsx）"
+YEL_FORMULA = PatternFill("solid", fgColor="FFFFF2CC")     # existing convention on the sensitivity pages for scenario-changed formula cells
+YEL_INPUT = PatternFill("solid", fgColor="FFFFFF00")       # existing convention for scenario input cells (blue font)
+# cells whose formula differs from the first scenario column of the same row (4-0 section 3; the permanent test keeps this list honest)
+YELLOW_FORMULA = {
+    "Sensitivity": ["F10", "G10", "T14", "U14", "D17", "E17", "H19", "I19", "J25", "K25", "L26", "M26", "O37", "V40", "W40", "R41", "S41", "P50", "Q50"],
+    "Sens_Har": ["D5", "E5", "F6", "G6", "H7", "I7", "J8", "K8", "L9", "M9", "N10", "O10", "P11", "Q11", "R12", "S12", "R13", "S13", "R14", "S14"],
+}
+YELLOW_INPUT = {
+    "Sensitivity": ["X8", "Y8", "N37"],
+    "Sens_Rev": ["B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B17", "B20", "B21"],
+}
+NONNV_NOTE = " ｜未接線（MAG、智譜、AI 半導體待用；目前不進任何輸出）"
+TRP_NOTE = (" ｜第 90–96 列為本頁自我檢查列，不鏡像 Theory_Rev 的 _Life 列（Theory_Rev 同列為 _Life 輸出列）；列入 tests/parity 的鏡像白名單（v10.1）。")
+
+
+def purpose_marks(wb):
+    """Column 用途: one column per page, right of the last used column; the header is found again on a rebuild (idempotent)."""
+    n = 0; pages = {}
+    for sh, rows in MARKS.items():
+        ws = wb[sh]
+        col = None
+        last = 0
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.value is not None: last = max(last, cell.column)
+        for c in range(3, last + 1):
+            if ws.cell(PURPOSE_HDR_ROW, c).value == PURPOSE:
+                col = c; break
+        if col is None:
+            col = last + 1
+            put(ws, f"{openpyxl.utils.get_column_letter(col)}{PURPOSE_HDR_ROW}", PURPOSE, F_BOLD)
+            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 46
+        X = openpyxl.utils.get_column_letter(col)
+        for r, txt in rows.items():
+            put(ws, f"{X}{r}", txt, F_NOTE); n += 1
+        pages[sh] = X
+    return n, pages
+
+
+def yellow_fill(wb):
+    n = 0
+    for sh, refs in YELLOW_FORMULA.items():
+        for ref in refs:
+            wb[sh][ref].fill = YEL_FORMULA; n += 1
+    for sh, refs in YELLOW_INPUT.items():
+        for ref in refs:
+            wb[sh][ref].fill = YEL_INPUT; n += 1
+    return n
+
+
+def header_notes(wb):
+    n = 0
+    ws = wb["NonNV"]
+    if NONNV_NOTE not in str(ws["A1"].value): ws["A1"].value = str(ws["A1"].value) + NONNV_NOTE; n += 1
+    ws = wb["Theory_Rev_Prod"]
+    if TRP_NOTE not in str(ws["A2"].value): ws["A2"].value = str(ws["A2"].value) + TRP_NOTE; n += 1
+    return n
+
+
 # ================================================================== entry point (called once from build.py, after everything else and before the sheet-order assertion)
 def apply(wb):
     log = {}
     log["deleted"] = delete_cells(wb)
+    log["marks"] = purpose_marks(wb)
+    log["yellow"] = yellow_fill(wb)
+    log["header_notes"] = header_notes(wb)
     log["decisions"] = decisions_append(wb)
     return log

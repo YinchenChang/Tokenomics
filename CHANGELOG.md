@@ -2,6 +2,23 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v9.0.xlsx（取代 v8.0；主版：`IF_TokGW_*` 全部上升、`IF_AllocQ1_R2`／`IF_AmortRev_*`／`L1_MImplied*`／`L1_ExtServeGW` 定義改變，契約改變；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` 5r1 第 2-4 段）
+
+- 分支 `claude/audit-fix-2-4`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-4.md`；進度檔：`docs/reports/20261016_稽核修正2-4_進度.md`。底稿：master（v8.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v9.0。版號判為 v9.0 而非 v8.1：`IF_AllocQ1_R2`、`IF_AmortRev_*`、`L1_ExtServeGW` 的定義改變（契約改變）。
+- Excel（CC 以 `builder/v810.py` 等自 v8.0 產生，經 LibreOffice 重算存檔）：
+  - M1（D9）：快取命中進產能。Perf／Sens_Perf 與 `_Prod` 鏡像的 TTFT、每請求 GPU 秒、prefill GPU 占比，prefill 只計新鮮輸入 ISL × (1 − `B4_CacheHit`)；Perf_Batch（訓練端批次推論）不變。`IF_TokGW_*` 基準上升 8–22%（Sol 欄各世代 ×1.17–1.22），Hopper × Astra 由「TTFT 不可達」變為 3.63e9 M tok/年，Hopper 基準欄不再排除 Astra。
+  - M2：Cap_In 第 87 列付費占比改 token 口徑 `1 − AL_FreeShare`（0.54 → 0.40），只影響 `L1_MImplied_Ext`。
+  - M3：κ 套到價格端（Cap_In 第 90 列、`CAP_Price25Mix` 各乘 `AL_Kappa`）；基準 κ＝1，基準值不變。
+  - M4：`IF_AmortRev_*` 分母改付費 token（Amortize 與 Amortize_Prod）。
+  - M5：L1 `L1_LReqFleet` 判讀欄以恆等式讀法為主、字面讀法並列；兩者相差 2.69 倍，拆解見報告。
+  - M6：`L1_MImplied`／`MImplied_Ext`／`MAPI`／`MSub`／`MSeat` 與 Cap_In H5、H8、H10（C 欄）、第 241 列改 2025 單價 `CAP_Price25Mix`；`IF_AllocQ1_R2` 改支出路線服務 GW（0.665 → 0.577）；`L1_ExtServeGW` 推算值改回支出路線。
+  - M7：下游契約改 v0.5（文字旗標三種字樣、新增 v6.2／v6.3／v9.0 條目）。
+  - 情境 `d9_cache_cap_off`（`B4_CacheHit`＝0）：Perf、Sens_Perf、Perf_Prod、Perf_Batch、Unit_Cost、Fleet_1GW、Training 等容量頁與 v8.0 逐格相同（只有兩格標籤文字不同）。
+  - 具名範圍 1,322、公式格 48,906 不變；GOV_Errors 0、Warnings 271、Info 177 → 176；Decisions 新增 `AF2e-M1`–`M7`。
+- 契約（相對 v8.0）：IF_ 60、IFW_ 44、L1_ 115 個名稱數值改變（含 _Lo／_Hi 與 Hopper × Astra 欄），無新增、無刪除；`IF_AllocQ1`／`Q2`／`ServeGW`／`RDGW`、`L1_LReqFleet_Id`、`L1_LTotal`、Training 頁不變。`docs/plan/Tokenomics_downstream_contract.md` 改為 v0.5。
+- 驗證：parity 72 項全過（新增情境 `d9_cache_cap_off`；v6.2／v6.3 的 TTFT 不可達結構改以 `B4_CacheHit`＝0 情境驗證，Hopper × Astra 基準改為可達）；預期值更新逐項記於報告；冪等重建差異 0；與 v8.0 逐格比較無範圍外差異；`restore_log` unmatched 0、Excel 保留值 30 格（與 v8.0 相同）。
+- `docs/builder/Tokenomics_builder_v5.md` 已重新產生（新增 `v810.py`）。
+
 ## 20261016_Tokenomics_v8.0.xlsx（取代 v7.0；主版：`IF_AllocQ1`／`Q2`／`ServeGW` 改支出路線，契約改變；判斷類，依工作單 `docs/workorders/20261016_稽核修正2.md` 4r1 第 2-3 段）
 
 - 分支 `claude/audit-fix-2-3`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_稽核修正2-3.md`；進度檔：`docs/reports/20261016_稽核修正2-3_進度.md`。底稿：master（v7.0，已移至 `model/archive/`）；`model/CURRENT` 改為 v8.0。

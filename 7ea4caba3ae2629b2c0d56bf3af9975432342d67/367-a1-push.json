@@ -1,0 +1,46 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "7ea4caba3ae2629b2c0d56bf3af9975432342d67",
+ "github_sha": "7ea4caba3ae2629b2c0d56bf3af9975432342d67",
+ "ref": "refs/heads/claude/slim-4-1",
+ "event": "push",
+ "run_id": 38882857700,
+ "run_number": 367,
+ "run_attempt": 1,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 116913484530,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-10-16T09:47:27Z",
+   "completed_at": "2026-10-16T09:53:03Z",
+   "seconds": 336,
+   "python": "3.11.17"
+  },
+  {
+   "id": 116913484866,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-16T09:47:27Z",
+   "completed_at": "2026-10-16T09:48:21Z",
+   "seconds": 54,
+   "python": "3.11.17"
+  },
+  {
+   "id": 116915564329,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-16T09:53:05Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.12.3"
+  }
+ ],
+ "failures": [],
+ "log_excerpts": {},
+ "recalc_seconds": null,
+ "generated_at": "2026-10-16T09:53:12Z",
+ "errors": []
+}

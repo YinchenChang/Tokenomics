@@ -188,7 +188,10 @@ def calib(wb, SP, AR):
     MP = [("C", "GB300 interactive（v6.1）", 3, 1, "=1000/15", "=253506/72"),
           ("D", "GB200 interactive（v6.0）", 2, 1, "=1000/15", "=240318/72"),
           ("E", "VR200 interactive（v6.1 預覽）", 4, 1, "=1000/15", "=652750/72"),
-          ("F", "GB300 server（v6.0）", 3, 0, "=1000/80", 8064)]
+          ("F", "GB300 server（v6.0）", 3, 0, "=1000/80", 8064),
+          # v10.0 N3 (D5, J2): MLPerf v5.1 upper-bound points for Hopper (DGX H200; the model column is the H100 spec, H200 has more bandwidth so the bound is loose) and GB200 (server, 80 ms TPOT as v6.0)
+          ("G", "Hopper server（v5.1，H200；模型為 H100 規格）", 1, 0, "=1000/SRC_PERF_032", "=SRC_PERF_060"),
+          ("H", "GB200 server（v5.1）", 2, 0, "=1000/SRC_PERF_032", "=SRC_PERF_061")]
     hdr = r; C["mhdr"] = r; put(ws, f"A{r}", "驗證點", F_BOLD)
     for col, lab, *_ in MP: put(ws, f"{col}{r}", lab, F_BOLD, wrap=True)
     ws.row_dimensions[r].height = 30; r += 1
@@ -199,12 +202,12 @@ def calib(wb, SP, AR):
         C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", UNITS.get(key, ""))
         for (col, _, g, mtp, s, T) in MP:
             v = {"mg": g, "ms": s, "mm": mtp, "mT": T}[key]
-            put(ws, f"{col}{r}", v, F_IN if not isinstance(v, str) else None, fmt=fmt,   # v5.11: formulas are not inputs (SRC links via gov.FORMULA_MAP)
+            put(ws, f"{col}{r}", v, F_CALC if col in ("G", "H") else (F_IN if not isinstance(v, str) else None), fmt=fmt,   # v10.0: G／H are index constants, not Excel-owned inputs; v5.11: formulas are not inputs (SRC links via gov.FORMULA_MAP)
                 fill=FILL_KEY if key == "mT" else None)
         r += 1
     C["mplat"] = r; put(ws, f"A{r}", "量測平台（獨立性）")
     for col, lab, *_ in MP:
-        put(ws, f"{col}{r}", "MLPerf（MLCommons 稽核）／NVIDIA 提交" + ("（預覽類）" if "預覽" in lab else ""), F_NOTE, wrap=True)
+        put(ws, f"{col}{r}", "MLPerf（MLCommons 稽核）／NVIDIA 提交" + ("（預覽類）" if "預覽" in lab else "") + ("（v5.1；3A 查證轉引）" if col in ("G", "H") else ""), F_NOTE, wrap=True)
     ws.row_dimensions[r].height = 30; r += 1
     C["mgn"] = r; put(ws, f"A{r}", "世代")
     for col, *_ in MP: put(ws, f"{col}{r}", f"=INDEX(Spec_Rack!$C$4:$G$4,{col}{C['mg']})")
@@ -235,7 +238,7 @@ def calib(wb, SP, AR):
       ("mBs", "B*", "序列", "#,##0.0", "=MAX(0,MIN((1000*{X}{ma}/{X}{ms}-{X}{mtf})/{X}{mce},({X}{mU}-{X}{mW})*1E9/($C${rkv}*{X}{mcd})))"),
       ("mD", "decode tok/s/GPU", "tok/s", "#,##0", "=IF({X}{mBs}>0,{X}{mBs}*{X}{ma}/(({X}{mtf}+{X}{mBs}*{X}{mce})/1000),0)"),
       ("mO", "模型輸出 tok/s/GPU（含 prefill 分攤）", "tok/s", "#,##0", "=IF({X}{mD}>0,$C${rosl}/($C${risl}/{X}{mPp}+$C${rosl}/{X}{mD}),0)"),
-      ("mR", "模型 ÷ MLPerf", "x", "0.00", "={X}{mO}/{X}{mT}"),
+      ("mR", "模型 ÷ MLPerf（上限檢查：≤ 1 通過、> 1 失敗；判定見 Checks V 節，v10.0 N3）", "x", "0.00", "={X}{mO}/{X}{mT}"),
     ]
     for key, lab, unit, fmt, tpl in mrows2:
         C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)

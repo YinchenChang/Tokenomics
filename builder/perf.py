@@ -79,7 +79,7 @@ def perf_rows(SP, AR, CAL, TR, cache=True):
       ("wsh", "權重占可用 HBM", "%", "0%", "={X}{W}/{X}{usable}"),
       ("§", "F. Prefill（算力受限）"),
       ("Pp", "prefill tok/s（每 prefill GPU）", "tok/s", "#,##0", "={X}{etap}*{X}{P}*1E15/({X}{Fp}*1E9)"),
-      ("ttftv", "TTFT（計算部分" + ft + "）", "s", "0.00", "=" + fr + "*{X}{Fp}*1E9/({X}{etap}*{X}{P}*1E15*{X}{ninst})"),
+      ("ttftv", "TTFT（計算部分" + ft + ("；快取命中後新鮮 token 位於序列後段，本式（prefill 平均位置取整段 ISL 的一半）略低估 prefill 時間；v10.0 N4" if cache else "") + "）", "s", "0.00", "=" + fr + "*{X}{Fp}*1E9/({X}{etap}*{X}{P}*1E15*{X}{ninst})"),
       ("ttok", "TTFT 符合上限", "", None, "=IF({X}{ttftv}<={X}{ttft},\"是\",\"否\")"),
       ("§", "G. Decode：每步時間＝固定延遲＋B × 每序列時間；B* ＝ min(SLO 上限, HBM 容量上限)"),
       ("tfix", "每步固定延遲（權重讀取＋逐層延遲）", "ms", "#,##0.00", "={X}{W}/{X}{bw}+({X}{L}+{X}{N})*{X}{tl}/1000"),

@@ -250,6 +250,8 @@ v600.life_alias(wb, IFJ)               # v6.0 D7-3: IF_*_Life／Theory_Rev D sec
 ID_ROWS = v600.prod_identity(wb, IFJ)    # v6.0 D7-1: _Prod revenue / _Prod token = tier price (flags on Theory_Rev; Checks Z1 is written after Checks M so no Checks row moves)
 I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuation after J (IF_MaintITWarr, IF_MaintITPost, IF_WarrantyYrs); IF_StaffSW label (X19)
 IFK = v800.interface_k(wb)            # v8.0 L5: Interface K section (IF_AllocServeGW_Tok; appended last, before the contract columns are built)
+import v1000
+IFL = v1000.interface_l(wb)            # v10.0 N1: Interface L section (IFW_*_LifeSelf; appended last, before the contract columns are built; nothing reads these names)
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
@@ -261,6 +263,9 @@ CK_M4 = v534.checks_m4(wb)                # v5.34 B3: Checks M4, WARN (after M3;
 CK_M5 = v536.checks_m5(wb)                # v5.36 B5: Checks M5, INFO (gap identity check; after M4; counted in GOV_Info)
 V536_L1P = v536.l1_judge(wb)              # v5.36 B6: L1_PriceReqBE judgement column
 V810_L1P = v810.l1_judge(wb)              # v9.0 M5: L1_LReqFleet judgement column (identity reading as the main reading, literal reading beside it)
+V1000_L1P = v1000.l1_judge(wb)              # v10.0 N4-8: payback reading uses the identity reading only (literal reading beside it, marked inconsistent)
+V1000_NAT = v1000.l1_nature(wb)           # v10.0 N2: L1 column T (nature) and U (reason) for every row
+print("v1000 L1 nature counts:", V1000_NAT)
 Z1 = v600.checks_z(wb, ID_ROWS)                # v6.0 D7-1: Checks Z1 (ERROR, counted in GOV_Errors; after M)
 print("v600 Checks Z1 row:", Z1)
 Z2 = v800.checks_z2(wb)                # v8.0 L3: Checks Z2 (ERROR, counted in GOV_Errors; research mix sums to 100%)
@@ -270,6 +275,9 @@ V518_LOG += v700.interface_a231(wb, IFJ["start"])       # v7.0 2-2-b: Interface 
 print("v700 Checks K4 row:", v700.checks_k4(wb))       # v7.0 2-2-b: Checks K4 reads the re-solved fleet revenue
 V518_LOG += v700.text_update(wb, v518._append_text)       # v7.0: Serving F18, Calib J68, Cap_In g note, DB_Evidence E338/E339/E341 notes
 V518_LOG += v800.text_update(wb, v518._append_text) + V800_LOG       # v8.0: Cap_In K section 2025 price link and labels; Alloc rows 46／49／52
+V518_LOG += v1000.text_update(wb, v518._append_text)       # v10.0 N2／N4: nature tags (Alloc, Interface, Train_In H34), kappa／free-share notes, literal payback reading, Interface identity row
+CK_V = v1000.checks_v(wb, CAL)           # v10.0 N3: Checks G column (nature) and V section (CHK_VerifyTotal／Pass／Fail; not counted in GOV_Errors)
+print("v1000 Interface L from:", IFL["start"], "names:", len(IFL["made"]), "| Checks V rows:", CK_V["first"], "-", CK_V["last"], "| nature:", CK_V["nature"])
 V518_LOG += v602.notes_patch(wb, v518._append_text)       # v6.2 D1(c): fixed-model-basis note on Interface B／C／D headers and L1 TokMW_Gen_ratio rows
 print("v536 Cap_In J from:", V536_CAP["start"], "to:", V536_CAP["end"], "| Alloc_In kappa row:", AIN_536, "| L1 PriceReqBE row:", V536_L1P, "| Checks M5 row:", CK_M5)
 print("v535 Cap_In I from:", V535_CAP["start"], "to:", V535_CAP["end"], "| L1 rows:", V535_L1P, "| H10 L_price link row:", v534.ROWS["q_idx"], "| Gov_Map updated (incl. v5.35 re-pointing):", GOV.get("gm_updated"))

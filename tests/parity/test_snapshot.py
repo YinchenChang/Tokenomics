@@ -2,7 +2,7 @@
 讀 LibreOffice 重算後的值（`lo.view({})`，即新 SLO 基準；其他測試的 `_vo` 會改回舊 SLO，所以 GOV 計數在新基準下需要在這裡斷言）。
 
 快照更新規則：之後每個版本若有預期變動，必須在同一個 PR 以 `python3 tools/make_test_fixtures.py <重算後的 xlsx>` 更新
-tests/parity/fixtures/contract_snapshot_v10.3.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
+tests/parity/fixtures/contract_snapshot_v11.0.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
 import json
 import re
 from pathlib import Path
@@ -11,7 +11,7 @@ import pytest
 from openpyxl.utils import get_column_letter as L, range_boundaries
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-SNAP = json.loads((FIXTURES / "contract_snapshot_v10.3.json").read_text(encoding="utf-8"))
+SNAP = json.loads((FIXTURES / "contract_snapshot_v11.0.json").read_text(encoding="utf-8"))
 ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_")
 
 
@@ -36,7 +36,7 @@ def _same(a, b):
 
 
 def test_contract_snapshot_values(lo):
-    """契約名稱（下游契約文件所列＋全部 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_）逐格值等於 v10.3 快照（相對容差 1e-9）。"""
+    """契約名稱（下游契約文件所列＋全部 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_）逐格值等於 v11.0 快照（相對容差 1e-9）。"""
     v = lo.view({})
     bad, ncell = [], 0
     for name, rec in SNAP["names"].items():
@@ -61,15 +61,17 @@ def test_snapshot_covers_every_prefix_name(lo):
     assert missing == [], missing
 
 
-# 驗證清單 V1–V19：模型 ÷ 對照（或模型值）與通過判定（v10.3 的 LibreOffice 重算值；列 E＝比值，F＝1 通過／0 失敗）。
+# 驗證清單 V1–V22：模型 ÷ 對照（或模型值）與通過判定（v10.3 的 LibreOffice 重算值；列 E＝比值，F＝1 通過／0 失敗）。
 # 數值與判定隨輸入改變；預期變動時在同一個 PR 更新此表並於報告列出（同快照規則）。
 VERIFY_EXPECTED = {
-    "V1": (1.21767628625269, 0), "V2": (0.718430345941003, 1), "V3": (0.904516154853064, 1), "V4": (0.702796711119185, 1),
+    "V1": (1.21767628625269, "警示"), "V2": (0.718430345941003, 1), "V3": (0.904516154853064, 1), "V4": (0.702796711119185, 1),
     "V5": (0.494242858903564, 1), "V6": (0.689214136000581, 1), "V7": (0.267266126717592, 0), "V8": (0.261055812652461, 0),
     "V9": (0.379829822080908, 0), "V10": (0.371397626434424, 0), "V11": (0.7, 0), "V12": (0.99108369917347, 1),
     "V13": (2.18428412747673, 1), "V14": (4.1124545381639, 0), "V15": (0.266287875672857, 0), "V16": (0.0852702650102943, 1),
     "V17": (0.252262860133895, 1), "V18": (0, 1), "V19": (0, 1),
+    "V20": (1.56327652357179, 1), "V21": (0.645585696466193, 1), "V22": (0.501000545281522, 1),      # v11.0 G3 新增
 }
+SOFT = {"V1", "V2", "V3"}      # v11.0 G4：MLPerf server 軟上限（> 上限為「警示」，不計失敗）
 
 
 def _verify_rows(v):
@@ -92,18 +94,22 @@ def test_verify_item(lo, vid):
     assert f == passed, (vid, f, passed)
     lo_b, hi_b = v.get("Checks", f"H{r}"), v.get("Checks", f"I{r}")
     inside = e >= lo_b and (hi_b in ("", None) or e <= hi_b)
-    assert (1 if inside else 0) == f, (vid, e, lo_b, hi_b, f)
+    if vid in SOFT:      # 軟上限：低於下限失敗；高於上限為警示
+        assert (0 if e < lo_b else (1 if inside else "警示")) == f, (vid, e, lo_b, hi_b, f)
+    else:
+        assert (1 if inside else 0) == f, (vid, e, lo_b, hi_b, f)
 
 
 def test_verify_totals_and_list_complete(lo):
-    """清單完整（V1–V19 共 19 項，無缺列）；CHK_VerifyTotal／Pass／Fail＝19／11／8（v10.2：17／9／8，F3 新增 V18、V19 皆通過）。"""
+    """清單完整（V1–V22 共 22 項，無缺列）；CHK_VerifyTotal／Pass／Fail／Warn＝22／14／7／1（v10.3：19／11／8；v11.0：V1 改警示、新增 V20–V22 皆通過）；恆等式 Pass＋Fail＋Warn＝Total。"""
     v = lo.view({})
-    assert sorted(_verify_rows(v), key=lambda x: int(x[1:])) == [f"V{i}" for i in range(1, 20)]
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail")) == (19, 11, 8)
-    assert sum(p for _, p in VERIFY_EXPECTED.values()) == 11
+    assert sorted(_verify_rows(v), key=lambda x: int(x[1:])) == [f"V{i}" for i in range(1, 23)]
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (22, 14, 7, 1)
+    assert v.get_name("CHK_VerifyPass") + v.get_name("CHK_VerifyFail") + v.get_name("CHK_VerifyWarn") == v.get_name("CHK_VerifyTotal")
+    assert sum(p for _, p in VERIFY_EXPECTED.values() if p == 1) == 14
 
 
 def test_gov_counts_new_baseline(lo):
-    """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 279、Info 179。"""
+    """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 179。"""
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 279, 179)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 282, 179)

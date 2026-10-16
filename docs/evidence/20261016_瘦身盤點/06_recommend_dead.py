@@ -45,7 +45,7 @@ for x in rows:
     elif s == 'L1':
         set_('R07', DISPLAY_TAG + '（對照欄：外部值與推算 ÷ 外部）', 'L1 的 M／N／O 欄是外部對照（SRC 連結）與比值，只供閱讀；標明口徑。')
     elif s == 'Interface' and VERIFY.search(lab):
-        set_('R08', DISPLAY_TAG + '（驗證列），並建議接入 Checks', '加總核對列沒有任何下游讀取；6b 原則 4「驗證材料不刪，讓檢查能失敗」，建議接進 Checks。', '工程類')
+        set_('R08', DISPLAY_TAG + '（恆等式，非驗證）', 'Interface 第 229 列加總核對沒有任何下游讀取；2-5 N3 已把它標為「恆等式（非驗證）」，不進驗證計數。保留並在標籤維持「恆等式」即可。', '工程類')
     elif s == 'Cap_In' and r in (23, 24):
         set_('R09b', '建議合併：Sens_Rev 的商業壽命 6／24 改讀本列低／高（或刪本列）', 'Cap_In 商業壽命 低／高（GM451／GM452）沒有任何公式引用，而 Sens_Rev B20／B21 另帶 6、24 兩個值，同一物理量兩處各自輸入（稽核 0 的 C1.6）。', '判斷類')
     elif s == 'Cap_In' and not whole and cols == ['D', 'E'] and all(k != '公式' for k in x['kinds']):

@@ -130,7 +130,7 @@ scenarios:
     inputs: {"CTL_PriceLife": 0.5, "CTL_Monetize": 0.8}
   # ── v5.23：X10 Perf_Batch 側 VR200 批次口徑 η_d 倍數（Calib I 節，CAL_BatchEtaD 的第 4 格＝VR200） ──
   - id: h_batch_etad_100
-    description: CAL_BatchEtaD 的 VR200 格設回 1（＝v5.22 的 Perf_Batch 口徑）；全部具名範圍（除 IDX_SrcID）須與 v5.22 逐格相等，只有 X10 造成改變
+    description: CAL_BatchEtaD 的 VR200 格設回 1。v5.23 原意是「＝v5.22 的 Perf_Batch 口徑，全部具名範圍須與 v5.22 逐格相等」；v11.0 起 GB200 格為校準值（v12.0：2.36），本情境只設 VR200 格，GB200 仍為 2.36，故本情境本身不再與 v5.22 相等（v12.0 H6 更正本說明）。與 v5.22 的逐格相等斷言改由 test_batch_etad_expected_values 在 GB200 與 VR200 同時設回 1 的視圖上執行
     inputs: {"CAL_BatchEtaD[4]": 1.0}
   # ── v6.0 D8-5：稽核修正 1 的兩個情境（SLO 不可達輸出文字；錯誤值只計 # 開頭） ──
   - id: z1_c18_07_text
@@ -161,3 +161,25 @@ scenarios:
   - id: slo_v10
     description: 舊口徑 SLO 120／65／55 tok/s/user（Serving!C21:E21 為公式，故改 SRC_PERF_066–071 兩家皆設為舊值，幾何平均即 120／65／55；v10.2 基準為 84.3／43.3／40.8）；IF_TokGW_* 與下游變動；注意：舊 SLO 落在 Gov_Map GM239–GM241 區間之外，此情境 GOV_Errors＝3（Checks E10），屬預期（4-2a 補註）
     inputs: {"SRC_PERF_066": 120, "SRC_PERF_067": 120, "SRC_PERF_068": 65, "SRC_PERF_069": 65, "SRC_PERF_070": 55, "SRC_PERF_071": 55}
+  # ── v12.0（v11.1 修補 H1–H5）：GB200／Hopper 批次口徑倍數的區間端點、C68 試算、軟上限失敗門檻。區間表（Alloc N 節）的情境值由 test_v1200_range_table 對這些情境逐列比對 ──
+  - id: batch_gb200_lo
+    description: H2 區間低端 GB200 批次口徑倍數＝1.83（MLPerf v6.0 offline 反推值；Gov_Map 區間下限）；Hopper 維持 1。這是研發 GW 區間的高端（IF_AllocRDGW 最高）
+    inputs: {"CAL_BatchEtaD[2]": 1.83}
+  - id: batch_gb200_hi
+    description: H2 區間高端 GB200 批次口徑倍數＝3.04（vLLM 10.1K 反推值；v11.0 的基準）；Hopper 維持 1
+    inputs: {"CAL_BatchEtaD[2]": 3.04}
+  - id: batch_hopper_hi
+    description: H3 Hopper 批次口徑倍數＝3.74（Gov_Map 區間上限；C68＝1.5 下產出飽和處）；在 C68＝1.5 下不會讓 Hopper 達標（上限 0.941），只呈現研發 GW 的下限方向；GB200 維持 2.36
+    inputs: {"CAL_BatchEtaD[1]": 3.74}
+  - id: batch_range_lo
+    description: H5 研發 GW 區間的低端組合：GB200 3.04、Hopper 3.74（IF_AllocRDGW、IF_AllocQ1 最低）
+    inputs: {"CAL_BatchEtaD[2]": 3.04, "CAL_BatchEtaD[1]": 3.74}
+  - id: c68_1
+    description: H4 假設 C68（Hopper 每層延遲倍數）＝1.0（Gov_Map 區間下限）；服務端 Hopper 的 IF_TokGW_*、L1_MFleet 隨之改變（預期，這是情境，不是基準）
+    inputs: {"Calib!C68": 1.0}
+  - id: softcap_v1_fail
+    description: H1 把 V1（MLPerf v5.1 server Hopper）的對照值 SRC_PERF_060 由 556 改為 270.8，使模型 ÷ 實測＝約 2.5（> CHK_SoftCapFail＝2）：V1 必須判失敗，驗證失敗數 7 → 8、警示數 1 → 0
+    inputs: {"SRC_PERF_060": 270.8}
+  - id: softcap_v1_warn
+    description: H1 把 SRC_PERF_060 改為 451.35，使 V1 的模型 ÷ 實測＝約 1.5（介於 1 與 CHK_SoftCapFail 之間）：V1 必須判警示，不計失敗
+    inputs: {"SRC_PERF_060": 451.35}

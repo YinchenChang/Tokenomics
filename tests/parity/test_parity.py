@@ -1202,3 +1202,170 @@ def test_v1020_eta_calibration(model, lo):
     assert cal and abs(base.get("Calib", f"C{cal[0]}") - 0.338) < 5e-3 and abs(base.get("Calib", f"D{cal[0]}") - 1.0007) < 5e-3      # v11.0 G2: GB200 校準點 0.372 -> 1.0007
     # 新 SRC 名稱
     assert n("SRC_PERF_075") == 4668.1 and abs(n("SRC_PERF_076") - 5561.6) < 1e-9 and n("SRC_PERF_073") == 1850
+
+
+# ── v12.0（v11.1 修補 H1–H7）：專屬測試 ──
+import re
+
+V110_PREV = HERE.parent.parent / "model" / "archive" / "20261016_Tokenomics_v11.0.xlsx"      # v11.0（LibreOffice 重算存檔）：v12.0 的「不得變」名稱對照
+
+
+def _scen_inputs(sid):
+    return next(sc["inputs"] for sc in SCENARIOS if sc["id"] == sid)
+
+
+def _vrow(v, vid):
+    for r in range(1, 400):
+        if v.get("Checks", f"A{r}") == vid:
+            return r
+    raise AssertionError(f"Checks 找不到 {vid}")
+
+
+def _vcounts(v):
+    n = v.get_name
+    return n("CHK_VerifyTotal"), n("CHK_VerifyPass"), n("CHK_VerifyFail"), n("CHK_VerifyWarn")
+
+
+PREWARM["test_v1200_soft_cap_fail_threshold"] = [{"CHK_SoftCapFail": 1.1}, {"CHK_SoftCapFail": 1.3}]
+
+
+def test_v1200_soft_cap_fail_threshold(lo):
+    """H1（原則 4：檢查必須能失敗）：V1–V3 比值 ≤ 1 通過；1 至 CHK_SoftCapFail 警示；> CHK_SoftCapFail 失敗。
+    情境把 V1 的比值推到約 2.5 必須判失敗、推到約 1.5 必須判警示；改門檻（1.1、1.3）也必須改變 V1 的判定；恆等式 Pass＋Fail＋Warn＝Total 在每個情境成立。"""
+    base = lo.view({})
+    assert base.get_name("CHK_SoftCapFail") == 2
+    r = _vrow(base, "V1")
+    assert abs(base.get("Checks", f"E{r}") - 1.217676) < 5e-6 and base.get("Checks", f"F{r}") == "警示"
+    assert _vcounts(base) == (20, 12, 7, 1)
+    # 比值 2.5 > 2：失敗（不再只是警示）
+    v = lo.view(_scen_inputs("softcap_v1_fail"))
+    e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
+    assert 2.4 < e < 2.6 and f == 0, (e, f)
+    assert _vcounts(v) == (20, 12, 8, 0) and v.get_name("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
+    # 比值 1.5：警示
+    v = lo.view(_scen_inputs("softcap_v1_warn"))
+    e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
+    assert 1.4 < e < 1.6 and f == "警示", (e, f)
+    assert _vcounts(v) == (20, 12, 7, 1)
+    # 門檻本身可改：1.2177 > 1.1 失敗；< 1.3 警示
+    assert lo.view({"CHK_SoftCapFail": 1.1}).get("Checks", f"F{r}") == 0
+    assert lo.view({"CHK_SoftCapFail": 1.3}).get("Checks", f"F{r}") == "警示"
+    for vv in (base, lo.view({"CHK_SoftCapFail": 1.1}), lo.view(_scen_inputs("softcap_v1_fail")), lo.view(_scen_inputs("softcap_v1_warn"))):
+        t, pas, fail, warn = _vcounts(vv)
+        assert pas + fail + warn == t
+
+
+def test_v1200_gb200_geomean_and_v20_dependence(model, lo):
+    """H2：CAL_BatchEtaD GB200＝兩個反推值（Calib L 節 C 欄 V20 的『所需倍數』1.83、Calib J 節 D 欄的 3.04）的幾何平均 2.36（四捨五入到小數 2 位內）；
+    V20 因此不是獨立驗證點：F 欄為文字『校準相關（非獨立）』，不計入驗證項目數／通過／失敗；H3：Hopper 維持 1；H4：C68 維持 1.5。"""
+    v = lo.view({})
+    assert v.get_name("CAL_BatchEtaD") == [1, 2.36, 1, 0.75, 1]
+    lrow = next(r for r in range(150, 300) if str(v.get("Calib", f"A{r}") or "").startswith("達標所需批次口徑 η_d 倍數（CAL_BatchEtaD 的解）"))
+    jrow = next(r for r in range(150, 300) if str(v.get("Calib", f"A{r}") or "").startswith("達標所需 η_d 倍數（相對 CAL_EtaD"))
+    c_lo, c_hi = v.get("Calib", f"C{lrow}"), v.get("Calib", f"D{jrow}")
+    assert abs(c_lo - 1.8297) < 5e-4 and abs(c_hi - 3.0373) < 5e-4, (c_lo, c_hi)
+    assert abs(2.36 - (c_lo * c_hi) ** 0.5) < 0.005, ((c_lo * c_hi) ** 0.5)      # 兩個反推值若移動到幾何平均不再是 2.36，這裡會失敗
+    assert v.get("Calib", "C68") == 1.5 and v.get("Calib", "C156") == 1
+    r20 = _vrow(v, "V20")
+    assert v.get("Checks", f"G{r20}") == "校準相關（非獨立）" and str(v.get("Checks", f"F{r20}")).startswith("校準相關（非獨立）")
+    numeric = sum(1 for r in range(1, 400) if re.fullmatch(r"V\d+", str(v.get("Checks", f"A{r}") or "")) and isinstance(v.get("Checks", f"F{r}"), (int, float)))
+    assert numeric == 19 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # V18、V20 的 F 欄為文字，不計入
+    n = v.get_name
+    for name, want in (("IF_AllocRDGW", 0.202947), ("IF_AllocQ1", 0.184322), ("IF_AllocQ2", 0.184983), ("L1_ScaleRD", 6.294125)):      # v11.0：0.197258／0.180086／0.180735／6.475644
+        assert abs(n(name) - want) < 5e-6, (name, n(name), want)
+    assert n("GOV_Errors") == 0
+
+
+def test_v1200_service_side_unchanged(model, lo):
+    """H2 不得變：服務端 IF_TokGW_*、L1_MFleet、IF_AllocServeGW、L1_LReqFleet_Id、L1_HoldEconMW_*、維護率 IF_MaintIT*、IF_RevGW* 與 v11.0 逐格相同。"""
+    import openpyxl
+    from openpyxl.utils import range_boundaries
+    prev = openpyxl.load_workbook(V110_PREV, data_only=True)
+    v = lo.view({})
+    keep = [n for n in prev.defined_names if n.startswith(("IF_TokGW_", "L1_MFleet", "IF_AllocServeGW", "L1_LReqFleet_Id", "L1_HoldEconMW_", "IF_MaintIT", "IF_RevGW"))]
+    assert len(keep) >= 40, len(keep)
+    for n in keep:
+        sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
+        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+        want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
+        got = _flat(v.get_name(n))
+        assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
+
+
+def test_v1200_range_table(lo):
+    """H5：Alloc N 節『區間（情境）』的情境值（常數）逐列等於以該列輸入重算的 IF_AllocRDGW、IF_AllocQ1（容差 5e-6）；第一列為即時值；
+    區間端點名稱 AL_RngRDGW_Lo／_Hi、AL_RngQ1_Lo／_Hi 為低端／高端列；基準落在區間內。同時守護 H3（Hopper 3.74 在 C68＝1.5 下仍無法達標）與 Gov_Map 區間端點不觸發 GOV_Errors。"""
+    base = lo.view({})
+    top = next(r for r in range(100, 400) if str(base.get("Alloc", f"A{r}") or "").startswith("N. 區間（情境）"))
+    sid_by_label = {"高端": "batch_gb200_lo", "低端": "batch_range_lo", "GB200 3.04、Hopper 1": "batch_gb200_hi", "GB200 2.36、Hopper 3.74": "batch_hopper_hi", "C68＝1.0": "c68_1"}
+    live = top + 2
+    assert abs(base.get("Alloc", f"F{live}") - base.get_name("IF_AllocRDGW")) < 1e-15 and abs(base.get("Alloc", f"G{live}") - base.get_name("IF_AllocQ1")) < 1e-15
+    assert (base.get("Alloc", f"C{live}"), base.get("Alloc", f"D{live}"), base.get("Alloc", f"E{live}")) == (2.36, 1, 1.5)
+    seen = set()
+    for r in range(live + 1, live + 12):
+        lab = str(base.get("Alloc", f"A{r}") or "")
+        if not lab:
+            break
+        key = next(k for k in sid_by_label if lab.startswith(k))
+        sid = sid_by_label[key]; seen.add(sid)
+        inp = _scen_inputs(sid)
+        sc = lo.view(inp)
+        gb, hp, c68 = base.get("Alloc", f"C{r}"), base.get("Alloc", f"D{r}"), base.get("Alloc", f"E{r}")
+        want_in = {"CAL_BatchEtaD[2]": gb, "CAL_BatchEtaD[1]": hp, "Calib!C68": c68}      # 列上的輸入常數須等於情境的輸入（未列者為基準值）
+        base_in = {"CAL_BatchEtaD[2]": 2.36, "CAL_BatchEtaD[1]": 1, "Calib!C68": 1.5}
+        assert {**base_in, **inp} == want_in, (sid, inp, want_in)
+        rd, q1 = base.get("Alloc", f"F{r}"), base.get("Alloc", f"G{r}")
+        assert abs(rd - sc.get_name("IF_AllocRDGW")) < 5e-6 and abs(q1 - sc.get_name("IF_AllocQ1")) < 5e-6, (sid, rd, sc.get_name("IF_AllocRDGW"), q1, sc.get_name("IF_AllocQ1"))
+        assert sc.get_name("GOV_Errors") == 0, sid      # 區間端點（含 1.83、3.04、3.74、C68＝1.0）落在 Gov_Map 區間內
+        if sid == "batch_range_lo":
+            assert (base.get_name("AL_RngRDGW_Lo"), base.get_name("AL_RngQ1_Lo")) == (rd, q1)
+        if sid == "batch_gb200_lo":
+            assert (base.get_name("AL_RngRDGW_Hi"), base.get_name("AL_RngQ1_Hi")) == (rd, q1)
+        if sid == "batch_hopper_hi":      # H3：C68＝1.5 下 Hopper 3.74 仍無法達標（產出上限約目標的 0.94；Calib J 節 C 欄）
+            jr = next(x for x in range(150, 300) if str(sc.get("Calib", f"A{x}") or "").startswith("模型 ÷ 目標"))
+            assert 0.93 < sc.get("Calib", f"C{jr}") < 0.95, sc.get("Calib", f"C{jr}")
+        if sid == "c68_1":      # H4：C68＝1.0 試算改變服務端（情境，不是基準）
+            assert abs(sc.get_name("L1_MFleet") - 0.388570) < 5e-6
+    assert seen == set(sid_by_label.values()), seen
+    lo_rd, hi_rd, lo_q1, hi_q1 = (base.get_name(x) for x in ("AL_RngRDGW_Lo", "AL_RngRDGW_Hi", "AL_RngQ1_Lo", "AL_RngQ1_Hi"))
+    assert lo_rd < base.get_name("IF_AllocRDGW") < hi_rd and lo_q1 < base.get_name("IF_AllocQ1") < hi_q1
+    assert abs(lo_rd - 0.162622) < 5e-6 and abs(hi_rd - 0.211597) < 5e-6 and abs(lo_q1 - 0.153313) < 5e-6 and abs(hi_q1 - 0.190680) < 5e-6
+
+
+def _recalc_with_edits(model, tmp_path, edits):
+    """複製活頁簿、改寫指定格（含公式格；此測試要模擬『T 欄被清空或手填』）、以 LibreOffice 重算，回傳唯讀值活頁簿。"""
+    import openpyxl
+    wb = openpyxl.load_workbook(model)
+    for (sh, ref), val in edits.items():
+        wb[sh][ref].value = val
+    dst = tmp_path / "edit" / model.name
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    wb.save(dst)
+    return openpyxl.load_workbook(lo_recalc(dst, tmp_path / "out"), data_only=True)
+
+
+def _v_result(wb, vid):
+    ws = wb["Checks"]
+    for r in range(1, 400):
+        if ws.cell(r, 1).value == vid:
+            return {"C": ws.cell(r, 3).value, "D": ws.cell(r, 4).value, "E": ws.cell(r, 5).value, "F": ws.cell(r, 6).value}
+    raise AssertionError(vid)
+
+
+def test_v1200_v19_detects_cleared_and_handfilled_T(model, tmp_path):
+    """H7（查核 #87 觀察 1）：V19 由公式自行重算 T 欄應有的判定再與 T 欄比對。
+    基準通過；T 欄一格被清空必須判失敗（舊版 COUNTA／COUNTIF 同步減少、差值仍為 0）；M 欄改『否』使 T01 實質不一致，T 欄手填『一致』也必須判失敗；
+    K 欄被手填覆寫時 V18 顯示『恆等式不成立』（V18 是恆等式、不計入驗證）。"""
+    base = _recalc_with_edits(model, tmp_path / "a", {})
+    r = _v_result(base, "V19")
+    assert r["F"] == 1 and r["E"] == 0 and r["C"] == 0 and r["D"] == 0, r
+    assert _v_result(base, "V18")["F"] == "恆等式（非驗證）"
+    cleared = _recalc_with_edits(model, tmp_path / "b", {("Tech_Registry", "T7"): None})
+    r = _v_result(cleared, "V19")
+    assert r["F"] == 0 and r["E"] >= 1 and r["D"] >= 1, r
+    filled = _recalc_with_edits(model, tmp_path / "c", {("Tech_Registry", "M5"): "否", ("Tech_Registry", "T5"): "一致"})
+    r = _v_result(filled, "V19")
+    assert r["F"] == 0 and r["C"] >= 1 and r["E"] >= 2, r      # 重算判定＝實質不一致，且 T 欄的手填值與重算判定不符
+    assert _v_result(filled, "V19")["D"] == 0      # T 欄看起來全『一致』：舊版的差值檢查在這裡也會通過
+    k_over = _recalc_with_edits(model, tmp_path / "d", {("Tech_Registry", "K5"): "非主流"})
+    assert str(_v_result(k_over, "V18")["F"]).startswith("恆等式不成立")

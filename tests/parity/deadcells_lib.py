@@ -155,3 +155,33 @@ def dead_formula_cells(path, contract_path, copies_are_roots=True):
                 dead.add((s, a))
     per_page = collections.Counter(s for s, _ in dead)
     return dead, nform, per_page
+
+
+def upstream_numeric_leaves(path, root_names):
+    """D15 B 段 P2-2：具名範圍 root_names 的全部上游『數值常數格』（依賴圖，口徑同死格偵測：不穿越治理頁）。
+    回傳 [(頁, 座標, 值)]，依工作表順序、列、欄排序。供區間時效指紋（Alloc P 節）與其測試共用。"""
+    from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
+    cells, names, maxrc, sheets = load_formulas(path)
+    edges = build_graph(cells, names, maxrc)
+    seen = set()
+    stack = [("NAME", n) for n in root_names]
+    while stack:
+        n = stack.pop()
+        if n in seen:
+            continue
+        seen.add(n)
+        if n[0] not in ("NAME", "RANGE") and n[0] in NO_TRAVERSE:
+            continue
+        stack.extend(p for p in edges.get(n, ()) if p not in seen)
+    order = {s: i for i, s in enumerate(sheets)}
+    out = []
+    for n in seen:
+        if n[0] in ("NAME", "RANGE") or n not in cells:
+            continue
+        v = cells[n]
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            continue
+        col, row = coordinate_from_string(n[1])
+        out.append((order[n[0]], row, column_index_from_string(col), n[0], n[1], v))
+    out.sort()
+    return [(s, a, v) for _, _, _, s, a, v in out]

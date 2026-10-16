@@ -27,7 +27,7 @@ TAG_VR = "Derived（SRC_PERF_052／053／056／057；區間 0.70–1.0）"
 
 
 def calib_i(wb):
-    """Five-cell generation row; only VR200 is a blue input (Derived), the other four are constant 1 (black)."""
+    """Five-cell generation row; VR200 (and, from v11.0, GB200) are blue inputs (Derived), the other three are constant 1 (black)."""
     ws = wb["Calib"]
     assert ws.max_row == CALIB_PREV_END, f"Calib ends at row {ws.max_row}; X10 section expects it to start at row {ROW_SEC}"
     section(ws, ROW_SEC, "I. 批次口徑 η_d 倍數（X10，v5.23）：Perf_Batch 第 53 列的世代倍數（服務側 Perf 不受影響；基準 1＝不另校準）", 10)
@@ -37,6 +37,7 @@ def calib_i(wb):
     put(ws, f"A{ROW_VAL}", LAB_VAL); put(ws, f"B{ROW_VAL}", "x")
     for col in "CDEFG":
         if col == VR_COL: put(ws, f"{col}{ROW_VAL}", K_DEFAULT, fmt="0.00")
+        elif col == "D": put(ws, f"{col}{ROW_VAL}", 1, fmt="0.00")      # v11.0 G2：GB200 倍數改為藍字輸入（預設 1；Excel 值 3.04 由 restore 讀回，v1100.inputs_update 只在仍為 1 時寫入）
         else: put(ws, f"{col}{ROW_VAL}", 1, F_CALC, fmt="0.00")
     put(ws, f"H{ROW_VAL}", TAG_VR, F_NOTE)
     put(ws, f"J{ROW_VAL}", DESC, F_NOTE, wrap=True)

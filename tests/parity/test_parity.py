@@ -297,7 +297,7 @@ def test_alloc_expected_values_and_slo_text(model, lo):
     assert abs(base.get_name("AL_DDaily") - 16.48) < 0.01                                 # v5.29 X14 (l)：每則提示 token 數 2,000 → 4,000，每日 token 11.48 → 16.48T
     assert abs(base.get_name("AL_ServeGWSpend") - 0.898096) < 5e-5                        # v5.33 J8：組合持有成本 10.33 → 9.353，1.21964 → 1.34714（工作單 B2 驗收錨點 1.35）；v5.31 J1／J2：1.11399 → 1.21964（支出 ÷ 持有成本，持有成本下降）；v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
     assert abs(base.get_name("AL_RefGWyr") - 0.0432504) < 5e-6   # v11.0 G2：0.0562533 → 0.0432504（GB200 CAL_BatchEtaD 1 → 3.04，研發 GB200 每 GW token 增加）；                          # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
-    assert abs(base.get_name("AL_FamGWyr") - 0.127692) < 5e-6        # v8.0 L3：研發世代組合加權（Alloc J 節）；v7.0 以前＝Fleet_1GW 第 33 列（VR200 欄）0.04864
+    assert abs(base.get_name("AL_FamGWyr") - 0.110757) < 5e-6        # v11.0 G2：0.127692 → 0.110757（GB200 CAL_BatchEtaD 3.04）； v8.0 L3：研發世代組合加權（Alloc J 節）；v7.0 以前＝Fleet_1GW 第 33 列（VR200 欄）0.04864
     assert base.get_name("AL_RDShareExcl") == 0 and base.get_name("CHK_RDMixSum") == 0
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
     for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
@@ -491,7 +491,7 @@ def test_batch_etad_expected_values(model, lo):
     base = _vo(lo, {"CAL_BatchEtaD[2]": 1.0})
     eng = _vo(lo, {"CAL_BatchEtaD[2]": 1.0, "CAL_BatchEtaD[4]": 1.0})
     cur = eng.evaluate_all()
-    assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values()) and eng.get_name("GOV_Errors") == 0
+    assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values()) and eng.get_name("GOV_Errors") == 1      # v11.0：D156（GB200 倍數）設回 1 落在其區間 1.5–6.7 之外，Checks E10＝1（與 B4_CacheHit＝0 同類，預期）；其餘錯誤 0
     prev = openpyxl.load_workbook(BATCH_PREV, data_only=True)
     v531_changed = _names_changed_v531(model) | _names_changed_v531(model, V532_PREV)     # v5.33：加上 v5.32 → v5.33 改變的名稱（Alloc 鏈：AL_Blend*、AL_Mix*、L1_ScaleServe、L1_GapPrompt_Hi 等）
     assert "AL_BlendPaid" in v531_changed and "IF_HoldEcon" in v531_changed      # v6.1：IF_RevGW_Sol、TRN_GPUhRL 的 Hopper 欄隨 D6（Calib C67）改變，不再斷言「不在其中」
@@ -1097,7 +1097,7 @@ def test_v800_audit_fix2_3(model, lo):
     mix = [n("AL_RDMixHopper"), n("AL_RDMixGB200"), n("AL_RDMixGB300"), n("AL_RDMixVR200")]
     assert mix == [0.6, 0.38, 0.02, 0] and abs(sum(mix) - 1) < 1e-12
     assert abs(n("AL_RDGW") - 0.197258) < 5e-6 and abs(n("IF_AllocRDGW") - n("AL_RDGW")) < 1e-15      # v11.0 G2：0.240199 → 0.197258
-    assert abs(n("AL_RefGWyr") - 0.0432504) < 5e-6 and abs(n("AL_FamGWyr") - 0.127692) < 5e-6
+    assert abs(n("AL_RefGWyr") - 0.0432504) < 5e-6 and abs(n("AL_FamGWyr") - 0.110757) < 5e-6
     # L5：服務 GW 支出路線
     assert abs(n("IF_AllocServeGW") - n("AL_ServeGWSpend")) < 1e-15 and abs(n("IF_AllocServeGW") - 0.898096) < 5e-6
     assert abs(n("IF_AllocServeGW_Tok") - n("AL_ServeGW")) < 1e-15 and abs(n("IF_AllocServeGW_Tok") - 0.166128) < 5e-6
@@ -1117,9 +1117,9 @@ def test_v800_audit_fix2_3(model, lo):
     rev25 = n("AL_RevGW25")
     assert all(num(x) and x > 0 for x in rev25) and num(n("AL_FleetRev25")) and n("AL_FleetRev25") > 0
     assert abs(n("AL_FleetRev25") - 9.811308) < 5e-6
-    # L2：2025 年度模型規模倍數三個情境（Hopper、GB200；其餘 1）
-    for sid, ins, want in (("d2_model_2025", 0.65, (0.387138, 0.164989, 7.686916)), ("d2_model_2025_lo", 0.35, (0.244465, 0.119326, 12.173111)),
-                           ("d2_model_2025_hi", 1.1, (0.604240, 0.223273, 4.925020))):
+    # L2：2025 年度模型規模倍數三個情境（Hopper、GB200；其餘 1）。v11.0 G2：IF_AllocQ1 0.164989／0.119326／0.223273 → 0.139219／0.098928／0.191061（GB200 CAL_BatchEtaD 3.04；MFleet、ScaleServe 不變）
+    for sid, ins, want in (("d2_model_2025", 0.65, (0.387138, 0.139219, 7.686916)), ("d2_model_2025_lo", 0.35, (0.244465, 0.098928, 12.173111)),
+                           ("d2_model_2025_hi", 1.1, (0.604240, 0.191061, 4.925020))):
         sc = _vo(lo, {"ARCH_ScaleGen[1]": ins, "ARCH_ScaleGen[2]": ins, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0})
         assert sc.get_name("GOV_Errors") == 0, sid
         for nm, w in zip(("L1_MFleet", "IF_AllocQ1", "L1_ScaleServe"), want):

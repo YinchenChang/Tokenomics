@@ -2,7 +2,7 @@
 from common import *
 
 def perf_rows(SP, AR, CAL, TR, cache=True):
-    """v8.1 M1 (D9): cache=True (Perf, Sens_Perf and their _Prod mirrors) counts only the FRESH input ISL x (1 - B4_CacheHit) in prefill time (TTFT, GPU-s per request, prefill GPU share);
+    """v9.0 M1 (D9): cache=True (Perf, Sens_Perf and their _Prod mirrors) counts only the FRESH input ISL x (1 - B4_CacheHit) in prefill time (TTFT, GPU-s per request, prefill GPU share);
     the served-token definition (ISL + OSL per request) is unchanged. cache=False (Perf_Batch: RL rollout／distillation, no serving cache hit) keeps the full ISL, so Training is untouched.
     Row spec: (key, label, unit, fmt, template) ; '§' key = section header. Templates use {X} and row keys."""
     I = lambda sheet, rng, idx: f"=INDEX({sheet}!{rng},{{X}}${idx})"
@@ -10,7 +10,7 @@ def perf_rows(SP, AR, CAL, TR, cache=True):
     ar = lambda r: I("Arch", f"$C${r}:$E${r}", 7)
     sv = lambda r: I("Serving", f"$C${r}:$E${r}", 7)
     fr = "({X}{isl}*(1-B4_CacheHit))" if cache else "{X}{isl}"      # fresh (non-cached) input tokens per reference request
-    ft = "；v8.1 D9：prefill 只計新鮮輸入 ISL × (1 − B4_CacheHit)" if cache else ""
+    ft = "；v9.0 D9：prefill 只計新鮮輸入 ISL × (1 − B4_CacheHit)" if cache else ""
     return [
       ("§", "0. Tech_Registry 掛鉤（基準＝1；Registry 未啟用任何條目時與 v5.4 相同）"),
       ("hflop", "FLOPs/token 倍數（H_FLOP）", "x", "0.00", f"={TR['H_FLOP']}"),

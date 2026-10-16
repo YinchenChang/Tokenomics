@@ -211,7 +211,7 @@ def perf_batch(wb, SP, AR, CAL, TR, TI):
             "isl": f"=INDEX(Train_In!$C${TI['risl']}:$E${TI['risl']},{{X}}$7)",
             "osl": f"=INDEX(Train_In!$C${TI['rosl']}:$E${TI['rosl']},{{X}}$7)"}
     ov = {X: dict(link) for X in COLS15}
-    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR, overrides=ov, ov_link=True, cache=False)      # v8.1 M1: batch inference keeps the full ISL (no serving cache hit)
+    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR, overrides=ov, ov_link=True, cache=False)      # v9.0 M1: batch inference keeps the full ISL (no serving cache hit)
     # scenario columns (FP8 rollout on VR200): re-write the same rows into R, S with extra overrides
     fp8 = {"P": f"=Spec_Rack!$F${SP['tfp8']}", "be": 1, "bn": 1}
     for X in ("R", "S"):

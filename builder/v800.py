@@ -101,7 +101,7 @@ def cap_in_m(wb, l_sec):
         for nmx, col in ((f"CAP_Px25_{tn}", "C"), (f"CAP_Px25_{tn}_Lo", "D"), (f"CAP_Px25_{tn}_Hi", "E")):
             wb.defined_names[nmx] = DefinedName(nmx, attr_text=f"Cap_In!${col}${r}")
         CM[f"px_{tn}"] = r; r += 1
-    put(ws, f"A{r}", "2025 付費 token 混合有效單價（全層級；B4_MixPaid × 2025 層級單價 ×（1 − B4_Disc）× AL_Kappa；寫法同第 90 列；κ 為 v8.1 M3）", wrap=True); put(ws, f"B{r}", "$/M")
+    put(ws, f"A{r}", "2025 付費 token 混合有效單價（全層級；B4_MixPaid × 2025 層級單價 ×（1 − B4_Disc）× AL_Kappa；寫法同第 90 列；κ 為 v9.0 M3）", wrap=True); put(ws, f"B{r}", "$/M")
     for col, suf in (("C", ""), ("D", "_Lo"), ("E", "_Hi")):
         # v9.0 M3 (D9): kappa on the price end as on the token end (kappa = 1 in the base case)
         f = "+".join(f"INDEX(B4_MixPaid,1,{t})*CAP_Px25_{tn}{suf}*(1-B4_Disc)" for tn, t in TIERS)

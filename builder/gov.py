@@ -336,6 +336,7 @@ def _find_row(ws, label):
 
 def gm_append(wb, ws):
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
+    have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
@@ -356,6 +357,7 @@ def gm_append_c(wb, ws):
     """v5.13 C: register the slice-two pages' numeric blue cells (GOV_MAP_V513C) when the (sheet, cell) is not yet in Gov_Map.
     The row's column-A label must still match: a moved or renamed row stops the build instead of registering the wrong cell."""
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
+    have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1

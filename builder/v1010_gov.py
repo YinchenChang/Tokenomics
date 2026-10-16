@@ -70,6 +70,7 @@ def add_alloc_rows(wb):
         d._style = s._style
     ws.cell(new, 1).value = "GM681"
     ws.cell(new, 8).value = None      # SRC_ID blank: SRC_Index row 1448 reads Gov_Map!H685, and a dash there would change the name IDX_SrcID
+    ws.cell(new, 21).value = "—"      # U（建置時狀態）：範圍列一律「—」，與重建時 builder 的寫法一致（不沿用 GM424 的「含公式格」）
     ws.cell(new, 2).value = "切片四（v10.1 瘦身 4-1）"
     ws.cell(new, 3).value = "Alloc"; ws.cell(new, 4).value = "I94:L95"
     ws.cell(new, 5).value = "服務世代組合：全 GB200／全 VR200（G 節敏感度 one-hot 輸入）"

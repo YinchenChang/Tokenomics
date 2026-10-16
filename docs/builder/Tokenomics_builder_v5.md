@@ -1516,6 +1516,7 @@ import v700
 import v800
 import v810
 import v1000
+import v1010
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1622,11 +1623,11 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v1000.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v1010.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
-      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Capability → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Alloc_In → Alloc → Perf_Prod → Perf_Batch_Prod → Training_Prod → Unit_Cost_Prod → Interface_Prod → Fleet_1GW_Prod → Amortize_Prod → Theory_Rev_Prod（v5.19 X1 鏡像頁）→ Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand、SRC_Index（builder 擁有的查找索引）、Sources_Legacy（v5.12 起凍結）、DB_Evidence。"),
+      ("工作表", "Inputs → Spec_Rack → Arch → Serving → Workload → Calib → Tech_Registry → Perf → Sens_Perf → Unit_Cost → DC_Cost → Train_In → Perf_Batch → Training → Sens_Train → Cap_In → Price_Frontier → Cache_Store → Fleet_1GW → Amortize → Theory_Rev → Sens_Rev → Har_In → Harness → Sens_Har → Alloc_In → Alloc → Perf_Prod → Perf_Batch_Prod → Training_Prod → Unit_Cost_Prod → Interface_Prod → Fleet_1GW_Prod → Amortize_Prod → Theory_Rev_Prod（v5.19 X1 鏡像頁）→ Interface → L1；Energy、NonNV、Sensitivity、Checks、Gov_Map、Decisions、SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand、SRC_Index（builder 擁有的查找索引）、Sources_Legacy（v5.12 起凍結）、DB_Evidence。"),
       ("Block 6 推導（v5.15）", "實驗室年度算力＝研發需求＋服務需求。需求 D（token 路線，A9）：API＝SRC_DEM_010 × 525,600 × 全年平均比例；ChatGPT＝SRC_DEM_012 × 每則提示 token 數 × 365。服務 GW＝D ÷ 世代組合後每 GW 年產能（依 Cap_In 層級組合與 IF_TokGW_*、IF_Util，寫法同 Fleet_1GW 第 19–29 列）。研發 GW 年＝k ×（N_major × 家族計畫＋N_refresh × 改版計畫），家族計畫＝IF_ProgGWyr 三層級合計，改版計畫＝後訓練 GPU 小時 × 研發倍數換算 GW 年（訓練世代＝IF_TrainGenDefault）。Q1＝研發 GW ÷（研發＋服務 GW）；Q2 以各世代 IF_HoldEcon 加權，利用率不進入。研發占比的物理部分只給下限，實際占比由策略變數決定。隱含 N × k 由 2025 支出比反推（A3）。SLO 不可達時回傳文字。決策 A1–A10 見 Decisions。"),
       ("Block 3 推導", "預訓練：FLOPs＝3 ×（2 × 啟用參數＋注意力 FLOPs × 被注意 token）× token；GPU 小時＝FLOPs ÷（FP8 訓練峰值 × MFU × goodput）。RL、蒸餾、合成資料、評測的推論型運算以 Perf_Batch（與 Perf 同公式，只換速度下限與參考任務）計價；RL 有效 MFU 為推導值。研發計畫＝最終訓練 GPU 小時 × 研發倍數。"),
       ("Block 3 決策", "J7 訓練精度 FP8（NVFP4 預訓練在 Tech_Registry）；J8 Astra 預訓練與 Arch 一致，前沿錨點列 Checks；J9 RL 由下而上，基準校到 RL÷預訓練 GPU 小時 Luna／Sol 0.3、Astra 1.0；J10 研發倍數 8，家族合計、依最終訓練比例分攤；J11 用途 × 型態只列單一計畫；J12 rollout NVFP4（FP8 為情境）；J13 下游預設 VR200、GB300 並列；J14 主流＝至少兩家實驗室公開採用，可覆寫。"),
@@ -1664,11 +1665,12 @@ def readme(wb):
       v535.README_ROW,        # v5.35: L split (L_price × L_demote) and the H10 fixes (appended next to the m rows; no README row moves)
       v810.README_ROW,        # v9.0: audit fix 2-4 (appended; no README row moves)
       v1000.README_ROW,       # v10.0: audit fix 2-5 (appended; no README row moves)
+      v1010.README_ROW,       # v10.1: slimming 4-1 (appended; no README row moves)
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v1000.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v1010.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -1866,7 +1868,7 @@ def cap_in(wb):
     singles = [
       ("disc", "有效折扣（Batch／Flex 半價＋企業議價，加權）", "%", 0.2, 0.1, 0.3, "Assumed", "與 OpenAI 模型 v0.5 一致；Batch 半價為 Verified，企業折扣為 Analogy"),
       ("chi", "參考請求快取命中率 χ（輸入中屬快取命中的比例）", "%", 0.55, 0.3, 0.75, "Assumed", "與 OpenAI 模型 v0.5 一致；成本與營收用同一 χ"),
-      ("eps", "能力 → 單價彈性 ε（單價 ∝ 有效算力倍數^ε）", "x", 0, 0, 0.5, "Assumed", "K4 (c)：機制保留、基準 0。斜率無法由公開資料分離（價格由廠商策略與成本決定，見 Capability C 節）"),
+      ("eps", "能力 → 單價彈性 ε（單價 ∝ 有效算力倍數^ε）", "x", 0, 0, 0.5, "Assumed", "K4 (c)：機制保留、基準 0。斜率無法由公開資料分離（價格由廠商策略與成本決定，見 Decisions SL41-1a-1（原 Capability 頁 C 節，v10.1 刪頁））"),
       ("cmult", "有效訓練算力倍數（相對 Block 3 基準；情境用）", "x", 1, 0.5, 7, "Assumed", "與 Tech_Registry H_CAP 相乘後代入 ε；高值 7＝J8 前沿錨點中值相對 Astra 基準的倍數"),
       ("pkmode", "尖峰／離峰口徑（1＝尖峰價；2＝依時數加權）", "選擇", 2, 1, 2, "Decision", "K12：兩者並列，前緣基準用 2"),
       ("pkhr", "尖峰時數（每週）", "hr", 35, None, None, "Verified", "DeepSeek：週一至五 UTC 01–04、06–10，共 7 hr × 5（S52）"),
@@ -20751,7 +20753,7 @@ README_VERSION = (VERSION + "（Interface 新增 I 節「DC_Cost 構件」：IF_
                   "工作單 docs/workorders/20261007_v5.26.md）。以下為 " + v525.README_VERSION.split("_Tokenomics_", 1)[1])
 _T = v525.README_TITLE
 README_TITLE = VERSION.split("_")[-1] + _T[len(v525.VERSION.split("_")[-1]):]
-README_NAMES = ("Interface I 節（v5.26）", "下游名稱（IF_ 開頭且非 IF_Hdr）共 192 個（v5.25 為 182 個，v5.26 加 10 個）。I 節為 DC_Cost 構件，供下游公司模型"
+README_NAMES = ("Interface I 節（v5.26）", "下游名稱（IF_ 開頭且非 IF_Hdr）現況共 196 個（v10.1 核對；歷史：v5.25 為 182 個，v5.26 加 10 個為 192 個）。I 節為 DC_Cost 構件，供下游公司模型"
                 "（neocloud 每 MW 營運成本）使用：IF_DeprLifeIT（IT 折舊年限，年）、IF_DeprIT（IT 折舊）、IF_DeprFac（廠房折舊，土地不折舊）、"
                 "IF_AvgDraw（平均用電 ÷ 配電設計功率，%）、IF_PowerPrice（電價，$/kWh）、IF_MaintIT（IT 維護）、IF_MaintFac（廠房維護）、"
                 "IF_StaffSW（人員、軟體、水與耗材）、IF_TaxIns（財產稅與保險）、IF_OpexGW（營運費用小計，不含折舊、含電費）；金額為 $B/GW/年。"
@@ -21608,7 +21610,7 @@ def load_bearing(wb, deps, gm_cells):
         keys = rev.get(g, [])
         put(ws, f"J{r}", "、".join(keys) if keys else DASH, F_NOTE, wrap=True)
         put(ws, f"K{r}", f'=IF(Gov_Map!${GM_THRESH_COL}${g}="","{DASH}",Gov_Map!${GM_THRESH_COL}${g})', wrap=True); put(ws, f"L{r}", f'=IF(ISNUMBER(Gov_Map!$AF${g}),INDEX(IDX_SrcDate,Gov_Map!$AF${g}),"{DASH}")')
-        put(ws, f"M{r}", f"改 Excel 藍字格 {gm[f'C{g}'].value}!{gm[f'D{g}'].value}（Gov_Map {gm[f'A{g}'].value} 的區間、理由同步）；不改 builder", F_NOTE, wrap=True)
+        put(ws, f"M{r}", f"改 Excel 藍字格 {gm[f'C{g}'].value}!{str(gm[f'D{g}'].value).removeprefix('（停用）')}（Gov_Map {gm[f'A{g}'].value} 的區間、理由同步）；不改 builder", F_NOTE, wrap=True)
         d = f"L{r}"
         put(ws, f"N{r}", f'=IF(AND(ISTEXT({d}),LEN({d})=10),IF(ISNUMBER(VALUE(SUBSTITUTE({d},"-",""))),'
                          f'DATE(VALUE(LEFT($C$3,4)),VALUE(MID($C$3,6,2)),VALUE(RIGHT($C$3,2)))-DATE(VALUE(LEFT({d},4)),VALUE(MID({d},6,2)),VALUE(RIGHT({d},2))),"{DASH}"),"{DASH}")', fmt="0")
@@ -21770,7 +21772,7 @@ def gov_map_cells(wb):
     for r in range(5, ws.max_row + 1):
         sh, cell = ws.cell(r, 3).value, ws.cell(r, 4).value
         if not sh or not cell or sh not in wb.sheetnames: continue
-        for k in _expand(sh, str(cell)):
+        for k in _expand(sh, str(cell).removeprefix("（停用）")):     # v10.1 4-1：停用列（重複登錄）仍算涵蓋，使旗標公式與 v10.0 一致
             out.setdefault(k, set()).add(r)
     return out
 ```
@@ -22389,7 +22391,7 @@ README_VERSION = (VERSION + "（判斷類，工作單 docs/workorders/20261008_v
 _T = v530.README_TITLE
 README_TITLE = VERSION.split("_")[-1] + _T[len(v530.VERSION.split("_")[-1]):]
 README_ROW = ("Interface I 節（續）與 IT 維護兩段（v5.31）",
-              "下游名稱（IF_ 開頭且非 IF_Hdr）共 195 個（v5.30 為 192 個，v5.31 加 3）。IT 維護（v5.31 X17／X18）：保固期內費率（Inputs 第 37 列）適用於前 IF_WarrantyYrs 年"
+              "下游名稱（IF_ 開頭且非 IF_Hdr）現況共 196 個（v10.1 核對；歷史：v5.30 為 192 個，v5.31 加 3 個為 195 個）。IT 維護（v5.31 X17／X18）：保固期內費率（Inputs 第 37 列）適用於前 IF_WarrantyYrs 年"
               "（Inputs 第 36 列＝SRC_DC_015，3 年），之後為保固期滿後費率（第 38 列）；IF_MaintIT（DC_Cost 第 44 列）用 Inputs 第 30 列的壽命期等值單一費率"
               "（以同欄 WACC 與 IT 折舊年限年金加權），所以 Tokenomics 的穩態持有成本不隨機齡變動。下游公司模型依自身機隊年齡取 IF_MaintITWarr（＝IT 資本 × 保固期內費率）"
               "或 IF_MaintITPost（＝IT 資本 × 期滿後費率），兩者不加總；金額為 $B/GW/年。IF_StaffSW 為站點營運（人員、軟體授權與連線、水與耗材），不含平台研發，"
@@ -24781,8 +24783,13 @@ GM_SPEND_TAIL = (f" ｜v5.36 B2（X46）：基準 2.0 → 1.3、區間 1.5–3.0
                  f"毛利率成本含折舊與營運、不含資本成本，故此倍數為早期 Blackwell 的上限讀法；Microsoft 對 OpenAI 的計價未找到，高端保留 1.6；{WO}")
 
 
+_V1010_RENAMED = {("Train_In", "C34:E34"): "（停用）C34:E34", ("Har_In", "C12:G12"): "C12:D12"}     # v10.1 4-1：Gov_Map 重複登錄整理後的登錄範圍
+
+
 def _gm_row(ws, sheet, cell):
     rows = [r for r in range(5, ws.max_row + 1) if (ws[f"C{r}"].value, ws[f"D{r}"].value) == (sheet, cell)]
+    if not rows and (sheet, cell) in _V1010_RENAMED:
+        rows = [r for r in range(5, ws.max_row + 1) if (ws[f"C{r}"].value, ws[f"D{r}"].value) == (sheet, _V1010_RENAMED[(sheet, cell)])]
     assert len(rows) == 1, (sheet, cell, rows)
     return rows[0]
 
@@ -27360,6 +27367,7 @@ def _find_row(ws, label):
 
 def gm_append(wb, ws):
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
+    have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
@@ -27380,6 +27388,7 @@ def gm_append_c(wb, ws):
     """v5.13 C: register the slice-two pages' numeric blue cells (GOV_MAP_V513C) when the (sheet, cell) is not yet in Gov_Map.
     The row's column-A label must still match: a moved or renamed row stops the build instead of registering the wrong cell."""
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
+    have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
@@ -28072,9 +28081,12 @@ GOV["v529"] = dict(contract_rows=len(IFC["rows"]), contract_no_dep=IFC["no_dep"]
 GOV["fm_log"] = GOV["fm_log"] + [f"v518 input {x}" for x in V518_LOG] + [f"retired input (now formula) {k[0]} [{k[1][0]}] col {k[2]}: Excel value {v!r}" for k, v in RETIRED.items()]
 open(os.path.join(OUTDIR, "gov_log.txt"), "w").write("\n".join([f"{k}: {v}" for k, v in GOV.items() if k != "fm_log"] + ["-- formula map changes --"] + GOV["fm_log"]))
 print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
+import v1010
+V1010 = v1010.apply(wb)       # v10.1 (4-1): slimming that does not change any output; runs last so it is applied on top of everything else
+print("v1010 slimming:", V1010)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
-         "Cap_In","Capability","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
+         "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",
          "Har_In","Harness","Sens_Har","Alloc_In","Alloc",*PROD_SHEETS,"Interface","L1","Load_Bearing","Energy","NonNV","Sensitivity","Checks","Gov_Map","Decisions",
          "SRC_HW","SRC_DC","SRC_Model","SRC_Perf","SRC_Price","SRC_Cap","SRC_Harness","SRC_Demand","SRC_Index","Sources_Legacy","DB_Evidence"]]
 assert sorted(order) == sorted(ws.title for ws in wb.worksheets), set(ws.title for ws in wb.worksheets) ^ set(order)

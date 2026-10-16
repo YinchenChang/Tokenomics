@@ -202,7 +202,7 @@ def calib(wb, SP, AR):
         C[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", UNITS.get(key, ""))
         for (col, _, g, mtp, s, T) in MP:
             v = {"mg": g, "ms": s, "mm": mtp, "mT": T}[key]
-            put(ws, f"{col}{r}", v, F_CALC if col in ("F", "G", "H") else (F_IN if not isinstance(v, str) else None), fmt=fmt,   # v10.0: G／H are index constants, not Excel-owned inputs; v5.11: formulas are not inputs (SRC links via gov.FORMULA_MAP)
+            put(ws, f"{col}{r}", v, F_CALC if (col in ("G", "H") or (col == "F" and key == "mT")) else (F_IN if not isinstance(v, str) else None), fmt=fmt,   # v10.0: G／H are index constants, not Excel-owned inputs; v5.11: formulas are not inputs (SRC links via gov.FORMULA_MAP)
                 fill=FILL_KEY if key == "mT" else None)
         r += 1
     C["mplat"] = r; put(ws, f"A{r}", "量測平台（獨立性）")

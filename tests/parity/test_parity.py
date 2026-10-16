@@ -1159,6 +1159,6 @@ def test_v1000_audit_fix2_5(model, lo):
     assert set(cnt) == kinds
     assert num(n("L1_GapUnexplained")) and abs(n("L1_GapUnexplained") - n("L1_ScaleServe2000") / n("L1_GapProduct")) < 1e-9
     # N3：驗證計數
-    assert n("CHK_VerifyTotal") == 14 and n("CHK_VerifyPass") == 7 and n("CHK_VerifyFail") == 7
+    assert n("CHK_VerifyTotal") == 17 and n("CHK_VerifyPass") == 9 and n("CHK_VerifyFail") == 8      # v10.2 E3: 14/7/7 -> 17/9/8 (V2/V3 new references, V15-V17 added)
     assert n("CHK_VerifyPass") + n("CHK_VerifyFail") == n("CHK_VerifyTotal")
     assert n("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors

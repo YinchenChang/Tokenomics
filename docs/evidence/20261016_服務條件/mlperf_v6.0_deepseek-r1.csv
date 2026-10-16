@@ -1,0 +1,41 @@
+ID,Submitter,Category,Availability,System,Scenario,Total Accelerators,Performance_Result,Units,per_GPU
+6.0-0010,Cisco,closed,available,"Cisco UCS C880A M8 (8x NVIDIA B300-SXM-270GB, TensorRT)",Offline,8,69251.4,Tokens/s,8656.4
+6.0-0010,Cisco,closed,available,"Cisco UCS C880A M8 (8x NVIDIA B300-SXM-270GB, TensorRT)",Server,8,58553.3,Tokens/s,7319.2
+6.0-0015,CoreWeave,closed,available,"CoreWeave GB200 NVL72 (64x GB200-186GB_aarch64, TensorRT)",Offline,64,468665.0,Tokens/s,7322.9
+6.0-0015,CoreWeave,closed,available,"CoreWeave GB200 NVL72 (64x GB200-186GB_aarch64, TensorRT)",Server,64,311531.0,Tokens/s,4867.7
+6.0-0017,CoreWeave,closed,available,"CoreWeave GB300 NVL72 (8x GB300-288GB_aarch64, TensorRT)",Offline,8,78564.0,Tokens/s,9820.5
+6.0-0017,CoreWeave,closed,available,"CoreWeave GB300 NVL72 (8x GB300-288GB_aarch64, TensorRT)",Server,8,44589.7,Tokens/s,5573.7
+6.0-0024,Dell,closed,available,"PowerEdge XE9780L (8x B300-SXM-270GB, TensorRT)",Offline,8,66287.9,Tokens/s,8286.0
+6.0-0024,Dell,closed,available,"PowerEdge XE9780L (8x B300-SXM-270GB, TensorRT)",Server,8,46510.6,Tokens/s,5813.8
+6.0-0026,Dell,closed,available,"PowerEdge XE9780 (8x B200-SXM-180GB, TensorRT)",Offline,8,58235.4,Tokens/s,7279.4
+6.0-0026,Dell,closed,available,"PowerEdge XE9780 (8x B200-SXM-180GB, TensorRT)",Server,8,40949.5,Tokens/s,5118.7
+6.0-0027,Dell,closed,available,"PowerEdge XE9780 (8x B300-SXM-270GB, TensorRT)",Offline,8,69021.2,Tokens/s,8627.6
+6.0-0027,Dell,closed,available,"PowerEdge XE9780 (8x B300-SXM-270GB, TensorRT)",Server,8,46513.1,Tokens/s,5814.1
+6.0-0039,GigaComputing,closed,available,G894-SD3-AAX7,Interactive,8,4934.65,Tokens/s,616.8
+6.0-0039,GigaComputing,closed,available,G894-SD3-AAX7,Offline,8,69617.4,Tokens/s,8702.2
+6.0-0039,GigaComputing,closed,available,G894-SD3-AAX7,Server,8,35552.6,Tokens/s,4444.1
+6.0-0040,Google,closed,available,"NVIDIA DGX B200 (8x B200-SXM-180GB, TensorRT)",Offline,8,57116.9,Tokens/s,7139.6
+6.0-0040,Google,closed,available,"NVIDIA DGX B200 (8x B200-SXM-180GB, TensorRT)",Server,8,41027.9,Tokens/s,5128.5
+6.0-0042,Google,closed,available,"NVIDIA GB200 NVL72 (72x GB200-186GB_aarch64, TensorRT)",Offline,72,307874.0,Tokens/s,4276.0
+6.0-0042,Google,closed,available,"NVIDIA GB200 NVL72 (72x GB200-186GB_aarch64, TensorRT)",Server,72,156781.0,Tokens/s,2177.5
+6.0-0073,NVIDIA,closed,available,"NVIDIA DGX B300 (8x B300-SXM-270GB, TensorRT)",Offline,8,70325.7,Tokens/s,8790.7
+6.0-0073,NVIDIA,closed,available,"NVIDIA DGX B300 (8x B300-SXM-270GB, TensorRT)",Server,8,42721.4,Tokens/s,5340.2
+6.0-0075,NVIDIA,closed,available,"NVIDIA GB200 NVL72 (72x GB200-186GB_aarch64, TensorRT)",Interactive,72,240318.0,Tokens/s,3337.8
+6.0-0075,NVIDIA,closed,available,"NVIDIA GB200 NVL72 (72x GB200-186GB_aarch64, TensorRT)",Offline,72,486141.0,Tokens/s,6752.0
+6.0-0075,NVIDIA,closed,available,"NVIDIA GB200 NVL72 (72x GB200-186GB_aarch64, TensorRT)",Server,72,336106.0,Tokens/s,4668.1
+6.0-0076,NVIDIA,closed,available,"NVIDIA GB300 NVL72 (72x GB300-288GB_aarch64, TensorRT)",Offline,288,2494310.0,Tokens/s,8660.8
+6.0-0076,NVIDIA,closed,available,"NVIDIA GB300 NVL72 (72x GB300-288GB_aarch64, TensorRT)",Server,288,1555110.0,Tokens/s,5399.7
+6.0-0078,NVIDIA,closed,available,"NVIDIA GB300 NVL72 (72x GB300-288GB_aarch64, TensorRT)",Interactive,72,250634.0,Tokens/s,3481.0
+6.0-0078,NVIDIA,closed,available,"NVIDIA GB300 NVL72 (72x GB300-288GB_aarch64, TensorRT)",Offline,72,647076.0,Tokens/s,8987.2
+6.0-0078,NVIDIA,closed,available,"NVIDIA GB300 NVL72 (72x GB300-288GB_aarch64, TensorRT)",Server,72,400437.0,Tokens/s,5561.6
+6.0-0081,Nebius,closed,available,"Nebius GB300 NVL72 (72x GB300-288GB_aarch64, TensorRT)",Offline,72,673936.0,Tokens/s,9360.2
+6.0-0081,Nebius,closed,available,"Nebius GB300 NVL72 (72x GB300-288GB_aarch64, TensorRT)",Server,72,575580.0,Tokens/s,7994.2
+6.0-0082,Nebius,closed,available,"Nebius GB300 NVL72 (4x GB300-288GB_aarch64, TensorRT)",Offline,8,76346.6,Tokens/s,9543.3
+6.0-0082,Nebius,closed,available,"Nebius GB300 NVL72 (4x GB300-288GB_aarch64, TensorRT)",Server,8,64510.0,Tokens/s,8063.8
+6.0-0083,Nebius,closed,available,"Nebius B200 n1 (8x B200-SXM-180GB, TensorRT)",Offline,8,58581.6,Tokens/s,7322.7
+6.0-0083,Nebius,closed,available,"Nebius B200 n1 (8x B200-SXM-180GB, TensorRT)",Server,8,51692.9,Tokens/s,6461.6
+6.0-0084,Nebius,closed,available,"Nebius B300 n1 (8x B300-SXM-270GB, TensorRT)",Offline,8,69318.9,Tokens/s,8664.9
+6.0-0084,Nebius,closed,available,"Nebius B300 n1 (8x B300-SXM-270GB, TensorRT)",Server,8,60413.4,Tokens/s,7551.7
+6.0-0089,Quanta_Cloud_Technology,closed,available,"QuantaGrid D75H-10U (8x B300-SXM-270GB, TensorRT)",Offline,8,69263.2,Tokens/s,8657.9
+6.0-0089,Quanta_Cloud_Technology,closed,available,"QuantaGrid D75H-10U (8x B300-SXM-270GB, TensorRT)",Server,8,35435.7,Tokens/s,4429.5
+6.0-0104,CoreWeave,open,available,"CoreWeave GB300 NVL72 (64x GB300-288GB_aarch64, TensorRT)",Offline,64,627653.0,Tokens/s,9807.1

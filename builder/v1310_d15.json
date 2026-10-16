@@ -1,0 +1,5338 @@
+{
+ "source": "20261017_D15_來源建議_明細.xlsx",
+ "gov": [
+  {
+   "gm": "GM003",
+   "page": "Inputs",
+   "cell": "E8",
+   "label": "機架外 IT 電力占比",
+   "action": "補決策 ID",
+   "src_text": "決策：D1",
+   "mark": "Assumed",
+   "ids": [
+    "D1"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM004",
+   "page": "Inputs",
+   "cell": "E9",
+   "label": "PUE",
+   "action": "補來源＋補決策；數值不改",
+   "src_text": "SRC 新增建議：Google 2025 全機隊年均 PUE 1.09（datacenters.google/efficiency）；Uptime Institute 2025 全球調查平均 1.54、超大規模 1.10–1.15（mgrid 2025-10-01 轉述，原 PDF 未讀）。決策：AF3B-Q6",
+   "mark": "Analogy（超大規模全機隊與通用機房 → 液冷 AI 設施）；Google 為 Interested-party（自報效率，有展示效率的誘因）",
+   "ids": [
+    "AF3B-Q6"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM005",
+   "page": "Inputs",
+   "cell": "D9",
+   "label": "PUE",
+   "action": "補來源＋補決策；數值不改",
+   "src_text": "SRC 新增建議：Google 2025 全機隊年均 PUE 1.09（datacenters.google/efficiency）；Uptime Institute 2025 全球調查平均 1.54、超大規模 1.10–1.15（mgrid 2025-10-01 轉述，原 PDF 未讀）。決策：AF3B-Q6",
+   "mark": "Analogy（超大規模全機隊與通用機房 → 液冷 AI 設施）；Google 為 Interested-party（自報效率，有展示效率的誘因）",
+   "ids": [
+    "AF3B-Q6"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM006",
+   "page": "Inputs",
+   "cell": "F9",
+   "label": "PUE",
+   "action": "補來源＋補決策；數值不改",
+   "src_text": "SRC 新增建議：Google 2025 全機隊年均 PUE 1.09（datacenters.google/efficiency）；Uptime Institute 2025 全球調查平均 1.54、超大規模 1.10–1.15（mgrid 2025-10-01 轉述，原 PDF 未讀）。決策：AF3B-Q6",
+   "mark": "Analogy（超大規模全機隊與通用機房 → 液冷 AI 設施）；Google 為 Interested-party（自報效率，有展示效率的誘因）",
+   "ids": [
+    "AF3B-Q6"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM007",
+   "page": "Inputs",
+   "cell": "E10",
+   "label": "平均用電 ÷ 配電設計功率",
+   "action": "補決策 ID；之後以能量閉合檢查校準",
+   "src_text": "決策：D3",
+   "mark": "Assumed",
+   "ids": [
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM008",
+   "page": "Inputs",
+   "cell": "D10",
+   "label": "平均用電 ÷ 配電設計功率",
+   "action": "補決策 ID；之後以能量閉合檢查校準",
+   "src_text": "決策：D3",
+   "mark": "Assumed",
+   "ids": [
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM009",
+   "page": "Inputs",
+   "cell": "F10",
+   "label": "平均用電 ÷ 配電設計功率",
+   "action": "補決策 ID；之後以能量閉合檢查校準",
+   "src_text": "決策：D3",
+   "mark": "Assumed",
+   "ids": [
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM016",
+   "page": "Inputs",
+   "cell": "E14",
+   "label": "儲存與管理設備",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM017",
+   "page": "Inputs",
+   "cell": "D14",
+   "label": "儲存與管理設備",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM018",
+   "page": "Inputs",
+   "cell": "F14",
+   "label": "儲存與管理設備",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM019",
+   "page": "Inputs",
+   "cell": "E16",
+   "label": "土地",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM020",
+   "page": "Inputs",
+   "cell": "D16",
+   "label": "土地",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM021",
+   "page": "Inputs",
+   "cell": "F16",
+   "label": "土地",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM022",
+   "page": "Inputs",
+   "cell": "E17",
+   "label": "建物與基地工程",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM023",
+   "page": "Inputs",
+   "cell": "D17",
+   "label": "建物與基地工程",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM024",
+   "page": "Inputs",
+   "cell": "F17",
+   "label": "建物與基地工程",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM025",
+   "page": "Inputs",
+   "cell": "E18",
+   "label": "電力設施（變電、中壓、發電機、UPS）",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM026",
+   "page": "Inputs",
+   "cell": "D18",
+   "label": "電力設施（變電、中壓、發電機、UPS）",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM027",
+   "page": "Inputs",
+   "cell": "F18",
+   "label": "電力設施（變電、中壓、發電機、UPS）",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM028",
+   "page": "Inputs",
+   "cell": "E19",
+   "label": "機械與散熱（液冷迴路、散熱設備）",
+   "action": "補決策；數值不改；外部來源仍找不到",
+   "src_text": "決策：AF3B-Q6（Hopper 氣冷口徑）＋D15-04（造價分項，總額以 SRC_DC_003 校準）",
+   "mark": "Assumed",
+   "ids": [
+    "AF3B-Q6",
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM029",
+   "page": "Inputs",
+   "cell": "D19",
+   "label": "機械與散熱（液冷迴路、散熱設備）",
+   "action": "補決策；數值不改；外部來源仍找不到",
+   "src_text": "決策：AF3B-Q6（Hopper 氣冷口徑）＋D15-04（造價分項，總額以 SRC_DC_003 校準）",
+   "mark": "Assumed",
+   "ids": [
+    "AF3B-Q6",
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM030",
+   "page": "Inputs",
+   "cell": "F19",
+   "label": "機械與散熱（液冷迴路、散熱設備）",
+   "action": "補決策；數值不改；外部來源仍找不到",
+   "src_text": "決策：AF3B-Q6（Hopper 氣冷口徑）＋D15-04（造價分項，總額以 SRC_DC_003 校準）",
+   "mark": "Assumed",
+   "ids": [
+    "AF3B-Q6",
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM031",
+   "page": "Inputs",
+   "cell": "E20",
+   "label": "光纖、佈線、保全、BMS",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM032",
+   "page": "Inputs",
+   "cell": "D20",
+   "label": "光纖、佈線、保全、BMS",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM033",
+   "page": "Inputs",
+   "cell": "F20",
+   "label": "光纖、佈線、保全、BMS",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM034",
+   "page": "Inputs",
+   "cell": "E21",
+   "label": "設計、管理與預備費",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM035",
+   "page": "Inputs",
+   "cell": "D21",
+   "label": "設計、管理與預備費",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM036",
+   "page": "Inputs",
+   "cell": "F21",
+   "label": "設計、管理與預備費",
+   "action": "補決策 ID＋H 欄填 SRC_DC_003（總額校準）",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM038",
+   "page": "Inputs",
+   "cell": "D28",
+   "label": "WACC（經濟口徑）",
+   "action": "補決策 ID",
+   "src_text": "決策：D10",
+   "mark": "Assumed",
+   "ids": [
+    "D10"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM039",
+   "page": "Inputs",
+   "cell": "F28",
+   "label": "WACC（經濟口徑）",
+   "action": "補決策 ID",
+   "src_text": "決策：D10",
+   "mark": "Assumed",
+   "ids": [
+    "D10"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM043",
+   "page": "Inputs",
+   "cell": "E31",
+   "label": "廠房維護",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM044",
+   "page": "Inputs",
+   "cell": "D31",
+   "label": "廠房維護",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM045",
+   "page": "Inputs",
+   "cell": "F31",
+   "label": "廠房維護",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM046",
+   "page": "Inputs",
+   "cell": "E32",
+   "label": "人員",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM047",
+   "page": "Inputs",
+   "cell": "D32",
+   "label": "人員",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM048",
+   "page": "Inputs",
+   "cell": "F32",
+   "label": "人員",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM049",
+   "page": "Inputs",
+   "cell": "E33",
+   "label": "軟體授權與連線",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM050",
+   "page": "Inputs",
+   "cell": "D33",
+   "label": "軟體授權與連線",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM051",
+   "page": "Inputs",
+   "cell": "F33",
+   "label": "軟體授權與連線",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM052",
+   "page": "Inputs",
+   "cell": "E34",
+   "label": "水與耗材",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM053",
+   "page": "Inputs",
+   "cell": "D34",
+   "label": "水與耗材",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM054",
+   "page": "Inputs",
+   "cell": "F34",
+   "label": "水與耗材",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM055",
+   "page": "Inputs",
+   "cell": "E35",
+   "label": "財產稅與保險",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM056",
+   "page": "Inputs",
+   "cell": "D35",
+   "label": "財產稅與保險",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM057",
+   "page": "Inputs",
+   "cell": "F35",
+   "label": "財產稅與保險",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-04",
+   "mark": "Assumed",
+   "ids": [
+    "D15-04"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM061",
+   "page": "Inputs",
+   "cell": "E24",
+   "label": "建物年限",
+   "action": "補決策 ID",
+   "src_text": "決策：D4",
+   "mark": "Assumed",
+   "ids": [
+    "D4"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM062",
+   "page": "Inputs",
+   "cell": "E25",
+   "label": "電力設施年限",
+   "action": "補決策 ID",
+   "src_text": "決策：D4",
+   "mark": "Assumed",
+   "ids": [
+    "D4"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM063",
+   "page": "Inputs",
+   "cell": "E26",
+   "label": "機械與散熱年限",
+   "action": "補決策 ID",
+   "src_text": "決策：D4",
+   "mark": "Assumed",
+   "ids": [
+    "D4"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM064",
+   "page": "Inputs",
+   "cell": "E27",
+   "label": "光纖與保全年限",
+   "action": "補決策 ID",
+   "src_text": "決策：D4",
+   "mark": "Assumed",
+   "ids": [
+    "D4"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM070",
+   "page": "Spec_Rack",
+   "cell": "C8",
+   "label": "配電設計功率 低（kW）",
+   "action": "補決策 ID",
+   "src_text": "決策：D3",
+   "mark": "Assumed",
+   "ids": [
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM074",
+   "page": "Spec_Rack",
+   "cell": "G8",
+   "label": "配電設計功率 低（kW）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2＋D3",
+   "mark": "Derived",
+   "ids": [
+    "D2",
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM079",
+   "page": "Spec_Rack",
+   "cell": "G9",
+   "label": "配電設計功率 基準（kW）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2＋D3",
+   "mark": "Derived",
+   "ids": [
+    "D2",
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM080",
+   "page": "Spec_Rack",
+   "cell": "C10",
+   "label": "配電設計功率 高（kW）",
+   "action": "補決策 ID",
+   "src_text": "決策：D3",
+   "mark": "Assumed",
+   "ids": [
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM081",
+   "page": "Spec_Rack",
+   "cell": "D10",
+   "label": "配電設計功率 高（kW）",
+   "action": "補決策 ID",
+   "src_text": "決策：D3",
+   "mark": "Assumed",
+   "ids": [
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM084",
+   "page": "Spec_Rack",
+   "cell": "G10",
+   "label": "配電設計功率 高（kW）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2＋D3",
+   "mark": "Derived",
+   "ids": [
+    "D2",
+    "D3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM089",
+   "page": "Spec_Rack",
+   "cell": "G11",
+   "label": "機架價格 低（$M）",
+   "action": "補決策 ID",
+   "src_text": "決策：C3＋SL42-F1",
+   "mark": "Assumed",
+   "ids": [
+    "C3",
+    "SL42-F1"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM094",
+   "page": "Spec_Rack",
+   "cell": "G12",
+   "label": "機架價格 基準（$M）",
+   "action": "補決策 ID",
+   "src_text": "決策：C3＋SL42-F1",
+   "mark": "Assumed",
+   "ids": [
+    "C3",
+    "SL42-F1"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM099",
+   "page": "Spec_Rack",
+   "cell": "G13",
+   "label": "機架價格 高（$M）",
+   "action": "補決策 ID",
+   "src_text": "決策：C3＋SL42-F1",
+   "mark": "Assumed",
+   "ids": [
+    "C3",
+    "SL42-F1"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM105",
+   "page": "Spec_Rack",
+   "cell": "C24",
+   "label": "峰值（高情境：NVFP4 推論口徑）PF/GPU",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-03",
+   "mark": "Derived",
+   "ids": [
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM114",
+   "page": "Spec_Rack",
+   "cell": "G25",
+   "label": "HBM 容量 GB/GPU",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM124",
+   "page": "Spec_Rack",
+   "cell": "G27",
+   "label": "EP 通訊頻寬 TB/s/GPU（單向）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM134",
+   "page": "Spec_Rack",
+   "cell": "G29",
+   "label": "decode EP 基準寬度",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM140",
+   "page": "Spec_Rack",
+   "cell": "C31",
+   "label": "非專家權重 bytes/param",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM141",
+   "page": "Spec_Rack",
+   "cell": "D31",
+   "label": "非專家權重 bytes/param",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM142",
+   "page": "Spec_Rack",
+   "cell": "E31",
+   "label": "非專家權重 bytes/param",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM143",
+   "page": "Spec_Rack",
+   "cell": "F31",
+   "label": "非專家權重 bytes/param",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM144",
+   "page": "Spec_Rack",
+   "cell": "G31",
+   "label": "非專家權重 bytes/param",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM145",
+   "page": "Spec_Rack",
+   "cell": "C32",
+   "label": "每 prefill 實例 GPU 數（算 TTFT）",
+   "action": "補決策 ID",
+   "src_text": "決策：D6",
+   "mark": "Assumed",
+   "ids": [
+    "D6"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM149",
+   "page": "Spec_Rack",
+   "cell": "G32",
+   "label": "每 prefill 實例 GPU 數（算 TTFT）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM154",
+   "page": "Spec_Rack",
+   "cell": "G33",
+   "label": "GPU 功率 W/封裝（能量用）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM159",
+   "page": "Spec_Rack",
+   "cell": "G34",
+   "label": "HBM 存取能量 pJ/byte",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM164",
+   "page": "Spec_Rack",
+   "cell": "G39",
+   "label": "BF16 dense PF/GPU",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM170",
+   "page": "Spec_Rack",
+   "cell": "C41",
+   "label": "NVFP4 訓練 dense PF/GPU（Tech_Registry 情境）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-03",
+   "mark": "Derived",
+   "ids": [
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM172",
+   "page": "Spec_Rack",
+   "cell": "E41",
+   "label": "NVFP4 訓練 dense PF/GPU（Tech_Registry 情境）",
+   "action": "補決策 ID",
+   "src_text": "決策：J7",
+   "mark": "Assumed",
+   "ids": [
+    "J7"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM174",
+   "page": "Spec_Rack",
+   "cell": "G41",
+   "label": "NVFP4 訓練 dense PF/GPU（Tech_Registry 情境）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM203",
+   "page": "Arch",
+   "cell": "E6",
+   "label": "總參數",
+   "action": "補決策；數值不改；頁內標記改為與 Gov_Map 一致（Assumed）",
+   "src_text": "決策：D5（代表架構）＋J8（Astra 預訓練規模，未結）；可比對象（Analogy，不作來源）：DeepSeek V4-Pro 1.6T、V4-Flash 284B（SRC_MOD_001／005）、Epoch Grok 3 參數 3e12（E249，出處未明）",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "是",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM204",
+   "page": "Arch",
+   "cell": "E7",
+   "label": "啟用參數",
+   "action": "補決策；數值不改；頁內標記改為與 Gov_Map 一致（Assumed）",
+   "src_text": "決策：D5＋J8；可比對象：V4-Pro 啟用 49B（SRC_MOD_002）；GPT-4 外洩約 220–280B（稽核修正 2Q 查證；SemiAnalysis＋Hotz）",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "是",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM205",
+   "page": "Arch",
+   "cell": "E8",
+   "label": "層數",
+   "action": "補決策；數值不改；頁內標記改為與 Gov_Map 一致（Assumed）",
+   "src_text": "決策：D5＋J8＋X3（6.2 齊備）",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8",
+    "X3"
+   ],
+   "andy": "是",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM206",
+   "page": "Arch",
+   "cell": "E9",
+   "label": "d_model",
+   "action": "補決策；數值不改",
+   "src_text": "決策：D5＋J8",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM207",
+   "page": "Arch",
+   "cell": "E10",
+   "label": "query heads",
+   "action": "補決策；數值不改",
+   "src_text": "決策：D5＋J8",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM208",
+   "page": "Arch",
+   "cell": "E11",
+   "label": "head_dim",
+   "action": "補決策；數值不改",
+   "src_text": "決策：D5＋J8",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM209",
+   "page": "Arch",
+   "cell": "E12",
+   "label": "routed experts",
+   "action": "補決策；數值不改",
+   "src_text": "決策：D5＋J8；可比對象：V4-Pro 384、V4-Flash 256（SRC_MOD_010／011）",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM210",
+   "page": "Arch",
+   "cell": "E13",
+   "label": "每 token 啟用 routed experts",
+   "action": "補決策；數值不改",
+   "src_text": "決策：D5＋J8；可比對象：V4 每 token 6 個（SRC_MOD_012）",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM211",
+   "page": "Arch",
+   "cell": "E15",
+   "label": "vocab",
+   "action": "補決策 ID",
+   "src_text": "決策：D5＋J8",
+   "mark": "Assumed",
+   "ids": [
+    "D5",
+    "J8"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM212",
+   "page": "Arch",
+   "cell": "E14",
+   "label": "shared experts",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：D5（沿用 V4 結構，SRC_MOD_013＝1）",
+   "mark": "定義（結構選擇）",
+   "ids": [
+    "D5"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM213",
+   "page": "Arch",
+   "cell": "E16",
+   "label": "全注意力層比例",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：J1（Astra KV 情境：全層 MLA 為基準）",
+   "mark": "定義（結構選擇）",
+   "ids": [
+    "J1"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM214",
+   "page": "Arch",
+   "cell": "E17",
+   "label": "全注意力層跨度上限（0＝全上下文）",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：J1",
+   "mark": "定義（結構選擇）",
+   "ids": [
+    "J1"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM215",
+   "page": "Arch",
+   "cell": "E18",
+   "label": "其他層壓縮比",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：J1",
+   "mark": "定義（結構選擇）",
+   "ids": [
+    "J1"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM216",
+   "page": "Arch",
+   "cell": "E19",
+   "label": "其他層滑動窗",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：J1",
+   "mark": "定義（結構選擇）",
+   "ids": [
+    "J1"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM218",
+   "page": "Arch",
+   "cell": "C21",
+   "label": "KV bytes/token — 情境 1",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM219",
+   "page": "Arch",
+   "cell": "D21",
+   "label": "KV bytes/token — 情境 1",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM220",
+   "page": "Arch",
+   "cell": "E21",
+   "label": "KV bytes/token — 情境 1",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM221",
+   "page": "Arch",
+   "cell": "C22",
+   "label": "KV bytes/token — 情境 2",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM222",
+   "page": "Arch",
+   "cell": "D22",
+   "label": "KV bytes/token — 情境 2",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM223",
+   "page": "Arch",
+   "cell": "E22",
+   "label": "KV bytes/token — 情境 2",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM224",
+   "page": "Arch",
+   "cell": "C23",
+   "label": "KV bytes/token — 情境 3",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM225",
+   "page": "Arch",
+   "cell": "D23",
+   "label": "KV bytes/token — 情境 3",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM226",
+   "page": "Arch",
+   "cell": "E23",
+   "label": "KV bytes/token — 情境 3",
+   "action": "補決策 ID",
+   "src_text": "決策：J1＋D15-03",
+   "mark": "Derived",
+   "ids": [
+    "J1",
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM229",
+   "page": "Serving",
+   "cell": "C9",
+   "label": "HBM 保留比例（啟用值、工作區）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM230",
+   "page": "Serving",
+   "cell": "C10",
+   "label": "非專家權重占可用 HBM 上限",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM231",
+   "page": "Serving",
+   "cell": "C11",
+   "label": "專家權重占可用 HBM 上限",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM232",
+   "page": "Serving",
+   "cell": "C12",
+   "label": "EP 啟用值 bytes/元素（dispatch＋combine）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM233",
+   "page": "Serving",
+   "cell": "C13",
+   "label": "KV 讀取頻寬效率 η_mem",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM234",
+   "page": "Serving",
+   "cell": "C14",
+   "label": "EP 通訊效率 η_link",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM235",
+   "page": "Serving",
+   "cell": "C15",
+   "label": "快取命中 KV 載入頻寬",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-06",
+   "mark": "Assumed",
+   "ids": [
+    "D15-06"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM242",
+   "page": "Serving",
+   "cell": "C22",
+   "label": "TTFT 上限（只作檢查）",
+   "action": "補決策 ID",
+   "src_text": "決策：AF2-TTFT",
+   "mark": "Assumed",
+   "ids": [
+    "AF2-TTFT"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM243",
+   "page": "Serving",
+   "cell": "D22",
+   "label": "TTFT 上限（只作檢查）",
+   "action": "補決策 ID",
+   "src_text": "決策：AF2-TTFT",
+   "mark": "Assumed",
+   "ids": [
+    "AF2-TTFT"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM244",
+   "page": "Serving",
+   "cell": "E22",
+   "label": "TTFT 上限（只作檢查）",
+   "action": "補決策 ID",
+   "src_text": "決策：AF2-TTFT",
+   "mark": "Assumed",
+   "ids": [
+    "AF2-TTFT"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM245",
+   "page": "Serving",
+   "cell": "C23",
+   "label": "參考 ISL（每次請求輸入）",
+   "action": "補決策＋補來源（既有 SRC 作對照）；數值不改",
+   "src_text": "決策：X12（ISL／OSL 基準不改）、AF2e-M3（κ 已套到價格端）；對照：SRC_DEM_014–017（OpenRouter State of AI，2025-12：每請求輸入 >6K、輸出約 400、程式類 3–4 倍；本段 WebFetch 重讀確認）",
+   "mark": "Assumed（OpenRouter 為 Analogy 對照）",
+   "ids": [
+    "X12",
+    "AF2e-M3"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM246",
+   "page": "Serving",
+   "cell": "D23",
+   "label": "參考 ISL（每次請求輸入）",
+   "action": "補決策＋補來源（既有 SRC 作對照）；數值不改",
+   "src_text": "決策：X12（ISL／OSL 基準不改）、AF2e-M3（κ 已套到價格端）；對照：SRC_DEM_014–017（OpenRouter State of AI，2025-12：每請求輸入 >6K、輸出約 400、程式類 3–4 倍；本段 WebFetch 重讀確認）",
+   "mark": "Assumed（OpenRouter 為 Analogy 對照）",
+   "ids": [
+    "X12",
+    "AF2e-M3"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM247",
+   "page": "Serving",
+   "cell": "E23",
+   "label": "參考 ISL（每次請求輸入）",
+   "action": "補決策＋補來源（既有 SRC 作對照）；數值不改",
+   "src_text": "決策：X12（ISL／OSL 基準不改）、AF2e-M3（κ 已套到價格端）；對照：SRC_DEM_014–017（OpenRouter State of AI，2025-12：每請求輸入 >6K、輸出約 400、程式類 3–4 倍；本段 WebFetch 重讀確認）",
+   "mark": "Assumed（OpenRouter 為 Analogy 對照）",
+   "ids": [
+    "X12",
+    "AF2e-M3"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM248",
+   "page": "Serving",
+   "cell": "C24",
+   "label": "參考 OSL（含思考）",
+   "action": "補決策＋補來源（既有 SRC 作對照）；數值不改",
+   "src_text": "決策：X12（Luna OSL 下限放寬到 400）、AF2e-M3；對照：SRC_DEM_014–017（OpenRouter 輸出約 400，含推理）",
+   "mark": "Assumed（OpenRouter 為 Analogy 對照）",
+   "ids": [
+    "X12",
+    "AF2e-M3"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM249",
+   "page": "Serving",
+   "cell": "D24",
+   "label": "參考 OSL（含思考）",
+   "action": "補決策＋補來源（既有 SRC 作對照）；數值不改",
+   "src_text": "決策：X12（Luna OSL 下限放寬到 400）、AF2e-M3；對照：SRC_DEM_014–017（OpenRouter 輸出約 400，含推理）",
+   "mark": "Assumed（OpenRouter 為 Analogy 對照）",
+   "ids": [
+    "X12",
+    "AF2e-M3"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM250",
+   "page": "Serving",
+   "cell": "E24",
+   "label": "參考 OSL（含思考）",
+   "action": "補決策＋補來源（既有 SRC 作對照）；數值不改",
+   "src_text": "決策：X12（Luna OSL 下限放寬到 400）、AF2e-M3；對照：SRC_DEM_014–017（OpenRouter 輸出約 400，含推理）",
+   "mark": "Assumed（OpenRouter 為 Analogy 對照）",
+   "ids": [
+    "X12",
+    "AF2e-M3"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM251",
+   "page": "Workload",
+   "cell": "C5",
+   "label": "輪數 T",
+   "action": "補決策 ID",
+   "src_text": "決策：C4＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "C4",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM252",
+   "page": "Workload",
+   "cell": "D5",
+   "label": "輪數 T",
+   "action": "補決策 ID",
+   "src_text": "決策：C4＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "C4",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM253",
+   "page": "Workload",
+   "cell": "E5",
+   "label": "輪數 T",
+   "action": "補決策 ID",
+   "src_text": "決策：C4＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "C4",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM254",
+   "page": "Workload",
+   "cell": "F5",
+   "label": "輪數 T",
+   "action": "補決策 ID",
+   "src_text": "決策：C4＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "C4",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM255",
+   "page": "Workload",
+   "cell": "G5",
+   "label": "輪數 T",
+   "action": "補決策 ID",
+   "src_text": "決策：C4＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "C4",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM256",
+   "page": "Workload",
+   "cell": "C6",
+   "label": "初始上下文 S（系統提示、歷史、工具定義）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM257",
+   "page": "Workload",
+   "cell": "D6",
+   "label": "初始上下文 S（系統提示、歷史、工具定義）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM258",
+   "page": "Workload",
+   "cell": "E6",
+   "label": "初始上下文 S（系統提示、歷史、工具定義）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM259",
+   "page": "Workload",
+   "cell": "F6",
+   "label": "初始上下文 S（系統提示、歷史、工具定義）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM260",
+   "page": "Workload",
+   "cell": "G6",
+   "label": "初始上下文 S（系統提示、歷史、工具定義）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM261",
+   "page": "Workload",
+   "cell": "C7",
+   "label": "每輪新輸入 u（使用者或工具結果）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM262",
+   "page": "Workload",
+   "cell": "D7",
+   "label": "每輪新輸入 u（使用者或工具結果）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM263",
+   "page": "Workload",
+   "cell": "E7",
+   "label": "每輪新輸入 u（使用者或工具結果）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM264",
+   "page": "Workload",
+   "cell": "F7",
+   "label": "每輪新輸入 u（使用者或工具結果）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM265",
+   "page": "Workload",
+   "cell": "G7",
+   "label": "每輪新輸入 u（使用者或工具結果）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM266",
+   "page": "Workload",
+   "cell": "C8",
+   "label": "每輪思考 token h",
+   "action": "補決策 ID；服務端思考占比待查",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM267",
+   "page": "Workload",
+   "cell": "D8",
+   "label": "每輪思考 token h",
+   "action": "補決策 ID；服務端思考占比待查",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM268",
+   "page": "Workload",
+   "cell": "E8",
+   "label": "每輪思考 token h",
+   "action": "補決策 ID；服務端思考占比待查",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM269",
+   "page": "Workload",
+   "cell": "F8",
+   "label": "每輪思考 token h",
+   "action": "補決策 ID；服務端思考占比待查",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM270",
+   "page": "Workload",
+   "cell": "G8",
+   "label": "每輪思考 token h",
+   "action": "補決策 ID；服務端思考占比待查",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM271",
+   "page": "Workload",
+   "cell": "C9",
+   "label": "每輪可見輸出 o",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM272",
+   "page": "Workload",
+   "cell": "D9",
+   "label": "每輪可見輸出 o",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM273",
+   "page": "Workload",
+   "cell": "E9",
+   "label": "每輪可見輸出 o",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM274",
+   "page": "Workload",
+   "cell": "F9",
+   "label": "每輪可見輸出 o",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM275",
+   "page": "Workload",
+   "cell": "G9",
+   "label": "每輪可見輸出 o",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM276",
+   "page": "Workload",
+   "cell": "C10",
+   "label": "思考保留於上下文比例 ρ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM277",
+   "page": "Workload",
+   "cell": "D10",
+   "label": "思考保留於上下文比例 ρ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM278",
+   "page": "Workload",
+   "cell": "E10",
+   "label": "思考保留於上下文比例 ρ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM279",
+   "page": "Workload",
+   "cell": "F10",
+   "label": "思考保留於上下文比例 ρ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM280",
+   "page": "Workload",
+   "cell": "G10",
+   "label": "思考保留於上下文比例 ρ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM281",
+   "page": "Workload",
+   "cell": "C11",
+   "label": "歷史快取命中率 χ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM282",
+   "page": "Workload",
+   "cell": "D11",
+   "label": "歷史快取命中率 χ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM283",
+   "page": "Workload",
+   "cell": "E11",
+   "label": "歷史快取命中率 χ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM284",
+   "page": "Workload",
+   "cell": "F11",
+   "label": "歷史快取命中率 χ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM285",
+   "page": "Workload",
+   "cell": "G11",
+   "label": "歷史快取命中率 χ",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM286",
+   "page": "Workload",
+   "cell": "C12",
+   "label": "並行子代理數 m",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM287",
+   "page": "Workload",
+   "cell": "D12",
+   "label": "並行子代理數 m",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM288",
+   "page": "Workload",
+   "cell": "E12",
+   "label": "並行子代理數 m",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM289",
+   "page": "Workload",
+   "cell": "F12",
+   "label": "並行子代理數 m",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM290",
+   "page": "Workload",
+   "cell": "G12",
+   "label": "並行子代理數 m",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM301",
+   "page": "Workload",
+   "cell": "C40",
+   "label": "參照：Anthropic 揭露倍數（相對聊天）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-05＋L7",
+   "mark": "定義（比較基準）",
+   "ids": [
+    "D15-05",
+    "L7"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM305",
+   "page": "Calib",
+   "cell": "C10:I10",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM346",
+   "page": "Calib",
+   "cell": "C68",
+   "label": "每層延遲倍數",
+   "action": "補決策；數值不改",
+   "src_text": "決策：BB2-H4（標記更正為 Assumed、區間 1.0–1.5）、BB-G1、AF2c-J4、C2（已搜尋無可比對象）",
+   "mark": "Assumed（BB2-H4；4-2b-1 的 K3 正在改類別欄）",
+   "ids": [
+    "BB2-H4",
+    "BB-G1",
+    "AF2c-J4",
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM347",
+   "page": "Calib",
+   "cell": "D68",
+   "label": "每層延遲倍數",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：C2（明文列名 GM346–350）",
+   "mark": "定義（1＝沿用 GB300 擬合，NVLink 域內無跨節點延遲）",
+   "ids": [
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM348",
+   "page": "Calib",
+   "cell": "E68",
+   "label": "每層延遲倍數",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：C2（明文列名 GM346–350）",
+   "mark": "定義（1＝沿用 GB300 擬合，NVLink 域內無跨節點延遲）",
+   "ids": [
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM349",
+   "page": "Calib",
+   "cell": "F68",
+   "label": "每層延遲倍數",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：C2（明文列名 GM346–350）",
+   "mark": "定義（1＝沿用 GB300 擬合，NVLink 域內無跨節點延遲）",
+   "ids": [
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM350",
+   "page": "Calib",
+   "cell": "G68",
+   "label": "每層延遲倍數",
+   "action": "補決策；標「定義」",
+   "src_text": "決策：C2（明文列名 GM346–350）",
+   "mark": "定義（1＝沿用 GB300 擬合，NVLink 域內無跨節點延遲）",
+   "ids": [
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM351",
+   "page": "Calib",
+   "cell": "C69",
+   "label": "η_p 倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-03",
+   "mark": "Derived",
+   "ids": [
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM352",
+   "page": "Calib",
+   "cell": "D69",
+   "label": "η_p 倍數",
+   "action": "補決策（擴用 C2）；數值不改",
+   "src_text": "決策：D15-09（提議把 C2 擴用到本格）；同列 F69 已在 C2（X3）",
+   "mark": "Assumed",
+   "ids": [
+    "D15-09"
+   ],
+   "andy": "是",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM353",
+   "page": "Calib",
+   "cell": "E69",
+   "label": "η_p 倍數",
+   "action": "補決策（擴用 C2）；數值不改",
+   "src_text": "決策：D15-09（提議把 C2 擴用到本格）；同列 F69 已在 C2（X3）",
+   "mark": "Assumed",
+   "ids": [
+    "D15-09"
+   ],
+   "andy": "是",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM354",
+   "page": "Calib",
+   "cell": "F69",
+   "label": "η_p 倍數",
+   "action": "補決策；數值不改",
+   "src_text": "決策：C2（X3 已追加 GM354）",
+   "mark": "Assumed",
+   "ids": [
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM355",
+   "page": "Calib",
+   "cell": "G69",
+   "label": "η_p 倍數",
+   "action": "補決策（擴用 C2）；數值不改",
+   "src_text": "決策：D15-09（提議把 C2 擴用到本格）；同列 F69 已在 C2（X3）",
+   "mark": "Assumed",
+   "ids": [
+    "D15-09"
+   ],
+   "andy": "是",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM356",
+   "page": "Calib",
+   "cell": "C90:E90",
+   "label": "η_p",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM369",
+   "page": "Calib",
+   "cell": "C117:F117",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM382",
+   "page": "Energy",
+   "cell": "C5",
+   "label": "GPU 功率中可歸於運算的比例",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-07",
+   "mark": "Assumed",
+   "ids": [
+    "D15-07"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM384",
+   "page": "Energy",
+   "cell": "C7",
+   "label": "EP 通訊能量 IB（Hopper）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-07",
+   "mark": "Assumed",
+   "ids": [
+    "D15-07"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM385",
+   "page": "NonNV",
+   "cell": "C5",
+   "label": "AMD MI455X（Helios）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM386",
+   "page": "NonNV",
+   "cell": "F5",
+   "label": "AMD MI455X（Helios）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM387",
+   "page": "NonNV",
+   "cell": "B5",
+   "label": "AMD MI455X（Helios）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM388",
+   "page": "NonNV",
+   "cell": "D5",
+   "label": "AMD MI455X（Helios）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM389",
+   "page": "NonNV",
+   "cell": "E5",
+   "label": "AMD MI455X（Helios）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM390",
+   "page": "NonNV",
+   "cell": "G5",
+   "label": "AMD MI455X（Helios）",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM391",
+   "page": "NonNV",
+   "cell": "C6",
+   "label": "Google TPU v7 Ironwood",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM392",
+   "page": "NonNV",
+   "cell": "F6",
+   "label": "Google TPU v7 Ironwood",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM393",
+   "page": "NonNV",
+   "cell": "B6",
+   "label": "Google TPU v7 Ironwood",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM394",
+   "page": "NonNV",
+   "cell": "D6",
+   "label": "Google TPU v7 Ironwood",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM395",
+   "page": "NonNV",
+   "cell": "E6",
+   "label": "Google TPU v7 Ironwood",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM396",
+   "page": "NonNV",
+   "cell": "G6",
+   "label": "Google TPU v7 Ironwood",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM397",
+   "page": "NonNV",
+   "cell": "C7",
+   "label": "AWS Trainium3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM398",
+   "page": "NonNV",
+   "cell": "F7",
+   "label": "AWS Trainium3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM399",
+   "page": "NonNV",
+   "cell": "B7",
+   "label": "AWS Trainium3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM400",
+   "page": "NonNV",
+   "cell": "D7",
+   "label": "AWS Trainium3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM401",
+   "page": "NonNV",
+   "cell": "E7",
+   "label": "AWS Trainium3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM402",
+   "page": "NonNV",
+   "cell": "G7",
+   "label": "AWS Trainium3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM403",
+   "page": "NonNV",
+   "cell": "C8",
+   "label": "Cerebras WSE-3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM404",
+   "page": "NonNV",
+   "cell": "F8",
+   "label": "Cerebras WSE-3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM405",
+   "page": "NonNV",
+   "cell": "B8",
+   "label": "Cerebras WSE-3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM406",
+   "page": "NonNV",
+   "cell": "D8",
+   "label": "Cerebras WSE-3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM407",
+   "page": "NonNV",
+   "cell": "E8",
+   "label": "Cerebras WSE-3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM408",
+   "page": "NonNV",
+   "cell": "G8",
+   "label": "Cerebras WSE-3",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM409",
+   "page": "NonNV",
+   "cell": "C9",
+   "label": "OpenAI／Broadcom 客製",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM410",
+   "page": "NonNV",
+   "cell": "F9",
+   "label": "OpenAI／Broadcom 客製",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM411",
+   "page": "NonNV",
+   "cell": "B9",
+   "label": "OpenAI／Broadcom 客製",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM412",
+   "page": "NonNV",
+   "cell": "D9",
+   "label": "OpenAI／Broadcom 客製",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM413",
+   "page": "NonNV",
+   "cell": "E9",
+   "label": "OpenAI／Broadcom 客製",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM414",
+   "page": "NonNV",
+   "cell": "G9",
+   "label": "OpenAI／Broadcom 客製",
+   "action": "補決策 ID",
+   "src_text": "決策：D2",
+   "mark": "Assumed",
+   "ids": [
+    "D2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM415",
+   "page": "Perf",
+   "cell": "C6:Q6",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM416",
+   "page": "Perf",
+   "cell": "C7:Q7",
+   "label": "層級索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM417",
+   "page": "Sens_Perf",
+   "cell": "C6:AH6",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM418",
+   "page": "Sens_Perf",
+   "cell": "C7:AH7",
+   "label": "層級索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM419",
+   "page": "Sens_Perf",
+   "cell": "M14",
+   "label": "計算用峰值",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM420",
+   "page": "Sens_Perf",
+   "cell": "O41:R41",
+   "label": "SLO：每用戶 decode 速度下限",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM421",
+   "page": "Sens_Perf",
+   "cell": "W43:Z43",
+   "label": "參考 ISL",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM422",
+   "page": "Sens_Perf",
+   "cell": "S48:V48",
+   "label": "草稿接受率",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM423",
+   "page": "Sens_Perf",
+   "cell": "AA50:AB50",
+   "label": "實測→生產效率折減",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM424",
+   "page": "Sens_Perf",
+   "cell": "E52:G52",
+   "label": "η_d 倍數（Tech_Registry H_ETAD；Sens_Perf 情境覆寫）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM425",
+   "page": "Sens_Perf",
+   "cell": "I54:K54",
+   "label": "每層延遲倍數（Tech_Registry H_TL；Sens_Perf 情境覆寫）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM426",
+   "page": "Unit_Cost",
+   "cell": "C6:Q6",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM436",
+   "page": "Arch",
+   "cell": "C32",
+   "label": "上下文長度（128K 上下文每序列 KV 顯示列）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義（顯示用）",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM437",
+   "page": "Sens_Train",
+   "cell": "O8:R8",
+   "label": "情境倍數（×）：RL rollout token × 0.3／× 3",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM438",
+   "page": "Sens_Train",
+   "cell": "Y8:AB8",
+   "label": "情境倍數（×）：合成資料 token × 0／× 3",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM439",
+   "page": "Sens_Rev",
+   "cell": "B18",
+   "label": "ε（上一列量級情境的指數；K4 (a) 量級情境）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM441",
+   "page": "Cap_In",
+   "cell": "C12",
+   "label": "有效折扣（Batch／Flex 半價＋企業議價，加權）",
+   "action": "補決策＋補來源（牌價部分）；數值不改",
+   "src_text": "決策：X40（區間 0.1–0.4）；牌價事實：OpenAI Batch API「50% cost discount」（developers.openai.com／api／docs／guides／batch）、Anthropic Message Batches「50% of the standard API prices」（platform.claude.com 文件），本段 WebFetch 讀取",
+   "mark": "Assumed（Batch 半價為 Verified 牌價，賣方自訂價屬 Interested-party；占比與企業議價為假設）",
+   "ids": [
+    "X40"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM442",
+   "page": "Cap_In",
+   "cell": "D12:E12",
+   "label": "有效折扣（Batch／Flex 半價＋企業議價，加權）",
+   "action": "補決策＋補來源（牌價部分）；數值不改",
+   "src_text": "決策：X40（區間 0.1–0.4）；牌價事實：OpenAI Batch API「50% cost discount」（developers.openai.com／api／docs／guides／batch）、Anthropic Message Batches「50% of the standard API prices」（platform.claude.com 文件），本段 WebFetch 讀取",
+   "mark": "Assumed（Batch 半價為 Verified 牌價，賣方自訂價屬 Interested-party；占比與企業議價為假設）",
+   "ids": [
+    "X40"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM443",
+   "page": "Cap_In",
+   "cell": "C13",
+   "label": "參考請求快取命中率 χ（輸入中屬快取命中的比例）",
+   "action": "補決策；數值不改",
+   "src_text": "決策：AF2e-M1（快取命中同時進價格與產能）；對照：SRC_DEM_046–048（Pegatron 99.3%、Requesty Claude Code 91.9%，程式代理）",
+   "mark": "Assumed",
+   "ids": [
+    "AF2e-M1"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM444",
+   "page": "Cap_In",
+   "cell": "D13:E13",
+   "label": "參考請求快取命中率 χ（輸入中屬快取命中的比例）",
+   "action": "補決策 ID",
+   "src_text": "決策：AF2e-M1",
+   "mark": "Assumed",
+   "ids": [
+    "AF2e-M1"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM447",
+   "page": "Cap_In",
+   "cell": "C15",
+   "label": "有效訓練算力倍數（相對 Block 3 基準；情境用）",
+   "action": "補決策 ID",
+   "src_text": "決策：K4",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "K4"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM448",
+   "page": "Cap_In",
+   "cell": "D15:E15",
+   "label": "有效訓練算力倍數（相對 Block 3 基準；情境用）",
+   "action": "補決策 ID",
+   "src_text": "決策：K4",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "K4"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM465",
+   "page": "Cap_In",
+   "cell": "C39",
+   "label": "DRAM 取得成本",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM466",
+   "page": "Cap_In",
+   "cell": "D39:E39",
+   "label": "DRAM 取得成本",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM467",
+   "page": "Cap_In",
+   "cell": "C40",
+   "label": "DRAM 折舊年限",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM468",
+   "page": "Cap_In",
+   "cell": "D40:E40",
+   "label": "DRAM 折舊年限",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM469",
+   "page": "Cap_In",
+   "cell": "C41",
+   "label": "SSD 取得成本",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM470",
+   "page": "Cap_In",
+   "cell": "D41:E41",
+   "label": "SSD 取得成本",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM471",
+   "page": "Cap_In",
+   "cell": "C42",
+   "label": "SSD 折舊年限",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM472",
+   "page": "Cap_In",
+   "cell": "D42:E42",
+   "label": "SSD 折舊年限",
+   "action": "補決策 ID",
+   "src_text": "決策：K10",
+   "mark": "Assumed",
+   "ids": [
+    "K10"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM475",
+   "page": "Cap_In",
+   "cell": "F50",
+   "label": "Claude Opus 5",
+   "action": "補決策 ID；可由 Anthropic 官方牌價頁查證快取讀取價",
+   "src_text": "決策：K2",
+   "mark": "Assumed",
+   "ids": [
+    "K2"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM476",
+   "page": "Cap_In",
+   "cell": "F51",
+   "label": "Claude Opus 5.5",
+   "action": "補決策 ID；可由 Anthropic 官方牌價頁查證快取讀取價",
+   "src_text": "決策：K2",
+   "mark": "Assumed",
+   "ids": [
+    "K2"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM481",
+   "page": "Har_In",
+   "cell": "C12:D12",
+   "label": "輪數倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：AF3B-Q3",
+   "mark": "Assumed",
+   "ids": [
+    "AF3B-Q3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM482",
+   "page": "Har_In",
+   "cell": "C13:G13",
+   "label": "思考保留 ρ",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM483",
+   "page": "Har_In",
+   "cell": "C14:G14",
+   "label": "每輪思考倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM484",
+   "page": "Har_In",
+   "cell": "C15:G15",
+   "label": "歷史保留比 c（壓縮後）",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM485",
+   "page": "Har_In",
+   "cell": "C16:G16",
+   "label": "快取命中變動",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM486",
+   "page": "Har_In",
+   "cell": "C17:G17",
+   "label": "子代理數增量",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM487",
+   "page": "Har_In",
+   "cell": "C19:G19",
+   "label": "時間範圍倍數（本任務）",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM489",
+   "page": "Har_In",
+   "cell": "C20:G20",
+   "label": "供應商專屬（1＝是）",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM490",
+   "page": "Har_In",
+   "cell": "C24:G24",
+   "label": "輪數倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM491",
+   "page": "Har_In",
+   "cell": "C25:G25",
+   "label": "思考保留 ρ",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM492",
+   "page": "Har_In",
+   "cell": "C26:G26",
+   "label": "每輪思考倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM493",
+   "page": "Har_In",
+   "cell": "C27:G27",
+   "label": "歷史保留比 c（壓縮後）",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM494",
+   "page": "Har_In",
+   "cell": "C28:G28",
+   "label": "快取命中變動",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM495",
+   "page": "Har_In",
+   "cell": "C30:G30",
+   "label": "狀態保留時間",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM496",
+   "page": "Har_In",
+   "cell": "C31:G31",
+   "label": "時間範圍倍數（本任務）",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM497",
+   "page": "Har_In",
+   "cell": "C32:G32",
+   "label": "供應商專屬（1＝是）",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM504",
+   "page": "Har_In",
+   "cell": "C53:G53",
+   "label": "任務長度（人類完成時間）",
+   "action": "補決策 ID",
+   "src_text": "決策：L1＋D15-05",
+   "mark": "Assumed",
+   "ids": [
+    "L1",
+    "D15-05"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM505",
+   "page": "Har_In",
+   "cell": "C61:D66",
+   "label": "輪數倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：AF3B-Q3＋D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "AF3B-Q3",
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM506",
+   "page": "Tech_Registry",
+   "cell": "E5:G9",
+   "label": "T01",
+   "action": "補決策 ID",
+   "src_text": "決策：L3",
+   "mark": "Assumed",
+   "ids": [
+    "L3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM507",
+   "page": "Tech_Registry",
+   "cell": "E10:G10",
+   "label": "T06",
+   "action": "補決策 ID",
+   "src_text": "決策：L3",
+   "mark": "Assumed",
+   "ids": [
+    "L3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM509",
+   "page": "Tech_Registry",
+   "cell": "E12:G12",
+   "label": "T08",
+   "action": "補決策 ID",
+   "src_text": "決策：L3",
+   "mark": "Assumed",
+   "ids": [
+    "L3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM510",
+   "page": "Tech_Registry",
+   "cell": "E13:G13",
+   "label": "T09",
+   "action": "補決策 ID",
+   "src_text": "決策：L3",
+   "mark": "Assumed",
+   "ids": [
+    "L3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM512",
+   "page": "Tech_Registry",
+   "cell": "E15:G15",
+   "label": "T11",
+   "action": "補決策 ID",
+   "src_text": "決策：L3",
+   "mark": "Assumed",
+   "ids": [
+    "L3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM513",
+   "page": "Tech_Registry",
+   "cell": "E16:G16",
+   "label": "T12",
+   "action": "補決策 ID",
+   "src_text": "決策：L3",
+   "mark": "Assumed",
+   "ids": [
+    "L3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM514",
+   "page": "Tech_Registry",
+   "cell": "H5:H16",
+   "label": "T01",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM517",
+   "page": "Tech_Registry",
+   "cell": "N5:N16",
+   "label": "T01",
+   "action": "補決策 ID",
+   "src_text": "決策：G0-6＋L3",
+   "mark": "定義（採用比例定義域 0–1）",
+   "ids": [
+    "G0-6",
+    "L3"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM521",
+   "page": "Train_In",
+   "cell": "C8",
+   "label": "SFT MFU 係數（× 預訓練 MFU）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM522",
+   "page": "Train_In",
+   "cell": "C9",
+   "label": "RL trainer MFU 係數（× 預訓練 MFU）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM523",
+   "page": "Train_In",
+   "cell": "C10",
+   "label": "參考模型前向（KL 懲罰；0＝無、1＝有）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "定義（方法選擇）",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM525",
+   "page": "Train_In",
+   "cell": "C12",
+   "label": "GRPO 每題取樣數（共用 prompt，prefill 只算一次）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "可查證"
+  },
+  {
+   "gm": "GM527",
+   "page": "Train_In",
+   "cell": "C15",
+   "label": "合成資料生成層級（1 Luna／2 Sol／3 Astra）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM530",
+   "page": "Train_In",
+   "cell": "C21:G21",
+   "label": "預訓練 MFU 世代倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM533",
+   "page": "Train_In",
+   "cell": "C27:E27",
+   "label": "長上下文延伸 token",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM534",
+   "page": "Train_In",
+   "cell": "C28:E28",
+   "label": "長上下文延伸序列長（稀疏注意力路徑）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM535",
+   "page": "Train_In",
+   "cell": "C29:E29",
+   "label": "SFT token",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM536",
+   "page": "Train_In",
+   "cell": "C30:E30",
+   "label": "SFT 序列長",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM537",
+   "page": "Train_In",
+   "cell": "C31:E31",
+   "label": "批次推論速度下限（rollout、合成、評測）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM538",
+   "page": "Train_In",
+   "cell": "C32:E32",
+   "label": "rollout 參考輸入（prompt＋工具結果）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM539",
+   "page": "Train_In",
+   "cell": "C33:E33",
+   "label": "rollout 參考輸出（含思考）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM541",
+   "page": "Train_In",
+   "cell": "C35:E35",
+   "label": "On-policy 蒸餾：學生 rollout 輸出 token",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM542",
+   "page": "Train_In",
+   "cell": "C36:E36",
+   "label": "蒸餾教師層級（1／2／3）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM543",
+   "page": "Train_In",
+   "cell": "C37:E37",
+   "label": "合成資料生成 token",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM544",
+   "page": "Train_In",
+   "cell": "C38:E38",
+   "label": "評測 token",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-08",
+   "mark": "Assumed",
+   "ids": [
+    "D15-08"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM549",
+   "page": "Sens_Train",
+   "cell": "C6:AH6",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM550",
+   "page": "Sens_Train",
+   "cell": "C7:AH7",
+   "label": "層級索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM551",
+   "page": "Sens_Train",
+   "cell": "E13:H13",
+   "label": "預訓練 MFU 基準",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM552",
+   "page": "Sens_Train",
+   "cell": "AG17:AH17",
+   "label": "goodput",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM553",
+   "page": "Sens_Train",
+   "cell": "K30:N30",
+   "label": "所需 token 倍數（H_TOK）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM554",
+   "page": "Sens_Train",
+   "cell": "S64:V64",
+   "label": "rollout 效率（採用）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM555",
+   "page": "Sens_Train",
+   "cell": "AC119:AF119",
+   "label": "研發倍數",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM556",
+   "page": "Perf_Batch",
+   "cell": "C6:S6",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM557",
+   "page": "Perf_Batch",
+   "cell": "C7:S7",
+   "label": "層級索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM559",
+   "page": "Training",
+   "cell": "C6:Q6",
+   "label": "世代索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM560",
+   "page": "Training",
+   "cell": "C7:Q7",
+   "label": "層級索引",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-01",
+   "mark": "定義",
+   "ids": [
+    "D15-01"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM561",
+   "page": "Sens_Rev",
+   "cell": "B6:B7",
+   "label": "利用率 40%",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM562",
+   "page": "Sens_Rev",
+   "cell": "B8:B9",
+   "label": "折扣 10%",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM563",
+   "page": "Sens_Rev",
+   "cell": "B10:B11",
+   "label": "快取命中 χ 30%",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM564",
+   "page": "Sens_Rev",
+   "cell": "B12:B13",
+   "label": "對外服務占機隊 30%",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM565",
+   "page": "Sens_Rev",
+   "cell": "B14:B15",
+   "label": "免費占服務 35%",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM566",
+   "page": "Sens_Rev",
+   "cell": "B17",
+   "label": "ε＝0.5、有效算力 ×7（J8 缺口全數轉為能力）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM567",
+   "page": "Sens_Rev",
+   "cell": "B20:B21",
+   "label": "壽命 6 個月",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM568",
+   "page": "Sensitivity",
+   "cell": "X8:Y8",
+   "label": "機架外 IT 電力占比",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM569",
+   "page": "Sensitivity",
+   "cell": "N37",
+   "label": "IT 折舊年限",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-02",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "D15-02"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM570",
+   "page": "Arch",
+   "cell": "C34:D34",
+   "label": "每層 KV bytes/token（壓縮後平均，FP8）",
+   "action": "補來源（既有 SRC）；類別改 Derived",
+   "src_text": "SRC_MOD_009（KV head 512 維）、SRC_MOD_016（HCA 壓縮 128×）、SRC_MOD_018／019（CSA top-k 1,024 塊、塊長 4）、SRC_MOD_015／054（全注意力層比例）；決策：D5",
+   "mark": "Derived（由 V4 模型卡結構推得）",
+   "ids": [
+    "D5"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM572",
+   "page": "Arch",
+   "cell": "E36",
+   "label": "MLA 層比例（Astra 情境 1 混合）",
+   "action": "補決策 ID",
+   "src_text": "決策：J1",
+   "mark": "Assumed",
+   "ids": [
+    "J1"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM573",
+   "page": "Arch",
+   "cell": "E37",
+   "label": "GQA KV heads（Astra 情境 3）",
+   "action": "補決策 ID",
+   "src_text": "決策：J1",
+   "mark": "Assumed",
+   "ids": [
+    "J1"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM576",
+   "page": "Alloc_In",
+   "cell": "C6",
+   "label": "家族計畫數 N_major（個／年）",
+   "action": "補決策 ID",
+   "src_text": "決策：A7",
+   "mark": "Assumed",
+   "ids": [
+    "A7"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM577",
+   "page": "Alloc_In",
+   "cell": "D6:E6",
+   "label": "家族計畫數 N_major（個／年）",
+   "action": "補決策 ID",
+   "src_text": "決策：A7",
+   "mark": "Assumed",
+   "ids": [
+    "A7"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM578",
+   "page": "Alloc_In",
+   "cell": "C7",
+   "label": "改版計畫數 N_refresh（個／年）",
+   "action": "補決策 ID",
+   "src_text": "決策：A2＋X3",
+   "mark": "Assumed",
+   "ids": [
+    "A2",
+    "X3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM579",
+   "page": "Alloc_In",
+   "cell": "D7:E7",
+   "label": "改版計畫數 N_refresh（個／年）",
+   "action": "補決策 ID",
+   "src_text": "決策：A2＋X3",
+   "mark": "Assumed",
+   "ids": [
+    "A2",
+    "X3"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM580",
+   "page": "Alloc_In",
+   "cell": "C8",
+   "label": "計畫規模倍數 k（相對 Block 3）",
+   "action": "補決策 ID",
+   "src_text": "決策：A3＋C2",
+   "mark": "Assumed",
+   "ids": [
+    "A3",
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM581",
+   "page": "Alloc_In",
+   "cell": "D8:E8",
+   "label": "計畫規模倍數 k（相對 Block 3）",
+   "action": "補決策 ID",
+   "src_text": "決策：A3＋C2",
+   "mark": "Assumed",
+   "ids": [
+    "A3",
+    "C2"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM582",
+   "page": "Alloc_In",
+   "cell": "C13",
+   "label": "機隊年成長率 g",
+   "action": "補決策 ID",
+   "src_text": "決策：A6",
+   "mark": "Assumed",
+   "ids": [
+    "A6"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM583",
+   "page": "Alloc_In",
+   "cell": "D13:E13",
+   "label": "機隊年成長率 g",
+   "action": "補決策 ID",
+   "src_text": "決策：A6",
+   "mark": "Assumed",
+   "ids": [
+    "A6"
+   ],
+   "andy": "否",
+   "cls": "模型假設"
+  },
+  {
+   "gm": "GM585",
+   "page": "Alloc_In",
+   "cell": "D14:E14",
+   "label": "API 全年平均 ÷ 10 月時點值",
+   "action": "補決策；數值不改",
+   "src_text": "決策：A9（API 年化方法）；E260 不採納（X 系列）",
+   "mark": "Assumed",
+   "ids": [
+    "A9"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM587",
+   "page": "Alloc_In",
+   "cell": "D15:E15",
+   "label": "每則提示 token 數",
+   "action": "補決策；區間是否放寬待判斷",
+   "src_text": "決策：A10（每則提示 token 數）、X29（高端 6,400 → 11,000）",
+   "mark": "Assumed",
+   "ids": [
+    "A10",
+    "X29"
+   ],
+   "andy": "是",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM589",
+   "page": "Alloc_In",
+   "cell": "D16:E16",
+   "label": "ChatGPT token 中免費用戶占比",
+   "action": "補決策；數值不改",
+   "src_text": "決策：X30（免費占比不改，並列支出口徑對照）、AF2e-M2（免費占比一律 token 口徑）",
+   "mark": "Assumed",
+   "ids": [
+    "X30",
+    "AF2e-M2"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM590",
+   "page": "Alloc_In",
+   "cell": "C9:C12",
+   "label": "服務世代組合（Hopper／GB200／GB300／VR200）",
+   "action": "補決策；數值不改",
+   "src_text": "決策：AF3B-D3（2025 全年平均區間）、X28（2025 基準年世代組合）",
+   "mark": "Derived（3A 推導）",
+   "ids": [
+    "AF3B-D3",
+    "X28"
+   ],
+   "andy": "否",
+   "cls": "49 格"
+  },
+  {
+   "gm": "GM591",
+   "page": "Alloc_In",
+   "cell": "D9:E12",
+   "label": "服務世代組合（Hopper／GB200／GB300／VR200）",
+   "action": "補決策 ID",
+   "src_text": "決策：D15-03",
+   "mark": "Derived",
+   "ids": [
+    "D15-03"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  },
+  {
+   "gm": "GM681",
+   "page": "Alloc",
+   "cell": "I94:L95",
+   "label": "服務世代組合：全 GB200／全 VR200（G 節敏感度 one-hot 輸入）",
+   "action": "補決策 ID",
+   "src_text": "決策：AF2c-J5",
+   "mark": "定義（情境設定）",
+   "ids": [
+    "AF2c-J5"
+   ],
+   "andy": "否",
+   "cls": "物理常數或定義"
+  }
+ ],
+ "evidence": [
+  {
+   "id": "E005",
+   "cur": "部分採納",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E006",
+   "cur": "待查",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已由 E248／SRC_MOD_055（Epoch GPT-6 Astra 1.0e27）與 X13 取代；E006 的 2e26–2e27 只作 J8 區間對照，狀態改「已處理」。",
+   "andy": "否"
+  },
+  {
+   "id": "E009",
+   "cur": "部分採納",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E012",
+   "cur": "部分採納",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E013",
+   "cur": "部分採納",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E014",
+   "cur": "待查",
+   "sens": "否",
+   "rec": "採納",
+   "why": "價格 $4／$20 已在 SRC_PRC_012–015（Anthropic 官方牌價，賣方自訂價屬 Interested-party 但即為事實）；「達 Fable 5.1 水準」為能力自稱，不採用。建議判定改「部分採納」並結案。",
+   "andy": "否"
+  },
+  {
+   "id": "E015",
+   "cur": "待查",
+   "sens": "否",
+   "rec": "維持待查",
+   "why": "兩來源互相矛盾（AA 標開放權重、另一來源標閉源）；本段未再搜尋。只影響 Cap_In F 節開放權重欄（非高敏感）。",
+   "andy": "否"
+  },
+  {
+   "id": "E016",
+   "cur": "部分採納",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E017",
+   "cur": "部分採納",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E020",
+   "cur": "待查",
+   "sens": "否",
+   "rec": "維持待查",
+   "why": "歸屬（Nvidia 或 Strands）不一，且為 Interested-party；不作基準依據。",
+   "andy": "否"
+  },
+  {
+   "id": "E101",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_HW_001",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E103",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_HW_004、SRC_HW_005",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E104",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_HW_006",
+   "rec": "並列",
+   "why": "Stage 1 遷移紀錄；相關 SRC 狀態 {'Active': 1, 'Alt': 2}，非 Active 者已有取代或並列紀錄。",
+   "andy": "否"
+  },
+  {
+   "id": "E105",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E106",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E108",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_HW_014",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E109",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_HW_015",
+   "rec": "並列",
+   "why": "Stage 1 遷移紀錄；相關 SRC 狀態 {'Active': 1, 'Alt': 2}，非 Active 者已有取代或並列紀錄。",
+   "andy": "否"
+  },
+  {
+   "id": "E111",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_HW_022、SRC_HW_025、SRC_HW_027",
+   "rec": "並列",
+   "why": "Stage 1 遷移紀錄；相關 SRC 狀態 {'Active': 12, 'Alt': 1}，非 Active 者已有取代或並列紀錄。",
+   "andy": "否"
+  },
+  {
+   "id": "E114",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E116",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_HW_052",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E119",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E120",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_DC_007、SRC_DC_008",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 3 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E121",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E122",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E125",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_MOD_029、SRC_MOD_030",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 4 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E126",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E127",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E128",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E129",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 3 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E130",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 4 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E131",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E132",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E133",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E134",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E135",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_PERF_001、SRC_PERF_002",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 3 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E136",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_PERF_004",
+   "rec": "並列",
+   "why": "Stage 1 遷移紀錄；相關 SRC 狀態 {'Active': 4, 'Superseded': 1}，非 Active 者已有取代或並列紀錄。",
+   "andy": "否"
+  },
+  {
+   "id": "E137",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_PERF_009、SRC_PERF_010",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 5 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E138",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_PERF_014、SRC_PERF_015",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E139",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E140",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 5 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E141",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E142",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 3 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E143",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E144",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 7 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E145",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_PERF_036、SRC_PERF_037",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E146",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 3 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E147",
+   "cur": "補登（G2；3 級待查）",
+   "sens": "是：SRC_HW_053",
+   "rec": "維持待查",
+   "why": "11 筆 3 級補登（模型內建知識），待 Stage 2 逐筆查核；不改值。",
+   "andy": "否"
+  },
+  {
+   "id": "E148",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E149",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E150",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E151",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_DEM_001",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 3 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E152",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 9 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E153",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 9 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E154",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 8 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E155",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 6 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E156",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "Stage 1 遷移紀錄；相關 SRC 狀態 {'Active': 8, 'Alt': 2}，非 Active 者已有取代或並列紀錄。",
+   "andy": "否"
+  },
+  {
+   "id": "E157",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 7 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E158",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 4 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E159",
+   "cur": "遷移（G0-1）",
+   "sens": "是：SRC_DEM_004、SRC_DEM_005",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 6 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E160",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "Stage 1 遷移紀錄；相關 SRC 狀態 {'Active': 9, 'Alt': 1}，非 Active 者已有取代或並列紀錄。",
+   "andy": "否"
+  },
+  {
+   "id": "E162",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 2 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E163",
+   "cur": "遷移（G0-1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "Stage 1 遷移紀錄（G0-1），不是新資訊；相關 1 筆 SRC 全為 Active。建議判定欄改「採納（遷移）」或積壓規則排除遷移列。",
+   "andy": "否"
+  },
+  {
+   "id": "E164",
+   "cur": "補登（G2；1 級）",
+   "sens": "是：GM251、GM281、GM304、GM341、SRC_PERF_041、SRC_PERF_042",
+   "rec": "採納",
+   "why": "補登即已建立 SRC 紀錄（G2）；一手原文已讀。",
+   "andy": "否"
+  },
+  {
+   "id": "E166",
+   "cur": "補登（G2；2 級）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "補登即已建立 SRC 紀錄（G2）；等級 2、原文待查，建議在 SRC 備註保留「原文待查」。",
+   "andy": "否"
+  },
+  {
+   "id": "E167",
+   "cur": "補登（G2；2 級）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "補登即已建立 SRC 紀錄（G2）；等級 2、原文待查，建議在 SRC 備註保留「原文待查」。",
+   "andy": "否"
+  },
+  {
+   "id": "E168",
+   "cur": "補登（G2；2 級）",
+   "sens": "是：SRC_DEM_012",
+   "rec": "採納",
+   "why": "補登即已建立 SRC 紀錄（G2）；等級 2、原文待查，建議在 SRC 備註保留「原文待查」。",
+   "andy": "否"
+  },
+  {
+   "id": "E169",
+   "cur": "補登（G2；2 級）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "補登即已建立 SRC 紀錄（G2）；等級 2、原文待查，建議在 SRC 備註保留「原文待查」。",
+   "andy": "否"
+  },
+  {
+   "id": "E204",
+   "cur": "已讀，口徑不同，不作為第二來源（H1 (ii) 已記錄）",
+   "sens": "是：GM310、GM315、SRC_PERF_009、SRC_PERF_010",
+   "rec": "駁回",
+   "why": "已讀，口徑不同，不作第二來源（H1 規則 (ii)）；判定已明確，只是積壓規則把「非採納」都列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E244",
+   "cur": "待查證；指向 F67 低端；與模型內 MLPerf v6.1 interactive（Calib 第 151 列 2.575×，模型 2.525×）衝突未解",
+   "sens": "是：GM344",
+   "rec": "駁回",
+   "why": "已被 E245 一手結果取代（X6 結案）。",
+   "andy": "否"
+  },
+  {
+   "id": "E245",
+   "cur": "E244 的 1.6–2× 為 Offline／Server 情境，與模型 interactive 對照（模型 2.525×、MLPerf 2.575×）不衝突；F67 不改（X6）",
+   "sens": "是：GM344",
+   "rec": "採納",
+   "why": "MLPerf v6.1 一手結果，X6 已結案；判定文字未以「採納」開頭而被列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E247",
+   "cur": "部分採納：基準不改；GM248 區間下限 512→400（X12）",
+   "sens": "是：GM245、GM250",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E249",
+   "cur": "已讀，未採用：參數無出處，只作 GM203 區間（2–10T）內的參考；033 不改，差異記錄待查",
+   "sens": "是：GM203",
+   "rec": "並列",
+   "why": "參數 3e12 無出處，只作 GM203 區間內參考（X12）。",
+   "andy": "否"
+  },
+  {
+   "id": "E252",
+   "cur": "該頁仍為 4.6e26：不新增、不取代（X13 b 後一路）；E249 備註附加兩處數字與讀取日；Train_In C46:C48 不改",
+   "sens": "否",
+   "rec": "並列",
+   "why": "兩處 Epoch 數字（4.6e26 與 3.5e26）並列記錄，SRC_MOD_033 不改（X13 b）。",
+   "andy": "否"
+  },
+  {
+   "id": "E254",
+   "cur": "已讀，基準不改（X13 c）；兩端規模同幅度偏小，比值口徑可用，絕對規模歸 OpenAI 模型校準",
+   "sens": "是：GM576、GM580",
+   "rec": "並列",
+   "why": "硬體錨點作比值口徑對照，絕對規模歸 OpenAI 模型校準（X13 c）。",
+   "andy": "否"
+  },
+  {
+   "id": "E256",
+   "cur": "並列（Alt）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "判定已為並列（Alt）。",
+   "andy": "否"
+  },
+  {
+   "id": "E257",
+   "cur": "並列（Alt）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "判定已為並列（Alt）。",
+   "andy": "否"
+  },
+  {
+   "id": "E258",
+   "cur": "並列（Alt）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "判定已為並列（Alt）。",
+   "andy": "否"
+  },
+  {
+   "id": "E260",
+   "cur": "不採納（維持）",
+   "sens": "否",
+   "rec": "駁回",
+   "why": "判定已為不採納（維持）。",
+   "andy": "否"
+  },
+  {
+   "id": "E264",
+   "cur": "部分採用（X16）：GB300 4.3 作基準佐證，新登錄 SRC_HW_065（Alt）；Rubin 5–6 早於記憶體漲價，不採用",
+   "sens": "是：GM092",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E268",
+   "cur": "部分採用（X16）：新登錄 SRC_HW_066（比值，不進數值）",
+   "sens": "是：GM092、GM093",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E269",
+   "cur": "待查（X16）：J1 (a) 採用後不再是高情境，SRC_HW_007 改列 Alt",
+   "sens": "否",
+   "rec": "並列",
+   "why": "J1 (a) 採用後 SRC_HW_007 已改 Alt，媒體報價只作高端對照。",
+   "andy": "否"
+  },
+  {
+   "id": "E278",
+   "cur": "待查：neocloud 裸機出租是否付此授權找不到",
+   "sens": "否",
+   "rec": "維持待查",
+   "why": "neocloud 裸機出租是否付 NVIDIA AI Enterprise 授權仍找不到；只影響 Inputs E33（非高敏感）。",
+   "andy": "否"
+  },
+  {
+   "id": "E281",
+   "cur": "部分採用（X21）：新登錄 SRC_DEM_024、SRC_DEM_025（各時點一筆；同一則報導，不獨立）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E283",
+   "cur": "待查：44M 時點不明、二手；預測值不入序列，只作方案組合變化（$20 → $8）的定性證據",
+   "sens": "否",
+   "rec": "並列",
+   "why": "44M 時點不明、二手；預測值不入序列，只作方案組合變化的定性證據。",
+   "andy": "否"
+  },
+  {
+   "id": "E285",
+   "cur": "部分採用（X21）：新登錄 SRC_DEM_031；只作上界分母（「開發者」≠ 付費 API 組織；付費組織數找不到）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E289",
+   "cur": "部分採用（X21）：營收新登錄 SRC_DEM_042；70% 與「企業 >40%」口徑重疊，占比不採用",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E290",
+   "cur": "部分採用（X22）：20% 新登錄 SRC_DEM_043，SRC_DEM_018 備註補記；$38B 上限待查一手；營收維持毛額（J3）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "20% 分潤已登錄 SRC_DEM_043；$38B 上限仍待一手，營收維持毛額（X22）。",
+   "andy": "否"
+  },
+  {
+   "id": "E293",
+   "cur": "部分採用（X21）：新登錄 SRC_DEM_046、SRC_DEM_047（只登錄；Cap_In C13 不改）；Cap_In H6 單價結構對照低端",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E294",
+   "cur": "部分採用（X21）：新登錄 SRC_DEM_048（只登錄；Cap_In C13 不改）；Cap_In H6 單價結構對照基準",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E301",
+   "cur": "待查：彙整站未附原始出處 ｜v5.33 已查證（E314，N13）：8M 有出處＝Altman X 2026-07-14，經 Fortune；登錄 SRC_DEM_060",
+   "sens": "否",
+   "rec": "採納",
+   "why": "已由 E314 查證（Altman 2026-07-14，經 Fortune）；判定欄「待查」字樣未更新。",
+   "andy": "否"
+  },
+  {
+   "id": "E304",
+   "cur": "部分採用（X29）：新登錄 SRC_DEM_052（2023 Arena 用戶；只作下界）",
+   "sens": "是：GM586",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E305",
+   "cur": "部分採用（X29）：新登錄 SRC_DEM_053（分布右偏證據）",
+   "sens": "是：GM586",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E309",
+   "cur": "部分採用（X31）：新登錄 SRC_DEM_057（尖峰週，非平均）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E311",
+   "cur": "部分採用（X29）：新登錄 SRC_DEM_058（2024 時點；上界含 API）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E313",
+   "cur": "部分採用（X30）：補到 SRC_DEM_045 備註，不另開 SRC",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E314",
+   "cur": "採用（X27）：E301「待查」改「已查證」（Altman 2026-07-14）；新登錄 SRC_DEM_060（07-14 一筆）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "判定已為「採用（X27）」，只因文字含「E301『待查』」被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E315",
+   "cur": "部分採用（X27）：新登錄 SRC_DEM_061（前瞻承諾，不入 2025 平均；口徑未明）",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E316",
+   "cur": "部分採用（X27）：備註到 SRC_DEM_009，不另開 SRC",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E318",
+   "cur": "部分採用（X34）：登錄為 SRC_DEM_062 高欄（毛額口徑）；2026 時點，無拆分",
+   "sens": "否",
+   "rec": "並列",
+   "why": "已採用的部分已入 SRC 或區間；未採用的部分保留為對照，不改基準。判定已明確，只因非「採納」開頭被規則列入。",
+   "andy": "否"
+  },
+  {
+   "id": "E326",
+   "cur": "不重登：已有 SRC_DEM_042；備註補 N01 序列（SRC_DEM_069）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "與 E289 同一數字，已有 SRC_DEM_042；不重登。",
+   "andy": "否"
+  },
+  {
+   "id": "E329",
+   "cur": "登錄 DB_Evidence，不登 SRC；H10 2026 Q2 消費 0.55、FY2026 0.45 的依據（r0.1）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "作為 H10 2026 份額的依據登錄（r0.1），不登 SRC。",
+   "andy": "否"
+  },
+  {
+   "id": "E332",
+   "cur": "不新增：SRC_DEM_060 備註補；無 token 量",
+   "sens": "否",
+   "rec": "採納",
+   "why": "補到 SRC_DEM_060 備註；無 token 量，不新增。",
+   "andy": "否"
+  },
+  {
+   "id": "E335",
+   "cur": "缺口登錄；方向性代理：訂閱 m 下限＝月費 ÷ 方案上限（N06）；上限需用量分布（SRC_DEM_045 p95/中位數＝6 為唯一分布證據，企業端）",
+   "sens": "否",
+   "rec": "維持待查",
+   "why": "缺口登錄：典型付費用戶 token 用量仍找不到。",
+   "andy": "否"
+  },
+  {
+   "id": "E337",
+   "cur": "登錄 DB_Evidence；H10 份額的依據（r0.1，Andy 15:49）",
+   "sens": "否",
+   "rec": "採納",
+   "why": "作為 H10 營收份額依據登錄（Andy 15:49）。",
+   "andy": "否"
+  },
+  {
+   "id": "E338",
+   "cur": "登錄 DB_Evidence；SRC_Price 不新增（等級 3）；2026 各點可對 SRC_PRC_006–008 與 BenchLM 2026-10-13 頁面互證",
+   "sens": "否",
+   "rec": "維持待查",
+   "why": "等級 3 彙整，待一手確認後才可入 SRC_Price。",
+   "andy": "否"
+  },
+  {
+   "id": "E350",
+   "cur": "補註（既有紀錄附加爭議）：SRC_DEM_018 v5.36 起為對照列，不進機隊路線",
+   "sens": "否",
+   "rec": "並列",
+   "why": "洩漏數字有爭議（Microsoft 稱不準）；SRC_DEM_018 v5.36 起已只作對照列。",
+   "andy": "否"
+  }
+ ],
+ "decisions": {
+  "D15-01": {
+   "item": "結構索引與情境選擇器",
+   "text": "世代索引、層級索引、Tech_Registry 低／基準／高選擇器與顯示用常數屬模型結構定義，不需要外部來源；Gov_Map 類別維持「情境選擇」，決策 ID 填本號。",
+   "scope": "Calib C10:I10、C117:F117；Perf／Unit_Cost／Perf_Batch／Training／Sens_* 第 6、7 列；Arch C32"
+  },
+  "D15-02": {
+   "item": "敏感度情境值",
+   "text": "敏感度頁（Sens_*、Sensitivity、Calib 格點）的情境值只引用對應基準輸入的區間端點；來源與決策隨基準格，不另立來源。",
+   "scope": "Sens_Perf／Sens_Train／Sens_Rev／Sensitivity 情境列；Calib C90:E90"
+  },
+  "D15-03": {
+   "item": "Derived（公式）列",
+   "text": "以公式由其他輸入或 SRC 推得的列，來源隨上游；Gov_Map H 欄寫上游 SRC 或「上游公式」，關係欄寫「Derived」。",
+   "scope": "Spec_Rack C24、C41；Arch C21:E23；Calib C69"
+  },
+  "D15-04": {
+   "item": "資料中心造價與營運分項",
+   "text": "Inputs 第 14–21、31–35 列為 v4 沿用的分項假設；總額以 JLL（SRC_DC_003）校準。Gov_Map H 欄填 SRC_DC_003、關係「總額校準」，分項本身維持 Assumed 區間。",
+   "scope": "Inputs 第 14–21、31–35 列"
+  },
+  "D15-05": {
+   "item": "標準任務與 harness 參數組",
+   "text": "Workload 第 5–12 列與 Har_In B 節參數組為標準任務定義（Assumed）；校準證據依 L7 規則登錄 DB_Evidence，不直接改基準。",
+   "scope": "Workload 5–12、40；Har_In B 節"
+  },
+  "D15-06": {
+   "item": "服務配置係數",
+   "text": "Serving C9–C15 與 Spec_Rack 第 31 列為服務配置與效率係數（Assumed，區間承載）；與 Calib 擬合共同決定產能，不單獨校準。",
+   "scope": "Serving C9:C15；Spec_Rack C31:G31"
+  },
+  "D15-07": {
+   "item": "能量係數",
+   "text": "Energy 頁係數只供能量閉合檢查與 tokens/J 指標，不進成本與營收；Assumed 區間。",
+   "scope": "Energy C5、C7"
+  },
+  "D15-08": {
+   "item": "訓練流程參數",
+   "text": "Train_In 第 8–15、21、27–38 列為 J8／J9 架構下的訓練流程定義與假設（MFU 係數、取樣數、token 量）；可查證者另列。",
+   "scope": "Train_In 8–15、21、27–38"
+  },
+  "D15-09": {
+   "item": "η_p 倍數擴用 C2",
+   "text": "提議把 Decisions C2「已搜尋、無可比對象」的適用列名追加 Calib D69、E69、G69（GM352、GM353、GM355）；C2 明文規定新列須逐列經 Andy 決定。",
+   "scope": "Calib D69、E69、G69"
+  }
+ }
+}

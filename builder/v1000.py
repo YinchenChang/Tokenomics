@@ -233,10 +233,11 @@ def checks_v(wb, CAL):
     r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
     section(ws, r, "V. 驗證計數（工作單 稽核修正2 6r1 N3，D5，v10.0）：只計能失敗的檢查；驗證失敗不進 GOV_Errors（不阻擋合併），報告必須列出", 10); r += 1
     put(ws, f"A{r}", "判準寫在 H（下限）與 I（上限）兩格（chat 端 J2 決定；黑字，不登錄 Gov_Map）。F 欄＝1 通過、0 失敗、警示（v11.0 G4：只用於 V1–V3）、—＝不適用（任一側非數字）。MLPerf interactive 為廠商最佳化後的可達上限（模型高於 MLPerf 才判失敗）；"
-                   "MLPerf server（V1–V3）改為軟上限（v11.0 G4）：> 1 判『警示』，不計失敗（server 的 TPOT 80 ms 是 p99 口徑，模型取平均；同條件 TensorRT-LLM H200 為 MLPerf v5.1 的 2.6 倍）；"
+                   "MLPerf server（V1–V3）為軟上限（v11.0 G4；v12.0 H1 加失敗門檻）：比值 ≤ 1 通過；1 至 CHK_SoftCapFail（基準 2，Calib M 節）之間判『警示』，不計失敗；> CHK_SoftCapFail 判失敗（server 的 TPOT 80 ms 是 p99 口徑，模型取平均；超過 2 倍表示模型高估，不再只是口徑差；同條件 TensorRT-LLM H200 為 MLPerf v5.1 的 2.6 倍）；"
+                   "V18 為恆等式（非驗證，v12.0 H7）、V20 為校準相關（非獨立，v12.0 H2）：兩者的 F 欄為文字，不計入驗證項目數；"
                    "LMSYS 兩點口徑不嚴（無明確 SLO，模型 Sol 級≠DeepSeek-V3 規模），帶寬 0.5–2.0；RL 帶 0.1–0.3；harness 輪數倍數 ≥ 1（SWE Atlas 方向證據，只判方向）", F_NOTE); r += 1
     sum_rows = {}
-    for key, lab in (("T", "驗證項目數（F 欄為數字或『警示』者）"), ("P", "通過"), ("F", "失敗"), ("W", "警示（MLPerf server 軟上限：模型高於上限，不計失敗；v11.0 G4）")):
+    for key, lab in (("T", "驗證項目數（F 欄為數字或『警示』者）"), ("P", "通過"), ("F", "失敗"), ("W", "警示（MLPerf server 軟上限：模型高於 1 但未超過 CHK_SoftCapFail，不計失敗；v11.0 G4、v12.0 H1）")):
         sum_rows[key] = r; put(ws, f"A{r}", f"V{key}"); put(ws, f"B{r}", lab, F_BOLD); r += 1
     for i, h in enumerate(["編號", "驗證項目", "模型值", "對照值（實測或上限）", "模型 ÷ 對照（或模型值）", "結果（1 通過／0 失敗／警示／—）", "性質", "通過帶下限", "通過帶上限", "口徑與來源"]):
         put(ws, f"{'ABCDEFGHIJ'[i]}{r}", h, F_BOLD, wrap=True)
@@ -248,10 +249,15 @@ def checks_v(wb, CAL):
     _tr = wb["Tech_Registry"]
     _trr = [rr for rr in range(5, _tr.max_row + 1) if re.fullmatch(r"T\d\d", str(_tr.cell(rr, 1).value or ""))]
     TR_FIRST, TR_LAST = min(_trr), max(_trr)       # v10.3 F3: Tech_Registry entry rows (T01–T12)
+    _R = lambda col: f"Tech_Registry!${col}${TR_FIRST}:${col}${TR_LAST}"
+    # v12.0 H7: V19 recomputes the verdict T should show from I, J, L, M and CST_MainMin (it does not read the T formulas' results), then compares it with column T.
+    # main = L has a value ? L = 主流 : J >= CST_MainMin；bad = (main and M = 否) or (non-main and M = 是 and I <> 早期採用)；1/0 per row, mutually exclusive
+    _BAD = (f'((({_R("L")}="")*({_R("J")}>=CST_MainMin)+({_R("L")}<>"")*({_R("L")}="主流"))*({_R("M")}="否"))'
+            f'+((({_R("L")}="")*({_R("J")}<CST_MainMin)+({_R("L")}<>"")*({_R("L")}="非主流"))*({_R("M")}="是")*({_R("I")}<>"早期採用"))')
     for vid, col, lab, src in (
-            ("V1", "G", "MLPerf v5.1 server（DeepSeek-R1）：Hopper——模型 ÷ MLPerf ≤ 1（軟上限：> 1 為警示，不計失敗）", "SRC_PERF_060；DGX H200（8 GPU，NVIDIA 提交，NVIDIA 註明 Hopper 結果未經 MLCommons 驗證）；模型為 H100 規格（頻寬較 H200 低，上限偏寬）"),
-            ("V2", "H", "MLPerf v6.0 server：GB200 NVL72（NVIDIA 72 GPU）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 為警示，不計失敗）", "SRC_PERF_075（4,668，NVIDIA，Interested-party；v10.2 E3 取代 v5.1 的 SRC_PERF_061＝2,327）；第二來源 CoreWeave 64 GPU 4,868（SRC_PERF_077）"),
-            ("V3", "F", "MLPerf v6.0 server：GB300 NVL72（NVIDIA 72 GPU 機櫃）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 為警示，不計失敗）", "SRC_PERF_076（5,562，NVIDIA 72 GPU；v10.2 E3 取代 Nebius 8 GPU 單機 8,064＝SRC_PERF_026）；同輪機櫃範圍 5,562–7,994（Nebius 72 GPU 7,994＝SRC_PERF_078）"),
+            ("V1", "G", "MLPerf v5.1 server（DeepSeek-R1）：Hopper——模型 ÷ MLPerf ≤ 1（軟上限：> 1 警示；> CHK_SoftCapFail 失敗）", "SRC_PERF_060；DGX H200（8 GPU，NVIDIA 提交，NVIDIA 註明 Hopper 結果未經 MLCommons 驗證）；模型為 H100 規格（頻寬較 H200 低，上限偏寬）"),
+            ("V2", "H", "MLPerf v6.0 server：GB200 NVL72（NVIDIA 72 GPU）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 警示；> CHK_SoftCapFail 失敗）", "SRC_PERF_075（4,668，NVIDIA，Interested-party；v10.2 E3 取代 v5.1 的 SRC_PERF_061＝2,327）；第二來源 CoreWeave 64 GPU 4,868（SRC_PERF_077）"),
+            ("V3", "F", "MLPerf v6.0 server：GB300 NVL72（NVIDIA 72 GPU 機櫃）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 警示；> CHK_SoftCapFail 失敗）", "SRC_PERF_076（5,562，NVIDIA 72 GPU；v10.2 E3 取代 Nebius 8 GPU 單機 8,064＝SRC_PERF_026）；同輪機櫃範圍 5,562–7,994（Nebius 72 GPU 7,994＝SRC_PERF_078）"),
             ("V4", "C", "MLPerf v6.1 interactive：GB300 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_028／SRC_HW_047；Calib H 節第 1 驗證點"),
             ("V5", "D", "MLPerf v6.0 interactive：GB200 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_025／SRC_HW_047；Calib H 節第 2 驗證點"),
             ("V6", "E", "MLPerf v6.1 interactive：VR200 NVL72（預覽類）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_027／SRC_HW_047；預覽類提交，Calib H 節第 3 驗證點")):
@@ -273,19 +279,23 @@ def checks_v(wb, CAL):
          "SRC_PERF_073（1,850 tok/s/GPU，24 小時平均）；與校準點 2,324 同一家公司，相關性高；模型值＝Calib J 節 E 欄（KV 4,989、EP144、約 21 tok/s/user）；不用於校準"),
         ("V16", "能量閉合：各欄最大閉合比 ≤ 100%（Checks B26）", "—", "—", "=Checks!B26", 0, 1, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
         ("V17", "後訓練占比：GPU 小時口徑 − FLOPs 口徑 ≥ 0（Checks B36）", "—", "—", "=Checks!B36", 0, None, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
-        ("V18", "Tech_Registry K 欄（主流判定）：每一列 K＝『主流』與『公開採用實驗室數 J ≥ 門檻（CST_MainMin）』一致——不一致列數＝0",
+        ("V18", "Tech_Registry K 欄（主流判定）：每一列 K＝『主流』與『公開採用實驗室數 J ≥ 門檻（CST_MainMin）』一致——不一致列數＝0【恆等式（非驗證）】",
          f'=COUNTIF(Tech_Registry!$K${TR_FIRST}:$K${TR_LAST},"主流")', f'=COUNTIF(Tech_Registry!$J${TR_FIRST}:$J${TR_LAST},">="&CST_MainMin)',
          f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),SUMPRODUCT(--((Tech_Registry!$K${TR_FIRST}:$K${TR_LAST}="主流")<>(Tech_Registry!$J${TR_FIRST}:$J${TR_LAST}>=CST_MainMin))),"—")', 0, 0,
-         "v10.3 F3（4-2a；原則 4）：K 欄原無任何讀取者。模型值＝K 為『主流』的條目數，對照值＝J ≥ 門檻的條目數，結果欄＝逐列不一致的列數（K 公式被覆寫成手填值而與 J 脫節時失敗）。"
+         "v10.3 F3 新增；v12.0 H7 改標恆等式（非驗證）：K 欄的公式本身就是 J ≥ CST_MainMin，本項重述同一條件，只有 K 被手填覆寫時才會不等；無法改成獨立於 K 的檢查（判定依據只有 J 與門檻），"
+         "故移出驗證計數（F 欄顯示文字，不計入驗證項目數／通過／失敗）。模型值＝K 為『主流』的條目數，對照值＝J ≥ 門檻的條目數，結果欄＝逐列不一致的列數（K 被改寫而與 J 脫節時，F 欄改顯示『恆等式不成立』）。"
          "不比對狀態欄 I：T06（狀態『早期採用』、J＝2 ≥ 門檻 2）K 為『主流』而 I 不是，屬狀態欄口徑差，列『待 Project 判斷』"),
-        ("V19", "Tech_Registry T 欄（一致性檢查）：非『一致』的條目數＝0（主流但未入基準、非主流卻在基準）",
-         f'=COUNTA(Tech_Registry!$T${TR_FIRST}:$T${TR_LAST})', f'=COUNTIF(Tech_Registry!$T${TR_FIRST}:$T${TR_LAST},"一致")',
-         f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),C{{r}}-D{{r}},"—")', 0, 0,
-         "v10.3 F3（4-2a；原則 4）：T 欄原無任何讀取者。模型值＝檢查列數，對照值＝結果為『一致』的列數，結果欄＝兩者之差；『主流但未入基準：須 Andy 判定』或『非主流卻在基準』即失敗。"
-         "T 欄用 Andy 覆寫 L 欄（有值時取代 K）判讀"),
-        ("V20", "MLPerf v6.0 offline：GB200 NVL72（NVIDIA 72 GPU，無 SLO，大批次）——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑：η_d × CAL_BatchEtaD）", f"=Calib!C{CAL['L']['lout']}", "=SRC_PERF_079", None, 0.5, 2.0,
+        ("V19", "Tech_Registry T 欄（一致性檢查）：由公式自行重算每列應有的判定，與 T 欄比對——不符列數＋實質不一致列數＝0",
+         f'=SUMPRODUCT({_BAD})', f'=SUMPRODUCT(--({_R("T")}<>"一致"))',
+         f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),SUMPRODUCT(--(({_R("T")}<>"一致")<>(({_BAD})>0)))+C{{r}},"—")', 0, 0,
+         "v10.3 F3 新增；v12.0 H7（查核 #87 觀察 1）：舊版以 COUNTA 對 COUNTIF(…,\"一致\")，T 欄被清空或手填『一致』時兩者同步改變、差值仍為 0。現改為不讀 T 公式的結果，直接由 I、J、L、M 欄與 CST_MainMin 重算每列應有的判定"
+         "（主流＝L 有值取 L、否則 J ≥ CST_MainMin；主流但 M＝否，或非主流但 M＝是且狀態非『早期採用』，即實質不一致）。"
+         "模型值＝重算後實質不一致的列數；對照值＝T 欄非『一致』（含空白）的列數；結果欄＝（T 欄是否一致與重算判定不符的列數）＋模型值，為 0 才通過：T 欄被清空、手填，或實質不一致（『主流但未入基準：須 Andy 判定』、『非主流卻在基準』）都會失敗。T 欄用 Andy 覆寫 L 欄（有值時取代 K）判讀"),
+        ("V20", "MLPerf v6.0 offline：GB200 NVL72（NVIDIA 72 GPU，無 SLO，大批次）——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑：η_d × CAL_BatchEtaD）【校準相關（非獨立），不計入驗證】", f"=Calib!C{CAL['L']['lout']}", "=SRC_PERF_079", None, 0.5, 2.0,
          "v11.0 G3：SRC_PERF_079（6,752；第二來源 CoreWeave 64 GPU 7,323＝SRC_PERF_082；Google 72 GPU 4,276 未登錄）；模型值＝Calib L 節 C 欄（輸入 800／輸出 3,880、無 SLO、批次填滿 HBM、η_d × CAL_BatchEtaD、含 prefill 分攤）；"
-         "GB200 的 CAL_BatchEtaD 由 vLLM 10.1K 校準（Calib J 節 D 欄），本點不用於校準"),
+         "GB200 的 CAL_BatchEtaD 由 vLLM 10.1K 校準（Calib J 節 D 欄），本點不用於校準"
+         "｜v12.0 H2：【校準相關（非獨立）】D156＝2.36＝√(1.83 × 3.04)，1.83 正是本點（MLPerf v6.0 offline 6,752）反推的倍數、3.04 由 vLLM 10.1K 反推，兩個校準點同時被用到，本點因此不再是獨立驗證點；"
+         "F 欄顯示文字（帶內／帶外），不計入驗證項目數／通過／失敗"),
         ("V21", "MLPerf v6.0 offline：GB300 NVL72（NVIDIA 72 GPU，無 SLO，大批次）——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑）", f"=Calib!D{CAL['L']['lout']}", "=SRC_PERF_080", None, 0.5, 2.0,
          "v11.0 G3：SRC_PERF_080（8,987；第二來源 Nebius 72 GPU 9,360＝SRC_PERF_083）；模型值＝Calib L 節 D 欄（同 V20；GB300 的 CAL_BatchEtaD＝1，未另校準）"),
         ("V22", "TensorRT-LLM H200 8 GPU（ISL 1K／OSL 2K，並行 1,024＝每 rank 128，EP8，無 SLO）：Hopper——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑）", f"=Calib!E{CAL['L']['lout']}", "=SRC_PERF_081", None, 0.5, 2.0,
@@ -297,10 +307,15 @@ def checks_v(wb, CAL):
         put(ws, f"C{r}", c, fmt="#,##0.000"); put(ws, f"D{r}", d, fmt="#,##0.000")
         put(ws, f"E{r}", (e or ratio(r)).replace("{r}", str(r)), fmt="0.000")
         if vid in SOFT_CAP:       # v11.0 G4: MLPerf server (V1–V3) is a soft cap: ratio > upper bound is a warning, not a failure
-            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(E{r}<H{r},0,IF(IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE),1,"警示")),"—")', F_BOLD, fmt="0")
+            # v12.0 H1: second line CHK_SoftCapFail (Calib M section): ratio <= I (1) pass; I < ratio <= CHK_SoftCapFail warn; ratio > CHK_SoftCapFail fail
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(E{r}<H{r},0,IF(IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE),1,IF(E{r}>CHK_SoftCapFail,0,"警示"))),"—")', F_BOLD, fmt="0")
+        elif vid == "V18":        # v12.0 H7: identity (not a verification): text result, not counted
+            put(ws, f"F{r}", f'=IF(ISNUMBER(E{r}),IF(E{r}=0,"恆等式（非驗證）","恆等式不成立（K 被改寫）"),"—")', F_BOLD)
+        elif vid == "V20":        # v12.0 H2: calibration-related (not independent): text result, not counted
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),"校準相關（非獨立）："&IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),"帶內","帶外"),"—")', F_BOLD)
         else:
             put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),1,0),"—")', F_BOLD, fmt="0")
-        put(ws, f"G{r}", "驗證", F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
+        put(ws, f"G{r}", {"V18": "恆等式（非驗證）", "V20": "校準相關（非獨立）"}.get(vid, "驗證"), F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
         if hi is not None: put(ws, f"I{r}", hi, F_CALC, fmt="0.00")
         put(ws, f"J{r}", note, F_NOTE, wrap=True); r += 1
     last = r - 1

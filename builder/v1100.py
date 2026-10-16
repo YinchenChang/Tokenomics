@@ -255,7 +255,8 @@ def apply(wb, append_text):
     ws = wb["Calib"]
     sec = next(r for r in range(150, ws.max_row + 1) if str(ws.cell(r, 1).value or "").startswith("L. 大批次驗證點（v11.0 G3）"))
     n = 0
-    for r in range(sec, ws.max_row + 1):
+    end = next((r for r in range(sec, ws.max_row + 1) if str(ws.cell(r, 1).value or "").startswith("M. 驗證判準參數")), ws.max_row + 1)      # v12.0: Calib M section (below L) is not part of the L section
+    for r in range(sec, end - 1 if end <= ws.max_row else end):      # end - 1: the blank spacer row above the M section header
         n += v1030._set_mark(ws, r, CALIB_L_TXT)
     log["marks_calib_l"] = n
     sp = wb["SRC_Perf"]; k2 = 0

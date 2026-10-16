@@ -1520,6 +1520,7 @@ import v1010
 import v1020
 import v1030
 import v1100
+import v1200
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1626,7 +1627,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v1100.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v1200.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1672,11 +1673,12 @@ def readme(wb):
       v1020.README_ROW,       # v10.2: eta calibration and verification criteria (appended; no README row moves)
       v1030.README_ROW,       # v10.3: slimming 4-2a (appended; no README row moves)
       v1100.README_ROW,       # v11.0: big-batch fix (appended; no README row moves)
+      v1200.README_ROW,       # v12.0: v11.1 patch (appended; no README row moves)
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v1100.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v1200.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -20378,7 +20380,7 @@ def calib_i(wb):
     put(ws, f"A{ROW_VAL}", LAB_VAL); put(ws, f"B{ROW_VAL}", "x")
     for col in "CDEFG":
         if col == VR_COL: put(ws, f"{col}{ROW_VAL}", K_DEFAULT, fmt="0.00")
-        elif col == "D": put(ws, f"{col}{ROW_VAL}", 1, fmt="0.00")      # v11.0 G2：GB200 倍數改為藍字輸入（預設 1；Excel 值 3.04 由 restore 讀回，v1100.inputs_update 只在仍為 1 時寫入）
+        elif col in ("C", "D"): put(ws, f"{col}{ROW_VAL}", 1, fmt="0.00")      # v11.0 G2：GB200 倍數改為藍字輸入（預設 1；Excel 值由 restore 讀回，v1100.inputs_update 只在仍為 1 時寫入）；v12.0 H3：Hopper（C）同樣改為藍字輸入（值維持 1；Gov_Map 區間 1–3.74）
         else: put(ws, f"{col}{ROW_VAL}", 1, F_CALC, fmt="0.00")
     put(ws, f"H{ROW_VAL}", TAG_VR, F_NOTE)
     put(ws, f"J{ROW_VAL}", DESC, F_NOTE, wrap=True)
@@ -26710,6 +26712,2553 @@ README_ROW = ("2025 年度口徑與服務 GW 主口徑（v8.0）",
               "Q1、Q2、服務 GW 的主口徑改為支出路線（token 路線保留為對照）。標記與理由見 Gov_Map 與 Decisions AF2d-*。")
 ```
 
+## v810.py
+
+```python
+# v9.0 (work order docs/workorders/20261016_稽核修正2.md r1, section 5r1 = segment 2-4): D9 (cache hit in capacity, free share on one token basis, kappa on the price end,
+# amortisation denominator) and the 2-3 follow-ups.  The file keeps the name v810 (the segment was planned as v8.1); the version is v9.0 because contract names change definition
+# (IF_AllocQ1_R2 spend route, L1_MImplied／MAPI／MSub／MSeat 2025 price, IF_AmortRev_* paid-token denominator, L1_ExtServeGW main basis; CLAUDE.md section 4: contract change = major).
+#   M1 cache hit enters prefill capacity: perf.py (Perf, Sens_Perf and their _Prod mirrors; Perf_Batch keeps the full ISL so Training is untouched)
+#   M2 free share on one basis: v532 paid_share (Cap_In row 87) 1 - AL_FreeShare (token basis); the other readers of IF_FreeShare/B4_Free multiply GW or spend, not tokens (left as is)
+#   M3 kappa on the price end: v532 price row (Cap_In C90) and v800 CAP_Price25Mix
+#   M4 IF_AmortRev_*: block4 amortize (d) denominator = the tier's paid tokens
+#   M6 2-3 follow-ups: demand-route m (H5, H8 and their display rows) and Cap_In I-7 required L (m = L1_MAPI) on the 2025 basis; IF_AllocQ1_R2 on the spend route; L1_ExtServeGW back to main basis
+#   M7 text flag wording kept per cause; downstream contract text rewritten (docs/plan)
+# Every write to an Excel-owned cell is guarded (text not yet present ／ cell still holds its v8.0 value).
+import re
+import v532
+import v533
+import v534
+import v535
+import v800
+
+VERSION = "20261016_Tokenomics_v9.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-16"
+V = "v9.0"
+WO = "工作單 docs/workorders/20261016_稽核修正2.md r1 第 5r1 節"
+CHAT_DEF = "chat 端預設（M1–M7 見工作單 5r1），可撤回"
+_PATCHED = False
+P25 = "CAP_Price25Mix"
+_DEM = re.compile(r"[CDE]\{(?:P_)?price\}")
+
+
+def _sub_price(it):
+    """Demand-route m rows: the H4 price cell (2026 snapshot) -> the 2025 mixed price (kappa included); low／high columns read the base cell (price range is not crossed into m)."""
+    it = list(it)
+    for k in range(1, len(it)):
+        if isinstance(it[k], str) and _DEM.search(it[k]):
+            it[k] = _DEM.sub(P25, it[k])
+    return tuple(it)
+
+
+def patch_specs():
+    """Call right after v800.patch_specs() and before the Cap_In H sections are written."""
+    global _PATCHED
+    if _PATCHED: return
+    # M6 (a): demand-route m on the 2025 price
+    for sp, keys in ((v532.SPEC, ("m_sub", "m_api", "m_all", "m_api_ext", "m_all_ext")),
+                     (v533.SPEC, ("m_sub_ex", "m_all_ex")),
+                     (v534.SPEC_H8, ("m_api", "m_cons", "m_seat", "m_all", "need_tok", "cap_tok"))):
+        for i, it in enumerate(sp):
+            if it[0] in keys:
+                new = _sub_price(it)
+                assert new != it, it[0]
+                sp[i] = new
+    # M6 (a): H10 2025 column (C) price row on the 2025 price, so that its m rows agree with H5 (self-check row "自我檢查：2025 欄")
+    sp = v534.SPEC_H10
+    for i, it in enumerate(sp):
+        if it[0] == "q_price":
+            it = list(it)
+            assert it[3] == "=$C${P_price}", it[3]
+            it[3] = "=CAP_Price25Mix"
+            it[1] = "付費 token 混合有效單價（C 欄＝2025 年度 CAP_Price25Mix（v9.0 M6，與 H5 同口徑）；D–F 欄＝H4 第 {P_price} 列，2026 快照）"
+            sp[i] = tuple(it)
+    # M6 (a): Cap_In I-7 required L (m = L1_MAPI) on the 2025 fleet breakeven, as the fleet row in v800
+    sp = v535.SPEC_I
+    for i, it in enumerate(sp):
+        if it[0] == "i_req_api":
+            it = list(it)
+            for k in (3, 4, 5): it[k] = re.sub(r"\bL1_FleetBreakeven\b", "L1_FleetBreakeven2025", it[k])
+            it[1] = "回本所需 L（2025 機隊口徑；m＝L1_MAPI；D 欄 m＝L1_MAPI_Hi、E 欄 L1_MAPI_Lo）"
+            it[7] = "v9.0 M6：L1_FleetBreakeven2025 ÷（IF_Util × CTL_ProdDerate × m）；m_API 亦用 2025 單價（CAP_Price25Mix）；基準值見 L1 對應列"
+            sp[i] = tuple(it)
+    _PATCHED = True
+
+
+# ================================================================== L1 rows (M6: ExtServeGW back to the main basis; labels of the demand-route m rows)
+M6_TAIL = "｜v9.0 M6：單價改 2025 年度混合有效單價 CAP_Price25Mix（× κ；與機隊 m 同年度口徑）；m 的低／高只反映 token 端，價格區間不交叉"
+
+
+def l1_patch(R):
+    out = []
+    for row in R:
+        row = list(row)
+        key = row[0]
+        if key in ("MImplied", "MImplied_Ext", "MAPI", "MSub", "MSeat") and M6_TAIL not in row[2]:
+            row[2] = row[2] + M6_TAIL
+        elif key == "ExtServeGW":
+            row[1] = "服務 GW：模型主口徑（支出路線）對 外部對照（推論支出 ÷ 持有成本）"
+            row[2] = ("OpenAI 2025；v9.0 M6：恢復「模型主口徑對外部」——推算值＝IF_AllocServeGW（支出路線，D14 主口徑），外部對照＝推論支出 ÷ 持有成本；"
+                      "token 路線（需求 D ÷ 每 GW 產能）改為對照，見 IF_AllocServeGW_Tok 與 L1_ScaleServe")
+            assert row[3] == "=IF_AllocServeGW_Tok", row[3]
+            row[3] = row[4] = row[5] = "=IF_AllocServeGW"
+            row[8] = ("主口徑與外部對照同源（SRC_DEM_004 ÷ 持有成本），比值必為 1；本列不再是獨立檢驗。token 路線對支出路線的差距（未解釋）見 L1_ScaleServe，token 路線值見 IF_AllocServeGW_Tok"
+                      if len(row) > 8 else "")
+        out.append(tuple(row))
+    return out
+
+
+# ================================================================== L1 judgement column (M5): identity reading as the main reading, literal reading beside it
+def l1_judge(wb):
+    ws = wb["L1"]
+    r = int(wb.defined_names["L1_LReqFleet"].attr_text.split("$")[-1]); assert ws[f"A{r}"].value == "L1_LReqFleet", (r, ws[f"A{r}"].value)
+    ri = int(wb.defined_names["L1_LReqFleet_Id"].attr_text.split("$")[-1]); assert ws[f"A{ri}"].value == "L1_LReqFleet_Id", (ri, ws[f"A{ri}"].value)
+    D, I, M = f"D{r}", f"D{ri}", f"M{r}"
+    verdict = lambda x: f'IF({M}>={x},"回本","未回本")'
+    ws[f"P{r}"].value = (
+        f'=IF(AND(ISNUMBER({D}),ISNUMBER({I}),ISNUMBER({M})),IF({I}>0,'
+        f'IF(ABS({D}/{I}-1)<=0.1,'
+        f'"字面讀法為主："&{verdict(D)}&"（L_total "&TEXT({M},"0.00")&" 對所需 L "&TEXT({D},"0.00")&"）；恆等式讀法 "&TEXT({I},"0.00")&" 並列；兩種讀法差 "&TEXT({D}/{I},"0.00")&" 倍（≤10%），來源見 2-4 報告",'
+        f'"恆等式讀法為主："&{verdict(I)}&"（L_total "&TEXT({M},"0.00")&" 對所需 L "&TEXT({I},"0.00")&"）；字面讀法 "&TEXT({D},"0.00")&"（"&{verdict(D)}&"）並列；兩種讀法差 "&TEXT({D}/{I},"0.0")&" 倍，來源見 2-4 報告"),'
+        f'"所需 L 為 0"),'
+        f'IF(AND(ISNUMBER({D}),ISNUMBER({M})),IF({M}>={D},"回本（L_total 口徑，字面讀法）：L_total "&TEXT({M},"0.00")&" ≥ 所需 L "&TEXT({D},"0.00"),'
+        f'"未回本（L_total 口徑，字面讀法）：L_total "&TEXT({M},"0.00")&" < 所需 L "&TEXT({D},"0.00")),"推算值非數字（本情境）"))')
+    return [r]
+
+
+# ================================================================== Decisions (10 columns; layout of v800)
+_D = [
+    ("M1", "快取命中進產能（D9）", "Perf、Sens_Perf 與 _Prod 鏡像頁的 prefill 計算量與時間只計新鮮輸入 ISL × (1 − B4_CacheHit)：TTFT（第 76 列）、每請求 GPU 秒（第 93 列）、prefill GPU 占比（第 94 列）。"
+     "IF_TokGW_* 計入的 token 定義不變（每請求 ISL＋OSL，快取輸入仍算作已服務的 token，以快取價計價）；快取輸入的讀取成本維持在成本端（Cache_Store、Perf 第 102 列），不重複計入。"
+     "Perf_Batch（RL rollout、蒸餾等批次推論，Training 頁讀它）維持全 ISL：工作單另規定 Training 全部數值不得變，兩者衝突時取後者；批次推論無對外服務的快取命中率（B4_CacheHit 是對外參考請求的值）。"
+     "prefill 平均位置（第 46 列＝ISL ÷ 2）不隨快取調整（新鮮 token 實際位置在 ISL 後段，平均注意跨度略大；影響為二階，列待 Project 判斷）。"
+     "基準下 Hopper Astra 的 TTFT 6.08 s → 2.74 s，恢復可達；IF_TokGW_* 全部上升。情境 d9_cache_cap_off（B4_CacheHit＝0）的產能端與 v8.0 一致。",
+     "Perf／Sens_Perf／_Prod 第 76、93、94 列（perf.py）；Perf_Batch 不變", "v9.0 已建"),
+    ("M2", "免費占比統一口徑（D9）", "乘在 token 上的占比一律用 token 口徑、乘在支出（或 GW）上的占比用支出口徑。逐格判斷：Cap_In 第 87 列（外部 Epoch token × 付費占比）原用支出口徑 IF_FreeShare（0.46），改用 token 口徑 1 − AL_FreeShare（0.4）；"
+     "Cap_In 第 113 列（r 的支出口徑換算）本來就是把支出占比經付費產能倍數換成 token 比，口徑正確，不改；Fleet_1GW 第 11、12 列與 Sens_Rev F14／F15 乘的是 GW 或營收占比，口徑正確，不改。"
+     "AL_FreeShare（0.6）是 ChatGPT token 中免費用戶占比，Epoch 為前沿實驗室總量（含 API）——全體適用與否列待 Project 判斷。",
+     "Cap_In 第 87、88、97 列；L1_MImplied_Ext", "v9.0 已建"),
+    ("M3", "κ 套到價格端（D9）", "Cap_In 第 90 列（2026 混合有效單價）與 CAP_Price25Mix（2025）乘上 AL_Kappa（C、D、E 三欄同乘 AL_Kappa，價格區間不與 κ 區間交叉）；基準 κ＝1，基準值不變。"
+     "機隊口徑單價 AL_PriceFleet25／AL_PriceFleet 未乘 κ（工作單只列前兩者），κ 情境下機隊 m 的價格端仍不隨 κ；乘或除 κ 的方向亦列待 Project 判斷（κ＝每 GPU 秒總 token 比；token 多的流量單價通常較低）。",
+     "Cap_In 第 90 列；Cap_In M 節 CAP_Price25Mix", "v9.0 已建"),
+    ("M4", "IF_AmortRev_* 分母改付費 token（第 1 批遺留）", "Amortize 第 44、46、48 列（及 Amortize_Prod 同列）的分母由「付費＋免費 token」改為該層級付費 token，與 D11 的 BU 分母一致；總額（由上而下年化總額）與營收權重不變。",
+     "Amortize 第 44、46、48 列；IF_AmortRev_Luna／Sol／Astra", "v9.0 已建"),
+    ("M5", "回本判讀的讀法", "L1_LReqFleet（字面讀法：L1_FleetBreakeven2025 ÷（IF_Util × CTL_ProdDerate × m））與 L1_LReqFleet_Id（恆等式讀法：支出路線服務 GW 的持有成本 ÷ 營收）並列。"
+     "M1–M4 後兩者仍差約 2.7 倍（>10%），判讀欄（L1 P 欄）改以恆等式讀法為主、字面讀法並列並寫明差幾倍；兩者相差 ≤10% 時自動改以字面讀法為主。差距來源見 2-4 報告第 5 節。",
+     "L1!P（L1_LReqFleet 列）", "v9.0 已建"),
+    ("M6", "2-3 口徑後續（D2、D14）", "需求路線的 m（Cap_In H5 的 L1_MImplied／L1_MImplied_Ext 與 H8 的 L1_MAPI／MSub／MSeat，含非文字扣除與「必須為真」顯示列）改用 2025 年度混合有效單價 CAP_Price25Mix；Cap_In 第 241 列（m＝L1_MAPI 的所需 L）改讀 L1_FleetBreakeven2025；"
+     "IF_AllocQ1_R2 的服務 GW 改支出路線，免費服務 GW＝服務 GW × AL_FreeSpendShare；L1_ExtServeGW 改回「模型主口徑（支出路線）對外部」，token 路線另見 IF_AllocServeGW_Tok／L1_ScaleServe；"
+     "價格區間（_Lo／_Hi）不交叉進 m 的低／高（與世代價格 B 段的不交叉組合一致）。注意：L1_ExtServeGW 的主口徑與外部對照同源，比值恆為 1，不再是獨立檢驗。",
+     "Cap_In H5／H8／I-7；Alloc 第 57 列；Interface 第 196 列；L1_ExtServeGW", "v9.0 已建"),
+    ("M7", "文字旗標與契約文件", "文字旗標字樣依成因保留「SLO 不可達」「TTFT 不可達」「整代不可達」；下游契約第 2 節第 2 條改寫為『凡文字＝不可用，下游以是否為數字判斷，不以字串比對』；契約第 5 節補 v6.2、v6.3、v8.0、v9.0 條目；"
+     "過渡別名 IF_RevGWFleet_Life、IF_RevGW_*_Life 延後到下游同步（Andy 跑完 CoreWeave）之後的第一個主版刪除。",
+     "docs/plan/Tokenomics_downstream_contract.md", "v9.0 已建"),
+]
+DECISIONS_V810 = [[f"AF2e-{i}", V, f"稽核修正第 2 批 2-4：{t}", txt, DATE, CHAT_DEF, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+# ================================================================== README
+README_VERSION = (VERSION + "（主版：稽核修正第 2 批 2-4 段，" + WO + "——D9：快取命中進產能（Perf／Sens_Perf／_Prod 的 prefill 只計新鮮輸入；Perf_Batch 不變）、免費占比 token 口徑（Cap_In 第 87 列）、"
+                  "κ 套到價格端（Cap_In 第 90 列、CAP_Price25Mix）、IF_AmortRev_* 分母改付費 token；2-3 後續：需求路線 m 與 Cap_In 第 241 列改 2025 口徑、IF_AllocQ1_R2 改支出路線、"
+                  "L1_ExtServeGW 改回主口徑、L1_LReqFleet 判讀以恆等式讀法為主；Decisions AF2e-*）。以下為 " + v800.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v800.README_TITLE
+README_TITLE = VERSION.split("_")[-1] + _T[len(v800.VERSION.split("_")[-1]):]
+README_ROW = ("D9 快取進產能與 2-3 後續（v9.0）",
+              "稽核修正 2-4：快取命中進產能（IF_TokGW_* 全部上升，Hopper Astra 恢復可達）；免費占比、κ、攤提分母同口徑；需求路線 m 與回本比較用 2025 口徑；"
+              "回本判讀以恆等式讀法為主、字面讀法並列。標記與理由見 Decisions AF2e-*。")
+```
+
+## v1000.py
+
+```python
+# v10.0 (work order docs/workorders/20261016_稽核修正2.md r1, section 6r1 = segment 2-5): D12 self-computed L／m scenario names (not fed back), D4 nature column and
+# explained／unexplained gap split, D5 verification that can fail (verification counters, MLPerf upper bounds, independent LMSYS points, RL and harness cross-checks),
+# 2-4 follow-ups (label notes), downstream contract text.  Major version: new contract names (Interface L section IFW_*_LifeSelf).
+#   N1 Interface L section: IFW_*_LifeSelf = IFW_*_Prod x L1_LTotal x L1_MFleet (revenue names only; capacity names have no L／m layer). No formula reads these names
+#      (parity test: references outside Interface／Load_Bearing／Gov_Map must be 0).
+#   N2 L1 column T "性質" (估計／殘差／倒推／恆等式／未解釋) with column U reasons; L1_GapUnexplained row (actual gap ÷ four-factor product); Train_In H34, Alloc, Interface tags.
+#   N3 Checks column G "性質"; Checks V section (CHK_VerifyTotal／Pass／Fail; failures are NOT in GOV_Errors); Calib H section gains two MLPerf v5.1 server points
+#      (Hopper H200, GB200); SRC_Perf／SRC_Harness records for the new reference values.
+#   N4 label notes (Perf_Batch, Perf TTFT, kappa, free share), literal payback reading marked inconsistent.
+# Every write to an Excel-owned cell is guarded (text not yet present ／ cell still holds its v9.0 value).
+import re
+from openpyxl.workbook.defined_name import DefinedName
+from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+import v810
+import v800
+
+VERSION = "20261016_Tokenomics_v10.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-16"
+V = "v10.0"
+WO = "工作單 docs/workorders/20261016_稽核修正2.md r1 第 6r1 節"
+Q3A = "docs/reports/20261015_稽核修正3A_查證.md"
+CHAT_DEF = "chat 端預設（N1–N5 見工作單 6r1），可撤回"
+DASH = "—"
+_row = v800._row
+
+# ================================================================== N1: Interface L section (IFW_*_LifeSelf)
+REVS = ["RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront"]
+LIFESELF_NOTE = "情境：自算 L、m（L1_LTotal、L1_MFleet）；不回流，不建議下游作為基準"
+IFL_TITLE = ("L. 情境：自算 L、m（v10.0 N1，D12）：IFW_*_LifeSelf ＝ IFW_*_Prod × L1_LTotal × L1_MFleet；控制值 CTL_PriceLife、CTL_Monetize 仍為 1（IFW_*_Life 不變）。"
+             "本節名稱不得被任何公式讀取（parity 測試：Interface、Load_Bearing、Gov_Map 以外引用數＝0）；只供讀者並列比較，不是下游基準")
+
+
+def _name_row(wb, name):
+    ref = wb.defined_names[name].attr_text
+    sh, rng = ref.split("!")
+    return sh, int(re.findall(r"\$(\d+)", rng)[0])
+
+
+def interface_l(wb):
+    ws = wb["Interface"]
+    start = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, start, IFL_TITLE, 17)
+    r = start + 1; made = []
+    for stem in REVS:
+        sh, p = _name_row(wb, f"IFW_{stem}_Prod"); assert sh == "Interface", sh
+        base = str(ws.cell(p, 1).value).split("｜")[0]
+        put(ws, f"A{r}", f"{base}｜{LIFESELF_NOTE}　[IFW_{stem}_LifeSelf]"); put(ws, f"B{r}", "$B/年")
+        for k in range(3, 18):
+            X = ws.cell(row=1, column=k).column_letter
+            put(ws, f"{X}{r}", f'=IF(ISNUMBER({X}{p}),IF(AND(ISNUMBER(L1_LTotal),ISNUMBER(L1_MFleet)),{X}{p}*L1_LTotal*L1_MFleet,"L、m 非數字（本情境）"),{X}{p})',
+                fmt=ws.cell(p, 3).number_format)
+        wb.defined_names[f"IFW_{stem}_LifeSelf"] = DefinedName(f"IFW_{stem}_LifeSelf", attr_text=f"Interface!$C${r}:$Q${r}")
+        made.append((f"IFW_{stem}_LifeSelf", r)); r += 1
+    return dict(start=start, made=made)
+
+
+# ================================================================== N2: L1 gap split (explained／unexplained), nature column
+def l1_rows_new():
+    return [_row("GapUnexplained", "落差分解 5：未解釋＝實際缺口 ÷ 四項乘積（L1_ScaleServe2000 ÷ L1_GapProduct）；本分解不是定義式，未解釋部分的來源不可由本表得知",
+                 "v10.0 N2（D4）：已解釋／未解釋；四項口徑差之積對實際缺口的剩餘倍數",
+                 "=IF(AND(ISNUMBER(L1_ScaleServe2000),ISNUMBER(L1_GapProduct)),IF(L1_GapProduct>0,L1_ScaleServe2000/L1_GapProduct,AL_UnavailTxt),AL_UnavailTxt)",
+                 "=IF(AND(ISNUMBER(L1_ScaleServe2000),ISNUMBER(L1_GapProduct_Hi)),IF(L1_GapProduct_Hi>0,L1_ScaleServe2000/L1_GapProduct_Hi,AL_UnavailTxt),AL_UnavailTxt)",
+                 "=IF(AND(ISNUMBER(L1_ScaleServe2000),ISNUMBER(L1_GapProduct_Lo)),IF(L1_GapProduct_Lo>0,L1_ScaleServe2000/L1_GapProduct_Lo,AL_UnavailTxt),AL_UnavailTxt)",
+                 "x", "低＝實際缺口 ÷ 四項乘積高端、高＝÷ 低端（實際缺口 L1_ScaleServe2000 無區間）",
+                 "1＝四項完全解釋；大於 1＝四項只解釋缺口的 1 ÷ 該值（基準約 3.7 倍：四項只解釋約 27%）；剩餘部分來源不明，是未解釋（不是已查明的原因）",
+                 "L1_ScaleServe2000、L1_GapProduct", "同 L1_GapProduct：Assumed 分母", DASH, "L1_GapUnexplained", "L1 本頁（第 70–74 列分解的並列）", "顯示用")]
+
+
+def l1_patch(R):
+    out = []
+    for row in R:
+        row = list(row)
+        if row[0] == "GapProduct" and "已解釋部分" not in row[1]:
+            row[1] = row[1].replace("落差分解乘積：", "落差分解乘積（已解釋部分）：", 1) + "；未解釋部分見 L1_GapUnexplained（本分解不是定義式）"
+        out.append(tuple(row))
+    return out
+
+
+E_, R_, B_, I_, U_ = "估計", "殘差", "倒推", "恆等式", "未解釋"
+NATURE = {}
+def _n(cls, reason, *keys):
+    for k in keys: NATURE[f"L1_{k}"] = (cls, reason)
+_n(E_, "由輸入、規格與物理推導直接算出（自下而上），沒有以目標值反解", "CapexGW_Hopper", "CapexGW_GB200", "CapexGW_GB300", "CapexGW_VR200", "NvContentGW_VR200", "FacCapexMW",
+   "HoldEconGW_Hopper", "HoldEconGW_GB200", "HoldEconGW_GB300", "HoldEconGW_VR200", "GPUhr_Hopper", "GPUhr_GB200", "GPUhr_GB300", "GPUhr_VR200", "CapexITMW_GB300_vsIREN")
+_n(E_, "roofline 推導的每 token 成本（自下而上）", "CostDec_Luna_VR200", "CostDec_Luna_GB300", "CostDec_Sol_VR200", "CostDec_Sol_GB300", "CostDec_Astra_VR200", "CostDec_Astra_GB300", "CostTotTokIX_GB300")
+_n(E_, "理論營收上限＝每 GW 產出 × 牌價（物理量 × 單價），不含 L、m", "RevGW_Luna_VR200", "RevGW_Sol_VR200", "RevGW_Astra_VR200", "RevGW_Fleet_VR200", "RevGWFleet_OAI2025")
+_n(E_, "模型值對外部牌價／租金的對照（外部值為參照，不用於反解）", "GPUhr_GB200_vsCW", "GPUhr_GB300_vsBE")
+_n(B_, "RL rollout token 由「RL ÷ 預訓練 GPU 小時＝目標值（J9：Luna／Sol 約 0.3、Astra 1.0）」反解；校準目標不是證據（3A：Olmo 3 約 0.11、DeepSeek-V3.2 ≥ 0.1）", "RLshare_Sol_VR200", "RLshare_Astra_VR200")
+_n(I_, "輸入的倒數（Train_In C13 的研發倍數），只驗算一致，沒有新資訊", "FinalTrainShare")
+_n(E_, "預訓練 FLOPs＝6 × 啟用參數 × token（自下而上；啟用參數、token 為 Assumed）", "PretrainFLOP_Astra")
+_n(E_, "Q1／Q2／研發成本：服務 GW 為支出路線（SRC_DEM_004 ÷ 持有成本）、研發 GW 為計畫規模 × 單位 GW 年（Assumed）；乘除皆為模型推導", "Ans1", "Ans2", "Ans3")
+_n(E_, "各層級成本、理論營收、後訓練占比、牌價比、毛利率、harness 與成功任務成本：由輸入推導的輸出", "Ans4", "Ans5", "Ans6", "Ans7", "Ans8", "Ans9", "Ans5_GM", "Ans5_FullMargin", "Ans6_GPUh")
+_n(B_, "主口徑服務 GW＝推論支出（SRC_DEM_004）÷ 持有成本：由外部支出除以模型成本反推容量；與外部對照同源，比值恆為 1（不是獨立檢驗）", "ExtServeGW")
+_n(E_, "兩路線的免費占比對照（token 路線對支出口徑）", "ExtFreeShare")
+_n(E_, "模型每日 token 對 Epoch 估計的對照", "ExtDaily")
+_n(B_, "令機隊營收＝持有成本所需的乘積（使某值不變而反解）", "FleetBreakeven", "FleetBreakeven2025")
+_n(E_, "機隊營收 ÷ 持有成本（比值輸出）", "FleetMargin", "FleetProdRatio")
+_n(I_, "每 GW 的 $B 與每 MW 的 $M 數值相同（單位換算）", "HoldEconMW_Hopper", "HoldEconMW_GB200", "HoldEconMW_GB300", "HoldEconMW_VR200")
+_n(E_, "相鄰世代每 GW 總產出比（物理推導）；harness 對世代比為兩個推導比值之比", "TokMW_Gen_ratio_GB200", "TokMW_Gen_ratio_GB300", "TokMW_Gen_ratio_VR200",
+   "HarVsGen_Chat", "HarVsGen_ReasonChat", "HarVsGen_SingleAgent", "HarVsGen_MultiAgent", "HarVsGen_Coding")
+_n(E_, "外部估計值（Epoch 硬體推估；單一外部錨點，不是模型推導）", "PretrainFLOP_Astra_Ext")
+_n(U_, "差距沒有被分解（工作單 D4：標「未解釋」）：Astra 啟用參數、token、後訓練都可能", "AstraScale")
+_n(U_, "OpenAI 訓練支出 ÷ 模型研發算力成本：差距未分解（校準用，不得當產能）", "ScaleRD")
+_n(U_, "支出路線 ÷ token 路線：兩路線的差距，由 L1_GapProduct 只解釋一部分，其餘見 L1_GapUnexplained", "ScaleServe", "ScaleServe2000")
+_n(E_, "落差分解的四個已解釋因子（各自由 Assumed 輸入算出）；乘積＝已解釋部分", "GapPrompt", "GapSpendBasis", "GapISL", "GapUtil", "GapProduct")
+_n(U_, "實際缺口 ÷ 四項乘積：四項之外未被解釋的倍數（本分解不是定義式）", "GapUnexplained")
+_n(R_, "m＝營收 ÷（token × 單價）：由營收與 token 算出的殘差，吸收所有未建模的口徑差", "MImplied", "MImplied_Ext", "MFleet", "MAPI", "MSub", "MSeat", "MAPI_Anthropic", "MFleet_Px2026", "MixFactorAPI")
+_n(R_, "實收單價＝m × 混合有效單價＝營收 ÷ token（m 的殘差性質沿用）", "PriceRealFleet", "PriceRealDemand")
+_n(E_, "機隊付費 token 上限（支出路線服務 GW × 最大產出）：上限讀法的推導值", "TokCeiling")
+_n(B_, "令需求 token 佔滿機隊有效產能所需的每則 token 數（閉合解，使某值不變）", "TokPerPromptClose")
+_n(E_, "壽命期價格係數 L 的兩個分項與乘積（價格迴歸與降級假設；三者皆 Assumed）", "LPrice", "LDemote", "LTotal", "PriceRho")
+_n(B_, "回本所需的 L 或實收單價：令營收＝成本所需的量（倒推）", "LReqFleet", "LReqFleet_VR200", "PriceReqBE")
+_n(I_, "機隊持有成本 ÷ 實收營收：同一支出路線的恆等式讀法，不受容量口徑影響", "LReqFleet_Id")
+_n(E_, "2025 年度牌價指數與機隊口徑單價（牌價 × 加權，Derived）", "Price25Mix", "PriceFleet25")
+_n(B_, "令世代間每 MW 收入（或回本餘裕）持平所需的年價格變化率（使某值不變而反解）", "GenPxThr_Rev_GB200", "GenPxThr_Rev_GB300", "GenPxThr_Rev_VR200", "GenPxThr_Pay_GB200", "GenPxThr_Pay_GB300", "GenPxThr_Pay_VR200")
+_n(B_, "Epoch 1.0e27 FLOP ÷（6 × 啟用參數）：由外部 FLOP 反推隱含 token（情境，不進計算）", "AstraExtTok_180B", "AstraExtTok_400B", "AstraExtTok_800B")
+
+
+def l1_nature(wb):
+    """Column T (性質) and U (理由) on every L1 data row; every row must be classified."""
+    ws = wb["L1"]
+    put(ws, "T4", "性質（v10.0 N2：估計／殘差／倒推／恆等式／未解釋）", F_BOLD, wrap=True); put(ws, "U4", "性質的判斷理由（v10.0）", F_BOLD, wrap=True)
+    ws.column_dimensions["T"].width = 12; ws.column_dimensions["U"].width = 60
+    stats = {}; missing = []
+    for r in range(5, ws.max_row + 1):
+        a = ws.cell(r, 1).value
+        if not (isinstance(a, str) and a.startswith("L1_")): continue
+        if a not in NATURE: missing.append(a); continue
+        cls, why = NATURE[a]
+        put(ws, f"T{r}", cls, F_BOLD); put(ws, f"U{r}", why, F_NOTE, wrap=True)
+        stats[cls] = stats.get(cls, 0) + 1
+    assert not missing, missing
+    ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    unused = [k for k in NATURE if k not in ids]
+    assert not unused, unused
+    return stats
+
+
+# ================================================================== N2/N4: marker and label text (guarded appends)
+TAIL_NK = " ｜v10.0 N2（D4）：性質＝倒推（隱含 N × k／J8 落差由 2025 支出反推研發 GW，再除以計畫當量；不是觀測值）"
+TAIL_RL = " ｜v10.0 N2（D4）：性質＝倒推——RL rollout token 由「RL ÷ 預訓練 GPU 小時＝目標值」反解，校準目標不是證據；獨立對照見 Checks V 節（Olmo 3 約 0.11、DeepSeek-V3.2 ≥ 0.1，通過帶 0.1–0.3）"
+TAIL_KAPPA = " ｜v10.0 N4：κ＝（實際流量每 GPU 秒總 token）÷（參考請求每 GPU 秒總 token）；價格端乘 κ（v9.0 M3），維持乘法（定義如此，基準 1）"
+TAIL_FREE = " ｜v10.0 N4：產業總量（Epoch 全體 token，L1_MImplied_Ext）的免費占比未必等於 ChatGPT 的免費占比；本格只量 ChatGPT"
+TAIL_LREQ = ("｜v10.0 N4：字面讀法（L1_LReqFleet）口徑不一致，僅供對照——分子是整個機隊的損益兩平，分母卻只含付費服務占比（約 22%）的營收；判讀只用恆等式讀法 L1_LReqFleet_Id")
+TAIL_ID229 = "｜v10.0 N3：性質＝恆等式（非驗證）"
+TAIL_PERFB = "；Perf_Batch 為訓練端批次推論，無服務快取（prefill 計全 ISL，不乘 1 − B4_CacheHit；v10.0 N4）"
+
+
+def text_update(wb, append_text):
+    log = []
+    ws = wb["Alloc"]
+    for name, tail in (("AL_ImpliedNk", TAIL_NK), ("AL_J8Gap", TAIL_NK)):
+        r = _name_row(wb, name)[1]
+        if append_text(ws[f"A{r}"], tail): log.append(f"Alloc!A{r}: nature tag ({name})")
+    r = _name_row(wb, "IF_AllocImpliedNk")[1]
+    if append_text(wb["Interface"][f"A{r}"], TAIL_NK): log.append(f"Interface!A{r}: nature tag")
+    if append_text(wb["Train_In"]["H34"], TAIL_RL): log.append("Train_In!H34: 倒推 tag")
+    if append_text(wb["Alloc_In"]["G26"], TAIL_KAPPA): log.append("Alloc_In!G26: kappa definition")
+    if append_text(wb["Alloc_In"]["G16"], TAIL_FREE): log.append("Alloc_In!G16: free share scope")
+    r = _name_row(wb, "L1_LReqFleet")[1]
+    if append_text(wb["L1"][f"B{r}"], TAIL_LREQ): log.append(f"L1!B{r}: literal reading inconsistent")
+    for rr in range(200, 240):                      # Interface identity row: IF_DeprIT＋IF_DeprFac＋IF_OpexGW − IF_HoldAcct
+        a = wb["Interface"].cell(rr, 1).value
+        if isinstance(a, str) and a.startswith("加總核對：IF_DeprIT"):
+            if append_text(wb["Interface"].cell(rr, 1), TAIL_ID229): log.append(f"Interface!A{rr}: identity tag")
+    return log
+
+
+def l1_judge(wb):
+    """v10.0 N4-8: payback reading uses the identity reading only; the literal reading is shown beside it, marked inconsistent (v9.0 M5 switched to the literal reading when the two agreed within 10%)."""
+    ws = wb["L1"]
+    r = _name_row(wb, "L1_LReqFleet")[1]; ri = _name_row(wb, "L1_LReqFleet_Id")[1]
+    D, I, M = f"D{r}", f"D{ri}", f"M{r}"
+    ws[f"P{r}"].value = (
+        f'=IF(AND(ISNUMBER({D}),ISNUMBER({I}),ISNUMBER({M})),IF({I}>0,'
+        f'"恆等式讀法："&IF({M}>={I},"回本","未回本")&"（L_total "&TEXT({M},"0.00")&" 對所需 L "&TEXT({I},"0.00")&"）；字面讀法 "&TEXT({D},"0.00")&"（口徑不一致，僅供對照）；兩種讀法差 "&TEXT({D}/{I},"0.00")&" 倍＝付費服務占比倒數 "&TEXT(1/(B4_Serve*(1-B4_Free)),"0.00")&" × 付費 token 占比 "&TEXT({D}/{I}/(1/(B4_Serve*(1-B4_Free)))/(AL_UtilActual/IF_Util),"0.000")&" × 實際÷模型利用率 "&TEXT(AL_UtilActual/IF_Util,"0.000"),"所需 L 為 0"),'
+        f'IF(AND(ISNUMBER({I}),ISNUMBER({M})),IF({M}>={I},"回本","未回本")&"（恆等式讀法：L_total "&TEXT({M},"0.00")&" 對所需 L "&TEXT({I},"0.00")&"；字面讀法非數字）","推算值非數字（本情境）"))')
+    return r
+
+
+# ================================================================== N3: Checks column G (nature), V section (verification counters)
+CK_V, CK_ID, CK_CMP, CK_GOV, CK_HINT = "驗證（能失敗；計入 V 節）", "恆等式（非驗證）", "對照（無通過條件）", "治理（結構檢查）", "對照（觸發＝提示）"
+# row (v9.0 layout) -> (label prefix, nature); labels are asserted so a layout change stops the build
+CK_NATURE = {
+    4: ("VR200 每 GW 總資本支出", CK_CMP), 5: ("VR200 每 GW NVIDIA", CK_CMP), 6: ("每 MW IT 廠房", CK_CMP), 7: ("GB200 經濟口徑", CK_CMP), 8: ("GB300 經濟口徑", CK_CMP),
+    9: ("GB200 市場牌價", CK_CMP), 10: ("新雲損益兩平", CK_CMP),
+    14: ("校準：擬合點重現", CK_ID), 15: ("樣本外：GB300 SGLang", CK_V), 16: ("樣本外：GB300 vLLM", CK_V), 17: ("樣本外：GB200 vLLM", CK_V), 18: ("樣本外：GB200／GB300 110", CK_CMP),
+    19: ("GB300 Sol 經濟成本 vs InferenceX", CK_CMP), 20: ("VR200 ÷ GB300 每 GW 產出", CK_CMP), 21: ("GB300 每 GPU 功率", CK_CMP), 22: ("VR200 ÷ GB300 decode", CK_CMP),
+    23: ("第二來源：GB300 interactive", CK_V), 24: ("第二來源：VR200 ÷ GB300", CK_CMP), 25: ("來源衝突：GB300 ÷ GB200", CK_CMP),
+    26: ("能量閉合", CK_V), 27: ("SLO 或 TTFT 不可達", CK_CMP), 28: ("牌價空間", CK_CMP),
+    32: ("DeepSeek V3 推導 MFU", CK_CMP), 33: ("RL ÷ 預訓練 GPU 小時：VR200 Astra", CK_CMP), 34: ("RL ÷ 預訓練 GPU 小時：VR200 Sol", CK_CMP), 35: ("RL 有效 MFU", CK_CMP),
+    36: ("後訓練占比：GPU 小時口徑", CK_V), 37: ("最終訓練 ÷ 研發計畫", CK_CMP), 38: ("前沿錨點中值", CK_CMP), 39: ("Astra 最終訓練占 1 GW", CK_CMP),
+    43: ("OpenAI 2025 對帳", CK_CMP), 44: ("DeepSeek V4-Pro 尖峰", CK_CMP), 45: ("DeepSeek V4-Pro 離峰", CK_CMP), 46: ("DeepSeek V4.1-Flash", CK_CMP),
+    47: ("單價前緣模型：Luna", CK_CMP), 48: ("單價前緣模型：Sol", CK_CMP), 49: ("單價前緣模型：Astra", CK_CMP), 50: ("中國合格者最低", CK_CMP), 51: ("隱含每 GW 年家族研發", CK_CMP),
+    52: ("Fleet_1GW 服務 GW 閉合", CK_ID), 53: ("自下而上攤提", CK_CMP), 54: ("K6 縮放倍數", CK_CMP), 55: ("K6 (c)", CK_CMP), 56: ("機隊各層級貢獻合計", CK_ID),
+    60: ("混合權重 w", CK_ID), 61: ("Workload 總 token", CK_ID), 62: ("ARC 重現（token）", CK_CMP), 63: ("ARC 重現（R）", CK_CMP), 64: ("ARC 成功率換算", CK_CMP), 65: ("METR 隱含", CK_CMP),
+    66: ("Astra 標準 harness", CK_CMP), 67: ("每成功任務", CK_CMP), 68: ("Sens_Har：Astra R", CK_CMP), 69: ("可靠度下限", CK_CMP), 70: ("前緣『無合格』", CK_CMP),
+}
+CK_GOV_ROWS = {  # governance tables: A column holds the ID
+    **{r: (i, CK_GOV) for r, i in zip(range(74, 87), [f"E{n}" for n in range(1, 14)])},
+    87: ("W1", CK_GOV), 88: ("W2", CK_GOV), 89: ("I1", CK_GOV), 90: ("I2", CK_GOV), 91: ("I3", CK_GOV), 92: ("I4", CK_GOV), 93: ("I5", CK_GOV), 94: ("I6", CK_GOV), 95: ("I7", CK_GOV), 96: ("I8", CK_GOV),
+    104: ("H1", CK_ID), 105: ("H2", CK_ID), 106: ("H3", CK_GOV), 110: ("X1", CK_ID), 114: ("X7", CK_ID), 118: ("K1", CK_GOV), 119: ("K2", CK_GOV), 120: ("K3", CK_ID), 121: ("K4", CK_ID),
+    122: ("K5", CK_GOV), 123: ("K6", CK_GOV), 124: ("K7", CK_CMP), 128: ("M1", CK_HINT), 129: ("M2", CK_HINT), 130: ("M3", CK_HINT), 131: ("M4", CK_HINT), 132: ("M5", CK_ID),
+    136: ("Z1", CK_ID), 140: ("Z2", CK_ID),
+}
+CK_HDR_ROWS = (3, 13, 31, 42, 59, 73, 103, 109, 113, 117, 127, 135)
+NOTE_NAT = ("性質（v10.0 N3）說明：驗證＝能失敗的檢查，計入 V 節的 CHK_VerifyTotal／Pass／Fail；恆等式（非驗證）＝由建構或定義恆成立、擬合點重現或輸入加總，不計入；"
+            "對照＝只列外部參照、判讀為文字、沒有通過條件；治理＝資料登錄與結構完整性（ERROR 計入 GOV_Errors）")
+
+
+def _check_nature(wb):
+    ws = wb["Checks"]
+    cnt = {}
+    for r, (pref, nat) in CK_NATURE.items():
+        a = str(ws[f"A{r}"].value or ""); assert a.startswith(pref), (r, pref, a[:40])
+        put(ws, f"G{r}", nat, F_BOLD if nat == CK_V else F_NOTE); cnt[nat] = cnt.get(nat, 0) + 1
+    for r, (i, nat) in CK_GOV_ROWS.items():
+        a = str(ws[f"A{r}"].value or ""); assert a == i, (r, i, a)
+        put(ws, f"G{r}", nat, F_NOTE); cnt[nat] = cnt.get(nat, 0) + 1
+    for r in CK_HDR_ROWS:
+        put(ws, f"G{r}", "性質（v10.0 N3）", F_BOLD)
+    put(ws, "A2", NOTE_NAT, F_NOTE)
+    ws.column_dimensions["G"].width = 24
+    return cnt
+
+
+SOFT_CAP = ("V1", "V2", "V3")       # v11.0 G4: MLPerf server items (soft upper bound); interactive items V4–V6 stay hard caps
+
+
+def checks_v(wb, CAL):
+    ws = wb["Checks"]
+    cnt = _check_nature(wb)
+    r = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r, "V. 驗證計數（工作單 稽核修正2 6r1 N3，D5，v10.0）：只計能失敗的檢查；驗證失敗不進 GOV_Errors（不阻擋合併），報告必須列出", 10); r += 1
+    put(ws, f"A{r}", "判準寫在 H（下限）與 I（上限）兩格（chat 端 J2 決定；黑字，不登錄 Gov_Map）。F 欄＝1 通過、0 失敗、警示（v11.0 G4：只用於 V1–V3）、—＝不適用（任一側非數字）。MLPerf interactive 為廠商最佳化後的可達上限（模型高於 MLPerf 才判失敗）；"
+                   "MLPerf server（V1–V3）為軟上限（v11.0 G4；v12.0 H1 加失敗門檻）：比值 ≤ 1 通過；1 至 CHK_SoftCapFail（基準 2，Calib M 節）之間判『警示』，不計失敗；> CHK_SoftCapFail 判失敗（server 的 TPOT 80 ms 是 p99 口徑，模型取平均；超過 2 倍表示模型高估，不再只是口徑差；同條件 TensorRT-LLM H200 為 MLPerf v5.1 的 2.6 倍）；"
+                   "V18 為恆等式（非驗證，v12.0 H7）、V20 為校準相關（非獨立，v12.0 H2）：兩者的 F 欄為文字，不計入驗證項目數；"
+                   "LMSYS 兩點口徑不嚴（無明確 SLO，模型 Sol 級≠DeepSeek-V3 規模），帶寬 0.5–2.0；RL 帶 0.1–0.3；harness 輪數倍數 ≥ 1（SWE Atlas 方向證據，只判方向）", F_NOTE); r += 1
+    sum_rows = {}
+    for key, lab in (("T", "驗證項目數（F 欄為數字或『警示』者）"), ("P", "通過"), ("F", "失敗"), ("W", "警示（MLPerf server 軟上限：模型高於 1 但未超過 CHK_SoftCapFail，不計失敗；v11.0 G4、v12.0 H1）")):
+        sum_rows[key] = r; put(ws, f"A{r}", f"V{key}"); put(ws, f"B{r}", lab, F_BOLD); r += 1
+    for i, h in enumerate(["編號", "驗證項目", "模型值", "對照值（實測或上限）", "模型 ÷ 對照（或模型值）", "結果（1 通過／0 失敗／警示／—）", "性質", "通過帶下限", "通過帶上限", "口徑與來源"]):
+        put(ws, f"{'ABCDEFGHIJ'[i]}{r}", h, F_BOLD, wrap=True)
+    r += 1
+    first = r
+    ratio = lambda rr: f'=IF(AND(ISNUMBER(C{rr}),ISNUMBER(D{rr})),IF(D{rr}>0,C{rr}/D{rr},"—"),"—")'
+    items = []
+    mT, mO = CAL["mT"], CAL["mO"]
+    _tr = wb["Tech_Registry"]
+    _trr = [rr for rr in range(5, _tr.max_row + 1) if re.fullmatch(r"T\d\d", str(_tr.cell(rr, 1).value or ""))]
+    TR_FIRST, TR_LAST = min(_trr), max(_trr)       # v10.3 F3: Tech_Registry entry rows (T01–T12)
+    _R = lambda col: f"Tech_Registry!${col}${TR_FIRST}:${col}${TR_LAST}"
+    # v12.0 H7: V19 recomputes the verdict T should show from I, J, L, M and CST_MainMin (it does not read the T formulas' results), then compares it with column T.
+    # main = L has a value ? L = 主流 : J >= CST_MainMin；bad = (main and M = 否) or (non-main and M = 是 and I <> 早期採用)；1/0 per row, mutually exclusive
+    _BAD = (f'((({_R("L")}="")*({_R("J")}>=CST_MainMin)+({_R("L")}<>"")*({_R("L")}="主流"))*({_R("M")}="否"))'
+            f'+((({_R("L")}="")*({_R("J")}<CST_MainMin)+({_R("L")}<>"")*({_R("L")}="非主流"))*({_R("M")}="是")*({_R("I")}<>"早期採用"))')
+    for vid, col, lab, src in (
+            ("V1", "G", "MLPerf v5.1 server（DeepSeek-R1）：Hopper——模型 ÷ MLPerf ≤ 1（軟上限：> 1 警示；> CHK_SoftCapFail 失敗）", "SRC_PERF_060；DGX H200（8 GPU，NVIDIA 提交，NVIDIA 註明 Hopper 結果未經 MLCommons 驗證）；模型為 H100 規格（頻寬較 H200 低，上限偏寬）"),
+            ("V2", "H", "MLPerf v6.0 server：GB200 NVL72（NVIDIA 72 GPU）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 警示；> CHK_SoftCapFail 失敗）", "SRC_PERF_075（4,668，NVIDIA，Interested-party；v10.2 E3 取代 v5.1 的 SRC_PERF_061＝2,327）；第二來源 CoreWeave 64 GPU 4,868（SRC_PERF_077）"),
+            ("V3", "F", "MLPerf v6.0 server：GB300 NVL72（NVIDIA 72 GPU 機櫃）——模型 ÷ MLPerf ≤ 1（軟上限：> 1 警示；> CHK_SoftCapFail 失敗）", "SRC_PERF_076（5,562，NVIDIA 72 GPU；v10.2 E3 取代 Nebius 8 GPU 單機 8,064＝SRC_PERF_026）；同輪機櫃範圍 5,562–7,994（Nebius 72 GPU 7,994＝SRC_PERF_078）"),
+            ("V4", "C", "MLPerf v6.1 interactive：GB300 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_028／SRC_HW_047；Calib H 節第 1 驗證點"),
+            ("V5", "D", "MLPerf v6.0 interactive：GB200 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_025／SRC_HW_047；Calib H 節第 2 驗證點"),
+            ("V6", "E", "MLPerf v6.1 interactive：VR200 NVL72（預覽類）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_027／SRC_HW_047；預覽類提交，Calib H 節第 3 驗證點")):
+        items.append((vid, lab, f"=Calib!{col}{mO}", f"=Calib!{col}{mT}", None, 0, 1, "MLPerf（Interested-party）；" + src))
+    items += [
+        ("V7", "LMSYS H100 decode（條件對齊）：Hopper——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0", f"=Calib!F{CAL['J']['jD']}", "=SRC_PERF_062", None, 0.5, 2.0,
+         "SRC_PERF_062（LMSYS／SGLang，96×H100，輸入 2,000，ITL 約 100 ms；Atlas Cloud 有商業動機）；v10.2 E3：模型值改為 Calib J 節 F 欄（條件對齊：DeepSeek-V3 規模、輸入 2,000、ITL 100 ms＝10 tok/s/user，批次由速度下限與 HBM 決定）；不用於校準"),
+        ("V8", "LMSYS GB200 decode（條件對齊）：GB200——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0", f"=Calib!G{CAL['J']['jD']}", "=SRC_PERF_063", None, 0.5, 2.0,
+         "SRC_PERF_063（LMSYS／SGLang，GB200 NVL72，NVFP4，輸入 2,000，decode 48 rank，無 TPOT；與 NVIDIA 合作，Interested-party 成分高）；v10.2 E3：模型值改為 Calib J 節 G 欄（條件對齊，同 V7）；不用於校準"),
+        ("V9", "RL ÷ 預訓練 GPU 小時：Luna（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,10)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3,
+         "對照值＝Olmo 3（AI2）RL ÷ 預訓練約 0.11（SRC_PERF_064）；DeepSeek-V3.2 ≥ 0.1（SRC_PERF_065）；帶 0.1–0.3（3A 第 3 節）；模型值＝Training 第 78 列（J9 目標約 0.3，基準校準值，不是證據）"),
+        ("V10", "RL ÷ 預訓練 GPU 小時：Sol（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,11)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3, "同上；Sol"),
+        ("V11", "harness 輪數倍數 ≥ 1（Coding agent；選定檔案；SWE Atlas：原生 scaffold 工具呼叫多 1.5–2 倍，只判方向）", "=INDEX(B5_SelT,1,5)", "=SRC_HAR_016_Lo", "=C{r}", 1, None,
+         "SRC_HAR_016（SWE Atlas arXiv 2605.08366：原生 scaffold 對 mini-SWE-agent 工具呼叫 1.5–2 倍）；基準 0.7（Har_In 第 12 列，Q3＝R1）預期失敗，如實顯示，不調輸入；工具呼叫數不等於輪數，只作方向證據"),
+        ("V12", "樣本外：GB300 SGLang＋MTP 50 tok/s——模型 ÷ 實測 ±10%（Checks B15）", "—", "=Checks!C15", "=Checks!B15", 0.9, 1.1, "SRC_PERF_004；Checks B15 原判準「±10% 內視為前緣形狀成立」"),
+        ("V13", "樣本外：GB300 vLLM 無 MTP 27 tok/s——模型 ÷ 實測 > 1（Checks B16）", "—", "=Checks!C16", "=Checks!B16", 1, 3, "SRC_PERF_001；Checks B16 原判準「應 >1：舊軟體」；v10.2 E3 加上限 ≤ 3（chat 端預設，可撤回）：舊軟體點模型應高於實測，但不應高出數倍"),
+        ("V14", "樣本外：GB200 vLLM 無 MTP 27 tok/s——模型 ÷ 實測 > 1（Checks B17）", "—", "=Checks!C17", "=Checks!B17", 1, 3, "SRC_PERF_002；Checks B17 原判準「應 >1：舊軟體＋記憶體限制配方」；v10.2 E3 加上限 ≤ 3（同 V13，可撤回）"),
+        ("V15", "DeepSeek 線上服務 decode（條件對齊）：Hopper H800——模型 ÷ 實測，通過帶 0.5–2.0", f"=Calib!E{CAL['J']['jD']}", "=SRC_PERF_073", None, 0.5, 2.0,
+         "SRC_PERF_073（1,850 tok/s/GPU，24 小時平均）；與校準點 2,324 同一家公司，相關性高；模型值＝Calib J 節 E 欄（KV 4,989、EP144、約 21 tok/s/user）；不用於校準"),
+        ("V16", "能量閉合：各欄最大閉合比 ≤ 100%（Checks B26）", "—", "—", "=Checks!B26", 0, 1, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
+        ("V17", "後訓練占比：GPU 小時口徑 − FLOPs 口徑 ≥ 0（Checks B36）", "—", "—", "=Checks!B36", 0, None, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
+        ("V18", "Tech_Registry K 欄（主流判定）：每一列 K＝『主流』與『公開採用實驗室數 J ≥ 門檻（CST_MainMin）』一致——不一致列數＝0【恆等式（非驗證）】",
+         f'=COUNTIF(Tech_Registry!$K${TR_FIRST}:$K${TR_LAST},"主流")', f'=COUNTIF(Tech_Registry!$J${TR_FIRST}:$J${TR_LAST},">="&CST_MainMin)',
+         f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),SUMPRODUCT(--((Tech_Registry!$K${TR_FIRST}:$K${TR_LAST}="主流")<>(Tech_Registry!$J${TR_FIRST}:$J${TR_LAST}>=CST_MainMin))),"—")', 0, 0,
+         "v10.3 F3 新增；v12.0 H7 改標恆等式（非驗證）：K 欄的公式本身就是 J ≥ CST_MainMin，本項重述同一條件，只有 K 被手填覆寫時才會不等；無法改成獨立於 K 的檢查（判定依據只有 J 與門檻），"
+         "故移出驗證計數（F 欄顯示文字，不計入驗證項目數／通過／失敗）。模型值＝K 為『主流』的條目數，對照值＝J ≥ 門檻的條目數，結果欄＝逐列不一致的列數（K 被改寫而與 J 脫節時，F 欄改顯示『恆等式不成立』）。"
+         "不比對狀態欄 I：T06（狀態『早期採用』、J＝2 ≥ 門檻 2）K 為『主流』而 I 不是，屬狀態欄口徑差，列『待 Project 判斷』"),
+        ("V19", "Tech_Registry T 欄（一致性檢查）：由公式自行重算每列應有的判定，與 T 欄比對——不符列數＋實質不一致列數＝0",
+         f'=SUMPRODUCT({_BAD})', f'=SUMPRODUCT(--({_R("T")}<>"一致"))',
+         f'=IF(AND(ISNUMBER(C{{r}}),ISNUMBER(D{{r}})),SUMPRODUCT(--(({_R("T")}<>"一致")<>(({_BAD})>0)))+C{{r}},"—")', 0, 0,
+         "v10.3 F3 新增；v12.0 H7（查核 #87 觀察 1）：舊版以 COUNTA 對 COUNTIF(…,\"一致\")，T 欄被清空或手填『一致』時兩者同步改變、差值仍為 0。現改為不讀 T 公式的結果，直接由 I、J、L、M 欄與 CST_MainMin 重算每列應有的判定"
+         "（主流＝L 有值取 L、否則 J ≥ CST_MainMin；主流但 M＝否，或非主流但 M＝是且狀態非『早期採用』，即實質不一致）。"
+         "模型值＝重算後實質不一致的列數；對照值＝T 欄非『一致』（含空白）的列數；結果欄＝（T 欄是否一致與重算判定不符的列數）＋模型值，為 0 才通過：T 欄被清空、手填，或實質不一致（『主流但未入基準：須 Andy 判定』、『非主流卻在基準』）都會失敗。T 欄用 Andy 覆寫 L 欄（有值時取代 K）判讀"),
+        ("V20", "MLPerf v6.0 offline：GB200 NVL72（NVIDIA 72 GPU，無 SLO，大批次）——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑：η_d × CAL_BatchEtaD）【校準相關（非獨立），不計入驗證】", f"=Calib!C{CAL['L']['lout']}", "=SRC_PERF_079", None, 0.5, 2.0,
+         "v11.0 G3：SRC_PERF_079（6,752；第二來源 CoreWeave 64 GPU 7,323＝SRC_PERF_082；Google 72 GPU 4,276 未登錄）；模型值＝Calib L 節 C 欄（輸入 800／輸出 3,880、無 SLO、批次填滿 HBM、η_d × CAL_BatchEtaD、含 prefill 分攤）；"
+         "GB200 的 CAL_BatchEtaD 由 vLLM 10.1K 校準（Calib J 節 D 欄），本點不用於校準"
+         "｜v12.0 H2：【校準相關（非獨立）】D156＝2.36＝√(1.83 × 3.04)，1.83 正是本點（MLPerf v6.0 offline 6,752）反推的倍數、3.04 由 vLLM 10.1K 反推，兩個校準點同時被用到，本點因此不再是獨立驗證點；"
+         "F 欄顯示文字（帶內／帶外），不計入驗證項目數／通過／失敗"),
+        ("V21", "MLPerf v6.0 offline：GB300 NVL72（NVIDIA 72 GPU，無 SLO，大批次）——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑）", f"=Calib!D{CAL['L']['lout']}", "=SRC_PERF_080", None, 0.5, 2.0,
+         "v11.0 G3：SRC_PERF_080（8,987；第二來源 Nebius 72 GPU 9,360＝SRC_PERF_083）；模型值＝Calib L 節 D 欄（同 V20；GB300 的 CAL_BatchEtaD＝1，未另校準）"),
+        ("V22", "TensorRT-LLM H200 8 GPU（ISL 1K／OSL 2K，並行 1,024＝每 rank 128，EP8，無 SLO）：Hopper——模型 ÷ 實測，通過帶 0.5–2.0（批次口徑）", f"=Calib!E{CAL['L']['lout']}", "=SRC_PERF_081", None, 0.5, 2.0,
+         "v11.0 G3：SRC_PERF_081（1,436；NVIDIA TensorRT-LLM 0.21.0rc1 文件，單一來源）；模型值＝Calib L 節 E 欄（H200 規格 141 GB／4.8 TB/s、EP8、固定批次 128、無 MTP、η_d × CAL_BatchEtaD、含 prefill 分攤）；"
+         "Hopper 的 CAL_BatchEtaD 在 C68＝1.5 下無解而未寫入（＝1），此項的結果隨之偏低；不用於校準")
+    ]
+    for vid, lab, c, d, e, lo, hi, note in items:
+        put(ws, f"A{r}", vid); put(ws, f"B{r}", lab, wrap=True)
+        put(ws, f"C{r}", c, fmt="#,##0.000"); put(ws, f"D{r}", d, fmt="#,##0.000")
+        put(ws, f"E{r}", (e or ratio(r)).replace("{r}", str(r)), fmt="0.000")
+        if vid in SOFT_CAP:       # v11.0 G4: MLPerf server (V1–V3) is a soft cap: ratio > upper bound is a warning, not a failure
+            # v12.0 H1: second line CHK_SoftCapFail (Calib M section): ratio <= I (1) pass; I < ratio <= CHK_SoftCapFail warn; ratio > CHK_SoftCapFail fail
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(E{r}<H{r},0,IF(IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE),1,IF(E{r}>CHK_SoftCapFail,0,"警示"))),"—")', F_BOLD, fmt="0")
+        elif vid == "V18":        # v12.0 H7: identity (not a verification): text result, not counted
+            put(ws, f"F{r}", f'=IF(ISNUMBER(E{r}),IF(E{r}=0,"恆等式（非驗證）","恆等式不成立（K 被改寫）"),"—")', F_BOLD)
+        elif vid == "V20":        # v12.0 H2: calibration-related (not independent): text result, not counted
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),"校準相關（非獨立）："&IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),"帶內","帶外"),"—")', F_BOLD)
+        else:
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),1,0),"—")', F_BOLD, fmt="0")
+        put(ws, f"G{r}", {"V18": "恆等式（非驗證）", "V20": "校準相關（非獨立）"}.get(vid, "驗證"), F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
+        if hi is not None: put(ws, f"I{r}", hi, F_CALC, fmt="0.00")
+        put(ws, f"J{r}", note, F_NOTE, wrap=True); r += 1
+    last = r - 1
+    for key, f in (("T", f'=COUNT(F{first}:F{last})+COUNTIF(F{first}:F{last},"警示")'), ("P", f"=SUM(F{first}:F{last})"),
+                   ("F", f"=COUNT(F{first}:F{last})-F{sum_rows['P']}"), ("W", f'=COUNTIF(F{first}:F{last},"警示")')):      # v11.0 G4: T = numeric + warnings; F = numeric − pass; identity P + F + W = T
+        put(ws, f"F{sum_rows[key]}", f, F_BOLD, fmt="0")
+    wb.defined_names["CHK_VerifyTotal"] = DefinedName("CHK_VerifyTotal", attr_text=f"Checks!$F${sum_rows['T']}")
+    wb.defined_names["CHK_VerifyPass"] = DefinedName("CHK_VerifyPass", attr_text=f"Checks!$F${sum_rows['P']}")
+    wb.defined_names["CHK_VerifyFail"] = DefinedName("CHK_VerifyFail", attr_text=f"Checks!$F${sum_rows['F']}")
+    wb.defined_names["CHK_VerifyWarn"] = DefinedName("CHK_VerifyWarn", attr_text=f"Checks!$F${sum_rows['W']}")      # v11.0 G4 (major version: new contract name)
+    return dict(first=first, last=last, sums=sum_rows, nature=cnt)
+
+
+# ================================================================== N3: new source records (SRC_Perf 060–065, SRC_Harness 016) and DB_Evidence
+EID = "E378"
+_MLP = "NVIDIA 提交；MLPerf Inference v5.1（2025-09）DeepSeek-R1，每 GPU（系統總量 ÷ GPU 數，3A 查證報告表）"
+
+
+def _rec(i, sheet, metric, val, lo, hi, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note):
+    return dict(id=i, sheet=sheet, metric=metric, val=val, lo=lo, hi=hi, unit=unit, basis=basis, applies=applies, date=date, src=src, grade=grade,
+                stance=stance, stance_note=stance_note, hand=hand, status="Active", ev=EID, s="U-V1000", use=use, note=note)
+
+
+_SRCTXT = f"{Q3A} 第 2 節（2026-10-15 CC 查證；原始出處見該表；本欄值轉引，未逐一回到原文重讀）"
+SRC_NEW = [
+    _rec("SRC_PERF_060", "SRC_Perf", "MLPerf v5.1 DeepSeek-R1 server：DGX H200（8 GPU）每 GPU", 556, None, None, "tok/s/GPU（輸出 token）", "server；Closed；NVIDIA 註明 Hopper 結果未經 MLCommons 驗證",
+         "DGX H200（8 GPU；NVIDIA 提交）", "2025-09", _SRCTXT, 2, "利害關係方", "MLCommons 稽核為中立；提交者 NVIDIA 自行挑選配置；Hopper 結果 NVIDIA 註明未經 MLCommons 驗證", "二手（3A 查證轉引）",
+         "Calib H 節 G 欄（Hopper 驗證點）；Checks V1", f"v10.0 N3 新增（{EID}）：Hopper 的 MLPerf 上限（v5.1 H200 server）；v6.0 的 Hopper 提交已搜尋未找到；H200 頻寬高於模型的 H100，上限偏寬"),
+    _rec("SRC_PERF_061", "SRC_Perf", "MLPerf v5.1 DeepSeek-R1 server：GB200 NVL72（72 GPU）每 GPU", 2327, None, None, "tok/s/GPU（輸出 token）", "server；Closed",
+         "GB200 NVL72（NVIDIA 提交）", "2025-09", _SRCTXT, 2, "利害關係方", "MLCommons 稽核為中立；提交者 NVIDIA 自行挑選配置", "二手（3A 查證轉引）",
+         "Calib H 節 H 欄（GB200 驗證點）；Checks V2", f"v10.0 N3 新增（{EID}）：GB200 的 MLPerf 上限（v5.1 server）；同輪 offline 4,024"),
+    _rec("SRC_PERF_062", "SRC_Perf", "LMSYS／SGLang DeepSeek-V3 decode：96×H100 每 GPU", 2785, None, None, "tok/s/GPU（輸出 token，decode GPU）", "輸入 2,000；ITL 約 100 ms；TTFT 2–5 秒；無明確 SLO；PD 分離",
+         "Hopper H100（Atlas Cloud 機器）", "2025-05", _SRCTXT, 2, "利害關係方", "獨立複現，但 Atlas Cloud 有商業動機；SLO 寬鬆", "二手（3A 查證轉引）",
+         "Checks V7（獨立驗證點，不用於校準）", f"v10.0 N3 新增（{EID}）：Hopper × Sol 級獨立驗證點；prefill 約 6,540 輸入 tok/s/GPU（未使用）"),
+    _rec("SRC_PERF_063", "SRC_Perf", "LMSYS／SGLang DeepSeek decode：GB200 NVL72 每 GPU（NVFP4）", 13386, None, None, "tok/s/GPU（輸出 token，decode GPU）", "NVFP4；輸入 2,000；decode 48 rank；無 TPOT；原精度為 9,087",
+         "GB200 NVL72", "2025-09", _SRCTXT, 2, "利害關係方", "與 NVIDIA 合作，Interested-party 成分高；無明確 SLO", "二手（3A 查證轉引）",
+         "Checks V8（獨立驗證點，不用於校準）", f"v10.0 N3 新增（{EID}）：GB200 × Sol 級獨立驗證點；原精度 9,087、prefill 26,156／18,471（未使用）"),
+    _rec("SRC_PERF_064", "SRC_Perf", "Olmo 3 32B Think：RL ÷ 預訓練 GPU 時間", 0.11, None, None, "x", "GPU 天比（RL continuation 21 天 × 224 GPU ÷ 預訓練約 43,300 GPU 天，3A 本表相除）",
+         "Olmo 3 32B Think（AI2）", "2025-12", _SRCTXT, 2, "中立", "開放實驗室，可核對；GPU 天口徑與模型的 GPU 小時口徑一致", "二手（3A 查證轉引）",
+         "Checks V9、V10（RL 對照，不用於校準）", f"v10.0 N3 新增（{EID}）：RL 對照；首輪 RL 約 5 天、GPU 數未寫"),
+    _rec("SRC_PERF_065", "SRC_Perf", "DeepSeek-V3.2：後訓練預算 ÷ 預訓練成本（下限式）", None, 0.1, None, "x", "成本口徑（下限式：超過 10%）", "DeepSeek-V3.2", "2025-12", _SRCTXT, 2, "利害關係方", "公司自述",
+         "二手（3A 查證轉引）", "Checks V9、V10（RL 對照，不用於校準）", f"v10.0 N3 新增（{EID}）：RL 對照下限；成本口徑，非 GPU 小時"),
+    _rec("SRC_HAR_016", "SRC_Harness", "SWE Atlas：原生 scaffold ÷ mini-SWE-agent 工具呼叫數", None, 1.5, 2.0, "x", "Opus 4.6：Claude Code 約 100 對 56；GPT-5.4：Codex 約 82 對 58（讀自圖上標籤）；工具呼叫數不等於輪數",
+         "SWE Atlas（arXiv 2605.08366）", "2026-05", _SRCTXT, 2, "中立", "論文，無廠商利益；數字讀自圖上標籤", "二手（3A 查證轉引）",
+         "Checks V11（方向證據，只判方向）", f"v10.0 N3 新增（{EID}）：harness 輪數方向對照；原生 scaffold 傾向呼叫更多而非更少，與模型 0.7 方向相反"),
+]
+
+
+def src_new_records():
+    return SRC_NEW
+
+
+_IDS = "；".join(x["id"] for x in SRC_NEW)
+EVIDENCE_V1000 = [[
+    EID, DATE,
+    "D5 獨立驗證材料：MLPerf v5.1 的 H200（server 556）與 GB200 NVL72（server 2,327）每 GPU；LMSYS／SGLang 的 H100 decode 2,785 與 GB200 decode 13,386（NVFP4）；Olmo 3 RL ÷ 預訓練約 0.11、DeepSeek-V3.2 後訓練 ≥ 10%；SWE Atlas 原生 scaffold 工具呼叫多 1.5–2 倍",
+    f"{Q3A} 第 2、3 節（CC 查證，2026-10-15；各項原始出處見該報告）", "二手轉引（3A 查證）", "Checks V 節；Calib H 節 G、H 欄",
+    "Calib H 節只有 4 個 MLPerf 驗證點（GB300、GB200 v6.0、VR200）；無 Hopper；Checks 無獨立吞吐驗證點", "新增 Hopper／GB200 的 v5.1 server 上限、兩個 LMSYS 獨立驗證點、RL 與 harness 對照",
+    "採納為驗證材料（不用於校準）；MLPerf 為上限檢查（模型 ÷ MLPerf ≤ 1），LMSYS 帶 0.5–2.0，RL 帶 0.1–0.3，harness 輪數 ≥ 1 只判方向", V,
+    f"讀取者：chat 端（3A 查證）；CC 轉入｜{CHAT_DEF}｜LMSYS 兩點無明確 SLO、NVIDIA 關係；MLPerf 提交者多為廠商，一律 Interested-party；v6.0 的 Hopper 提交已搜尋未找到",
+    "已處理", _IDS, DASH, "Checks V 節（驗證計數）；L1／IF_／IFW_ 數值不變", "2（轉引）", "利害關係方"]]
+
+
+def evidence_rows():
+    return EVIDENCE_V1000
+
+
+# ================================================================== Decisions (10 columns; layout of v800／v810)
+_D = [
+    ("N1", "D12 自算 L、m 情境欄（不回流）", "Interface 新增 L 節：IFW_*_LifeSelf＝IFW_*_Prod × L1_LTotal × L1_MFleet（8 個營收名稱：RevGW 三層級、RevGWFleet、RevGWFront 三層級、RevGWFleetFront）；控制值 CTL_PriceLife、CTL_Monetize 仍為 1，IFW_*_Life 不變。"
+     "不得有任何公式讀取這些名稱（parity 測試：Interface、Load_Bearing、Gov_Map 以外引用數＝0）。標籤「情境：自算 L、m（L1_LTotal、L1_MFleet）；不回流，不建議下游作為基準」。"
+     "產能名稱 IFW_TokGW_*_Life 沒有 L、m 作用層（Prod × 1），不建 LifeSelf——列待 Project 判斷。", "Interface L 節；tests/parity", "v10.0 已建"),
+    ("N2", "D4 殘差與倒推明示", "L1 新增 T 欄「性質」（估計、殘差、倒推、恆等式、未解釋）與 U 欄理由，逐列填寫；m 各分項為殘差，L1_ScaleRD／ScaleServe／AstraScale 為未解釋，AL_ImpliedNk／AL_J8Gap 為倒推，L1_LReqFleet_Id 為恆等式。"
+     "缺口分解新增 L1_GapUnexplained（L1_ScaleServe2000 ÷ L1_GapProduct；四項乘積≠實際缺口，故未解釋≠1），第 74 列改標「已解釋部分」。Calib C67／C68 標記沿用（Derived（粗略）、倒推）；Train_In H34 補「倒推」。",
+     "L1 T／U 欄；L1_GapUnexplained；Train_In H34；Alloc 隱含 N × k／J8 落差", "v10.0 已建"),
+    ("N3", "D5 驗證必須能失敗", "Checks 新增 G 欄「性質」（驗證／恆等式（非驗證）／對照／治理）與 V 節驗證計數 CHK_VerifyTotal／CHK_VerifyPass／CHK_VerifyFail，只計能失敗的檢查；失敗不進 GOV_Errors，報告列出。"
+     "恆等式移出計數（Checks B14、B26、B52、B56、B61、D105、D110、D114、D120、D121、D132、D136、Interface 第 229 列，另找出 B36、B60、D104、D140）。"
+     "MLPerf 改上限檢查（模型 ÷ MLPerf ≤ 1）：Calib H 節新增 G、H 欄（Hopper H200 v5.1 server、GB200 v5.1 server），共 6 點；LMSYS 兩點（Hopper Sol、GB200 Sol）通過帶 0.5–2.0；RL（Luna、Sol）通過帶 0.1–0.3；"
+     "harness 輪數倍數 ≥ 1（基準 0.7 預期失敗，如實顯示）；另納入 Checks B15–B17 三個樣本外點。新增 SRC_PERF_060–065、SRC_HAR_016，DB_Evidence E378。", "Checks G 欄、V 節；Calib H 節；SRC_Perf／SRC_Harness", "v10.0 已建"),
+    ("N4", "2-4 後續（報告第 9 節）", "第 2 項 Perf_Batch 標「訓練端批次推論，無服務快取」；第 3 項 Perf TTFT 列註明新鮮 token 位於後段、本式略低估 prefill 時間；第 4 項 κ 維持乘法、寫明定義；第 5 項 AL_FreeShare 說明欄註明產業總量未必同；"
+     "第 6 項 H10 C 欄 2025 口徑（已在 v9.0）；第 7 項 Hopper 服務 Astra 保留（SLO 判定的物理結果）；第 8 項字面讀法改標「口徑不一致，僅供對照」，L1 判讀欄只用恆等式讀法（取消 ≤10% 自動改用字面讀法）；"
+     "第 9 項 B4_CacheHit 區間下限不動，情境 d9_cache_cap_off 說明欄註明會觸發 Checks E10。", "Perf／Sens_Perf／Perf_Prod 第 76 列；Perf_Batch A2；Alloc_In G16／G26；L1_LReqFleet；scenarios.yaml", "v10.0 已建"),
+    ("N5", "下游契約", "契約新增 N1 名稱（IFW_*_LifeSelf，不回流）、N3 驗證計數（CHK_Verify*，只供讀取）、N4 第 8 項回本讀法；第 5 節補 v9.0、v10.0 條目。", "docs/plan/Tokenomics_downstream_contract.md", "v10.0 已建"),
+]
+DECISIONS_V1000 = [[f"AF2f-{i}", V, f"稽核修正第 2 批 2-5：{t}", txt, DATE, CHAT_DEF, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+# ================================================================== README
+README_VERSION = (VERSION + "（主版：稽核修正第 2 批 2-5 段，" + WO + "——D12：Interface L 節 IFW_*_LifeSelf（自算 L、m 情境，不回流）；D4：L1 性質欄與未解釋列；D5：Checks 性質欄、V 節驗證計數 CHK_Verify*、"
+                  "MLPerf 上限檢查（Calib H 節新增 Hopper／GB200 v5.1 server）、LMSYS 獨立驗證點、RL 與 harness 對照；2-4 後續標籤；Decisions AF2f-*）。以下為 " + v810.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v810.README_TITLE
+README_TITLE = VERSION.split("_")[-1] + _T[len(v810.VERSION.split("_")[-1]):]
+README_ROW = ("D12／D4／D5：自算 L、m 情境、性質欄、驗證計數（v10.0）",
+              "稽核修正 2-5：IFW_*_LifeSelf（不回流）；L1 性質欄與未解釋列；Checks 驗證計數（能失敗的檢查）與 MLPerf 上限、LMSYS、RL、harness 對照。標記與理由見 Decisions AF2f-*。")
+```
+
+## v1010.py
+
+```python
+# v10.1 (work order docs/workorders/20261016_瘦身4.md section 1 = segment 4-1; engineering class, CLAUDE.md section 4a): slimming that must not change any output.
+#   1-a  delete cells that nothing reads (Capability sheet, L1 column O without external value, Alloc diagnostic rows, Perf / Perf_Batch quick-look rows 104-105)
+#   1-b  mark display-only / not-wired / copy-read rows (column "用途"), yellow fill on scenario cells, NonNV and Theory_Rev_Prod header notes
+#   1-c  stale explanatory text (numbers that move with the model are now formulas), wrong names, README name counts
+#   1-d  Gov_Map registry hygiene (no input value changes)
+# Every step runs at the END of build.py (after Gov_Map / contract / Load_Bearing are final) and is idempotent: a rebuild from v10.1 gives the same cells.
+# Nothing here changes a value that an IF_ / IFW_ / IFC_ / L1_ / GOV_ / CHK_ / CAP_ / AL_ name, Interface, Checks or the downstream contract reads.
+import re
+import openpyxl
+from openpyxl.styles import PatternFill
+from common import put, F_CALC, F_NOTE, F_BOLD
+import v1000
+import v1010_text
+import v1010_gov
+
+VERSION = "20261016_Tokenomics_v10.1"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-16"
+V = "v10.1"
+WO = "工作單 docs/workorders/20261016_瘦身4.md 第 1 節（4-1 段）"
+DEC_BY = "CC 依工作單執行（工程類）；chat 端預設，可撤回"
+NO_FILL = PatternFill(fill_type=None)
+
+# ================================================================== 1-a: deletions (cells are emptied; no row or column is removed, so no reference moves)
+# L1 column O (推算 ÷ 外部) rows whose external value is absent (62 formulas; 4-0 rule R06)
+L1_O_ROWS = [5, 6, 7, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 29, 37, 38, 40, 41, 42, 43, 44, 45, 50, 51, 52, 53, 54, 55, 56, 57, 58, 67, 68, 69,
+             71, 72, 73, 86, 87, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 111]
+# Alloc diagnostic cells nobody reads (4-0 rule R18 minus the 27 cells that a name or another formula still reads: see report "待 Project 判斷")
+ALLOC_DELETE = ["C74", "C75", "C76", "C122", "C144", "C145", "C152", "C163", "C164", "C165"]
+# Perf / Perf_Batch quick-look rows 104-105 (unit price is defined once, in Unit_Cost rows 16-18; 4-0 rule R22c)
+QUICKLOOK = [("Perf", 104, 105), ("Perf_Batch", 104, 105)]
+QUICKLOOK_NOTE = "（v10.1 刪除速覽列 $/M：單價的唯一定義在 Unit_Cost 第 16–18 列；4-1 工程類，輸出不變）"
+
+
+def _clear(ws, ref):
+    c = ws[ref]
+    c.value = None
+    c.fill = NO_FILL
+
+
+def delete_cells(wb):
+    n = {}
+    ws = wb["L1"]; k = 0
+    for r in L1_O_ROWS:
+        if ws[f"O{r}"].value is not None: _clear(ws, f"O{r}"); k += 1
+    n["L1!O"] = k
+    ws = wb["Alloc"]; k = 0
+    for ref in ALLOC_DELETE:
+        if ws[ref].value is not None: _clear(ws, ref); k += 1
+    n["Alloc"] = k
+    for sh, r0, r1 in QUICKLOOK:
+        ws = wb[sh]; k = 0
+        for r in range(r0, r1 + 1):
+            for c in range(1, ws.max_column + 1):
+                cell = ws.cell(row=r, column=c)
+                if cell.value is not None and not (r == r0 and c == 1 and cell.value == QUICKLOOK_NOTE):
+                    cell.value = None; cell.fill = NO_FILL; k += 1
+        put(ws, f"A{r0}", QUICKLOOK_NOTE, F_NOTE)
+        n[sh] = k
+    if "Capability" in wb.sheetnames:
+        n["Capability"] = sum(1 for row in wb["Capability"].iter_rows() for c in row if c.value is not None)
+        del wb["Capability"]
+    return n
+
+
+# ================================================================== Decisions (10 columns; layout of v800／v810／v1000)
+_CAP_C = ("Capability 頁 C 節（K4 為何不採 (a)）原文摘要，頁面刪除後保留於此：1. 識別：同層級牌價跨廠商差距大（例：Sol 級輸出價 DeepSeek V4-Pro 離峰 $1.98 至 Kimi K3 $15），"
+          "主要由廠商策略與成本決定，斜率無法與能力分離。2. 循環：前緣由接近成本定價的廠商決定（Checks：DeepSeek 價 ÷ 本模型 Hopper 同架構成本約 0.8–1.0），前緣斜率≈服務成本斜率，已由 Unit_Cost 計算。"
+          "3. 重複：層級牌價已含能力；只有增量（H_CAP）可再進入，故以 ε 乘在增量上，基準 0。4. 誤差相乘：J8 算力缺口約 7 倍 × ε 0–0.5 → 單價倍數 1.0–2.6，大於利用率區間的影響。"
+          "(d) 反解：Amortize 頁『回本所需單價溢價』與觀測層級價差並列。METR 時間長度（K3 檢查）尚未入表。J8 檢查（前沿錨點中值 ÷ Astra 最終訓練 FLOPs）可由 Train_In!C47 ÷ Training 頁 Astra 最終訓練 FLOPs 重算。")
+_D = [
+    ("1a-1", "Capability 頁刪除（已決定，6b）", "刪除 Capability 工作表（55 格，19 個公式，無任何格或名稱引用）；builder 的 block4.capability() 仍會建立，於 build.py 末端由 v1010.delete_cells 刪除。"
+     "README 工作表清單與 Cap_In G14 的指向文字同步修改。" + _CAP_C, "Capability 頁；README 工作表清單；Cap_In G14", "v10.1 已建"),
+    ("1a-2", "A 級死格刪除（只清空儲存格，不刪列欄，參照不移動）", "L1 O 欄無外部值的 62 格；Alloc 無人讀取的診斷格 10 格（C74–C76、C122、C144–C145、C152、C163–C165）；Perf、Perf_Batch 速覽列（第 104–105 列）64 格，A104 留一行說明。"
+     "4-0 盤點 R18 共 37 格，其中 27 格仍有具名範圍（AL_Q1g、AL_Q2g、AL_RDGWg、AL_J8Gap、AL_Q1_Tok、AL_Q2_Tok、AL_RDShareExcl、AL_UnservedPaid／Free／Gen、AL_ServeGen）或另一公式（C142 讀 C47:E48）引用，"
+     "刪除會改變既有具名範圍的值，故保留，列待 Project 判斷。", "L1!O；Alloc；Perf／Perf_Batch 第 104–105 列", "v10.1 已建"),
+    ("1a-3", "Perf_Batch R–S 欄（FP8 rollout 情境）未刪", "覆核發現 R–S 欄並非未接線：Sens_Train W59:X62（情境『rollout 精度 FP8』，黃底）讀 Perf_Batch R101、S101、R103、S103、R65、S65、R67、S67，這八格依賴 R–S 欄其餘約 120 格。"
+     "刪除會使 Sens_Train W–X 兩欄的值改變，屬輸出改變，本段（輸出不變）不執行；改列待 Project 判斷：連 Sens_Train W–X 一併刪、或保留。第 104–105 列的 R–S 兩欄速覽已隨 1a-2 清空。", "Perf_Batch R–S；Sens_Train W–X", "未執行，待 Project 判斷"),
+]
+DECISIONS_V1010 = [[f"SL41-{i}", V, f"瘦身 4-1：{t}", txt, DATE, DEC_BY, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+
+def decisions_append(wb, extra=()):
+    ws = wb["Decisions"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1
+    n = 0
+    for row in DECISIONS_V1010 + list(extra):
+        if row[0] in have: continue
+        for i, v in enumerate(row): put(ws, f"{openpyxl.utils.get_column_letter(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
+    return n
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（次版，工程類：瘦身 4-1，" + WO + "——1-a 刪除無人讀取的格（Capability 頁、L1 O 欄、Alloc 診斷格、Perf 速覽列）；1-b 標記顯示用／未接線／複本讀取、補黃底；"
+                  "1-c 過時說明文字改引用現值；1-d Gov_Map 登錄整理；1-e 新增永久測試。所有既有具名範圍與契約名稱的值不變）。以下為 " + v1000.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1000.README_TITLE
+README_TITLE = VERSION.split("_")[-1] + _T[len(v1000.VERSION.split("_")[-1]):]
+README_ROW = ("瘦身 4-1（v10.1）",
+              "工程類，輸出不變：刪除 Capability 頁與無人讀取的格；『用途』欄標記顯示用／未接線／複本讀取；情境格黃底；過時說明改引用現值；Gov_Map 登錄整理。細節見 Decisions SL41-*。")
+
+
+# ================================================================== 1-b: marks (column "用途"), yellow fill, header notes
+from v1010_marks import MARKS
+from v518 import _append_text
+
+PURPOSE = "用途"
+PURPOSE_HDR_ROW = 3          # the header goes in row 3 of the new column (rows 1-2 are title and subtitle on every model page)
+PURPOSE_NOTE = "顯示用＝人讀的對照／欄頭／驗證列，不進任何輸出；未接線＝尚未連到任何輸出；複本讀取＝只被 Sens_／_Prod 複本頁讀取（v10.1 4-1 標記，來源：docs/reports/20261016_瘦身盤點4-0_明細.xlsx）"
+YEL_FORMULA = PatternFill("solid", fgColor="FFFFF2CC")     # existing convention on the sensitivity pages for scenario-changed formula cells
+YEL_INPUT = PatternFill("solid", fgColor="FFFFFF00")       # existing convention for scenario input cells (blue font)
+# cells whose formula differs from the first scenario column of the same row (4-0 section 3; the permanent test keeps this list honest)
+YELLOW_FORMULA = {
+    "Sensitivity": ["F10", "G10", "T14", "U14", "D17", "E17", "H19", "I19", "J25", "K25", "L26", "M26", "O37", "V40", "W40", "R41", "S41", "P50", "Q50"],
+    "Sens_Rev": ["B20", "B21"],
+    "Sens_Har": ["D5", "E5", "F6", "G6", "H7", "I7", "J8", "K8", "L9", "M9", "N10", "O10", "P11", "Q11", "R12", "S12", "R13", "S13", "R14", "S14"],
+}
+YELLOW_INPUT = {
+    "Sensitivity": ["X8", "Y8", "N37"],
+    "Sens_Rev": ["B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B17"],      # v10.3 D08: B20／B21 are links to Cap_In D23／D24 now (formula fill below)
+}
+NONNV_NOTE = " ｜未接線（MAG、智譜、AI 半導體待用；目前不進任何輸出）"
+TRP_NOTE = (" ｜第 90–96 列為本頁自我檢查列，不鏡像 Theory_Rev 的 _Life 列（Theory_Rev 同列為 _Life 輸出列）；列入 tests/parity 的鏡像白名單（v10.1）。")
+
+
+def purpose_marks(wb):
+    """Column 用途: one column per page, right of the last used column; the header is found again on a rebuild (idempotent)."""
+    n = 0; pages = {}
+    for sh, rows in MARKS.items():
+        ws = wb[sh]
+        col = None
+        last = 0
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.value is not None: last = max(last, cell.column)
+        for c in range(3, last + 1):
+            if ws.cell(PURPOSE_HDR_ROW, c).value == PURPOSE:
+                col = c; break
+        if col is None:
+            col = last + 1
+            put(ws, f"{openpyxl.utils.get_column_letter(col)}{PURPOSE_HDR_ROW}", PURPOSE, F_BOLD)
+            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 46
+        X = openpyxl.utils.get_column_letter(col)
+        for r, txt in rows.items():
+            put(ws, f"{X}{r}", txt, F_NOTE); n += 1
+        pages[sh] = X
+    return n, pages
+
+
+def yellow_fill(wb):
+    n = 0
+    for sh, refs in YELLOW_FORMULA.items():
+        for ref in refs:
+            wb[sh][ref].fill = YEL_FORMULA; n += 1
+    for sh, refs in YELLOW_INPUT.items():
+        for ref in refs:
+            wb[sh][ref].fill = YEL_INPUT; n += 1
+    return n
+
+
+def header_notes(wb):
+    n = 0
+    ws = wb["NonNV"]
+    if NONNV_NOTE not in str(ws["A1"].value): ws["A1"].value = str(ws["A1"].value) + NONNV_NOTE; n += 1
+    ws = wb["Theory_Rev_Prod"]
+    if TRP_NOTE not in str(ws["A2"].value): ws["A2"].value = str(ws["A2"].value) + TRP_NOTE; n += 1
+    return n
+
+
+# ================================================================== entry point (called once from build.py, after everything else and before the sheet-order assertion)
+def apply(wb):
+    log = {}
+    log["deleted"] = delete_cells(wb)
+    log["marks"] = purpose_marks(wb)
+    log["yellow"] = yellow_fill(wb)
+    log["header_notes"] = header_notes(wb)
+    done, same, drift = v1010_text.apply_fixes(wb)
+    log["text_fixes"] = dict(changed=done, already=same, drift=drift)
+    log["interface_labels"] = v1010_text.interface_labels(wb)
+    log["harness_labels"] = v1010_text.harness_labels(wb)
+    log["src_cites"] = v1010_text.src_cites(wb)
+    log["checks_header"] = v1010_text.checks_header(wb)
+    log["gov"] = v1010_gov.apply(wb)
+    log["decisions"] = decisions_append(wb)
+    return log
+```
+
+## v1010_gov.py
+
+```python
+# v10.1 1-d: Gov_Map registry hygiene (4-0 sheet 6, 11 items). Registry pages only; no input value, no formula of a model page and no name changes.
+#   1. the same cell registered twice: Har_In E12:G12 (GM481 narrowed to C12:D12, GM655 stays) and Train_In C34:E34 (GM652-654 stay, GM540 marked 停用)
+#   2. Sens_Perf E52:G52 and I54:K54 contain one formula cell (the baseline): marked 含公式格, state column U says so
+#   3. labels that do not match the target row (Sens_Train O8:R8, Y8:AB8, Sens_Rev B18): the label now starts with the target row's label
+#   4. Alloc I94:L95 (8 blue cells, one-hot service-generation scenarios) get a Gov_Map row of the same category as the other scenario cells (情境值)
+# Every edit is guarded by the old text, so a rebuild from v10.1 changes nothing.
+import re
+from openpyxl.utils import get_column_letter as L
+
+NOTE = "｜v10.1 4-1："
+DISABLED = "（停用）"
+
+
+def _row_of(ws, gid):
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value == gid: return r
+    return None
+
+
+def _append(cell, txt):
+    v = cell.value
+    if isinstance(v, str) and txt in v: return False
+    cell.value = (v if v not in (None, "") else "") + txt
+    return True
+
+
+def _prepend(cell, txt):
+    v = cell.value
+    if isinstance(v, str) and v.startswith(txt): return False
+    cell.value = txt + (v if v is not None else "")
+    return True
+
+
+def gov_fixes(wb):
+    ws = wb["Gov_Map"]; n = {}
+    # 1a Har_In E12:G12 is registered by GM481 (C12:G12) and GM655 (E12:G12): GM481 keeps only C12:D12
+    r = _row_of(ws, "GM481")
+    if ws.cell(r, 4).value == "C12:G12":
+        ws.cell(r, 4).value = "C12:D12"; _append(ws.cell(r, 14), f" {NOTE}E12:G12 與 GM655 重複登錄，本列改為只登錄 C12:D12（4-0 盤點 G1）"); n["GM481"] = 1
+    # 1b Train_In C34:E34: GM652-654 register the three cells one by one (with their own intervals), GM540 is switched off
+    r = _row_of(ws, "GM540")
+    if ws.cell(r, 4).value == "C34:E34":
+        ws.cell(r, 4).value = DISABLED + "C34:E34"; _append(ws.cell(r, 14), f" {NOTE}停用——C34、D34、E34 已由 GM652、GM653、GM654 逐格登錄（4-0 盤點 G1）；本列保留作為歷史與區間說明"); n["GM540"] = 1
+    # 2 Sens_Perf: one formula cell in the middle of each range
+    for gid, rng, mid, src in (("GM424", "E52:G52", "F52", "Tech_Registry!$E$20"), ("GM425", "I54:K54", "J54", "Tech_Registry!$E$21")):
+        r = _row_of(ws, gid)
+        if ws.cell(r, 3).value == "Sens_Perf" and ws.cell(r, 4).value == rng:
+            ws.cell(r, 21).value = "含公式格"
+            _prepend(ws.cell(r, 14), f"【含公式格】範圍中間格 {mid} 是公式（基準欄，讀 {src}），其餘兩格是情境輸入。 "); n[gid] = 1
+    # 3 labels start with the target row's label
+    for gid, old, new in (("GM437", "情境倍數：RL rollout token × 0.3／× 3", "情境倍數（×）：RL rollout token × 0.3／× 3"),
+                          ("GM438", "情境倍數：合成資料 token × 0／× 3", "情境倍數（×）：合成資料 token × 0／× 3"),
+                          ("GM439", "ε（K4 (a) 量級情境）", "ε（上一列量級情境的指數；K4 (a) 量級情境）")):
+        r = _row_of(ws, gid)
+        if ws.cell(r, 5).value == old: ws.cell(r, 5).value = new; n[gid] = 1
+    return n
+
+
+def add_alloc_rows(wb):
+    """4. Alloc I94:L95 one-hot scenario inputs: a copy of the GM424 row (same category 情境值) with the target, label and note changed."""
+    ws = wb["Gov_Map"]
+    if _row_of(ws, "GM681") is not None: return 0
+    last = max(r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value)
+    src = _row_of(ws, "GM424"); new = last + 1
+    for c in range(1, ws.max_column + 1):
+        s = ws.cell(src, c); d = ws.cell(new, c)
+        v = s.value
+        if isinstance(v, str) and v.startswith("="): v = re.sub(r"(?<![0-9])%d(?![0-9])" % src, str(new), v)
+        d.value = v
+        d._style = s._style
+    ws.cell(new, 1).value = "GM681"
+    ws.cell(new, 8).value = None      # SRC_ID blank: SRC_Index row 1448 reads Gov_Map!H685, and a dash there would change the name IDX_SrcID
+    ws.cell(new, 21).value = "—"      # U（建置時狀態）：範圍列一律「—」，與重建時 builder 的寫法一致（不沿用 GM424 的「含公式格」）
+    ws.cell(new, 2).value = "切片四（v10.1 瘦身 4-1）"
+    ws.cell(new, 3).value = "Alloc"; ws.cell(new, 4).value = "I94:L95"
+    ws.cell(new, 5).value = "服務世代組合：全 GB200／全 VR200（G 節敏感度 one-hot 輸入）"
+    ws.cell(new, 14).value = ("敏感度情境設定：G 節第 94 列＝全 GB200（J94＝1）、第 95 列＝全 VR200（L95＝1），其餘為 0；黃底藍字。"
+                              "v6.2 起存在但未登錄，v10.1 補登（4-0 盤點 G2）；不改任何輸入值")
+    return 1
+
+
+def apply(wb):
+    return dict(fixes=gov_fixes(wb), added=add_alloc_rows(wb))
+```
+
+## v1010_marks.py
+
+```python
+"""1-b 第 1 項：「用途」欄標記資料（由 docs/evidence/20261016_瘦身4-1/gen_marks.py 產生，勿手改）。{頁: {列: 標記文字}}"""
+MARKS = {
+    'Inputs': {
+        5: '顯示用：D5:F5（同表其他世代／層級欄）',
+        6: '顯示用：D6:F6（同表其他世代／層級欄）',
+        8: '顯示用：D8:F8（同表其他世代／層級欄）',
+    },
+    'Spec_Rack': {
+        41: '複本讀取：C41:G41（被 Sens_／_Prod 複本頁讀取，不是死格）',
+    },
+    'Serving': {
+        20: '顯示用：C20:E20（欄頭／表頭標籤）',
+    },
+    'Calib': {
+        10: '顯示用：I10（校準點逐步重現）',
+        11: '顯示用：C11:I11（欄頭／表頭標籤）',
+        13: '顯示用：I13（校準點逐步重現）',
+        14: '顯示用：I14（校準點逐步重現）',
+        15: '顯示用：I15（校準點逐步重現）',
+        16: '顯示用：I16（校準點逐步重現）',
+        17: '顯示用：I17（校準點逐步重現）',
+        20: '顯示用：C20:I20（欄頭／表頭標籤）',
+        23: '顯示用：I23（校準點逐步重現）',
+        24: '顯示用：D24:I24（校準點逐步重現）',
+        25: '顯示用：D25:I25（校準點逐步重現）',
+        26: '顯示用：D26:I26（校準點逐步重現）',
+        27: '顯示用：D27:I27（校準點逐步重現）',
+        28: '顯示用：D28:I28（校準點逐步重現）',
+        29: '顯示用：D29:I29（校準點逐步重現）',
+        30: '顯示用：I30（校準點逐步重現）',
+        31: '顯示用：D31:I31（校準點逐步重現）',
+        32: '顯示用：D32:I32（校準點逐步重現）',
+        33: '顯示用：D33:I33（校準點逐步重現）',
+        34: '顯示用：D34:I34（校準點逐步重現）',
+        35: '顯示用：D35:I35（校準點逐步重現）',
+        36: '顯示用：D36:I36（校準點逐步重現）',
+        37: '顯示用：I37（校準點逐步重現）',
+        38: '顯示用：I38（校準點逐步重現）',
+        39: '顯示用：I39（校準點逐步重現）',
+        40: '顯示用：I40（校準點逐步重現）',
+        41: '顯示用：I41（校準點逐步重現）',
+        42: '顯示用：D42:I42（校準點逐步重現）',
+        43: '顯示用：D43:I43（校準點逐步重現）',
+        44: '顯示用：D44:I44（校準點逐步重現）',
+        45: '顯示用：I45（校準點逐步重現）',
+        46: '顯示用：I46（校準點逐步重現）',
+        47: '顯示用：I47（校準點逐步重現）',
+        48: '顯示用：D48:I48（校準點逐步重現）',
+        49: '顯示用：D49:I49（校準點逐步重現）',
+        50: '顯示用：D50:I50（校準點逐步重現）',
+        51: '顯示用：D51:I51（校準點逐步重現）',
+        52: '顯示用：D52:I52（校準點逐步重現）',
+        53: '顯示用：I53（校準點逐步重現）',
+        54: '顯示用：E54:I54（校準點逐步重現）',
+        55: '顯示用：D55:I55（校準點逐步重現）',
+        56: '顯示用：E56:I56（校準點逐步重現）',
+        57: '顯示用：E57:I57（校準點逐步重現）',
+        63: '顯示用：C63（驗證列）',
+        66: '顯示用：C66:G66（欄頭／表頭標籤）',
+        75: '顯示用：D75:I75（校準點逐步重現）',
+        76: '顯示用：D76:I76（校準點逐步重現）',
+        77: '顯示用：D77:I77（校準點逐步重現）',
+        78: '顯示用：D78:I78（校準點逐步重現）',
+        79: '顯示用：D79:I79（校準點逐步重現）',
+        80: '顯示用：D80:I80（校準點逐步重現）',
+        81: '顯示用：D81:I81（校準點逐步重現）',
+        82: '顯示用：D82:I82（校準點逐步重現）',
+        83: '顯示用：D83:I83（校準點逐步重現）',
+        84: '顯示用：D84:I84（校準點逐步重現）',
+        85: '顯示用：D85:I85（校準點逐步重現）',
+        86: '顯示用：D86:I86（校準點逐步重現）',
+        91: '顯示用：C91:E91（校準擬合步驟）',
+        92: '顯示用：C92:E92（校準擬合步驟）',
+        93: '顯示用：C93:E93（校準擬合步驟）',
+        94: '顯示用：C94:E94（校準擬合步驟）',
+        95: '顯示用：C95:E95（校準擬合步驟）',
+        96: '顯示用：C96:E96（校準擬合步驟）',
+        107: '顯示用：C107（校準擬合步驟）',
+        122: '顯示用：C122:H122（欄頭／表頭標籤）',
+        149: '顯示用：D149:H149（校準點逐步重現）',
+        155: '顯示用：C155:G155（欄頭／表頭標籤）',
+    },
+    'Perf': {
+        4: '複本讀取：C4:Q4（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        5: '複本讀取：C5:Q5（被 Sens_／_Prod 複本頁讀取，不是死格）',
+    },
+    'Unit_Cost': {
+        4: '複本讀取：C4:Q4（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        5: '複本讀取：C5:Q5（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        10: '顯示用：C10:Q10（同表其他世代／層級欄）',
+        19: '顯示用：C19:Q19（同表其他世代／層級欄）',
+        20: '顯示用：C20:Q20（同表其他世代／層級欄）',
+        21: '顯示用：C21:Q21（同表其他世代／層級欄）',
+        32: '顯示用：C32:Q32（同表其他世代／層級欄）',
+        33: '顯示用：C33:Q33（同表其他世代／層級欄）',
+        34: '顯示用：C34:Q34（同表其他世代／層級欄）',
+        45: '顯示用：C45:Q45（同表其他世代／層級欄）',
+        46: '顯示用：C46:Q46（同表其他世代／層級欄）',
+        47: '顯示用：C47:Q47（同表其他世代／層級欄）',
+    },
+    'DC_Cost': {
+        4: '顯示用：C4:Q4（欄頭／表頭標籤）',
+        36: '顯示用：C36:Q36（同表其他世代／層級欄）',
+    },
+    'Train_In': {
+        16: '顯示用：E16（同表其他世代／層級欄）',
+        17: '顯示用：E17（同表其他世代／層級欄）',
+        20: '顯示用：C20:G20（欄頭／表頭標籤）',
+        24: '顯示用：C24:E24（欄頭／表頭標籤）',
+    },
+    'Perf_Batch': {
+        4: '複本讀取：C4:S4（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        5: '複本讀取：C5:S5（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        65: '複本讀取：R65:S65（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        67: '複本讀取：R67:S67（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        101: '複本讀取：R101:S101（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        103: '複本讀取：R103:S103（被 Sens_／_Prod 複本頁讀取，不是死格）',
+    },
+    'Training': {
+        4: '複本讀取：C4:Q4（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        5: '複本讀取：C5:Q5（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        117: '顯示用：C117:Q117（同表其他世代／層級欄）',
+    },
+    'Cap_In': {
+        84: '顯示用：C84:E84（驗證列）',
+        85: '顯示用：C85:E85（對照列；標明口徑）',
+        90: '顯示用：D90:E90（同表其他世代／層級欄）',
+        96: '顯示用：C96:E96（對照列；標明口徑）',
+        100: '顯示用：C100:E100（對照列；標明口徑）',
+        102: '顯示用：C102:E102（對照列；標明口徑）',
+        103: '顯示用：C103:E103（對照列；標明口徑）',
+        104: '顯示用：D104:E104（同表其他世代／層級欄）',
+        105: '顯示用：D105:E105（同表其他世代／層級欄）',
+        106: '顯示用：D106:E106（同表其他世代／層級欄）',
+        107: '顯示用：D107:E107（同表其他世代／層級欄）',
+        113: '顯示用：C113:E113（對照列；標明口徑）',
+        117: '顯示用：C117:E117（對照列；標明口徑）',
+        120: '顯示用：C120:E120（對照列；標明口徑）',
+        127: '顯示用：C127:E127（對照列；標明口徑）',
+        148: '顯示用：C148:E148（驗證列）',
+        152: '顯示用：C152:E152（對照列；標明口徑）',
+        154: '顯示用：C154:E154（對照列；標明口徑）',
+        155: '顯示用：C155:E155（對照列；標明口徑）',
+        156: '顯示用：C156:E156（對照列；標明口徑）',
+        157: '顯示用：C157:E157（對照列；標明口徑）',
+        158: '顯示用：C158:E158（對照列；標明口徑）',
+        159: '顯示用：C159:E159（對照列；標明口徑）',
+        163: '顯示用：C163:E163（對照列；標明口徑）',
+        164: '顯示用：C164:E164（對照列；標明口徑）',
+        165: '顯示用：C165:E165（驗證列）',
+        167: '顯示用：D167:E167（同表其他世代／層級欄）',
+        168: '顯示用：D168:E168（同表其他世代／層級欄）',
+        171: '顯示用：D171:E171（同表其他世代／層級欄）',
+        172: '顯示用：D172:E172（同表其他世代／層級欄）',
+        174: '顯示用：D174:E174（同表其他世代／層級欄）',
+        180: '顯示用：C180:E180（驗證列）',
+        181: '顯示用：C181:E181（對照列；標明口徑）',
+        211: '顯示用：C211（同表其他世代／層級欄）',
+        212: '顯示用：C212（同表其他世代／層級欄）',
+        213: '顯示用：C213（同表其他世代／層級欄）',
+        214: '顯示用：C214（同表其他世代／層級欄）',
+        224: '顯示用：C224（驗證列）',
+        236: '顯示用：C236:E236（對照列；標明口徑）',
+        238: '顯示用：C238:E238（驗證列）',
+        242: '顯示用：C242:E242（驗證列）',
+        243: '顯示用：C243:E243（驗證列）',
+        246: '顯示用：C246:E246（對照列；標明口徑）',
+        252: '顯示用：C252（驗證列）',
+        268: '顯示用：C268:F268（對照列；標明口徑）',
+    },
+    'Price_Frontier': {
+        6: '顯示用：B6:P6（同表其他世代／層級欄）',
+        7: '顯示用：B7:P7（同表其他世代／層級欄）',
+        8: '顯示用：B8:P8（同表其他世代／層級欄）',
+        9: '顯示用：B9:P9（同表其他世代／層級欄）',
+        10: '顯示用：B10:P10（同表其他世代／層級欄）',
+        11: '顯示用：B11:P11（同表其他世代／層級欄）',
+        12: '顯示用：B12:P12（同表其他世代／層級欄）',
+        13: '顯示用：B13:P13（同表其他世代／層級欄）',
+        14: '顯示用：B14:P14（同表其他世代／層級欄）',
+        15: '顯示用：B15:P15（同表其他世代／層級欄）',
+        16: '顯示用：B16:P16（同表其他世代／層級欄）',
+        17: '顯示用：B17:P17（同表其他世代／層級欄）',
+        18: '顯示用：B18:P18（同表其他世代／層級欄）',
+        24: '顯示用：D24:E24（同表其他世代／層級欄）',
+        31: '顯示用：D31:E31（同表其他世代／層級欄）',
+        33: '顯示用：D33:E33（同表其他世代／層級欄）',
+    },
+    'Cache_Store': {
+        4: '顯示用：C4:Q4（欄頭／表頭標籤）',
+        5: '顯示用：C5:Q5（欄頭／表頭標籤）',
+    },
+    'Fleet_1GW': {
+        4: '複本讀取：C4:Q4（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        5: '複本讀取：C5:Q5（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        6: '複本讀取：C6:Q6（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        10: '顯示用：C10:Q10（同表其他世代／層級欄）',
+        23: '顯示用：C23:Q23（同表其他世代／層級欄）',
+        26: '顯示用：C26:Q26（同表其他世代／層級欄）',
+        29: '顯示用：C29:Q29（同表其他世代／層級欄）',
+        30: '顯示用：C30:Q30（同表其他世代／層級欄）',
+        33: '顯示用：C33:Q33（同表其他世代／層級欄）',
+        34: '顯示用：C34:Q34（同表其他世代／層級欄）',
+    },
+    'Amortize': {
+        4: '複本讀取：C4:Q4（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        5: '複本讀取：C5:Q5（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        6: '複本讀取：C6:Q6（被 Sens_／_Prod 複本頁讀取，不是死格）',
+    },
+    'Theory_Rev': {
+        4: '複本讀取：C4:Q4（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        5: '複本讀取：C5:Q5（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        6: '複本讀取：C6:Q6（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        21: '顯示用：C21:Q21（對照列；標明口徑）',
+        33: '複本讀取：C33:Q33（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        39: '顯示用：C39:Q39（對照列；標明口徑）',
+        57: '顯示用：C57:Q57（對照列；標明口徑）',
+        73: '複本讀取：C73:Q73（被 Sens_／_Prod 複本頁讀取，不是死格）',
+        77: '顯示用：C77:G77（欄頭／表頭標籤）',
+    },
+    'Har_In': {
+        11: '顯示用：C11:G11（欄頭／表頭標籤）',
+        23: '顯示用：C23:G23（欄頭／表頭標籤）',
+        35: '顯示用：C35:G35（欄頭／表頭標籤）',
+        72: '顯示用：C72:D72（同表其他世代／層級欄）',
+    },
+    'Harness': {
+        4: '顯示用：C4:G4（欄頭／表頭標籤）',
+        147: '顯示用：C147:F147（同表其他世代／層級欄）',
+        148: '顯示用：C148:F148（同表其他世代／層級欄）',
+        149: '顯示用：C149:G149（對照列；標明口徑）',
+        150: '顯示用：C150:G150（對照列；標明口徑）',
+    },
+    'Alloc_In': {
+        9: '顯示用：D9:E9（同表其他世代／層級欄）',
+        10: '顯示用：D10:E10（同表其他世代／層級欄）',
+        11: '顯示用：D11:E11（同表其他世代／層級欄）',
+        12: '顯示用：D12:E12（同表其他世代／層級欄）',
+    },
+    'Alloc': {
+        15: '顯示用：C15:F15（欄頭／表頭標籤）',
+        71: '顯示用：C71（對照列；標明口徑）',
+        81: '顯示用：F81:V81（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        82: '顯示用：F82:V82（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        83: '顯示用：F83:V83（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        84: '顯示用：F84:V84（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        85: '顯示用：F85:V85（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        86: '顯示用：F86:V86（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        87: '顯示用：F87:V87（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        88: '顯示用：V88（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        89: '顯示用：V89（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        90: '顯示用：F90:V90（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        91: '顯示用：F91:V91（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        92: '顯示用：F92:V92（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        93: '顯示用：F93:V93（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        94: '顯示用：F94:V94（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        95: '顯示用：F95:V95（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        97: '顯示用：F97:V97（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        98: '顯示用：F98:V98（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        99: '顯示用：F99:V99（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        100: '顯示用：F100:V100（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        101: '顯示用：F101:V101（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        102: '顯示用：F102:V102（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        103: '顯示用：F103:V103（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        104: '顯示用：F104:V104（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        105: '顯示用：F105:V105（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        106: '顯示用：F106:V106（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        107: '顯示用：F107:V107（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        108: '顯示用：F108:V108（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        109: '顯示用：F109:V109（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        110: '顯示用：F110:V110（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        111: '顯示用：F111:V111（G 節敏感度表；閉式重寫 A–D 推導鏈）',
+        121: '顯示用：C121（對照列；標明口徑）',
+        138: '顯示用：F138（同表其他世代／層級欄）',
+        139: '顯示用：F139（同表其他世代／層級欄）',
+        141: '顯示用：C141（對照列；標明口徑）',
+        142: '顯示用：C142（對照列；標明口徑）',
+        143: '顯示用：C143（對照列；標明口徑）',
+    },
+    'Interface': {
+        229: '顯示用：C229:Q229（恆等式，非驗證）',
+    },
+    'L1': {
+        8: '顯示用：O8（對照欄：推算 ÷ 外部）',
+        9: '顯示用：O9（對照欄：推算 ÷ 外部）',
+        10: '顯示用：O10（對照欄：推算 ÷ 外部）',
+        16: '顯示用：O16（對照欄：推算 ÷ 外部）',
+        17: '顯示用：O17（對照欄：推算 ÷ 外部）',
+        25: '顯示用：O25（對照欄：推算 ÷ 外部）',
+        30: '顯示用：O30（對照欄：推算 ÷ 外部）',
+        31: '顯示用：O31（對照欄：推算 ÷ 外部）',
+        32: '顯示用：O32（對照欄：推算 ÷ 外部）',
+        33: '顯示用：O33（對照欄：推算 ÷ 外部）',
+        34: '顯示用：O34（對照欄：推算 ÷ 外部）',
+        35: '顯示用：O35（對照欄：推算 ÷ 外部）',
+        36: '顯示用：O36（對照欄：推算 ÷ 外部）',
+        39: '顯示用：O39（對照欄：推算 ÷ 外部）',
+        46: '顯示用：O46（對照欄：推算 ÷ 外部）',
+        47: '顯示用：O47（對照欄：推算 ÷ 外部）',
+        48: '顯示用：O48（對照欄：推算 ÷ 外部）',
+        49: '顯示用：O49（對照欄：推算 ÷ 外部）',
+        59: '顯示用：O59（對照欄：推算 ÷ 外部）',
+        60: '顯示用：O60（對照欄：推算 ÷ 外部）',
+        61: '顯示用：O61（對照欄：推算 ÷ 外部）',
+        62: '顯示用：O62（對照欄：推算 ÷ 外部）',
+        63: '顯示用：O63（對照欄：推算 ÷ 外部）',
+        64: '顯示用：O64（對照欄：推算 ÷ 外部）',
+        65: '顯示用：O65（對照欄：推算 ÷ 外部）',
+        66: '顯示用：O66（對照欄：推算 ÷ 外部）',
+        70: '顯示用：O70（對照欄：推算 ÷ 外部）',
+        74: '顯示用：O74（對照欄：推算 ÷ 外部）',
+        75: '顯示用：O75（對照欄：推算 ÷ 外部）',
+        76: '顯示用：M76:O76（對照欄：外部值與推算 ÷ 外部）',
+        77: '顯示用：M77:O77（對照欄：外部值與推算 ÷ 外部）',
+        78: '顯示用：M78:O78（對照欄：外部值與推算 ÷ 外部）',
+        79: '顯示用：N79:O79（對照欄：外部值與推算 ÷ 外部）',
+        80: '顯示用：M80:O80（對照欄：外部值與推算 ÷ 外部）',
+        81: '顯示用：M81:O81（對照欄：外部值與推算 ÷ 外部）',
+        82: '顯示用：M82:O82（對照欄：外部值與推算 ÷ 外部）',
+        83: '顯示用：N83:O83（對照欄：外部值與推算 ÷ 外部）',
+        84: '顯示用：O84（對照欄：推算 ÷ 外部）',
+        85: '顯示用：O85（對照欄：推算 ÷ 外部）',
+        88: '顯示用：M88:O88（對照欄：外部值與推算 ÷ 外部）',
+        89: '顯示用：N89:O89（對照欄：外部值與推算 ÷ 外部）',
+        93: '顯示用：N93:O93（對照欄：外部值與推算 ÷ 外部）',
+        108: '顯示用：O108（對照欄：推算 ÷ 外部）',
+        109: '顯示用：O109（對照欄：推算 ÷ 外部）',
+        110: '顯示用：O110（對照欄：推算 ÷ 外部）',
+    },
+    'NonNV': {
+        5: '未接線：B5:J5（MAG、智譜、AI 半導體待用；目前不進任何輸出）',
+        6: '未接線：B6:J6（MAG、智譜、AI 半導體待用；目前不進任何輸出）',
+        7: '未接線：B7:J7（MAG、智譜、AI 半導體待用；目前不進任何輸出）',
+        8: '未接線：B8:J8（MAG、智譜、AI 半導體待用；目前不進任何輸出）',
+        9: '未接線：B9:J9（MAG、智譜、AI 半導體待用；目前不進任何輸出）',
+    },
+}
+```
+
+## v1010_text.py
+
+```python
+# v10.1 1-c: stale explanatory text. A number in a note that moves with the model becomes a formula that reads the current value;
+# a number that is really history says which version it belonged to. Every patch is guarded: the cell is changed only while it still holds the
+# text the builder (or v10.0) wrote, so a rebuild from v10.1 leaves the cell as it is (idempotent) and a drifted cell is reported, never overwritten.
+import re
+
+
+def F(*parts):
+    """Build a text formula: str -> literal, (expr, fmt) -> TEXT of a number (a dash if the value is not a number)."""
+    out = []
+    for p in parts:
+        if isinstance(p, str):
+            out.append('"' + p.replace('"', '""') + '"')
+        else:
+            expr, fmt = p
+            out.append(f'IF(ISNUMBER({expr}),TEXT({expr},"{fmt}"),"—")')
+    return "=" + "&".join(out)
+
+
+HIST = "【各版演進記錄：括號內與各段數字為該版當時值，現值以各列公式為準】"
+
+# (sheet, cell, old fragment that must be present, new value or a function of the old value)
+FIXES = [
+    # ---- L1 (4-0 sheet 5: SL01-SL05) ----
+    ("L1", "I48", "基準約 11.5T", F("基準 ", ("D48", "0.0"), "T（現值，隨輸入變動），Epoch 區間 ", ("M48", "0"), "–", ("N48", "0"),
+                                    "T；判讀見 P 欄。v5.36 當時基準約 11.5T、每則 token 數與 API 比例同取低端時約 7.7T（歷史值，已不適用）")),
+    ("L1", "I49", "兩路線差約 15 倍", F("1 −（IF_FullCost_Sol − IF_AmortBU_Sol）÷ IF_PriceRef_Sol：推論算力計入營業成本、訓練計入研發（不含攤提）。理論毛利率是 SLO 下單一層級滿載、基準利用率的上限；與 2025 隱含值約 ",
+                                       ("M49", "0%"), " 的差距，與「兩路線差約 ", ("D69", "0.0"), " 倍」同源（物理產能上限 對 實際營運），屬預期，不調整輸入。E＝高成本欄、F＝低成本欄")),
+    ("L1", "I52", "基準約 0.157（v5.25）", F("100% 口徑的機隊營收乘以本乘積即等於持有成本；基準 ", ("D52", "0.000"), "（現值；v5.25 當時約 0.157）。E＝低成本欄、F＝高成本欄。"
+                                              "v7.0 起本列維持 _Util 層（未乘生產折減）；L1_FleetMargin 以重解比 L1_FleetProdRatio 代入生產折減。v8.0 L4：維持 VR200 截面（Checks K4 比對的恆等式、契約內已列）；"
+                                              "2025 機隊口徑見 L1_FleetBreakeven2025，所需 L 讀後者")),
+    ("L1", "I68", "約 10：兩端同幅度偏小的證據", F("基準 ", ("D68", "0.0"), "（低 ", ("E68", "0.00"), "、高 ", ("F68", "0.0"), "）：兩端同幅度偏小的證據（X13 (c)）；校準用，不得當產能")),
+    ("L1", "I69", "約 14：四項口徑差的乘積", F("＝1 ÷ L1_ExtServeGW 的推算÷外部比值，現值 ", ("D69", "0.00"), "；四項口徑差的乘積 L1_GapProduct 現值 ", ("D74", "0.00"),
+                                              "，兩者之比的未解釋部分見 L1_GapUnexplained")),
+    ("L1", "I71", "基準 1.3；v5.36 B2", F("基準 ", ("D71", "0.00"), "（低 ", ("E71", "0.00"), "、高 ", ("F71", "0.00"), "；2-4 起改經濟口徑，v5.36 當時為 1.3）；v5.36 B2（X46，當時的依據）：Oracle 出租 Nvidia 伺服器毛利率略低於 14%"
+                                           "（The Information 引 Oracle 內部文件；二手）→ 價格 ÷ 成本約 1.16，未含資本成本；Microsoft 對 OpenAI 的計價未找到（當時高端保留 1.6）；"
+                                           "無外部對照（已搜尋，未找到 OpenAI 對 Azure 實付單價；E262）")),
+    ("L1", "I102", "v7.0 的 L1_MFleet 值", F("v7.0 當時的 L1_MFleet 值為 0.5565（歷史值）；本列現值 ", ("D102", "0.0000"), "（公式，隨輸入變動）；D2 之前把 2025 營收配 2026 牌價。保留作對照，不進回本比較")),
+    # ---- Cap_In (SL07-SL14) ----
+    ("Cap_In", "A176", "錨點 τ* ≈ 13,950", F("閉合解：令需求 token（付費＋免費）佔滿機隊有效產能所需的每則 token 數 τ*（三步）；錨點 τ* ≈ ", ("C179", "#,##0"))),
+    ("Cap_In", "G174", "現值 0.465", F("現值 ", ("C174", "0.000"), "（舊說明寫 0.465，為歷史值）；M4 在 < 0.5 或 > 2 時觸發（見 Checks M4）：需求路線只數到機隊產出的 ", ("C174", "0%"))),
+    ("Cap_In", "G175", "現值 0.319", F("現值 ", ("C175", "0.000"), "（舊說明寫 0.319，為歷史值）（＝L1_TokCeiling 判讀）")),
+    ("Cap_In", "G255", "基準 2.207", F("基準 ", ("C255", "0.000"), "（現值，隨輸入變動；舊說明寫 2.207＝1 ÷ 閉合比 0.4531、v5.35 為 2.152，皆為歷史值）；只算基準欄：H 節 D／E 欄的需求 token 隨 τ 區間端點改變，"
+                                              "ScaleServe 以基準 τ 計，D／E 欄不成立；v6.1 D13：分母的實際利用率乘 CTL_ProdDerate（與第 114 列一致，驗算差仍須為 0）")),
+    ("Cap_In", "G116", "約 8.2 × 10⁹", F("r 取模型（第 r 列）；A 段 3.2 節 2025 組合變體約 8.2 × 10⁹（報告當時值；現值 ", ("C116/1E9", "0.0"), " × 10⁹）")),
+    ("Cap_In", "G118", "約 12.0 × 10⁹", F("A 段 3.2 節約 12.0 × 10⁹（報告當時值；現值 ", ("C118/1E9", "0.0"), " × 10⁹）；上限 ÷ 需求路線＝L1_ScaleServe ÷（L1_GapSpendBasis × L1_GapUtil）")),
+    ("Cap_In", "G119", "A 段 2025 組合約 0.81", F("分子同 H1（毛額，SRC_DEM_007）；單價同 H4；A 段 2025 組合約 0.81（報告當時值；現值 ", ("C119", "0.00"), "）")),
+    ("Cap_In", "G121", "A 段 2025 組合約 0.56", F("A 段 2025 組合約 0.56（報告當時值；現值 ", ("C121", "0.00"), "）；m 不可能低於此值（除非 C23、C24 改）")),
+    ("Cap_In", "G109", "Alloc_In 計價倍數（1.3；D 欄取低端 1.0", F("Alloc 第 61 列（SRC_DEM_004 ÷ 世代組合持有成本；v5.36 起 OpenAI 端 ", ("SRC_DEM_004", "0.0"), "）÷ Alloc_In 計價倍數（現值 ", ("AL_SpendBasis", "0.00"), "；D 欄取低端 ",
+                                                                  ("AL_SpendBasis_Lo", "0.00"), "＝GW 取高、E 欄取高端 ", ("AL_SpendBasis_Hi", "0.00"), "；舊說明寫 1.3／1.0／1.6，為 v5.36 歷史值）× 請求形狀修正 κ（現值 ", ("AL_Kappa", "0.00"),
+                                                                  "；D 欄取高端 ", ("AL_Kappa_Hi", "0.00"), "、E 欄取低端 ", ("AL_Kappa_Lo", "0.00"), "，與 token 取高／取低同向）")),
+    ("Cap_In", "G284", "v7.0 的 L1_MFleet 值（0.5565）", F("v7.0 當時的 L1_MFleet 值為 0.5565（歷史值）；本列現值 ", ("C284", "0.0000"), "（公式，隨輸入變動）；D2 之前的混用口徑，只作對照 → L1_MFleet_Px2026")),
+    ("Cap_In", "G288", "v7.0 的 L1_LReqFleet 值（0.5304）", F("v7.0 當時的 L1_LReqFleet 值為 0.5304（歷史值，原樣保留作對照）；本列現值 ", ("C288", "0.000"), "（公式）；VR200 損益兩平（2026 單價）對 2025 的 m（2026 牌價）混用世代與年度，"
+                                                        "故不再作為所需 L 的主口徑（v8.0 L4）")),
+    ("Cap_In", "G240", "v7.0 的 VR200 口徑（0.530）保留於 M 節對照列", F("v8.0 L4：L1_FleetBreakeven2025（Alloc K 節）÷（IF_Util × CTL_ProdDerate × m）；基準值見 L1_LReqFleet；v7.0 的 VR200 口徑（當時 0.530，現值 ",
+                                                                        ("C288", "0.000"), "）保留於 M 節對照列")),
+    ("Cap_In", "H218", "2025 欄＝H9 (i)", lambda old: old if old.startswith(HIST) else HIST + old),
+    ("Cap_In", "A264", "讀法（v5.33 改寫）", lambda old: old if old.startswith(HIST) else HIST + old),
+    # ---- Checks (SL08, SL15, query C item 4) ----
+    ("Checks", "E131", "現值 0.465 → 觸發",
+     '="Cap_In H9 第 174 列（AL_DPaid ÷ H7 機隊付費 token 點估計）；現值 "&IF(ISNUMBER(Cap_In!$C$174),TEXT(Cap_In!$C$174,"0.000"),"—")&IF(D131=1," → 觸發，屬預期"," → 未觸發")&"（舊說明寫 0.465，為歷史值；v5.34 B3）"'),
+]
+CHECKS_C = '="約 "&TEXT(MIN(B44:B46),"0.0")&"–"&TEXT(MAX(B44:B46),"0.0")&"（對照，無通過條件）"'
+CHECKS_E44 = ('="本列現值 "&IF(ISNUMBER(B44),TEXT(B44,"0.00"),"—")&"（舊說明寫「≈1」；三列比值 "&TEXT(MIN(B44:B46),"0.00")&"–"&TEXT(MAX(B44:B46),"0.00")&'
+              '"，同量級）：中國廠商定價與 Hopper 級物理成本同量級；前緣由接近成本者決定（K4 理由 2）"')
+for _c in ("C44", "C45", "C46"):
+    FIXES.append(("Checks", _c, "≈1", CHECKS_C))
+FIXES.append(("Checks", "E44", "≈1：中國廠商定價接近", CHECKS_E44))
+
+
+def apply_fixes(wb):
+    done, same, drift = 0, 0, []
+    for sh, ref, frag, new in FIXES:
+        c = wb[sh][ref]
+        old = c.value
+        if not isinstance(old, str):
+            drift.append((sh, ref, "empty or not text"))
+            continue
+        target = new(old) if callable(new) else new
+        if old == target:
+            same += 1
+        elif frag in old:
+            c.value = target
+            done += 1
+        else:
+            drift.append((sh, ref, "old fragment not found"))
+    return done, same, drift
+
+
+# ---- Interface A300-A310: the names of the four-layer monotonic rows carry no suffix in the label (SL17) ----
+def interface_labels(wb):
+    ws = wb["Interface"]; n = 0
+    for r in range(290, 330):
+        v = ws.cell(r, 1).value
+        if isinstance(v, str):
+            m = re.match(r"^(IFW_[A-Za-z0-9]+(?:_[A-Za-z]+)?)：Interface 四層單調", v)
+            if m and not m.group(1).endswith("_*"):
+                ws.cell(r, 1).value = v.replace(m.group(1) + "：", m.group(1) + "_*：", 1); n += 1
+    return n
+
+
+# ---- Harness: rows 67-84 (cost per attempt) and 87-104 (cost per successful task) carry identical labels (SL19) ----
+def harness_labels(wb):
+    ws = wb["Harness"]; n = 0
+    for rows, pre in ((range(67, 85), "每次嘗試成本："), (range(87, 105), "每成功任務成本：")):
+        for r in rows:
+            v = ws.cell(r, 1).value
+            if isinstance(v, str) and v and not v.startswith(pre) and v.startswith(("VR200 ×", "GB300 ×")):
+                ws.cell(r, 1).value = pre + v; n += 1
+    return n
+
+
+# ---- SRC records of the RL / harness cross-checks cite section 3 of the 3A report, not section 2 (query C item 4) ----
+SRC_CITE = [("SRC_Perf", "J68"), ("SRC_Perf", "J69"), ("SRC_Harness", "J20")]
+
+
+def src_cites(wb):
+    n = 0
+    for sh, ref in SRC_CITE:
+        v = wb[sh][ref].value
+        if isinstance(v, str) and "稽核修正3A_查證.md 第 2 節" in v:
+            wb[sh][ref].value = v.replace("稽核修正3A_查證.md 第 2 節", "稽核修正3A_查證.md 第 3 節"); n += 1
+    return n
+
+
+def checks_header(wb):
+    ws = wb["Checks"]
+    if ws["G139"].value in (None, ""):
+        ws["G139"].value = ws["G42"].value; return 1
+    return 0
+```
+
+## v1020.py
+
+```python
+# v10.2 (work order docs/workorders/20261016_η校準.md, branch claude/batch4-wo; segment "η 校準與驗證判準").
+#   E1  generation conversion: Calib J section = calibration copy rows (Hopper: DeepSeek profile 2,324; GB200: vLLM 10.1K) that show model ÷ target and the multiplier that would be needed.
+#       The stop rule of the work order applies: the Hopper copy row is bounded by the EP-communication term (no C67 value reaches the target), the GB200 solution (x2.8-3.0) puts the effective
+#       GB200 compute above GB300 and fails V5. Calib C67 (1.2) and D67 (1) are therefore NOT written; the solved values are shown on the copy rows and reported for Project to decide.
+#   E2  Serving row 21 (SLO, tok/s/user) = geometric mean of the Artificial Analysis and OpenRouter medians (SRC_PERF_066-071); old values (120/65/55) stay as scenario slo_v10.
+#   E3  Checks V: V2 (MLPerf v6.0 server GB200 NVIDIA 72 GPU), V3 (same round GB300 72-GPU rack), V7/V8 (LMSYS conditions aligned, Calib J), V13/V14 upper bound 3, new V15 (DeepSeek online 1,850),
+#       B26 and B36 counted again as V16/V17.
+#   E4  Perf_Batch R-S columns kept (Sens_Train W59:X62 reads them): header and registry notes say so.
+# Every write to an Excel-owned cell is guarded (old value / old text). Minor version: no new contract name.
+import re
+from openpyxl.workbook.defined_name import DefinedName
+from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+import v1000
+import v1010
+
+VERSION = "20261016_Tokenomics_v10.2"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-16"
+V = "v10.2"
+WO = "工作單 docs/workorders/20261016_η校準.md（分支 claude/batch4-wo，PR #78）"
+DEC_BY = "Andy 2026-10-16 18:18「都依建議」（E1–E4）；E4 為 18:22 決定 (b)；細節預設由 chat 端補充，可撤回"
+EID = "E379"
+DASH = "—"
+REPORT = "docs/reports/20261016_服務條件查證.md"
+EVTAB = "docs/evidence/20261016_服務條件/證據表.xlsx"
+
+# ================================================================== SRC records (SRC_Perf 066-078)
+_SRC = f"{REPORT} 與 {EVTAB}（CC 查證，2026-10-16；原始出處見證據表）"
+
+
+def _rec(i, metric, val, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note, second="—"):
+    r = v1000._rec(i, "SRC_Perf", metric, val, None, None, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note)
+    r["ev"] = EID; r["s"] = "U-V1020"
+    if second != "—": r["second"] = second
+    return r
+
+
+_AA = "Artificial Analysis（第三方量測商；以 API 探測請求量測，OpenAI 端點，72 小時中位數，10K 輸入探測）"
+_OR = "OpenRouter（路由商；OpenAI 端點，實際流量 P50）"
+_SLO_USE = "Serving!C21／D21／E21（兩家中位數的幾何平均）"
+SRC_NEW = [
+    _rec("SRC_PERF_066", "輸出速度（AA 中位）：GPT-6 Luna", 116.5, "tok/s/user", "每用戶輸出速度（首 chunk 之後）；" + _AA, "GPT-6 Luna", "2026-10",
+         "https://artificialanalysis.ai/models/gpt-6-luna/providers", 2, "中立", "第三方量測，無賣方利益；探測請求（低頻），數值系統性高於實際流量", "一手（WebFetch 摘要）", _SLO_USE + "｜Luna",
+         f"v10.2 E2（{EID}）：Luna 層代表模型 GPT-6 Luna；與 SRC_PERF_067 取幾何平均", second="SRC_PERF_067"),
+    _rec("SRC_PERF_067", "輸出速度（OpenRouter P50）：GPT-6 Luna", 61, "tok/s/user", "每用戶輸出速度；" + _OR, "GPT-6 Luna", "2026-10",
+         "https://openrouter.ai/models/openai/gpt-6-luna", 2, "中立", "第三方量測，實際流量；延遲 2.59 s", "一手（WebFetch 摘要）", _SLO_USE + "｜Luna",
+         f"v10.2 E2（{EID}）：與 SRC_PERF_066 取幾何平均；兩家量測商系統性相差 1.5–2 倍（原因未查明）", second="SRC_PERF_066"),
+    _rec("SRC_PERF_068", "輸出速度（AA 中位）：GPT-6.1 Sol (medium)", 50.7, "tok/s/user", "每用戶輸出速度（首 chunk 之後）；" + _AA, "GPT-6.1 Sol (medium)", "2026-10",
+         "https://artificialanalysis.ai/models/gpt-6-1-sol-medium/providers", 2, "中立", "第三方量測，無賣方利益", "一手（WebFetch 摘要）", _SLO_USE + "｜Sol",
+         f"v10.2 E2（{EID}）：Sol 層代表模型 GPT-6.1 Sol（現行 API 與 ChatGPT／Codex 主力；chat 端預設）", second="SRC_PERF_069"),
+    _rec("SRC_PERF_069", "輸出速度（OpenRouter P50）：GPT-6.1 Sol", 37, "tok/s/user", "每用戶輸出速度；" + _OR, "GPT-6.1 Sol", "2026-10",
+         "https://openrouter.ai/models/openai/gpt-6.1-sol", 2, "中立", "第三方量測，實際流量；延遲 3.36 s", "一手（WebFetch 摘要）", _SLO_USE + "｜Sol",
+         f"v10.2 E2（{EID}）：與 SRC_PERF_068 取幾何平均", second="SRC_PERF_068"),
+    _rec("SRC_PERF_070", "輸出速度（AA 中位）：GPT-6 Astra (high)", 52.1, "tok/s/user", "每用戶輸出速度（首 chunk 之後）；" + _AA, "GPT-6 Astra (high)", "2026-10",
+         "https://artificialanalysis.ai/ko/models/gpt-6-astra-high/providers", 2, "中立", "第三方量測，無賣方利益", "一手（WebFetch 摘要）", _SLO_USE + "｜Astra",
+         f"v10.2 E2（{EID}）：Astra 層代表模型 GPT-6 Astra", second="SRC_PERF_071"),
+    _rec("SRC_PERF_071", "輸出速度（OpenRouter P50）：GPT-6 Astra", 32, "tok/s/user", "每用戶輸出速度；" + _OR, "GPT-6 Astra", "2026-10",
+         "https://openrouter.ai/models/openai/gpt-6-astra", 2, "中立", "第三方量測，實際流量；延遲 4.16 s", "一手（WebFetch 摘要）", _SLO_USE + "｜Astra",
+         f"v10.2 E2（{EID}）：與 SRC_PERF_070 取幾何平均", second="SRC_PERF_070"),
+    _rec("SRC_PERF_072", "DeepSeek profile decode 每 GPU（H800，EP128，批次 128，4K）", 2324, "tok/s/GPU（decode）", "官方 profile 配置；每 GPU 批次 128；提示長度 4K；兩個 micro-batch 重疊；TPOT 約 55 ms",
+         "DeepSeek-V3/R1 on H800（EP128）", "2025-02", "https://github.com/deepseek-ai/profile-data；數值轉引 Step-3 論文表 8（arXiv 2507.19427）", 1, "利害關係方", "DeepSeek 自揭（宣傳成本效率）；Step-3 論文為轉引，非獨立量測",
+         "一手（官方配置）＋二手（吞吐轉引）", "Calib J 節 C 欄（Hopper 校準複本列）", f"v10.2 E1（{EID}）：Hopper 校準目標；與 SRC_PERF_073 同一家公司，相關性高，兩者不獨立"),
+    _rec("SRC_PERF_073", "DeepSeek 線上服務 decode 每 GPU（H800，24 小時平均）", 1850, "tok/s/GPU（decode）", "24 小時平均（2025-02-27 至 02-28）；平均每用戶輸出 20–22 tok/s；每輸出 token 平均 KV 長度 4,989；decode 單元 18 節點（EP144）",
+         "DeepSeek-V3/R1 on H800（線上服務）", "2025-03", "https://github.com/deepseek-ai/open-infra-index/blob/main/202502OpenSourceWeek/day_6_one_more_thing_deepseekV3R1_inference_system_overview.md", 1, "利害關係方",
+         "DeepSeek 自營服務自揭（並宣稱理論利潤率 545%）；Step-3 論文表 8 轉引 1,850", "一手（官方文件）", "Calib J 節 E 欄；Checks V15（驗證，不用於校準）",
+         f"v10.2 E3（{EID}）：Hopper 條件對齊後驗證點；與校準點 SRC_PERF_072（2,324）同一家公司，相關性高"),
+    _rec("SRC_PERF_074", "vLLM WideEP on GB200：decode 每 GPU（DeepSeek-R1 類，2K／2K，專家 FP4）", 10100, "tok/s/GPU（decode）", "decode 1 個 8 GPU 實例；批次填滿 HBM；無 ITL／SLO；是否只算輸出未寫",
+         "GB200 NVL72（vLLM wide-EP）", "2026-02", "https://vllm.ai/blog/dsr1-gb200-part1", 1, "利害關係方", "vLLM 專案（開源；宣傳）；與 LMSYS 13,386（NVFP4）互相佐證但非同一數字", "一手（WebFetch 摘要）",
+         "Calib J 節 D 欄（GB200 校準複本列）", f"v10.2 E1（{EID}）：GB200 大批次、無 SLO 的校準目標（候選）；MLPerf v6.0 server 4,668 才是有 SLO 的對照"),
+    _rec("SRC_PERF_075", "MLPerf v6.0 DeepSeek-R1 server：NVIDIA GB200 NVL72（72 GPU）每 GPU", 4668.1, "tok/s/GPU（輸出 token）", "server；Closed；available；TPOT p99 80 ms；336,106 ÷ 72；MLCommons summary_results.json",
+         "GB200 NVL72（NVIDIA 提交 6.0-0075）", "2026-04", "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/summary_results.json", 1, "利害關係方",
+         "MLCommons 稽核為中立；提交者 NVIDIA 為賣方；其他提交者 Google 2,178、CoreWeave 4,868（依軟體調校差很多）", "一手（原始 JSON 已讀）",
+         "Calib H 節 H 欄；Checks V2（MLPerf 上限）", f"v10.2 E3（{EID}）：V2 新上限（取代 v5.1 的 SRC_PERF_061，2,327）；第二來源 SRC_PERF_077", second="SRC_PERF_077"),
+    _rec("SRC_PERF_076", "MLPerf v6.0 DeepSeek-R1 server：NVIDIA GB300 NVL72（72 GPU）每 GPU", 5561.6, "tok/s/GPU（輸出 token）", "server；Closed；available；400,437 ÷ 72；MLCommons summary_results.json",
+         "GB300 NVL72（NVIDIA 提交 6.0-0078）", "2026-04", "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/summary_results.json", 1, "利害關係方",
+         "MLCommons 稽核為中立；提交者 NVIDIA 為賣方；同輪 Nebius 72 GPU 為 7,994，Nebius 8 GPU 單機 8,064（即舊 V3 對照）", "一手（原始 JSON 已讀）",
+         "Calib H 節 F 欄；Checks V3（MLPerf 上限）", f"v10.2 E3（{EID}）：V3 對照改為同輪 72 GPU 機櫃；範圍 5,562–7,994；第二來源 SRC_PERF_078", second="SRC_PERF_078"),
+    _rec("SRC_PERF_077", "MLPerf v6.0 DeepSeek-R1 server：CoreWeave GB200 NVL72（64 GPU）每 GPU", 4867.7, "tok/s/GPU（輸出 token）", "server；Closed；available；311,531 ÷ 64",
+         "GB200 NVL72（CoreWeave 提交 6.0-0015）", "2026-04", "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/summary_results.json", 1, "利害關係方",
+         "CoreWeave 為雲端出租方；MLCommons 稽核為中立", "一手（原始 JSON 已讀）", "Checks V2 說明欄（第二來源）", f"v10.2 E3（{EID}）：V2 第二來源（不同提交者、64 GPU）", second="SRC_PERF_075"),
+    _rec("SRC_PERF_078", "MLPerf v6.0 DeepSeek-R1 server：Nebius GB300 NVL72（72 GPU）每 GPU", 7994.2, "tok/s/GPU（輸出 token）", "server；Closed；available；575,580 ÷ 72",
+         "GB300 NVL72（Nebius 提交 6.0-0081）", "2026-04", "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/summary_results.json", 1, "利害關係方",
+         "Nebius 為雲端出租方；MLCommons 稽核為中立", "一手（原始 JSON 已讀）", "Checks V3 說明欄（第二來源，範圍上端）", f"v10.2 E3（{EID}）：V3 第二來源（同輪 72 GPU，不同提交者）", second="SRC_PERF_076"),
+]
+
+
+def src_new_records():
+    return SRC_NEW
+
+
+_IDS = "；".join(x["id"] for x in SRC_NEW)
+EVIDENCE_V1020 = [[
+    EID, DATE,
+    "服務條件查證（A 段）：Q1 OpenAI 標準端點每用戶輸出速度（AA 與 OpenRouter 各層級）；Q3 大批次 decode 獨立點（DeepSeek profile 2,324、線上服務 1,850、vLLM GB200 10.1K）；Q4 MLPerf v6.0 server GB200／GB300 72 GPU（4,668／5,562）與第二來源",
+    f"{REPORT} 第 1、3、4 節；{EVTAB}（證據表、MLPerf_v6.0 原始資料頁）", "Verified（AA、OpenRouter）；Interested-party（DeepSeek、vLLM、MLPerf 提交者）",
+    "Serving 第 21 列；Calib J 節；Calib H 節 F、H 欄；Checks V2、V3、V7、V8、V15", "SLO 120／65／55（GPT-5.6 時代）；V2 對照 v5.1 的 2,327；V3 對照 Nebius 8 GPU 單機 8,064；V7／V8 以 Sol 服務條件比 LMSYS",
+    "SLO 取兩家中位數的幾何平均（Luna 84.3、Sol 43.3、Astra 40.8）；V2 4,668；V3 5,562；V7／V8／V15 條件對齊後比較",
+    "採納（E1–E4）；Hopper 與 GB200 的 η_d 倍數未寫入（停損規則，見 Decisions ETA-E1H／ETA-E1G）", V,
+    f"讀取者：chat 端（A 段查證）；CC 轉入｜{DEC_BY}｜OpenAI／Azure 的每 GPU 批次已搜尋未找到；ChatGPT 網頁版獨立量測已搜尋未找到；兩家量測商系統性相差 1.5–2 倍",
+    "已處理", _IDS, DASH, "IF_TokGW_* 全部及其下游（Alloc、L1_MFleet、L1_ScaleServe、成本與營收名稱）；Checks V 節（CHK_Verify*）", "1–2", "混合（見各 SRC 紀錄）"]]
+
+
+def evidence_rows():
+    return EVIDENCE_V1020
+
+
+# ================================================================== Decisions (10 columns)
+_D = [
+    ("E1H", "E1 Hopper 世代換算（Calib C67）：求解無解，不寫入",
+     "校準目標 DeepSeek profile 2,324 tok/s/GPU（H800，EP128，批次 128，4K）。Calib J 節 C 欄複本列（比照 H 節公式）在 C67＝1.2 時模型 ÷ 目標＝0.34。每序列時間被 EP 通訊項（0.2975 ms，IB 0.05 TB/s × η_link 0.7、"
+     "3 B／元素）卡住：C67 加大到約 4.5（η_d 16%）後產出飽和在 2,187 tok/s/GPU（目標的 0.94），再加大也不增加，所以沒有 C67 值使模型 ÷ 目標＝1（±2%）。C67＝4.5 時 Hopper η_d 為 16%，"
+     "高於 GB300 擬合值 3.6%。依工作單停損規則（解超出物理合理範圍即停、不寫入），C67 維持 1.2、C68 維持 1.5（J4）。若改用 C68 吸收：C67＝1.2 時即使每層延遲為 0 也只達目標的 0.37，同樣無解。"
+     "待 Project 判斷：EP 通訊與計算的重疊（DeepSeek 兩個 micro-batch 重疊）是否納入模型、或另一種校準方式。",
+     "Calib J 節（複本列、所需倍數列）；Calib C67／C68 不變", "未寫入，待 Project 判斷"),
+    ("E1G", "E1 GB200 世代換算（Calib D67／CAL_EtaD_GB200）：模型 ÷ 目標 0.37，解會使 V5 失敗，不寫入",
+     "校準目標 vLLM GB200 10.1K tok/s/GPU（decode 8 GPU 實例，批次填滿 HBM，無 SLO，2K／2K）。D 欄複本列在 D67＝1 時模型 ÷ 目標＝0.37（不在 0.9–1.1）。達標需 GB200 η_d 倍數約 3.04（η_d 10.9%），"
+     "即 GB200 有效算力（η_d × 10 PF）高於 GB300 擬合值（3.6% × 15 PF）約 2 倍，且 V5（MLPerf v6.0 interactive GB200）模型 ÷ MLPerf 由 0.49 升至約 1.3 而失敗。"
+     "同一個 η_d 無法同時滿足無 SLO 大批次點與 interactive 小批次點，表示 η_d 隨批次變化的問題仍在。依停損規則不寫入，D67 維持 1，不新增 CAL_EtaD_GB200 具名範圍。",
+     "Calib J 節 D 欄；Calib D67 不變", "未寫入，待 Project 判斷"),
+    ("E2", "E2 Serving SLO 改為觀測中位數的幾何平均（讀法 R1：基準一併改，舊 SLO 留作情境 slo_v10）",
+     "Serving C21:E21＝√(AA 中位 × OpenRouter 中位)：Luna＝GPT-6 Luna（116.5、61）→ 84.3；Sol＝GPT-6.1 Sol（50.7、37）→ 43.3；Astra＝GPT-6 Astra（52.1、32）→ 40.8；區間取兩家之中較低者到較高者。"
+     "標記 Derived（第三方量測的幾何平均）。首 token 時間 SLO 不改。兩家量測商系統性相差 1.5–2 倍（AA 探測請求、OpenRouter 實際流量），原因未查明。Sol 層對應 GPT-6.1 Sol（chat 端預設；GPT-6 Sol 為 102.8／63）。"
+     "若 Andy 的原意是基準在本段不動，改採 R2：只保留情境、C21:E21 回到 120／65／55。情境 slo_v10＝舊口徑 120／65／55。",
+     "Serving C21:E21；SRC_PERF_066–071；Gov_Map GM239–GM241；情境 slo_v10；IF_TokGW_* 及其下游", "v10.2 已建"),
+    ("E3", "E3 驗證判準",
+     "V2 對照改 MLPerf v6.0 server GB200 NVL72（NVIDIA 72 GPU）4,668（SRC_PERF_075；第二來源 CoreWeave 4,868＝SRC_PERF_077）；V3 對照改同輪 GB300 NVL72 72 GPU 機櫃 NVIDIA 5,562（SRC_PERF_076；範圍 5,562–7,994、Nebius 8 GPU 單機 8,064）；"
+     "V7、V8 改為 LMSYS 條件對齊後的模型值（Calib J 節 F、G 欄：DeepSeek-V3 規模、輸入 2,000、輸出 2,000（來源未寫，取 2,000）、ITL 100 ms、無 MTP、批次由速度下限與 HBM 決定），通過帶維持 0.5–2.0；"
+     "新增 V15 DeepSeek 線上服務 1,850（Calib J 節 E 欄，帶 0.5–2.0，註明與校準點同一家公司）；V13、V14 加上限 ≤ 3（chat 端預設，可撤回）；B26、B36 改回驗證計數（V16、V17）。",
+     "Checks V 節；Calib H 節 F、H 欄；Calib J 節 E–G 欄；SRC_PERF_072–078", "v10.2 已建"),
+    ("E4", "E4 Perf_Batch R–S 欄保留（取代 SL41-1a-3 的『刪除』）",
+     "Andy 2026-10-16 18:22 決定 (b)：保留 R–S 欄（FP8 rollout 情境），Sens_Train W59:X62 讀取；頁首與 Gov_Map GM558 標明『只供敏感度情境（不進任何 IF_／L1_ 輸出）』。只改標籤，數值不變。取代 17:35 的『刪除』。",
+     "Perf_Batch R3:S3、A2；Gov_Map GM558；Decisions SL41-1a-3 狀態", "v10.2 已建"),
+]
+DECISIONS_V1020 = [[f"ETA-{i}", V, f"η 校準段：{t}", txt, DATE, DEC_BY, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+
+def decisions_update(wb):
+    """SL41-1a-3 (4-1: R-S columns not deleted, listed for Project) is closed by the 18:22 decision (b)."""
+    ws = wb["Decisions"]; log = []
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value == "SL41-1a-3" and ws.cell(r, 7).value == "未執行，待 Project 判斷":
+            ws.cell(r, 7).value = "已決定（Andy 2026-10-16 18:22：保留，改標註）；v10.2 ETA-E4 執行"; log.append("Decisions SL41-1a-3: status")
+    return log
+
+
+# ================================================================== formula map (builder-owned links): Serving row 21 = geometric mean of the two measurers
+FM = {"Serving!C21": "=SQRT(SRC_PERF_066*SRC_PERF_067)", "Serving!D21": "=SQRT(SRC_PERF_068*SRC_PERF_069)", "Serving!E21": "=SQRT(SRC_PERF_070*SRC_PERF_071)", "Calib!F120": "=SRC_PERF_076"}
+
+
+def formula_map(fm):
+    fm = dict(fm); fm.update(FM); return fm
+
+
+# base blue inputs that become non-input cells: Calib F120 (8064 literal; V3 reads SRC_PERF_076 now)
+SNAP_RETIRED = [("Calib", ("MLPerf 實測輸出 tok/s/GPU（總量 ÷ 72）", 0), 6)]
+
+SLO_TXT = ("SLO 為兩個第三方量測商中位數的幾何平均（v10.2 E2）：Luna＝GPT-6 Luna √(116.5×61)＝84.3；Sol＝GPT-6.1 Sol √(50.7×37)＝43.3；Astra＝GPT-6 Astra √(52.1×32)＝40.8 tok/s。"
+           "區間取兩家之中較低者到較高者（Luna 61–116.5、Sol 37–50.7、Astra 32–52.1）。Derived（第三方量測 Verified → 幾何平均）。兩家系統性相差 1.5–2 倍（AA 探測請求、OpenRouter 實際流量）。"
+           "舊口徑 120／65／55（GPT-5.6 時代，S26）留作情境 slo_v10。首 token 時間 SLO（第 22 列）不改")
+
+
+# ================================================================== Calib J: calibration copy rows and aligned conditions
+CJ_COLS = "CDEFG"
+CJ_LABELS = {
+    "C": "Hopper 校準點：DeepSeek profile（H800，批次 128，4K，EP128）",
+    "D": "GB200 校準點：vLLM WideEP（2K／2K，批次填滿 HBM，無 SLO，8 GPU 實例）",
+    "E": "Hopper 驗證點 V15：DeepSeek 線上服務（H800，24 小時平均，KV 4,989，EP144，約 21 tok/s/user）",
+    "F": "Hopper 驗證點 V7：LMSYS 條件對齊（DeepSeek-V3 規模，輸入 2,000，ITL 100 ms）",
+    "G": "GB200 驗證點 V8：LMSYS 條件對齊（同上，NVFP4 實測）",
+}
+CJ_NOTE = {
+    "g": "世代索引（Spec_Rack 欄）：1 Hopper、2 GB200；黑字常數（測量條件，不是 Excel 擁有的輸入）",
+    "isl": "C：profile 的 KV 長度 4K；D：2K／2K；E：每輸出 token 平均 KV 4,989；F、G：LMSYS 輸入 2,000（輸出長度來源未寫，取 2,000，診斷報告第 2.2 節；改為更短 OSL 影響小於 10%）",
+    "ep": "0＝依容量規則 MAX(EP 基準, …)（同 H 節）；C：EP128（官方 profile）；D：decode 1 個 8 GPU 實例；E：decode 單元 18 節點（EP144）",
+    "spd": "0＝無 SLO（批次只受 HBM 限制）。E：平均每用戶 20–22 tok/s 取 21；F、G：ITL 100 ms＝10 tok/s",
+    "bat": "C：官方 profile 每 GPU 批次 128；其餘 0＝由速度下限與 HBM 決定（B*＝MIN(速度下限批次, 容量批次)）",
+    "T": "實測 decode tok/s/GPU（decode GPU 口徑，不含 prefill GPU）：SRC_PERF_072／074／073／062／063",
+    "R": "模型 ÷ 目標。C、D 為校準點（目標 1，容差 ±2%）；E、F、G 為驗證點（Checks V15、V7、V8，通過帶 0.5–2.0）",
+    "mult": "達標所需 η_d 倍數＝（算力項係數 ÷ 達標所需每序列時間）÷ CAL_EtaD；若所需每序列時間 ≤ 非算力項（KV、EP 通訊）下限，則『無解』——此時 C67／D67 再大也達不到目標",
+}
+
+
+def calib_j(wb, CAL, SP):
+    ws = wb["Calib"]
+    r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r0, "J. η 校準與條件對齊複製列（v10.2 E1／E3）：比照 H 節公式（decode-only），條件改為各點的實際條件；模型 ÷ 目標顯示在每欄下方。校準用 C、D；驗證用 E、F、G（不重用校準點）", 10)
+    r = r0 + 1
+    R = {}
+    put(ws, f"A{r}", "點位", F_BOLD)
+    for X in CJ_COLS: put(ws, f"{X}{r}", CJ_LABELS[X], F_BOLD, wrap=True)
+    ws.row_dimensions[r].height = 58; R["hdr"] = r; r += 1
+    consts = [("jg", "世代索引", "", "0", [1, 2, 1, 1, 2]), ("jisl", "輸入長度（decode 起始上下文）", "tok", "#,##0", [4096, 2000, 4989, 2000, 2000]),
+              ("josl", "輸出長度", "tok", "#,##0", [0, 2000, 0, 2000, 2000]), ("jep0", "EP 寬度設定（0＝依容量規則）", "GPU", "0", [128, 8, 144, 0, 0]),
+              ("jspd", "每用戶速度下限（0＝無 SLO）", "tok/s", "0.0", [0, 0, 21, 10, 10]), ("jbat", "固定批次（0＝由速度下限與 HBM 決定）", "序列/GPU", "0", [128, 0, 0, 0, 0]),
+              ("jmtp", "推測解碼（1＝有）", "", "0", [0, 0, 0, 0, 0])]
+    for key, lab, unit, fmt, vals in consts:
+        R[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for X, v in zip(CJ_COLS, vals): put(ws, f"{X}{r}", v, F_CALC, fmt=fmt)
+        r += 1
+    put(ws, f"J{R['jg']}", CJ_NOTE["g"], F_NOTE, wrap=True); put(ws, f"J{R['jisl']}", CJ_NOTE["isl"], F_NOTE, wrap=True)
+    put(ws, f"J{R['jep0']}", CJ_NOTE["ep"], F_NOTE, wrap=True); put(ws, f"J{R['jspd']}", CJ_NOTE["spd"], F_NOTE, wrap=True); put(ws, f"J{R['jbat']}", CJ_NOTE["bat"], F_NOTE, wrap=True)
+    R["jT"] = r; put(ws, f"A{r}", "實測 decode tok/s/GPU（目標）"); put(ws, f"B{r}", "tok/s/GPU")
+    for X, s in zip(CJ_COLS, ["SRC_PERF_072", "SRC_PERF_074", "SRC_PERF_073", "SRC_PERF_062", "SRC_PERF_063"]): put(ws, f"{X}{r}", f"={s}", fmt="#,##0", fill=FILL_KEY)
+    put(ws, f"J{r}", CJ_NOTE["T"], F_NOTE, wrap=True); r += 1
+    gl = lambda row: f"=INDEX(Spec_Rack!$C${row}:$G${row},{{X}}{{jg}})"
+    cl = lambda row: f"=INDEX($C${row}:$G${row},{{X}}{{jg}})"
+    rows = [
+        ("jgn", "世代", "", None, "=INDEX(Spec_Rack!$C$4:$G$4,{X}{jg})"),
+        ("jP", "計算用峰值", "PF", "#,##0.000", gl(SP["pk"])), ("jH", "HBM", "GB", "#,##0", gl(SP["hbm"])), ("jB", "HBM 頻寬", "TB/s", "#,##0.00", gl(SP["bw"])),
+        ("jLk", "EP 頻寬", "TB/s", "#,##0.00", gl(SP["link"])), ("jEb", "EP 基準", "", "#,##0", gl(SP["ep"])),
+        ("jbe", "專家 B/param", "", "0.0000", gl(SP["be"])), ("jbn", "非專家 B/param", "", "0.00", gl(SP["bn"])),
+        ("jU", "可用 HBM", "GB", "#,##0", "={X}{jH}*(1-Serving!$C$9)"),
+        ("jTP", "注意力 TP", "", "0", "=MAX(1,CEILING($C${rne}*{X}{jbn}/(Serving!$C$10*{X}{jU}),1))"),
+        ("jEP", "EP 寬度", "", "#,##0", "=IF({X}{jep0}>0,{X}{jep0},MAX({X}{jEb},CEILING($C${rex}*{X}{jbe}/(Serving!$C$11*{X}{jU}),1)))"),
+        ("jW", "每 GPU 權重", "GB", "#,##0.0", "=$C${rne}*{X}{jbn}/{X}{jTP}+$C${rex}*{X}{jbe}/{X}{jEP}"),
+        ("jcd", "decode 平均上下文", "tok", "#,##0", "={X}{jisl}+{X}{josl}/2"),
+        ("jFd", "decode FLOPs/token", "GFLOP", "#,##0.0", "=(2*$C${rA}*1E9+$C${rac}*{X}{jcd})/1E9"),
+        ("jn", "草稿數", "", "0", "=Serving!$C$6*{X}{jmtp}"), ("ja", "每步接受", "", "0.00", "=IF({X}{jmtp}=1,Serving!$C$8,1)"),
+        ("jed", "η_d（該世代；含 C67／D67）", "%", "0.00%", cl(CAL["etad"])), ("jtl", "每層延遲（該世代；含 C68）", "µs", "#,##0", cl(CAL["tl"])),
+        ("jtf", "每步固定延遲", "ms", "#,##0.00", "={X}{jW}/{X}{jB}+($C${rL}+{X}{jn})*{X}{jtl}/1000"),
+        ("jc1", "每序列時間：算力項", "ms", "0.0000", "=({X}{jn}+1)*{X}{jFd}/({X}{jP}*{X}{jed})/1000"),
+        ("jc2", "每序列時間：KV 讀取項", "ms", "0.0000", "=$C${rkv}*{X}{jcd}/({X}{jB}*Serving!$C$13)/1E9"),
+        ("jc3", "每序列時間：EP 通訊項", "ms", "0.0000", "=({X}{jn}+1)*$C${rL}*$C${rk}*$C${rd}*Serving!$C$12*({X}{jEP}-1)/{X}{jEP}/({X}{jLk}*Serving!$C$14)/1E9"),
+        ("jce", "每序列每步時間（三項取最大）", "ms", "0.0000", "=MAX({X}{jc1},{X}{jc2},{X}{jc3})"),
+        ("jcap", "容量批次上限", "序列", "#,##0.0", "=({X}{jU}-{X}{jW})*1E9/($C${rkv}*{X}{jcd})"),
+        ("jslo", "速度下限批次上限", "序列", "#,##0.0", '=IF({X}{jspd}>0,MAX(0,(1000*{X}{ja}/{X}{jspd}-{X}{jtf})/{X}{jce}),"無 SLO")'),
+        ("jBs", "B*（批次）", "序列", "#,##0.0", "=IF({X}{jbat}>0,MIN({X}{jbat},{X}{jcap}),MAX(0,IF(ISNUMBER({X}{jslo}),MIN({X}{jslo},{X}{jcap}),{X}{jcap})))"),
+        ("jD", "模型 decode tok/s/GPU", "tok/s", "#,##0", "=IF({X}{jBs}>0,{X}{jBs}*{X}{ja}/(({X}{jtf}+{X}{jBs}*{X}{jce})/1000),0)"),
+        ("jR", "模型 ÷ 目標", "x", "0.000", "=IF(ISNUMBER({X}{jT}),IF({X}{jT}>0,{X}{jD}/{X}{jT},\"—\"),\"—\")"),
+        ("jEff", "採用 η_d × 計算用峰值（有效 PF/GPU）", "PF", "0.000", "={X}{jed}*{X}{jP}"),
+        ("jfl", "非算力項下限（KV、EP 通訊取大）", "ms", "0.0000", "=MAX({X}{jc2},{X}{jc3})"),
+        ("jneed", "達標所需每序列每步時間", "ms", "0.0000", '=IF({X}{jBs}>0,(1000*{X}{jBs}*{X}{ja}/{X}{jT}-{X}{jtf})/{X}{jBs},"—")'),
+        ("jmax", "η_d 無限大時的產出上限（只剩非算力項）", "tok/s", "#,##0", "=IF({X}{jBs}>0,{X}{jBs}*{X}{ja}/(({X}{jtf}+{X}{jBs}*{X}{jfl})/1000),0)"),
+        ("jmaxR", "上限 ÷ 目標", "x", "0.000", "=IF(ISNUMBER({X}{jT}),IF({X}{jT}>0,{X}{jmax}/{X}{jT},\"—\"),\"—\")"),
+        ("jmult", "達標所需 η_d 倍數（Calib C67／D67 的解）", "x", "0.00",
+         '=IF(ISNUMBER({X}{jneed}),IF({X}{jneed}<={X}{jfl},"無解（非算力項下限）",(({X}{jn}+1)*{X}{jFd}/{X}{jP}/1000/{X}{jneed})/CAL_EtaD),"—")'),
+        ("jetan", "達標所需 η_d（絕對值）", "%", "0.0%", '=IF(ISNUMBER({X}{jmult}),{X}{jmult}*CAL_EtaD,"—")'),
+    ]
+    consts_map = dict(CAL); consts_map.update(R)
+    for key, lab, unit, fmt, tpl in rows:
+        R[key] = r; consts_map[key] = r
+        r += 1
+    r = max(R[k] for k, *_ in rows) + 1
+    # second pass writes with the full row map (templates refer forward to rows defined later)
+    for key, lab, unit, fmt, tpl in rows:
+        rr = R[key]; put(ws, f"A{rr}", lab); put(ws, f"B{rr}", unit)
+        for X in CJ_COLS:
+            m = dict(consts_map); m["X"] = X
+            f = tpl.format(**m)
+            put(ws, f"{X}{rr}", f, fmt=fmt, fill=FILL_KEY if key in ("jR", "jmult") else None)
+    put(ws, f"J{R['jR']}", CJ_NOTE["R"], F_NOTE, wrap=True); put(ws, f"J{R['jmult']}", CJ_NOTE["mult"], F_NOTE, wrap=True)
+    put(ws, f"J{R['jEff']}", "對照：GB300 擬合值 η_d × 15 PF＝下一列；Hopper 的有效 PF 本來就低於 GB300（峰值為 FP8 對 NVFP4）", F_NOTE, wrap=True)
+    R["jGB300"] = r
+    put(ws, f"A{r}", "對照：GB300 擬合 η_d × 計算用峰值（有效 PF/GPU）"); put(ws, f"B{r}", "PF")
+    put(ws, f"C{r}", "=CAL_EtaD*INDEX(Spec_Rack!$C$35:$G$35,3)", fmt="0.000"); r += 1
+    R["jstate"] = r
+    put(ws, f"A{r}", "校準狀態（v10.2；停損規則）", F_BOLD)
+    put(ws, f"C{r}", '="Hopper：C67 現值 "&TEXT($C$67,"0.00")&"；模型 ÷ 目標 "&TEXT(C' + str(R["jR"]) + ',"0.00")&"；"&IF(ISNUMBER(C' + str(R["jmult"]) + '),"所需倍數 "&TEXT(C' + str(R["jmult"]) + ',"0.00"),C' + str(R["jmult"]) + ')&"（C67 再大產出上限 "&TEXT(C' + str(R["jmax"]) + ',"#,##0")&"＝目標的 "&TEXT(C' + str(R["jmaxR"]) + ',"0.00")&"）"', F_CALC)
+    put(ws, f"D{r}", '="GB200：D67 現值 "&TEXT($D$67,"0.00")&"；模型 ÷ 目標 "&TEXT(D' + str(R["jR"]) + ',"0.00")&"；"&IF(ISNUMBER(D' + str(R["jmult"]) + '),"所需倍數 "&TEXT(D' + str(R["jmult"]) + ',"0.00")&"（η_d "&TEXT(D' + str(R["jetan"]) + ',"0.0%")&"）",D' + str(R["jmult"]) + ')', F_CALC)
+    put(ws, f"J{r}", "依工作單停損規則：解超出物理合理範圍即不寫入 C67／D67（Decisions ETA-E1H、ETA-E1G）；Hopper 無解、GB200 的解使有效算力高於 GB300 並使 V5 失敗。待 Project 判斷", F_NOTE, wrap=True)
+    r += 1
+    return R
+
+
+# ================================================================== Gov_Map: judgement columns of existing rows (A–P Excel-owned; each field only while it holds its old value)
+def _gm_row(ws, sheet, cell):
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 3).value == sheet and ws.cell(r, 4).value == cell: return r
+    raise KeyError((sheet, cell))
+
+
+_E2_ROWS = [  # (cell, GM id, SRC_ID, relation, low, high, range text, lo/hi label)
+    ("C21", "GM239", "SRC_PERF_066", "換算（√(SRC_PERF_066 × SRC_PERF_067)＝√(AA 116.5 × OpenRouter 61)＝84.3）", 61, 116.5, "61–116.5（OpenRouter 中位至 AA 中位；Luna）"),
+    ("D21", "GM240", "SRC_PERF_068", "換算（√(SRC_PERF_068 × SRC_PERF_069)＝√(AA 50.7 × OpenRouter 37)＝43.3；GPT-6.1 Sol）", 37, 50.7, "37–50.7（OpenRouter 中位至 AA 中位；Sol）"),
+    ("E21", "GM241", "SRC_PERF_070", "換算（√(SRC_PERF_070 × SRC_PERF_071)＝√(AA 52.1 × OpenRouter 32)＝40.8；GPT-6 Astra）", 32, 52.1, "32–52.1（OpenRouter 中位至 AA 中位；Astra）"),
+]
+_E2_REASON = ("v10.2 E2（ETA-E2）：SLO 改為 AA 與 OpenRouter 兩家中位數的幾何平均（Derived）；舊值 120／65／55 為 GPT-5.6 時代的單一來源（S26），留作情境 slo_v10；"
+              "兩家系統性相差 1.5–2 倍（AA 探測請求、OpenRouter 實際流量），原因未查明，故區間涵蓋兩者；Sol 對應 GPT-6.1 Sol（chat 端預設，可撤回）")
+
+
+def gov_update(ws, append_text):
+    n = 0
+
+    def rep(sheet, cell, col, old, new):
+        nonlocal n
+        r = _gm_row(ws, sheet, cell)
+        if ws[f"{col}{r}"].value == old:
+            ws[f"{col}{r}"].value = new; n += 1
+        return r
+
+    for cell, gid, src, rel, lo, hi, rtext in _E2_ROWS:
+        r = _gm_row(ws, "Serving", cell); assert ws[f"A{r}"].value == gid, (cell, ws[f"A{r}"].value)
+        if ws[f"F{r}"].value in ("原始數據", "Decision"):
+            ws[f"F{r}"].value = "Derived（公式）"; ws[f"H{r}"].value = src; ws[f"I{r}"].value = rel; ws[f"J{r}"].value = "ETA-E2"
+            ws[f"K{r}"].value = lo; ws[f"L{r}"].value = hi; ws[f"M{r}"].value = rtext; ws[f"N{r}"].value = _E2_REASON
+            ws[f"O{r}"].value = "原始數據／Decision → Derived（公式）（v10.2 E2）"; n += 1
+    r = _gm_row(ws, "Calib", "F120"); assert ws[f"A{r}"].value == "GM381"
+    rep("Calib", "F120", "H", "SRC_PERF_026", "SRC_PERF_076")
+    rep("Calib", "F120", "E", "MLPerf 實測輸出 tok/s/GPU（總量 ÷ 72）", "MLPerf v6.0 server GB300 NVL72（NVIDIA 72 GPU）每 GPU（V3 對照）")
+    n += append_text(ws[f"N{r}"], " ｜v10.2 E3：V3 對照由 Nebius 8 GPU 單機 8,064（SRC_PERF_026）改為同輪 NVIDIA 72 GPU 機櫃 5,562（SRC_PERF_076）；SRC_PERF_026 保留作單機參考")
+    r = _gm_row(ws, "Perf_Batch", "R19:S20"); assert ws[f"A{r}"].value == "GM558"
+    n += append_text(ws[f"N{r}"], " ｜v10.2 E4（ETA-E4；Andy 2026-10-16 18:22 決定 (b)）：R–S 欄保留，只供敏感度情境（Sens_Train W59:X62 讀取；不進任何 IF_／L1_ 輸出）；取代 4-1 的『刪除』")
+    return n
+
+
+# ================================================================== end-of-build edits (idempotent)
+E4_HDR = "情境：FP8 rollout（只供敏感度情境：Sens_Train W59:X62 讀取；不進任何 IF_／L1_ 輸出）"
+E4_A2 = "｜v10.2 E4：R、S 欄保留（Sens_Train W59:X62 讀取），只供敏感度情境，不進任何 IF_／L1_ 輸出（Andy 2026-10-16 18:22 決定 (b)）"
+
+
+def apply(wb, append_text):
+    log = {}
+    ws = wb["Perf_Batch"]
+    n = 0
+    for ref in ("R3", "S3"):
+        if ws[ref].value == "情境：FP8 rollout":
+            ws[ref].value = E4_HDR; n += 1
+    n += append_text(ws["A2"], E4_A2)
+    sv = wb["Serving"]
+    if sv["F21"].value != SLO_TXT: sv["F21"].value = SLO_TXT; n += 1
+    log["perf_batch"] = n
+    s = wb["SRC_Perf"]; k = 0
+    for rr in range(5, s.max_row + 1):
+        if s.cell(rr, 1).value in ("SRC_PERF_018", "SRC_PERF_019", "SRC_PERF_020"):
+            k += append_text(s.cell(rr, 23), " ｜v10.2 E2：Serving 第 21 列已改讀 SRC_PERF_066–071 的幾何平均；本紀錄保留作前一代（GPT-5.6）對照與情境 slo_v10 的來源")
+    log["src_notes"] = k
+    sec = {x["id"]: x["second"] for x in SRC_NEW if x.get("second")}
+    k2 = 0
+    for rr in range(5, s.max_row + 1):
+        i = s.cell(rr, 1).value
+        if i in sec and s.cell(rr, 18).value in (None, DASH, ""):
+            s.cell(rr, 18).value = sec[i]; k2 += 1       # column R = 第二來源 SRC_ID (Excel-owned; written only while it is still the dash)
+    log["second_sources"] = k2
+    log["decisions"] = decisions_update(wb)
+    return log
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（次版：η 校準與驗證判準，" + WO + "——E1 Calib J 節複本列（Hopper 校準點 DeepSeek profile、GB200 校準點 vLLM WideEP；停損：C67／D67 不寫入）；E2 Serving SLO 改兩家量測商中位數的幾何平均（84.3／43.3／40.8），舊值留作情境 slo_v10；"
+                  "E3 Checks V2／V3 對照更新、V7／V8 條件對齊、V13／V14 上限、新增 V15、B26／B36 改回 V16／V17；E4 Perf_Batch R–S 標註；Decisions ETA-*）。以下為 " + v1010.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1010.README_TITLE
+README_TITLE = VERSION.split("_")[-1] + _T[len(v1010.VERSION.split("_")[-1]):]
+README_ROW = ("η 校準與驗證判準（v10.2）",
+              "SLO 改兩家量測商的幾何平均；Calib J 節校準複本列（Hopper 無解、GB200 解不物理，C67／D67 未寫入）；驗證 V2／V3／V7／V8／V13／V14 判準更新並新增 V15–V17。細節見 Decisions ETA-*。")
+```
+
+## v1030.py
+
+```python
+# v10.3 (work order docs/workorders/20261016_瘦身4-2.md, segment 4-2a; branch claude/slim-4-2a): hard-coded parameters exposed, duplicate definitions merged, marks and tests.
+#   F1  hard-coded parameters (4-0 sheet 4, 101 judgement cells, values unchanged): L1_JudgeTol (Calib K section; 96 L1 P cells + I3 + Checks E5 read it), SR_RU_PxMultLo／Hi (Spec_Rack section; G11／G13 read them),
+#       L1 M30／N30 already read SRC_PRC_001 (only the /4 remains: note), physical conventions (3x training, 6ND, ln4, attention 4, ...) get a note "物理慣例：…" and stay in the formulas.
+#   F2  duplicate definitions (4-0 sheet 2): D08 Sens_Rev B20／B21 read Cap_In D23／D24; D09 Cap_In H10 2025 column C reads the H-section cells; D10 no change (see report); D11 permanent test only.
+#   F3  Tech_Registry K and T columns enter Checks V as V18／V19 (counted in CHK_Verify*; failure does not enter GOV_Errors).
+#   F4  marks: column 用途 on Calib J (105 dead cells), Alloc (27 dead cells read only by names nobody reads), 70 inputs nobody reads.
+#   F7  Decisions SL42-*.
+# Minor version: only CHK_Verify* changes value. Every write to an Excel-owned cell is guarded (old value / old text); the new inputs are created before restore() so a rebuild keeps the Excel value.
+import re
+import openpyxl
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.utils import get_column_letter as L
+from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+import v1000
+import v1020
+
+VERSION = "20261016_Tokenomics_v10.3"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-16"
+V = "v10.3"
+WO = "工作單 docs/workorders/20261016_瘦身4-2.md（4-2a 段）"
+DEC_BY = "Andy 2026-10-16 20:54「依建議繼續作下去」；F1–F7 為 chat 端預設，可撤回"
+DASH = "—"
+PURPOSE = "用途"
+PURPOSE_HDR_ROW = 3
+JUDGE_TOL_LABEL = "L1 外部對照判讀容差（L1_JudgeTol）"
+RU_LO_LABEL = "Rubin Ultra 機架價格倍數：低（SR_RU_PxMultLo）"
+RU_HI_LABEL = "Rubin Ultra 機架價格倍數：高（SR_RU_PxMultHi）"
+RU_SEC = "Rubin Ultra 機架價格倍數（v10.3 F1；Assumed，無來源；待證據）"
+
+# base retired inputs: Sens_Rev B20／B21 (blue 6／24) are now links to Cap_In D23／D24 (D08)
+SNAP_RETIRED = [("Sens_Rev", ("壽命 6 個月", 0), 2), ("Sens_Rev", ("壽命 24 個月", 0), 2)]
+
+
+# ================================================================== F1: new inputs (written before restore())
+def calib_k(wb):
+    """Calib K section (below J): L1_JudgeTol = 0.2 (Assumed; range 0.1–0.3)."""
+    ws = wb["Calib"]
+    r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r0, "K. 判讀參數（v10.3 F1）：不是物理量，只決定 L1 外部對照欄 P 的文字判讀", 10)
+    r = r0 + 1
+    put(ws, f"A{r}", JUDGE_TOL_LABEL); put(ws, f"B{r}", "比例")
+    put(ws, f"C{r}", 0.2, F_IN, fmt="0%")
+    put(ws, f"J{r}", "Assumed｜L1 外部對照的判讀容差，非物理量：外部為單一值時，|推算 ÷ 外部 − 1| ≤ 本值判為「±x% 內」，否則「差距 >x%」（L1 欄 P、Checks I3、Checks E5 讀取）。"
+        "v10.3 前寫死在 96 格公式裡（0.2），外露後數值不變。區間 0.1–0.3（Gov_Map）；改本格不影響任何 IF_／L1_ 數值，只改 P 欄文字與 Checks I3 的計數", F_NOTE, wrap=True)
+    wb.defined_names["L1_JudgeTol"] = DefinedName("L1_JudgeTol", attr_text=f"Calib!$C${r}")
+    return {"sec": r0, "tol": r}
+
+
+def spec_rack_ru(wb, V602):
+    """Spec_Rack section below the model-scale rows: Rubin Ultra rack price multipliers (G11 = F12 × lo, G13 = F12 × hi)."""
+    ws = wb["Spec_Rack"]
+    r0 = V602["rows"][-1] + 2
+    section(ws, r0, RU_SEC, 8)
+    rows = {}
+    for i, (lab, v, name, note) in enumerate([
+            (RU_LO_LABEL, 1.5, "SR_RU_PxMultLo", "Assumed（無來源；待證據）｜Rubin Ultra 單架機架價格低端＝VR200 機架價格（F12，售價口徑）× 本值；v10.3 前寫死在 G11 公式（×1.5）。Gov_Map 區間 1.2–2.0"),
+            (RU_HI_LABEL, 2.5, "SR_RU_PxMultHi", "Assumed（無來源；待證據）｜Rubin Ultra 單架機架價格高端＝F12 × 本值；v10.3 前寫死在 G13 公式（×2.5）。Gov_Map 區間 2.0–3.0")]):
+        r = r0 + 1 + i
+        put(ws, f"A{r}", lab); put(ws, f"B{r}", "x"); put(ws, f"C{r}", v, F_IN, fmt="0.00"); put(ws, f"H{r}", note, F_NOTE)
+        wb.defined_names[name] = DefinedName(name, attr_text=f"Spec_Rack!$C${r}")
+        rows[name] = r
+    return {"sec": r0, "rows": rows}
+
+
+def inputs_update(wb):
+    """After restore(): Spec_Rack G11／G13 read the multipliers (old-formula guard); G14 note names them instead of numbers."""
+    log = []
+    ws = wb["Spec_Rack"]
+    for cell, old, new in (("G11", "=F12*1.5", "=F12*SR_RU_PxMultLo"), ("G13", "=F12*2.5", "=F12*SR_RU_PxMultHi")):
+        if ws[cell].value == old:
+            ws[cell].value = new; log.append(f"Spec_Rack!{cell}: {old} -> {new} (v10.3 F1)")
+    old14 = "72 封裝（單架）；價格＝VR200 機架價格（F12，售價口徑）× 1.5／2.0／2.5（公式；倍數 Assumed；J2）"
+    new14 = "72 封裝（單架）；價格＝VR200 機架價格（F12，售價口徑）× 低倍數 SR_RU_PxMultLo／2.0／高倍數 SR_RU_PxMultHi（公式；倍數 Assumed，無來源，待證據；J2；v10.3 F1 外露，倍數見本頁「" + RU_SEC + "」）"
+    if ws["G14"].value == old14:
+        ws["G14"].value = new14; log.append("Spec_Rack!G14: text")
+    return log
+
+
+def gov_map_rows(wb):
+    """Gov_Map rows for the three new inputs (appended by gov.gm_append_c when absent)."""
+    out = []
+    ws = wb["Calib"]
+    r = next(rr for rr in range(150, ws.max_row + 1) if ws.cell(rr, 1).value == JUDGE_TOL_LABEL)
+    out.append({'scope': '切片四（v10.3 瘦身 4-2a）', 'sheet': 'Calib', 'cell': f'C{r}', 'label': JUDGE_TOL_LABEL, 'check': JUDGE_TOL_LABEL, 'cls': 'Assumed', 'role': '單值', 'src': '', 'rel': '',
+                'dec': 'SL42-F1', 'lo': 0.1, 'hi': 0.3, 'rtext': '0.1–0.3（chat 端預設）',
+                'reason': ("L1 外部對照欄 P 的判讀容差（±20%），v10.3 前寫死在 96 格公式；外露後數值不變。非物理量，只決定文字判讀，不進任何 IF_／L1_ 數值；"
+                           "0.2 是慣例值，無來源；區間 0.1–0.3 為 chat 端預設。已搜尋：無可比對象（判讀門檻不是可量測物理量）"), 'retag': '', 'seg': '低'})
+    ws = wb["Spec_Rack"]
+    for lab, name, lo, hi, base, tag in ((RU_LO_LABEL, "SR_RU_PxMultLo", 1.2, 2.0, 1.5, "低端"), (RU_HI_LABEL, "SR_RU_PxMultHi", 2.0, 3.0, 2.5, "高端")):
+        r = next(rr for rr in range(44, ws.max_row + 1) if ws.cell(rr, 1).value == lab)
+        out.append({'scope': '切片四（v10.3 瘦身 4-2a）', 'sheet': 'Spec_Rack', 'cell': f'C{r}', 'label': lab, 'check': lab, 'cls': 'Assumed', 'role': '單值', 'src': '', 'rel': '',
+                    'dec': 'SL42-F1', 'lo': lo, 'hi': hi, 'rtext': f'{lo}–{hi}（chat 端預設）',
+                    'reason': (f"Rubin Ultra 單架機架價格{tag}倍數（＝VR200 機架價格 F12 × 本值，基準 {base}）；v10.3 前寫死在 Spec_Rack G{'11' if name.endswith('Lo') else '13'} 公式，外露後數值不變。"
+                               "無來源，待證據（Rubin Ultra 為推估欄，不進基準比較）；Assumed 依 CLAUDE.md 第 7 節以區間呈現；區間為 chat 端預設。已搜尋：未見 Rubin Ultra 機架定價公開來源"),
+                    'retag': '', 'seg': '低'})
+    return out
+
+
+# ================================================================== F2: duplicate definitions (patched right after the sheet is built, before Deps / contract tracing)
+def cap_in_patch(wb):
+    """D09: Cap_In H10 2025 column C (m_API／消費訂閱／商用席次／整體、機隊付費 token、m_fleet) reads the H-section cells that already hold the same value (4-0 D09).
+    Rows are found by label and every old formula is checked, so a layout change stops the build instead of linking the wrong row."""
+    ws = wb["Cap_In"]
+    lab = lambda r: str(ws.cell(r, 1).value or "")
+    find = lambda start: [r for r in range(1, ws.max_row + 1) if lab(r).startswith(start)]
+    pairs = [("m_API", "m_API（2025，三分法）", "206"), ("m_消費訂閱", "m_消費訂閱（2025）", "207"), ("m_商用席次", "m_商用席次（2025）", "208"),
+             ("m_整體＝", "隱含 m — 合併（模型 token）", "209"), ("機隊付費 token（點估計）", "機隊付費 token（點估計）", "222"),
+             ("m_fleet＝m 分子營收", "機隊 m（點估計）", "223")]
+    log = []
+    i_start = next(r for r in range(150, ws.max_row + 1) if lab(r).startswith("H10-3."))
+    for dst_lab, src_lab, _ in pairs:
+        dst = [r for r in find(dst_lab) if r > i_start]
+        if dst_lab == "機隊付費 token（點估計）":
+            dst = [r for r in dst if r > i_start][:1]
+        src = [r for r in find(src_lab) if r < i_start]
+        assert len(dst) == 1 and len(src) == 1, (dst_lab, dst, src_lab, src)
+        d, s = dst[0], src[0]
+        old = ws[f"C{d}"].value
+        new = f"=C{s}"
+        if old != new:
+            assert isinstance(old, str) and old.startswith("="), (d, old)
+            ws[f"C{d}"].value = new; ws[f"C{d}"].font = F_CALC
+            log.append((d, s))
+    return log
+
+
+# ================================================================== F1／F4: notes, marks (end of build, idempotent)
+PHYS = {   # (sheet, row): (note column or None = purpose column, text)
+    ("Spec_Rack", 27): ("H", "物理慣例：÷8＝Gb/s 換 GB/s（8 bit／byte），不外露"),
+    ("Spec_Rack", 34): ("H", "物理慣例：×8＝pJ/bit 換 pJ/byte（8 bit／byte），不外露"),
+    ("Arch", 30): ("G", "物理慣例：係數 4＝注意力 QKᵀ 與 AV 各 2 FLOPs／MAC，共 4，不外露"),
+    ("Training", 34): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露；若日後要改為 Tech_Registry 條目再外露"),
+    ("Training", 41): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露"),
+    ("Training", 48): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露"),
+    ("Training", 69): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露"),
+    ("Training", 74): (None, "物理慣例：÷3＝訓練 FLOPs 折回前向（前向 1＋反向 2），不外露"),
+    ("Training", 76): (None, "物理慣例：÷3＝訓練 FLOPs 折回前向（前向 1＋反向 2），不外露"),
+    ("Cap_In", 86): ("G", "數學慣例：^0.5＝幾何中點（低、高的幾何平均），不外露"),
+    ("Cap_In", 294): ("G", "物理慣例：6ND＝訓練 FLOPs ≈ 6 × 啟用參數 × token（前向 2 ＋ 反向 4），不外露"),
+    ("Cap_In", 295): ("G", "物理慣例：6ND（同上），不外露"),
+    ("Cap_In", 296): ("G", "物理慣例：6ND（同上），不外露"),
+    ("Har_In", 77): (None, "數學慣例：LN(4)＝logit(0.8) − logit(0.5)（50% 與 80% 成功率的 logit 差），由時間範圍比值推隱含 β，不外露"),
+    ("Har_In", 78): (None, "數學慣例：LN(4)（同上），不外露"),
+    ("Har_In", 79): (None, "數學慣例：LN(4)（同上），不外露"),
+    ("Har_In", 80): (None, "數學慣例：LN(4)（同上），不外露"),
+    ("Alloc", 17): ("G", "索引慣例：3*(g−1)+2＝Interface 欄依「世代 × 3 層級」排列，取世代 g 的第 2 層級（基準成本欄）；3＝層級數，不外露"),
+    ("Alloc", 43): ("G", "索引慣例：3*(g−1)+2（同第 17 列），不外露"),
+    ("Alloc", 46): ("G", "結構慣例：COUNT(…)=3＝三層級（Luna、Sol、Astra）皆有數才合計，不外露"),
+    ("Alloc", 49): ("G", "結構慣例：COUNT(…)=3＝三層級皆有數才合計，不外露"),
+    ("Fleet_1GW", 33): (None, "結構慣例：COUNT(…)=3＝三層級（Luna、Sol、Astra）皆有數才合計，不外露（4-0 H99 判為層級數）"),
+}
+L1_NOTES = {30: " ｜v10.3 F1：M30、N30 已直接引用 SRC_PRC_001（CoreWeave 隨需牌價，每實例）；「÷ 4」＝該實例的 GPU 數（物理慣例，不外露）"}
+
+# 4-0 sheet 6 G5: inputs that no formula reads. Row -> text (applies to the listed columns only)
+_END = "區間端點（供 Gov_Map 與情境）"
+_SPARE = "備用（無公式讀取）"
+UNREAD = {
+    "Spec_Rack": {39: f"{_SPARE}：G 欄 BF16 dense（Rubin Ultra）", 45: f"{_END}：ARCH_ScaleGen_Lo（C:G）", 46: f"{_END}：ARCH_ScaleGen_Hi（C:G）"},
+    "Workload": {40: f"{_SPARE}：C 欄（參照基準 1；E、F 欄連結 SRC）"},
+    "Train_In": {46: f"{_END}：前沿預訓練錨點低（C）；J8 對照用", 48: f"{_END}：前沿預訓練錨點高（C）；J8 對照用"},
+    "Cap_In": {13: f"{_END}：D、E 欄", 14: f"{_END}：D、E 欄", 15: f"{_END}：D、E 欄", 16: f"{_END}：D、E 欄（尖峰／離峰口徑情境）",
+               23: f"{_END}：C、E 欄（D 欄由 Sens_Rev B20 讀取）", 24: f"{_END}：C、E 欄（D 欄由 Sens_Rev B21 讀取）",
+               28: f"{_END}：D、E 欄", 29: f"{_END}：D、E 欄", 36: f"{_END}：D、E 欄", 37: f"{_END}：D、E 欄", 38: f"{_END}：D、E 欄", 39: f"{_END}：D、E 欄",
+               40: f"{_END}：D、E 欄", 41: f"{_END}：D、E 欄", 42: f"{_END}：D、E 欄", 133: f"{_SPARE}：C 欄（基準）；{_END}：D、E 欄（H10 顯示用廣告營收）"},
+    "Alloc_In": {9: f"{_END}：D、E 欄", 10: f"{_END}：D、E 欄", 11: f"{_END}：D、E 欄", 12: f"{_END}：D、E 欄", 13: f"{_END}：D、E 欄",
+                 29: f"{_END}：D、E 欄（研發世代組合 2025）", 30: f"{_END}：D、E 欄", 31: f"{_END}：D、E 欄", 32: f"{_END}：D、E 欄"},
+    "Alloc": {137: f"{_SPARE}：C:E 欄（層級索引常數 1／2／3，無公式讀取）"},
+}
+# Calib J (4-0 R-rows 167-204): calibration and verification copy rows
+CALIB_J_ROWS = range(167, 205)
+CALIB_J_TXT = "校準與驗證複製列（顯示用；無下游）"
+# Alloc: dead cells whose only readers are names that no formula reads (F4 item 2; the readers are listed in the report)
+ALLOC_NAME_ROWS = {
+    24: "顯示用：具名範圍 AL_UnservedPaid 無公式讀取", 25: "顯示用：具名範圍 AL_UnservedFree 無公式讀取", 32: "顯示用：具名範圍 AL_UnservedGen 無公式讀取",
+    38: "顯示用：具名範圍 AL_ServeGen 無公式讀取", 47: "顯示用：只被 Alloc 第 142 列（單一訓練世代對照）讀取；第 142 列只被第 143 列讀取，第 143 列無人讀取",
+    48: "顯示用：只被 Alloc 第 142 列（單一訓練世代對照）讀取；第 143 列無人讀取", 51: "顯示用：具名範圍 AL_RDGWg 只被第 59、60 列讀取，後兩者的具名範圍 AL_Q1g／AL_Q2g 無公式讀取",
+    59: "顯示用：具名範圍 AL_Q1g 無公式讀取", 60: "顯示用：具名範圍 AL_Q2g 無公式讀取", 67: "顯示用：具名範圍 AL_J8Gap 無公式讀取",
+    135: "顯示用：具名範圍 AL_RDShareExcl 無公式讀取", 161: "顯示用：具名範圍 AL_Q1_Tok 無公式讀取", 162: "顯示用：具名範圍 AL_Q2_Tok 無公式讀取",
+}
+
+
+def _purpose_col(ws, create=True):
+    last = 0
+    for row in ws.iter_rows():
+        for cell in row:
+            if cell.value is not None: last = max(last, cell.column)
+    for c in range(3, last + 1):
+        if ws.cell(PURPOSE_HDR_ROW, c).value == PURPOSE: return c
+    if not create: return None
+    col = last + 1
+    put(ws, f"{L(col)}{PURPOSE_HDR_ROW}", PURPOSE, F_BOLD)
+    ws.column_dimensions[L(col)].width = 46
+    return col
+
+
+def _set_mark(ws, row, text):
+    """Writes the purpose text; an existing different text stays and the new one is appended (the 4-1 marks are kept)."""
+    col = _purpose_col(ws)
+    cell = ws.cell(row, col)
+    if cell.value in (None, ""):
+        put(ws, cell.coordinate, text, F_NOTE); return 1
+    if text in str(cell.value): return 0
+    cell.value = f"{cell.value} ｜{text}"; return 1
+
+
+def notes_and_marks(wb, append_text):
+    log = {"phys": 0, "marks_calib_j": 0, "marks_alloc": 0, "marks_unread": 0, "l1_notes": 0}
+    for (sh, row), (col, txt) in PHYS.items():
+        ws = wb[sh]
+        cell = ws.cell(row, _purpose_col(ws)) if col is None else ws[f"{col}{row}"]
+        log["phys"] += append_text(cell, " ｜" + txt)
+    ws = wb["L1"]
+    for row, txt in L1_NOTES.items():
+        log["l1_notes"] += append_text(ws[f"I{row}"], txt)
+    ws = wb["Calib"]
+    for r in CALIB_J_ROWS: log["marks_calib_j"] += _set_mark(ws, r, CALIB_J_TXT)
+    ws = wb["Alloc"]
+    for r, txt in ALLOC_NAME_ROWS.items(): log["marks_alloc"] += _set_mark(ws, r, txt)
+    for sh, rows in UNREAD.items():
+        ws = wb[sh]
+        for r, txt in rows.items(): log["marks_unread"] += _set_mark(ws, r, txt)
+    return log
+
+
+# ================================================================== end of build
+def apply(wb, append_text):
+    log = {}
+    log["notes_marks"] = notes_and_marks(wb, append_text)
+    ws = wb["Gov_Map"]; n = 0
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 3).value == "Sens_Rev" and ws.cell(r, 4).value == "B20:B21":
+            n += append_text(ws.cell(r, 14), " ｜v10.3 4-2a D08：B20:B21 已改為公式（讀 Cap_In D23:D24 商業壽命低／高），本列保留登錄（情境值的範圍說明）；改值請改 Cap_In D23:D24")
+        if ws.cell(r, 3).value == "Spec_Rack" and ws.cell(r, 4).value in ("G11", "G13"):
+            n += append_text(ws.cell(r, 14), " ｜v10.3 4-2a F1：倍數已外露為 SR_RU_PxMultLo／SR_RU_PxMultHi（Spec_Rack「" + RU_SEC + "」）；本格為公式 =F12 × 倍數")
+    log["gov"] = n
+    log["decisions"] = decisions_append(wb)
+    return log
+
+
+# ================================================================== Decisions (10 columns; layout of v800／v810／v1000／v1010)
+_D = [
+    ("F1", "寫死參數外露（明細頁 4；數值不變）",
+     "新增具名輸入 L1_JudgeTol＝0.2（Calib K 節；Assumed，區間 0.1–0.3；非物理量）：L1 欄 P 的 96 格判讀公式、Checks I3、Checks E5 改讀它。"
+     "新增 SR_RU_PxMultLo＝1.5、SR_RU_PxMultHi＝2.5（Spec_Rack「Rubin Ultra 機架價格倍數」節；Assumed，無來源，待證據；區間 1.2–2.0／2.0–3.0）：Spec_Rack G11、G13 改讀它們。"
+     "L1 M30、N30 已直接引用 SRC_PRC_001，只剩 /4（每實例 GPU 數）：加註。物理慣例（訓練 3 倍、6ND、ln4、注意力係數 4、位元組換算、層級數 3、索引 3*(g−1)+2）不外露，只在說明欄加註『物理慣例：…』。"
+     "Fleet_1GW M33 的 COUNT(…)=3 判為層級數（4-0 列為『待判斷：未分類』），加註不外露。",
+     "Calib K 節；Spec_Rack 新節；L1 欄 P；Checks I3／E5；Gov_Map 新增 3 列", "v10.3 已建"),
+    ("F2", "重複定義處理（明細頁 2）",
+     "D08：Sens_Rev B20／B21 改讀 Cap_In D23／D24（Sol 欄；兩處皆為 6／24，數值不變），標籤改為公式。D09：Cap_In H10 2025 欄 C206–C209、C222、C223 改直接引用 H 節對應格（C144、C145、C146、C94、C116、C119；數值不變），第 224 列一致性檢查保留。"
+     "D10：不執行——Alloc 第 122 列已於 4-1 清空，第 121 列 C 欄是 2026 快照價（Cap_In C90），Cap_In 第 268 列 C 欄是 2025 年度價（CAP_Price25Mix），兩處已不是同一個定義，也沒有同一個值；"
+     "D11：Alloc 與 Fleet_1GW 單位不同（每 GW 對每 1 GW 機隊），不合併，新增永久測試（tests/parity/test_slim.py）。D01、D02–D07、D12–D16 維持原決定。",
+     "Sens_Rev B20:B21；Cap_In 第 206–209、222–223 列；tests/parity/test_slim.py", "v10.3 已建（D10 不執行，待 Project 判斷）"),
+    ("F3", "Tech_Registry K、T 欄接進 Checks（原則 4）",
+     "Checks V 新增 V18（K 欄：『主流』條目數＝公開採用實驗室數 ≥ 門檻的條目數；公式被覆寫時失敗）與 V19（T 欄：非『一致』的條目數＝0）。計入 CHK_VerifyTotal／Pass／Fail，不進 GOV_Errors。",
+     "Checks V 節；Tech_Registry K、T 欄", "v10.3 已建"),
+    ("F4", "標記（原則 2）與死格測試加強",
+     "Calib J 節 105 個死格填『校準與驗證複製列（顯示用；無下游）』；Alloc 27 個死格查明讀取者（皆為無人讀取的具名範圍或只讀死格的列）後填用途；70 個無人引用的輸入填『區間端點（供 Gov_Map 與情境）』或『備用（無公式讀取）』，不刪任何輸入。"
+     "test_slim 新增：死格若不在基準名單（v10.3 未標記死格）內，必須有用途標記。",
+     "各頁『用途』欄；tests/parity/test_slim.py；tests/parity/fixtures/dead_unmarked_baseline_v10.3.json", "v10.3 已建"),
+    ("F5", "測試補強（查核 D 第 4 項）",
+     "契約名稱快照測試（tests/parity/fixtures/contract_snapshot_v10.3.json，相對容差 1e-9；之後每版預期變動須同 PR 更新快照並於報告列出）；驗證清單 V1–V19 逐項斷言；GOV 三項計數在新基準下斷言。",
+     "tests/parity/test_snapshot.py；tests/parity/fixtures", "v10.3 已建"),
+    ("F7a", "V13、V14 上限 3 保留", "V13、V14 的通過帶上限 3（v10.2 E3 chat 端預設）保留（Andy 2026-10-16 20:54 依建議）。", "Checks V13、V14", "已決定（Andy 2026-10-16 20:54）"),
+    ("F7b", "η 校準 E1 停損；Hopper 與 GB200 大批次低估原因待查證",
+     "η 校準 E1 停損，C67／D67 未寫入（Hopper 在 DeepSeek profile 條件下即使 η_d 無限大，產出也只到目標的 0.94，所以無解；GB200 的解使有效算力高於 GB300）。"
+     "Hopper 與 GB200 在大批次下模型低估實測的原因待查證：(a) 通訊與計算重疊；(b) η_d 隨批次變化。查證另段進行（docs/reports/20261016_大批次低估查證.md）。",
+     "Calib J 節；Decisions ETA-E1H／ETA-E1G", "待查證"),
+]
+DECISIONS_V1030 = [[f"SL42-{i}", V, f"瘦身 4-2a：{t}", txt, DATE, DEC_BY, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+
+def decisions_append(wb):
+    ws = wb["Decisions"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1
+    n = 0
+    for row in DECISIONS_V1030:
+        if row[0] in have: continue
+        for i, v in enumerate(row): put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
+    return n
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（次版：瘦身 4-2a，" + WO + "——F1 寫死參數外露（L1_JudgeTol、SR_RU_PxMultLo／Hi；物理慣例加註）；F2 重複定義（Sens_Rev 商業壽命、Cap_In H10 2025 欄改引用）；"
+                  "F3 Tech_Registry K／T 進 Checks V（V18／V19）；F4 用途標記；Decisions SL42-*。既有 IF_／IFW_／L1_ 名稱數值不變，只有 CHK_Verify* 變動）。以下為 " + v1020.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1020.README_TITLE
+README_TITLE = VERSION.split("_")[-1] + _T[len(v1020.VERSION.split("_")[-1]):]
+README_ROW = ("瘦身 4-2a（v10.3）",
+              "寫死參數外露（L1 判讀容差、Rubin Ultra 價格倍數）；重複定義改引用（商業壽命、Cap_In 2025 欄）；Tech_Registry K／T 進驗證計數；死格與無人引用輸入填用途。細節見 Decisions SL42-*。")
+```
+
+## v1100.py
+
+```python
+# v11.0 (work order docs/workorders/20261016_大批次修正.md; branch claude/bigbatch-fix; segment "大批次修正" G1–G4).
+#   G1  Calib C68 (Hopper per-layer latency multiplier 1.5): traced (Decisions, Gov_Map, Calib J-column notes, builder history v5.2–v10.3, archived workbooks). Verdict "cannot be confirmed as double counting":
+#       the 1.5 is an Assumed round number that exists since v5.2 (2026-09-30; per-layer latency then 240.4 µs = fit 160.28 × 1.5, not 241.92 µs); the DeepSeek 241.92 µs figure first appears in the repo on 2026-10-16.
+#       C68 is NOT changed; notes record the trace; the hypothetical C68 = 1.0 effect is written to Decisions for Project.
+#   G2  CAL_BatchEtaD (Calib row 156): GB200 D156 = 3.04 (Derived; solved on Calib J column D with the batch multiplier included); Hopper C156 stays 1 (no solution at C68 = 1.5: even an infinite η_d only reaches 0.941 of the
+#       DeepSeek profile target, outside ±2%). Calib J columns C and D now carry CAL_BatchEtaD in their η_d (calibration copy rows of the batch path); E, F, G (serving-side validation points V15, V7, V8) are unchanged.
+#   G3  Calib L section (V20–V22: MLPerf v6.0 offline GB200 6,752 and GB300 8,987, TensorRT-LLM H200 1,436; batch path = η_d × CAL_BatchEtaD, no SLO), SRC_Perf 079–083, SRC_HW 067–068 (H200 specs), Checks V20–V22.
+#   G4  Checks V1–V3 (MLPerf server) are soft caps: ratio > 1 is "警示" (not a failure); new name CHK_VerifyWarn with CHK_VerifyPass + CHK_VerifyFail + CHK_VerifyWarn = CHK_VerifyTotal (edits live in v1000.checks_v). V4–V6 (interactive) stay hard caps.
+# Major version (new contract name CHK_VerifyWarn). Every write to an Excel-owned cell is guarded (old value / old text).
+import re
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.utils import get_column_letter as L
+from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+import v1000
+import v1020
+import v1030
+
+VERSION = "20261016_Tokenomics_v11.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-16"
+V = "v11.0"
+WO = "工作單 docs/workorders/20261016_大批次修正.md"
+DEC_BY = "Andy 2026-10-16 21:55「both ok」（發本段、V2 改軟上限）；其餘細節為 chat 端預設，可撤回"
+EID = "E380"
+DASH = "—"
+REPORT = "docs/reports/20261016_大批次低估查證.md"
+EVTAB = "docs/evidence/20261016_大批次/證據表.xlsx"
+MLP_CSV = "docs/evidence/20261016_服務條件/mlperf_v6.0_deepseek-r1.csv"
+BATCH_GB200 = 3.04          # G2: Calib D156 (Derived; J-column D solution 3.0373, rounded to 3 significant digits; ratio 1.0001)
+# Gov_Map interval of D156 (set from the implied multipliers of the batch-path points; see Decisions BB-G2)
+D156_LO, D156_HI = 1.5, 6.7
+
+
+# ================================================================== SRC records (SRC_Perf 079–083, SRC_HW 067–068)
+_SRC = f"{REPORT} 與 {EVTAB}（CC 查證，2026-10-16；原始出處見證據表）"
+
+
+def _rec(sheet, i, metric, val, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note, second="—"):
+    r = v1000._rec(i, sheet, metric, val, None, None, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note)
+    r["ev"] = EID; r["s"] = "U-V1100"
+    if second != "—": r["second"] = second
+    return r
+
+
+_MLP_URL = "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/summary_results.json"
+SRC_NEW = [
+    _rec("SRC_Perf", "SRC_PERF_079", "MLPerf v6.0 DeepSeek-R1 offline：NVIDIA GB200 NVL72（72 GPU）每 GPU", 6752.0, "tok/s/GPU（輸出 token）",
+         "offline；Closed；available；486,141 ÷ 72；無延遲限制；批次只受記憶體限制；輸入 800／輸出 3,880", "GB200 NVL72（NVIDIA 提交 6.0-0075）", "2026-04", _MLP_URL, 1, "利害關係方",
+         "MLCommons 稽核為中立；提交者 NVIDIA 為賣方；同輪 CoreWeave 64 GPU 7,323、Google 72 GPU 4,276（依軟體調校差很多）", "一手（原始資料檔已讀：" + MLP_CSV + "）",
+         "Calib L 節 C 欄；Checks V20", f"v11.0 G3（{EID}）：大批次、無 SLO 的驗證點（不用於校準）；第二來源 SRC_PERF_082", second="SRC_PERF_082"),
+    _rec("SRC_Perf", "SRC_PERF_080", "MLPerf v6.0 DeepSeek-R1 offline：NVIDIA GB300 NVL72（72 GPU）每 GPU", 8987.2, "tok/s/GPU（輸出 token）",
+         "offline；Closed；available；647,076 ÷ 72；無延遲限制", "GB300 NVL72（NVIDIA 提交 6.0-0078）", "2026-04", _MLP_URL, 1, "利害關係方",
+         "MLCommons 稽核為中立；提交者 NVIDIA 為賣方；同輪 Nebius 72 GPU 9,360", "一手（原始資料檔已讀：" + MLP_CSV + "）",
+         "Calib L 節 D 欄；Checks V21", f"v11.0 G3（{EID}）：大批次、無 SLO 的驗證點；第二來源 SRC_PERF_083", second="SRC_PERF_083"),
+    _rec("SRC_Perf", "SRC_PERF_081", "TensorRT-LLM DeepSeek-R1 decode：H200 8 GPU，並行 1,024（每 rank 128）每 GPU", 1436.2, "tok/s/GPU（輸出 token；同一批 GPU 做 prefill）",
+         "ISL 1K／OSL 2K；EP8、attention DP；並行 1,024；每用戶 11.35 tok/s；無尾端延遲限制；是否使用 MTP 文件未寫（模型取無 MTP）", "Hopper H200 8 GPU（NVIDIA TensorRT-LLM）", "2025",
+         "https://nvidia.github.io/TensorRT-LLM/0.21.0rc1/blogs/Best_perf_practice_on_DeepSeek-R1_in_TensorRT-LLM.html", 1, "利害關係方",
+         "NVIDIA 為硬體與軟體供應商，有誘因展示高吞吐；單一來源（同文 B200 為另一硬體）", "一手（WebFetch 讀全文）",
+         "Calib L 節 E 欄；Checks V22", f"v11.0 G3（{EID}）：Hopper 大批次驗證點（不用於校準）；同條件 MLPerf v5.1 server 556（SRC_PERF_060）的 2.6 倍；無第二來源（W1 +1）"),
+    _rec("SRC_Perf", "SRC_PERF_082", "MLPerf v6.0 DeepSeek-R1 offline：CoreWeave GB200 NVL72（64 GPU）每 GPU", 7322.9, "tok/s/GPU（輸出 token）",
+         "offline；Closed；available；468,665 ÷ 64", "GB200 NVL72（CoreWeave 提交 6.0-0015）", "2026-04", _MLP_URL, 1, "利害關係方",
+         "CoreWeave 為雲端出租方；MLCommons 稽核為中立", "一手（原始資料檔已讀）", "Checks V20 說明欄（第二來源）", f"v11.0 G3（{EID}）：V20 第二來源（不同提交者、64 GPU）", second="SRC_PERF_079"),
+    _rec("SRC_Perf", "SRC_PERF_083", "MLPerf v6.0 DeepSeek-R1 offline：Nebius GB300 NVL72（72 GPU）每 GPU", 9360.2, "tok/s/GPU（輸出 token）",
+         "offline；Closed；available；673,936 ÷ 72", "GB300 NVL72（Nebius 提交 6.0-0081）", "2026-04", _MLP_URL, 1, "利害關係方",
+         "Nebius 為雲端出租方；MLCommons 稽核為中立", "一手（原始資料檔已讀）", "Checks V21 說明欄（第二來源）", f"v11.0 G3（{EID}）：V21 第二來源（同輪 72 GPU，不同提交者）", second="SRC_PERF_080"),
+    _rec("SRC_HW", "SRC_HW_067", "H200 HBM 容量", 141, "GB/GPU", "—", "Hopper H200", "2026-10-16", "https://www.nvidia.com/en-us/data-center/h200/（Quick Specs；WebFetch 2026-10-16 已讀）", 1, "利害關係方",
+         "NVIDIA：產品規格", "一手（已讀）", "Calib L 節 E 欄（V22 的 H200 條件）", f"v11.0 G3（{EID}）：TensorRT-LLM H200 點的硬體規格；模型的 Hopper 欄仍是 H100（SRC_HW_020、021）"),
+    _rec("SRC_HW", "SRC_HW_068", "H200 HBM 頻寬", 4.8, "TB/s/GPU", "—", "Hopper H200", "2026-10-16", "https://www.nvidia.com/en-us/data-center/h200/（Quick Specs；WebFetch 2026-10-16 已讀）", 1, "利害關係方",
+         "NVIDIA：產品規格", "一手（已讀）", "Calib L 節 E 欄（V22 的 H200 條件）", f"v11.0 G3（{EID}）：同上"),
+]
+
+
+def src_new_records():
+    return SRC_NEW
+
+
+_IDS = "；".join(x["id"] for x in SRC_NEW)
+EVIDENCE_V1100 = [[
+    EID, DATE,
+    "大批次低估查證（A 段，PR #84）：MLPerf v6.0 offline（GB200 NVL72 6,752、GB300 NVL72 8,987；同輪 CoreWeave 7,323、Nebius 9,360）；TensorRT-LLM H200 8 GPU 並行 1,024 每 GPU 1,436；H200 規格 141 GB／4.8 TB/s",
+    f"{REPORT} 第 3、4 節；{EVTAB}；{MLP_CSV}；NVIDIA H200 規格頁", "Interested-party（NVIDIA、CoreWeave、Nebius；MLCommons 稽核）",
+    "Checks V 節（V20–V22）；Calib L 節", "無大批次（offline）驗證點；V1–V3 為硬上限", "新增 V20–V22（通過帶 0.5–2.0）；V1–V3 改軟上限",
+    "採納為驗證材料（不用於校準）；V1–V3 軟上限（MLPerf server TPOT 80 ms 是 p99，模型取平均）", V,
+    f"讀取者：chat 端（A 段查證）；CC 轉入｜{DEC_BY}｜V22 無第二來源；H200 規格為一手（NVIDIA 頁）但模型 Hopper 欄仍用 H100 規格",
+    "已處理", _IDS, DASH, "Checks V 節（CHK_Verify*）；Calib J 節 C、D 欄；IF_AllocRDGW 與研發 GW 下游（CAL_BatchEtaD GB200）", "1", "利害關係方（見各 SRC 紀錄）"]]
+
+
+def evidence_rows():
+    return EVIDENCE_V1100
+
+
+# ================================================================== G3: Calib L section (below K): batch-path validation points V20–V22
+CL_COLS = "CDE"
+CL_LABELS = {
+    "C": "V20：GB200 NVL72 — MLPerf v6.0 offline（NVIDIA 72 GPU；輸入 800／輸出 3,880；無 SLO；批次填滿 HBM）",
+    "D": "V21：GB300 NVL72 — MLPerf v6.0 offline（同上）",
+    "E": "V22：Hopper H200 8 GPU — TensorRT-LLM（輸入 1K／輸出 2K；並行 1,024＝每 rank 128；EP8；無 SLO）",
+}
+CL_NOTE = {
+    "g": "世代索引（Spec_Rack 欄）：1 Hopper、2 GB200、3 GB300；黑字常數（測量條件）",
+    "isl": "C、D：MLPerf 資料集平均輸入 800／輸出 3,880（Calib C110、C111，SRC_PERF_029／030）；E：TensorRT-LLM 文件 ISL 1K／OSL 2K",
+    "ep": "0＝依容量規則 MAX(EP 基準, …)（同 H 節）；E：EP8（文件：attention DP＋EP8）",
+    "bat": "0＝批次填滿 HBM（offline 不限速度）；E：並行 1,024 ÷ 8 GPU＝每 rank 128",
+    "mtp": "0＝無 MTP（同 H 節 server 欄；offline 與 TensorRT-LLM 的 MTP 使用文件未寫）",
+    "spec": "E 欄的 HBM、頻寬用 H200 規格（SRC_HW_067／068；模型 Hopper 欄為 H100 80 GB／3.35 TB/s，放不下 EP8 的權重）；峰值算力 H200 與 H100 相同",
+    "ed": "批次口徑：採用 η_d（Calib 第 70 列）× CAL_BatchEtaD（第 156 列；Perf_Batch 第 53 列同一條式）。GB200＝3.04（vLLM 10.1K 校準，Calib J 節 D 欄）；GB300、Hopper＝1（未校準；Hopper 在 C68＝1.5 下無解）",
+    "R": "模型 ÷ 實測（含 prefill 分攤；輸出 token 口徑）。V20–V22 的通過帶 0.5–2.0（Checks V20–V22）；不用於校準",
+    "mult": "達標所需批次口徑 η_d 倍數（＝CAL_BatchEtaD 的解）：以 decode tok/s 反解目標輸出（扣除 prefill 時間），再解每序列算力項；若所需每序列時間 ≤ 非算力項（KV、EP 通訊）下限，則『無解』。此列供 Gov_Map 區間參考",
+}
+
+
+def calib_l(wb, CAL, SP):
+    """Calib J patch (C、D columns carry CAL_BatchEtaD) and the L section. Returns the L row map; CAL['L'] = result."""
+    ws = wb["Calib"]
+    J = CAL["J"]
+    # ---- J: calibration copy rows C、D now read the batch-path η_d (η_d × CAL_BatchEtaD); E、F、G (serving-side validation points) unchanged
+    put(ws, f"A{J['hdr'] - 1}", "J. η 校準與條件對齊複製列（v10.2 E1／E3；v11.0 G2：C、D 欄的 η_d 乘 CAL_BatchEtaD）：比照 H 節公式（decode-only），條件改為各點的實際條件；模型 ÷ 目標顯示在每欄下方。"
+        "校準用 C、D（批次口徑，解出 CAL_BatchEtaD）；驗證用 E、F、G（服務口徑，不乘 CAL_BatchEtaD；不重用校準點）", F_BOLD)
+    put(ws, f"A{J['jed']}", "η_d（該世代；含 C67／D67；C、D 欄再乘 CAL_BatchEtaD＝批次口徑，v11.0 G2）", None)
+    for X in "CD":
+        put(ws, f"{X}{J['jed']}", f"=INDEX($C${CAL['etad']}:$G${CAL['etad']},{X}{J['jg']})*INDEX(CAL_BatchEtaD,1,{X}{J['jg']})", fmt="0.00%")
+    put(ws, f"A{J['jmult']}", "達標所需 η_d 倍數（相對 CAL_EtaD；C、D 欄＝C67／D67 × CAL_BatchEtaD 的解）", None)
+    put(ws, f"J{J['jed']}", "v11.0 G2：C、D 欄（校準複本列）乘批次口徑倍數 CAL_BatchEtaD（Hopper 1、GB200 3.04）；E、F、G 欄（服務口徑驗證點 V15、V7、V8）不乘", F_NOTE, wrap=True)
+    r = J["jstate"]
+    put(ws, f"A{r}", "校準狀態（v11.0 G2；停損規則）", F_BOLD)
+    put(ws, f"C{r}", '="Hopper：CAL_BatchEtaD 現值 "&TEXT(INDEX(CAL_BatchEtaD,1,1),"0.00")&"（C67 "&TEXT($C$67,"0.00")&"）；模型 ÷ 目標 "&TEXT(C' + str(J["jR"]) + ',"0.00")&"；"&IF(ISNUMBER(C' + str(J["jmult"]) + '),"所需總倍數 "&TEXT(C' + str(J["jmult"]) + ',"0.00"),C' + str(J["jmult"]) + ')&"（η_d 再大產出上限 "&TEXT(C' + str(J["jmax"]) + ',"#,##0")&"＝目標的 "&TEXT(C' + str(J["jmaxR"]) + ',"0.00")&"）"', F_CALC)
+    put(ws, f"D{r}", '="GB200：CAL_BatchEtaD 現值 "&TEXT(INDEX(CAL_BatchEtaD,1,2),"0.00")&"（D67 "&TEXT($D$67,"0.00")&"）；模型 ÷ 目標 "&TEXT(D' + str(J["jR"]) + ',"0.00")&"；"&IF(ISNUMBER(D' + str(J["jmult"]) + '),"所需總倍數 "&TEXT(D' + str(J["jmult"]) + ',"0.00")&"（η_d "&TEXT(D' + str(J["jetan"]) + ',"0.0%")&"）",D' + str(J["jmult"]) + ')', F_CALC)
+    put(ws, f"J{r}", "G2：GB200 的解寫入 CAL_BatchEtaD（D156＝3.04，Derived）；Hopper 在 C68＝1.5 下無解（η_d 無限大只達目標 0.94，超出 ±2%），不寫入、列待 Project 判斷（Decisions BB-G2）。服務側 C67／D67 不動", F_NOTE, wrap=True)
+
+    # ---- L section
+    r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r0, "L. 大批次驗證點（v11.0 G3）：MLPerf v6.0 offline（GB200、GB300）與 TensorRT-LLM H200；比照 J 節公式，條件為無 SLO 的大批次；η_d 取批次口徑（× CAL_BatchEtaD）並含 prefill 分攤；不用於校準", 10)
+    r = r0 + 1
+    R = {"sec": r0}
+    put(ws, f"A{r}", "點位", F_BOLD)
+    for X in CL_COLS: put(ws, f"{X}{r}", CL_LABELS[X], F_BOLD, wrap=True)
+    ws.row_dimensions[r].height = 58; R["hdr"] = r; r += 1
+    consts = [("lg", "世代索引", "", "0", [2, 3, 1]), ("lisl", "輸入長度（decode 起始上下文）", "tok", "#,##0", ["=$C$110", "=$C$110", 1000]),
+              ("losl", "輸出長度", "tok", "#,##0", ["=$C$111", "=$C$111", 2000]), ("lep0", "EP 寬度設定（0＝依容量規則）", "GPU", "0", [0, 0, 8]),
+              ("lbat", "固定批次（0＝批次填滿 HBM）", "序列/GPU", "0", [0, 0, 128]), ("lmtp", "推測解碼（1＝有）", "", "0", [0, 0, 0])]
+    for key, lab, unit, fmt, vals in consts:
+        R[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
+        for X, v in zip(CL_COLS, vals): put(ws, f"{X}{r}", v, F_CALC if not (isinstance(v, str) and v.startswith("=")) else None, fmt=fmt)
+        r += 1
+    put(ws, f"J{R['lg']}", CL_NOTE["g"], F_NOTE, wrap=True); put(ws, f"J{R['lisl']}", CL_NOTE["isl"], F_NOTE, wrap=True); put(ws, f"J{R['lep0']}", CL_NOTE["ep"], F_NOTE, wrap=True)
+    put(ws, f"J{R['lbat']}", CL_NOTE["bat"], F_NOTE, wrap=True); put(ws, f"J{R['lmtp']}", CL_NOTE["mtp"], F_NOTE, wrap=True)
+    R["lT"] = r; put(ws, f"A{r}", "實測輸出 tok/s/GPU（目標）"); put(ws, f"B{r}", "tok/s/GPU")
+    for X, s in zip(CL_COLS, ["SRC_PERF_079", "SRC_PERF_080", "SRC_PERF_081"]): put(ws, f"{X}{r}", f"={s}", fmt="#,##0", fill=FILL_KEY)
+    put(ws, f"J{r}", "SRC_PERF_079（GB200 offline）／080（GB300 offline）／081（TensorRT-LLM H200）；輸出 token 口徑，含同一批 GPU 的 prefill", F_NOTE, wrap=True); r += 1
+    gl = lambda row: f"=INDEX(Spec_Rack!$C${row}:$G${row},{{X}}{{lg}})"
+    rows = [
+        ("lgn", "世代", "", None, "=INDEX(Spec_Rack!$C$4:$G$4,{X}{lg})"),
+        ("lP", "計算用峰值", "PF", "#,##0.000", gl(SP["pk"])), ("lH", "HBM", "GB", "#,##0", gl(SP["hbm"])), ("lB", "HBM 頻寬", "TB/s", "#,##0.00", gl(SP["bw"])),
+        ("lLk", "EP 頻寬", "TB/s", "#,##0.00", gl(SP["link"])), ("lEb", "EP 基準", "", "#,##0", gl(SP["ep"])),
+        ("lbe", "專家 B/param", "", "0.0000", gl(SP["be"])), ("lbn", "非專家 B/param", "", "0.00", gl(SP["bn"])),
+        ("lU", "可用 HBM", "GB", "#,##0", "={X}{lH}*(1-Serving!$C$9)"),
+        ("lTP", "注意力 TP", "", "0", "=MAX(1,CEILING($C${rne}*{X}{lbn}/(Serving!$C$10*{X}{lU}),1))"),
+        ("lEP", "EP 寬度", "", "#,##0", "=IF({X}{lep0}>0,{X}{lep0},MAX({X}{lEb},CEILING($C${rex}*{X}{lbe}/(Serving!$C$11*{X}{lU}),1)))"),
+        ("lW", "每 GPU 權重", "GB", "#,##0.0", "=$C${rne}*{X}{lbn}/{X}{lTP}+$C${rex}*{X}{lbe}/{X}{lEP}"),
+        ("lcd", "decode 平均上下文", "tok", "#,##0", "={X}{lisl}+{X}{losl}/2"),
+        ("lFd", "decode FLOPs/token", "GFLOP", "#,##0.0", "=(2*$C${rA}*1E9+$C${rac}*{X}{lcd})/1E9"),
+        ("ln", "草稿數", "", "0", "=Serving!$C$6*{X}{lmtp}"), ("la", "每步接受", "", "0.00", "=IF({X}{lmtp}=1,Serving!$C$8,1)"),
+        ("lx", "批次口徑 η_d 倍數（CAL_BatchEtaD）", "x", "0.00", "=INDEX(CAL_BatchEtaD,1,{X}{lg})"),
+        ("led", "η_d（該世代 × CAL_BatchEtaD；批次口徑）", "%", "0.00%", "=INDEX($C${etad}:$G${etad},{X}{lg})*{X}{lx}"),
+        ("ltl", "每層延遲（該世代；含 C68）", "µs", "#,##0", "=INDEX($C${tl}:$G${tl},{X}{lg})"),
+        ("ltf", "每步固定延遲", "ms", "#,##0.00", "={X}{lW}/{X}{lB}+($C${rL}+{X}{ln})*{X}{ltl}/1000"),
+        ("lc1", "每序列時間：算力項", "ms", "0.0000", "=({X}{ln}+1)*{X}{lFd}/({X}{lP}*{X}{led})/1000"),
+        ("lc2", "每序列時間：KV 讀取項", "ms", "0.0000", "=$C${rkv}*{X}{lcd}/({X}{lB}*Serving!$C$13)/1E9"),
+        ("lc3", "每序列時間：EP 通訊項", "ms", "0.0000", "=({X}{ln}+1)*$C${rL}*$C${rk}*$C${rd}*Serving!$C$12*({X}{lEP}-1)/{X}{lEP}/({X}{lLk}*Serving!$C$14)/1E9"),
+        ("lce", "每序列每步時間（三項取最大）", "ms", "0.0000", "=MAX({X}{lc1},{X}{lc2},{X}{lc3})"),
+        ("lcap", "容量批次上限", "序列", "#,##0.0", "=({X}{lU}-{X}{lW})*1E9/($C${rkv}*{X}{lcd})"),
+        ("lBs", "B*（批次）", "序列", "#,##0.0", "=IF({X}{lbat}>0,MIN({X}{lbat},{X}{lcap}),MAX(0,{X}{lcap}))"),
+        ("lD", "模型 decode tok/s/GPU", "tok/s", "#,##0", "=IF({X}{lBs}>0,{X}{lBs}*{X}{la}/(({X}{ltf}+{X}{lBs}*{X}{lce})/1000),0)"),
+        ("lpe", "η_p（該世代）", "%", "0.00%", "=INDEX($C$72:$G$72,{X}{lg})"),
+        ("lpf", "prefill FLOPs/token", "GFLOP", "#,##0.0", "=(2*$C${rA}*1E9+$C${rac}*{X}{lisl}/2)/1E9"),
+        ("lpt", "prefill tok/s/GPU", "tok/s", "#,##0", "={X}{lpe}*{X}{lP}*1E15/({X}{lpf}*1E9)"),
+        ("lout", "模型輸出 tok/s/GPU（含 prefill 分攤）", "tok/s", "#,##0", "=IF({X}{lD}>0,{X}{losl}/({X}{lisl}/{X}{lpt}+{X}{losl}/{X}{lD}),0)"),
+        ("lR", "模型 ÷ 實測", "x", "0.000", "=IF(ISNUMBER({X}{lT}),IF({X}{lT}>0,{X}{lout}/{X}{lT},\"—\"),\"—\")"),
+        ("lEff", "採用 η_d × 計算用峰值（有效 PF/GPU）", "PF", "0.000", "={X}{led}*{X}{lP}"),
+        ("lfl", "非算力項下限（KV、EP 通訊取大）", "ms", "0.0000", "=MAX({X}{lc2},{X}{lc3})"),
+        ("ldn", "達標所需 decode tok/s（扣除 prefill 時間）", "tok/s", "#,##0", '=IF({X}{losl}/{X}{lT}>{X}{lisl}/{X}{lpt},{X}{losl}/({X}{losl}/{X}{lT}-{X}{lisl}/{X}{lpt}),"無解（prefill 已超過目標時間）")'),
+        ("lneed", "達標所需每序列每步時間", "ms", "0.0000", '=IF(AND(ISNUMBER({X}{ldn}),{X}{lBs}>0),(1000*{X}{lBs}*{X}{la}/{X}{ldn}-{X}{ltf})/{X}{lBs},"—")'),
+        ("lmult", "達標所需批次口徑 η_d 倍數（CAL_BatchEtaD 的解）", "x", "0.00",
+         '=IF(ISNUMBER({X}{lneed}),IF({X}{lneed}<={X}{lfl},"無解（非算力項下限）",(({X}{ln}+1)*{X}{lFd}/{X}{lP}/1000/{X}{lneed})/INDEX($C${etad}:$G${etad},{X}{lg})),"—")'),
+    ]
+    consts_map = dict(CAL); consts_map.update(R)
+    for key, lab, unit, fmt, tpl in rows:
+        R[key] = r; consts_map[key] = r; r += 1
+    for key, lab, unit, fmt, tpl in rows:
+        rr = R[key]; put(ws, f"A{rr}", lab); put(ws, f"B{rr}", unit)
+        for X in CL_COLS:
+            m = dict(consts_map); m["X"] = X
+            f = tpl.format(**m)
+            if X == "E" and key == "lH": f = "=SRC_HW_067"
+            if X == "E" and key == "lB": f = "=SRC_HW_068"
+            put(ws, f"{X}{rr}", f, fmt=fmt, fill=FILL_KEY if key in ("lR", "lmult") else None)
+    put(ws, f"J{R['lH']}", CL_NOTE["spec"], F_NOTE, wrap=True); put(ws, f"J{R['led']}", CL_NOTE["ed"], F_NOTE, wrap=True)
+    put(ws, f"J{R['lR']}", CL_NOTE["R"], F_NOTE, wrap=True); put(ws, f"J{R['lmult']}", CL_NOTE["mult"], F_NOTE, wrap=True)
+    R["end"] = r - 1
+    CAL["L"] = R
+    return R
+
+
+CALIB_L_TXT = "大批次驗證點複製列（V20–V22；顯示用）"
+
+
+# ================================================================== G2: input write and notes (after restore())
+def inputs_update(wb):
+    """Calib D156 (CAL_BatchEtaD for GB200): 1 -> 3.04 (old-value guard). D156 is a black constant in the base (v523.calib_i); it becomes a blue Derived input; a rebuild restores the Excel value."""
+    log = []
+    ws = wb["Calib"]
+    r = next(rr for rr in range(150, 170) if str(ws.cell(rr, 1).value or "").startswith("批次口徑 η_d 倍數（X10；CAL_BatchEtaD）"))
+    assert r == 156, r
+    if ws[f"D{r}"].value == 1:
+        put(ws, f"D{r}", BATCH_GB200, F_IN, fmt="0.00"); log.append(f"Calib!D{r}: 1 -> {BATCH_GB200} (v11.0 G2)")
+    return log
+
+
+NOTE_156 = ("v11.0 G2：GB200 D156＝3.04（Derived 校準；Calib J 節 D 欄，目標 vLLM GB200 10.1K tok/s/GPU，批次填滿 HBM，解 3.037、模型 ÷ 目標 1.000）。Hopper C156 維持 1："
+            "在 C68＝1.5 下無解（Calib J 節 C 欄，η_d 再大產出上限只達目標 2,324 的 0.94，超出 ±2%；C156＝3.74 即已飽和）；若 C68＝1.0 則需 4.32（Decisions BB-G1、BB-G2，待 Project 判斷）。"
+            "GB300（E）、Rubin Ultra（G）維持 1；VR200（F）0.75 不動。只作用在 Perf_Batch（批次推論與訓練 rollout），不影響服務端")
+NOTE_C68 = ("v11.0 G1 追查（Decisions BB-G1）：1.5 自 v5.2（2026-09-30）建檔即存在，標記 Assumed（Hopper EP 跨節點走 IB，區間 1–3），v5.2–v5.12 每層延遲＝240.4 µs（擬合 160.28 × 1.5），"
+            "不是 DeepSeek 論文的 241.92 µs；該數字於 2026-10-16 才進 repo。v10.2 擬合更新為 161.19 µs 後乘積變 241.78 µs，與 241.92 µs 相差 0.06%＝巧合。物理上固定延遲（每層 all-to-all 延遲、同步）與 EP 通訊項（頻寬×資料量）也不是同一量。"
+            "判定：無法確認重複計算，C68 不改。假設 C68＝1.0 的試算見 Decisions BB-G1")
+
+
+def notes_update(wb, append_text):
+    log = {"j156": 0, "j68": 0, "gm68": 0}
+    ws = wb["Calib"]
+    log["j156"] += append_text(ws["J156"], " ｜" + NOTE_156)
+    log["j68"] += append_text(ws["J68"], " ｜" + NOTE_C68)
+    g = wb["Gov_Map"]
+    for r in range(5, g.max_row + 1):
+        if g.cell(r, 3).value == "Calib" and g.cell(r, 4).value == "C68":
+            log["gm68"] += append_text(g.cell(r, 14), " ｜v11.0 G1 追查：無法確認重複計算（1.5 為 v5.2 起的 Assumed 整數，非反推自 DeepSeek 241.92 µs），C68 不改；見 Decisions BB-G1")
+    return log
+
+
+# ================================================================== Gov_Map row for the new calibrated input (appended by gov.gm_append_c when absent)
+def gov_map_rows(wb):
+    ws = wb["Calib"]
+    r = 156
+    assert str(ws.cell(r, 1).value or "").startswith("批次口徑 η_d 倍數（X10；CAL_BatchEtaD）"), r
+    return [{'scope': '切片四（v11.0 大批次修正）', 'sheet': 'Calib', 'cell': f'D{r}', 'label': '批次口徑 η_d 倍數：GB200（CAL_BatchEtaD）', 'check': ws.cell(r, 1).value, 'cls': 'Derived', 'role': '單值',
+             'src': 'SRC_PERF_074', 'rel': '校準目標（vLLM GB200 10.1K，Calib J 節 D 欄；解 3.037）', 'dec': 'BB-G2', 'lo': D156_LO, 'hi': D156_HI,
+             'rtext': f'{D156_LO}–{D156_HI}（各批次口徑點反推值：V20 MLPerf offline、V8 LMSYS、校準點 3.04；見 Decisions BB-G2）',
+             'reason': ("GB200 批次口徑 η_d 倍數（只作用在 Perf_Batch：批次推論與訓練 rollout）。校準：Calib J 節 D 欄（目標 vLLM GB200 10.1K tok/s/GPU，批次填滿 HBM，無 SLO）求解 3.037，寫入 3.04（模型 ÷ 目標 1.000）；"
+                        "標記 Derived（校準，單一目標點，利害關係方來源）。區間涵蓋各驗證點反推的值（V20 MLPerf offline GB200 與 V8 LMSYS NVFP4 的所需倍數，見 Calib L 節與 J 節）。"
+                        "有效算力（η_d × 10 PF）約為 GB300 擬合值的 2 倍：GB300 的批次口徑倍數尚未校準（＝1），V21 顯示 GB300 offline 模型 ÷ 實測；待 Project 判斷是否校準 GB300"),
+             'retag': '', 'seg': '高'}]
+
+
+# ================================================================== end of build
+def apply(wb, append_text):
+    log = {"notes": notes_update(wb, append_text)}
+    ws = wb["Calib"]
+    sec = next(r for r in range(150, ws.max_row + 1) if str(ws.cell(r, 1).value or "").startswith("L. 大批次驗證點（v11.0 G3）"))
+    n = 0
+    end = next((r for r in range(sec, ws.max_row + 1) if str(ws.cell(r, 1).value or "").startswith("M. 驗證判準參數")), ws.max_row + 1)      # v12.0: Calib M section (below L) is not part of the L section
+    for r in range(sec, end - 1 if end <= ws.max_row else end):      # end - 1: the blank spacer row above the M section header
+        n += v1030._set_mark(ws, r, CALIB_L_TXT)
+    log["marks_calib_l"] = n
+    sp = wb["SRC_Perf"]; k2 = 0
+    sec = {x["id"]: x["second"] for x in SRC_NEW if x.get("second")}
+    for rr in range(5, sp.max_row + 1):
+        i = sp.cell(rr, 1).value
+        if i in sec and sp.cell(rr, 18).value in (None, DASH, ""):
+            sp.cell(rr, 18).value = sec[i]; k2 += 1       # column R = 第二來源 SRC_ID (Excel-owned; written only while it is still the dash)
+    log["second_sources"] = k2
+    log["decisions"] = decisions_append(wb)
+    return log
+
+
+# ================================================================== Decisions (10 columns; layout of v1020／v1030)
+_D = [
+    ("G1", "C68（Hopper 每層延遲倍數 1.5）是否重複計算 EP 通訊：無法確認，不改",
+     "追查：(1) Calib J68、Gov_Map GM346、Decisions D204／D171／E1H 與 J4（C187）：C68 標『Assumed／倒推（v5.5 建檔時與 C67 手算配對）1.5，區間 1–3』，說明為『Hopper EP 跨節點走 IB』，無來源，Excel 內無公式關聯；"
+     "(2) 封存工作簿 v5.2、v5.4、v5.5、v5.12：C68 在 v5.2（2026-09-30，Calib 結構建立時）即為 1.5，每層延遲（採用）＝240.42 µs（GB300 擬合 160.28 × 1.5），不是 241.92 µs；v5.5 只把 C67 由 3 減半為 1.5（峰值更正 989→1,979 TF），C68 未動；"
+     "(3) DeepSeek 論文每層 241.92 µs（雙 micro-batch 2×120.96）在 repo 內首見於 2026-10-16 的大批次查證（證據表第 5 列）；v10.2 擬合更新（161.19 µs）後乘積 241.78 µs，與 241.92 µs 相差 0.06%，是巧合；"
+     "(4) 物理量不同：C68 作用在每層固定延遲（all-to-all 延遲、kernel 啟動、同步；與批次無關），EP 通訊項是資料量 ÷ 頻寬（隨批次線性）。"
+     "判定：1.5 是先於該數字存在的整數假設，不是用 DeepSeek 數字反推或對齊；無證據顯示重複計算。依工作單『無法確認』列：C68 不改，列待 Project 判斷。"
+     "假設 C68＝1.0 的試算（scratch，未寫入）：Hopper 服務側 IF_TokGW_Sol 3.363e10 → 3.738e10（+11.1%）；L1_MFleet 0.4073 → 0.3886；IF_AllocRDGW 0.2402 → 0.2359；IF_AllocServeGW 不變；"
+     "且 Hopper 的 CAL_BatchEtaD 會有解（4.32；η_d 15.5%）。",
+     "Calib C68、J68；Gov_Map GM346；本決策；未改任何數值", "已查，C68 不改；待 Project 判斷"),
+    ("G2", "校準 CAL_BatchEtaD：GB200 寫入 3.04；Hopper 無解，不寫入",
+     "目標：GB200 vLLM 10.1K（Calib J 節 D 欄條件：2K／2K、批次填滿 HBM、無 SLO、無 MTP）。Calib J 節 C、D 欄的 η_d 改為（該世代 η_d）× CAL_BatchEtaD（批次口徑；E、F、G 欄服務口徑驗證點不變）。"
+     "GB200 解 3.0373（η_d 10.9%），寫入 D156＝3.04，模型 ÷ 目標 1.000（容差 ±2%）；標記 Derived；區間 1.5–6.7（涵蓋各批次口徑點反推值：V20 MLPerf offline、V8 LMSYS，見 Calib L 節、J 節）。"
+     "Hopper：目標 DeepSeek profile 2,324（批次 128、4K）在 C68＝1.5 下無解——EP 通訊項（0.2975 ms／序列）使產出上限只達目標的 0.941（η_d 無限大；C156＝3.74 即飽和），超出 ±2%，依工作單『無解停下』不寫入，C156 維持 1。"
+     "若 C68＝1.0（G1 的另一種判定）則 Hopper 需 4.32。檢查：GB200 η_d × 峰值＝1.086 PF，不超過硬體峰值（η_d 10.9% < 100%）；但約為 GB300 擬合值（0.536 PF）的 2 倍，GB300 批次口徑倍數未校準（＝1）。"
+     "影響（只套 GB200）：IF_AllocRDGW 0.2402 → 0.1973；IF_AllocQ1 0.2110 → 0.1801；L1_ScaleRD 5.318 → 6.475；IF_AllocServeGW、L1_MFleet、L1_LReqFleet_Id 不變。"
+     "若再加 Hopper C156＝3.74（假設）：IF_AllocRDGW 0.1626。",
+     "Calib D156、J 節（C、D 欄 η_d 與狀態列）、Gov_Map 新列；Perf_Batch 第 53 列 → Training → IF_AllocRDGW 與下游", "v11.0 已建（GB200）；Hopper 待 Project 判斷"),
+    ("G3", "新增大批次驗證點 V20–V22（Calib L 節；SRC_PERF_079–083、SRC_HW_067–068）",
+     "V20：MLPerf v6.0 offline GB200 NVL72 6,752；V21：offline GB300 NVL72 8,987；V22：TensorRT-LLM H200 8 GPU 1,436（ISL 1K／OSL 2K、並行 1,024＝每 rank 128、EP8；H200 規格 141 GB／4.8 TB/s）。"
+     "條件：無 SLO、大批次；模型以 η_d × CAL_BatchEtaD（批次口徑）、含 prefill 分攤（輸出 token 口徑）；通過帶 0.5–2.0；標記 Interested-party（NVIDIA 為賣方；MLCommons 稽核；V20、V21 有第二來源，V22 無）；不用於校準。",
+     "Calib L 節；Checks V20–V22；SRC_Perf／SRC_HW 新列", "v11.0 已建"),
+    ("G4", "MLPerf server（V1–V3）改為軟上限；新增 CHK_VerifyWarn（主版）",
+     "V1、V2、V3：比值 ≤ 1 通過；> 1 為『警示』（MLPerf server 的 TPOT 80 ms 是 p99 口徑，模型取平均；同條件 TensorRT-LLM H200 為 MLPerf v5.1 的 2.6 倍），不計失敗。"
+     "新增具名範圍 CHK_VerifyWarn（Checks V 節），恆等式 CHK_VerifyPass＋CHK_VerifyFail＋CHK_VerifyWarn＝CHK_VerifyTotal（CHK_VerifyTotal 含警示項）。interactive 類（V4–V6）維持硬上限（chat 端預設：interactive 為低延遲口徑，與模型服務端口徑較接近）。"
+     "新增契約名稱，故為主版 v11.0。",
+     "Checks V 節（F 欄公式、V 節摘要列）；CHK_VerifyWarn；下游契約文件", "v11.0 已建"),
+]
+DECISIONS_V1100 = [[f"BB-{i}", V, f"大批次修正：{t}", txt, DATE, DEC_BY, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+
+def decisions_append(wb):
+    ws = wb["Decisions"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1
+    n = 0
+    for row in DECISIONS_V1100:
+        if row[0] in have: continue
+        for i, v in enumerate(row): put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
+    return n
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（主版：大批次修正，" + WO + "——G1 C68 追查（無法確認重複計算，不改）；G2 CAL_BatchEtaD GB200＝3.04（Hopper 無解不寫入）、Calib J 節 C／D 欄改批次口徑；G3 新增 V20–V22（MLPerf offline、TensorRT-LLM H200；Calib L 節）；"
+                  "G4 V1–V3 改軟上限、新增 CHK_VerifyWarn；Decisions BB-*）。以下為 " + v1030.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1030.README_TITLE
+README_TITLE = VERSION.split("_")[-1] + _T[len(v1030.VERSION.split("_")[-1]):]
+README_ROW = ("大批次修正（v11.0）",
+              "C68 追查（不改）；GB200 批次口徑 η_d 倍數 3.04（Hopper 無解未寫入）；新增驗證 V20–V22；MLPerf server（V1–V3）改軟上限，新增 CHK_VerifyWarn。細節見 Decisions BB-*。")
+```
+
+## v1200.py
+
+```python
+# v12.0 (work order docs/workorders/20261016_v11.1修補.md, branch claude/v11-1; H1–H7).
+#   H1  Checks V1–V3 (MLPerf server soft caps) get a failure line: ratio <= 1 pass, 1 < ratio <= CHK_SoftCapFail warn, ratio > CHK_SoftCapFail fail. New blue input CHK_SoftCapFail = 2 (Calib M section; Assumed 1.5–3).
+#   H2  CAL_BatchEtaD GB200 (Calib D156) 3.04 -> 2.36 = sqrt(1.83 * 3.04) (geometric mean of the MLPerf v6.0 offline back-solve 1.83 and the vLLM 10.1K back-solve 3.04); range 1.83–3.04. V20 becomes "校準相關（非獨立）" and leaves the verification count.
+#   H3  Hopper CAL_BatchEtaD (Calib C156) stays 1 (now a blue input); marked "known underestimate, no solution at C68 = 1.5"; Gov_Map range 1–3.74.
+#   H4  Calib C68 stays 1.5; correction note (no source; integer assumption since v5.2; the "倒推" wording of the audit-2 work order was wrong); Gov_Map range 1.0–1.5; Decisions correction record. Original wording is kept.
+#   H5  IF_AllocRDGW / IF_AllocQ1 have no low/high columns: Alloc section N shows scenario values (constants written at build from LibreOffice scenario runs; the base row is live) + names AL_Rng*; tests guard the constants.
+#   H6  texts: contract header, Calib H156 interval text, scenarios.yaml descriptions; IF_AmortDefault_Astra +0.9% traced (report).
+#   H7  Checks V19 recomputes the verdict column T should show (from I, J, L, M and CST_MainMin) and compares it with T; V18 is marked an identity (not a verification) and leaves the count.
+# Major version: new contract name CHK_SoftCapFail (CLAUDE.md section 4; work order H1). Every write to an Excel-owned cell is guarded (old value / old text).
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.utils import get_column_letter as L
+from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+import v1020
+import v1030
+import v1100
+
+VERSION = "20261016_Tokenomics_v12.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-16"
+V = "v12.0"
+WO = "工作單 docs/workorders/20261016_v11.1修補.md"
+DEC_BY = "Andy 2026-10-16 23:45「all ok」（H1–H5 預設）；H6、H7 為 chat 端預設，可撤回"
+DASH = "—"
+BATCH_GB200 = 2.36          # H2: sqrt(1.83 * 3.04) = 2.358, rounded to 3 significant digits
+GB200_LO, GB200_HI = 1.83, 3.04       # the two back-solves (Calib L section V20 column C = 1.8297; Calib J section D column = 3.0373)
+HOPPER_HI = 3.74            # Hopper multiplier at which the output saturates at C68 = 1.5 (0.941 of the target); upper end of the Gov_Map range
+SOFT_FAIL = 2.0             # H1: CHK_SoftCapFail
+SOFT_LO, SOFT_HI = 1.5, 3.0
+C68_LO, C68_HI = 1.0, 1.5
+SOFT_LABEL = "驗證軟上限的失敗門檻（CHK_SoftCapFail）"
+
+# ================================================================== H5: scenario values (constants; filled from LibreOffice scenario runs, guarded by tests/parity)
+# row: (label, GB200 multiplier, Hopper multiplier, C68, IF_AllocRDGW, IF_AllocQ1)
+RANGE_ROWS = [      # values from LibreOffice scenario runs of the v12.0 workbook (tests/parity scenarios batch_gb200_lo／hi, batch_hopper_hi, batch_range_lo, c68_1)
+    ("高端（GB200 1.83、Hopper 1）", 1.83, 1, 1.5, 0.211597, 0.190680),
+    ("低端（GB200 3.04、Hopper 3.74）", 3.04, 3.74, 1.5, 0.162622, 0.153313),
+    ("GB200 3.04、Hopper 1（v11.0 的基準）", 3.04, 1, 1.5, 0.197258, 0.180086),
+    ("GB200 2.36、Hopper 3.74（只加 Hopper）", 2.36, 3.74, 1.5, 0.166368, 0.156293),
+    ("C68＝1.0（GB200 2.36、Hopper 1；服務端 L1_MFleet 也會改變）", 2.36, 1, 1.0, 0.199873, 0.182039),
+]
+
+
+# ================================================================== H1: Calib M section (new blue input, created before restore())
+def calib_m(wb):
+    ws = wb["Calib"]
+    r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r0, "M. 驗證判準參數（v12.0 H1）：不是物理量，只決定 Checks V1–V3（MLPerf server 軟上限）何時由『警示』改判『失敗』", 10)
+    r = r0 + 1
+    put(ws, f"A{r}", SOFT_LABEL); put(ws, f"B{r}", "x")
+    put(ws, f"C{r}", SOFT_FAIL, F_IN, fmt="0.0")
+    put(ws, f"J{r}", "Assumed｜MLPerf server 的 TPOT 80 ms 為 p99 口徑，模型取平均，故模型略高於實測屬口徑差（V1–V3 比值 1 至本值之間判『警示』，不計失敗）；超過本值（基準 2 倍）表示模型高估，不再只是口徑差，判『失敗』。"
+        "區間 1.5–3（Gov_Map；chat 端預設）。無來源；改本格只改 Checks V1–V3 的警示／失敗判定，不影響任何 IF_／L1_ 數值（CHK_VerifyPass／Fail／Warn 隨之改變）", F_NOTE, wrap=True)
+    wb.defined_names["CHK_SoftCapFail"] = DefinedName("CHK_SoftCapFail", attr_text=f"Calib!$C${r}")
+    return {"sec": r0, "row": r}
+
+
+# ================================================================== H2: input write (after restore())
+def inputs_update(wb):
+    """Calib D156 (CAL_BatchEtaD GB200): 3.04 -> 2.36 (old-value guard)."""
+    log = []
+    ws = wb["Calib"]
+    r = next(rr for rr in range(150, 170) if str(ws.cell(rr, 1).value or "").startswith("批次口徑 η_d 倍數（X10；CAL_BatchEtaD）"))
+    assert r == 156, r
+    if ws[f"D{r}"].value == 3.04:
+        put(ws, f"D{r}", BATCH_GB200, F_IN, fmt="0.00"); log.append(f"Calib!D{r}: 3.04 -> {BATCH_GB200} (v12.0 H2)")
+    return log
+
+
+NOTE_156 = ("v12.0 H2：GB200 D156 由 3.04 改為 2.36＝√(1.83 × 3.04)（Derived；兩點幾何平均）。1.83＝MLPerf v6.0 offline GB200 6,752 tok/s/GPU 反推（Calib L 節 C 欄『達標所需批次口徑 η_d 倍數』，1.8297），"
+            "3.04＝vLLM GB200 10.1K 反推（Calib J 節 D 欄，3.0373）；兩個點都是 NVIDIA／社群的利害關係方數據，無法判定何者代表真實批次口徑，取幾何平均並以 1.83–3.04 為區間（Gov_Map）。"
+            "後果：V20（MLPerf offline GB200）與 vLLM 點同時被用於決定本格，V20 不再是獨立驗證點，Checks 標『校準相關（非獨立）』並移出驗證計數；Calib J 節 D 欄『模型 ÷ 目標』由 1.00 降為約 0.8（預期，本格已不再只對 vLLM 點）。"
+            "Hopper C156 維持 1：已知低估、無解——在 C68＝1.5 下 η_d 再大，產出上限也只有 DeepSeek 剖析點目標的 0.941（C156＝3.74 即已飽和）；Gov_Map 區間 1–3.74（Decisions BB2-H3）")
+NOTE_C68 = ("v12.0 H4 更正（Decisions BB2-H4）：上文『倒推（v5.5 建檔時與 C67 手算配對；Excel 內無公式關聯）』一語是稽核第 2 批工作單 J4（2026-10-16，d25bb75）誤寫，無證據："
+            "v5.2–v5.12 各版工作簿的標記皆為 Assumed。正確標記：Assumed，無來源（v5.2 建檔以來的整數假設，非反推）；數值維持 1.5，區間 1.0–1.5（Gov_Map）；情境 c68_1 試算 C68＝1.0。原字樣保留，不刪改")
+H156_OLD = "Derived（SRC_PERF_052／053／056／057；區間 0.70–1.0）"
+H156_NEW = ("VR200（F156）：Derived（SRC_PERF_052／053／056／057；區間 0.70–1.0）｜GB200（D156）：Derived（兩點幾何平均 √(1.83 × 3.04)＝2.36；區間 1.83–3.04；SRC_PERF_074／079）｜"
+            "Hopper（C156）：已知低估、無解（C68＝1.5 下 η_d 再大產出上限只有目標的 0.941；區間 1–3.74）｜GB300（E156）、Rubin Ultra（G156）：1（未校準）")
+
+
+def notes_update(wb, append_text):
+    log = {"j156": 0, "j68": 0, "h156": 0}
+    ws = wb["Calib"]
+    log["j156"] += append_text(ws["J156"], " ｜" + NOTE_156)
+    log["j68"] += append_text(ws["J68"], " ｜" + NOTE_C68)
+    if ws["H156"].value == H156_OLD:
+        ws["H156"].value = H156_NEW; log["h156"] += 1
+    return log
+
+
+# ================================================================== Gov_Map rows for the new inputs (appended by gov.gm_append_c when absent)
+def gov_map_rows(wb):
+    ws = wb["Calib"]
+    out = []
+    r = next(rr for rr in range(150, ws.max_row + 1) if ws.cell(rr, 1).value == SOFT_LABEL)
+    out.append({'scope': '切片四（v12.0 v11.1 修補）', 'sheet': 'Calib', 'cell': f'C{r}', 'label': SOFT_LABEL, 'check': SOFT_LABEL, 'cls': 'Assumed', 'role': '單值', 'src': '', 'rel': '',
+                'dec': 'BB2-H1', 'lo': SOFT_LO, 'hi': SOFT_HI, 'rtext': f'{SOFT_LO}–{SOFT_HI}（chat 端預設）',
+                'reason': ("Checks V1–V3（MLPerf server 軟上限）由『警示』改判『失敗』的比值門檻（基準 2）。MLPerf server 的 TPOT 80 ms 為 p99 口徑，模型取平均，略高於實測屬口徑差；超過 2 倍表示模型高估，不再只是口徑差。"
+                           "非物理量，只決定檢查判定，不進任何 IF_／L1_ 數值。無來源；區間 1.5–3 為 chat 端預設。已搜尋：無可比對象（判定門檻不是可量測物理量）"), 'retag': '', 'seg': '低'})
+    r = 156
+    assert str(ws.cell(r, 1).value or "").startswith("批次口徑 η_d 倍數（X10；CAL_BatchEtaD）"), r
+    out.append({'scope': '切片四（v12.0 v11.1 修補）', 'sheet': 'Calib', 'cell': f'C{r}', 'label': '批次口徑 η_d 倍數：Hopper（CAL_BatchEtaD）', 'check': ws.cell(r, 1).value, 'cls': 'Assumed', 'role': '單值',
+                'src': '', 'rel': '', 'dec': 'BB2-H3', 'lo': 1, 'hi': HOPPER_HI, 'rtext': f'1–{HOPPER_HI}（下端＝未校準；上端＝C68＝1.5 下產出飽和處）',
+                'reason': ("Hopper 批次口徑 η_d 倍數（只作用在 Perf_Batch）。數值維持 1（未校準）；已知低估、無解：在 C68＝1.5 下，η_d 再大，產出上限也只有 DeepSeek 剖析點目標 2,324 tok/s/GPU 的 0.941（超出 ±2%），"
+                           "倍數 3.74 即已飽和；若 C68＝1.0 則需 4.32。MLPerf v6.0／TensorRT-LLM H200（V22）顯示 Hopper 批次口徑實際倍數約 3.3–3.7，故 1 是下界。"
+                           "區間 1–3.74 用於呈現研發 GW 的方向（情境 batch_hopper_hi；Alloc N 節）：在 C68＝1.5 下這個值不會讓 Hopper 達標。無來源（Assumed）；待 Project 判斷是否改 C68"), 'retag': '', 'seg': '高'})
+    return out
+
+
+def gov_update(ws, append_text):
+    n = 0
+    r = v1020._gm_row(ws, "Calib", "D156")
+    for col, old, new in (("K", 1.5, GB200_LO), ("L", 6.7, GB200_HI)):
+        if ws[f"{col}{r}"].value == old:
+            ws[f"{col}{r}"].value = new; n += 1
+    old_rt = f'1.5–6.7（各批次口徑點反推值：V20 MLPerf offline、V8 LMSYS、校準點 3.04；見 Decisions BB-G2）'
+    if ws[f"M{r}"].value == old_rt:
+        ws[f"M{r}"].value = f'{GB200_LO}–{GB200_HI}（兩個批次口徑反推點：V20 MLPerf offline {GB200_LO}、vLLM 10.1K {GB200_HI}；基準＝幾何平均 {BATCH_GB200}；v12.0 H2）'; n += 1
+    n += append_text(ws[f"N{r}"], " ｜v12.0 H2：基準由 3.04 改為 2.36＝√(1.83 × 3.04)（兩點幾何平均）；區間改為 1.83–3.04（原 1.5–6.7：上端 6.65 來自服務口徑的 V8，與批次倍數口徑不一致，下端 1.5 無對應資料點；查核 #89 觀察 6）。見 Decisions BB2-H2")
+    r = v1020._gm_row(ws, "Calib", "C68")
+    for col, old, new in (("K", 1, C68_LO), ("L", 3, C68_HI)):
+        if ws[f"{col}{r}"].value == old:
+            ws[f"{col}{r}"].value = new; n += 1
+    if ws[f"M{r}"].value == "1–3（原註）":
+        ws[f"M{r}"].value = f"{C68_LO}–{C68_HI}（v12.0 H4：下端＝無額外跨節點延遲；上端＝現值）"; n += 1
+    if ws[f"O{r}"].value in (DASH, "", None):
+        ws[f"O{r}"].value = "倒推 → Assumed（v12.0 H4 更正；類別欄原字樣『倒推』保留，見 Decisions BB2-H4）"; n += 1
+    n += append_text(ws[f"N{r}"], " ｜v12.0 H4 更正：本格標記為 Assumed，無來源（v5.2 建檔以來的整數假設，非反推）；類別欄的『倒推』與 Calib J68 的『倒推（…手算配對）』是稽核第 2 批工作單 J4 誤寫，無證據，原字樣保留；"
+                       "區間改為 1.0–1.5；情境 c68_1 試算。見 Decisions BB2-H4")
+    return n
+
+
+# ================================================================== H5: Alloc section N (scenario range of RD GW and Q1)
+RANGE_TITLE = ("N. 區間（情境）：研發 GW（IF_AllocRDGW）與 Q1（IF_AllocQ1）對『批次口徑 η_d 倍數』與 C68 的區間（v12.0 H5）。第一列為即時值（公式）；其餘列為情境值＝建置時以 LibreOffice 重算寫入的常數"
+               "（不是公式，改輸入後不會自動更新，由 tests/parity 以情境重算比對守護）。下游應把 IF_AllocRDGW、IF_AllocQ1 視為區間，不是點值")
+RANGE_HDR = ["情境", "", "GB200 倍數（CAL_BatchEtaD[2]）", "Hopper 倍數（CAL_BatchEtaD[1]）", "C68（Hopper 每層延遲倍數）", "IF_AllocRDGW（GW·年）", "IF_AllocQ1（R1）"]
+
+
+def alloc_range(wb, append_mark):
+    """Alloc section N below the last used row. Returns the row map. Names: AL_RngRDGW_Lo／_Hi, AL_RngQ1_Lo／_Hi (low／high end of the range; display only)."""
+    ws = wb["Alloc"]
+    r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
+    section(ws, r0, RANGE_TITLE, 7)
+    r = r0 + 1
+    for i, h in enumerate(RANGE_HDR):
+        if h: put(ws, f"{L(i + 1)}{r}", h, F_BOLD, wrap=True)
+    ws.row_dimensions[r].height = 44; r += 1
+    R = {"sec": r0, "live": r}
+    put(ws, f"A{r}", "基準（即時值；公式）")
+    put(ws, f"C{r}", "=INDEX(CAL_BatchEtaD,1,2)", fmt="0.00"); put(ws, f"D{r}", "=INDEX(CAL_BatchEtaD,1,1)", fmt="0.00"); put(ws, f"E{r}", "=Calib!$C$68", fmt="0.00")
+    put(ws, f"F{r}", "=AL_RDGW", fmt="0.0000", fill=FILL_KEY); put(ws, f"G{r}", "=AL_Q1", fmt="0.0000", fill=FILL_KEY)
+    append_mark(ws, r, "顯示用：區間表基準列（即時值；與下方情境值並列）")
+    r += 1
+    for lab, gb, hp, c68, rd, q1 in RANGE_ROWS:
+        put(ws, f"A{r}", lab, wrap=True)
+        for col, v, fmt in (("C", gb, "0.00"), ("D", hp, "0.00"), ("E", c68, "0.00"), ("F", rd, "0.0000"), ("G", q1, "0.0000")):
+            put(ws, f"{col}{r}", v, F_CALC, fmt=fmt)
+        R[lab] = r; r += 1
+    R["end"] = r - 1
+    lo = next((R[l] for l, *_ in RANGE_ROWS if l.startswith("低端")), None)
+    hi = next((R[l] for l, *_ in RANGE_ROWS if l.startswith("高端")), None)
+    if lo and hi:
+        for n, col, rr in (("AL_RngRDGW_Lo", "F", lo), ("AL_RngRDGW_Hi", "F", hi), ("AL_RngQ1_Lo", "G", lo), ("AL_RngQ1_Hi", "G", hi)):
+            wb.defined_names[n] = DefinedName(n, attr_text=f"Alloc!${col}${rr}")
+    return R
+
+
+# ================================================================== end of build
+def apply(wb, append_text):
+    log = {"notes": notes_update(wb, append_text)}
+    ws = wb["Calib"]
+    sec = next(r for r in range(150, ws.max_row + 1) if str(ws.cell(r, 1).value or "").startswith("M. 驗證判準參數（v12.0 H1）"))
+    log["range"] = alloc_range(wb, v1030._set_mark)
+    log["decisions"] = decisions_append(wb)
+    return log
+
+
+# ================================================================== Decisions (10 columns; layout of v1100)
+def _fmt(x):
+    return f"{x:.4f}"
+
+
+def _range_txt():
+    if not RANGE_ROWS: return "（見 Alloc N 節）"
+    return "；".join(f"{lab}：IF_AllocRDGW {_fmt(rd)}、IF_AllocQ1 {_fmt(q1)}" for lab, gb, hp, c68, rd, q1 in RANGE_ROWS)
+
+
+_D = [
+    ("H1", "MLPerf server 軟上限加失敗門檻 CHK_SoftCapFail（原則 4：檢查必須能失敗）",
+     "查核 #89：V1–V3 的 F 欄公式在比值 > 1 時一律顯示『警示』，沒有第二道上限，比值為 10 也不會失敗。改為：比值 ≤ 1 通過；1 < 比值 ≤ CHK_SoftCapFail 警示；> CHK_SoftCapFail 失敗。"
+     "新增具名輸入 CHK_SoftCapFail＝2（Calib M 節，藍字，Assumed，區間 1.5–3）：MLPerf server 的 TPOT 80 ms 為 p99 口徑，超過 2 倍表示模型高估，不再只是口徑差。恆等式 Pass＋Fail＋Warn＝Total 維持成立。"
+     "更正舊描述：v11.0 報告、契約文件、CHANGELOG 寫『高於 1 但不超過上限＝警示』，實際上沒有上限，V1–V3 永遠不會失敗；現已有上限。新增專屬測試：把 V1 的比值以情境推到 2.5 判失敗、推到 1.5 判警示。"
+     "新增契約名稱 CHK_SoftCapFail，故為主版 v12.0。",
+     "Calib M 節；Checks V1–V3 的 F 欄公式與 V 節說明；下游契約文件", "v12.0 已建"),
+    ("H2", "GB200 批次口徑倍數改用兩點幾何平均 2.36；V20 改為校準相關（非獨立）",
+     f"v11.0 的 3.04 只由 vLLM 10.1K 一點校準，與獨立的 MLPerf v6.0 offline 不一致（V20 反推 1.83）。兩點各自來源：1.83＝MLPerf v6.0 offline GB200 6,752 tok/s/GPU 反推（Calib L 節 C 欄，1.8297）；3.04＝vLLM GB200 10.1K 反推（Calib J 節 D 欄，3.0373）；"
+     f"兩個值都以 v11.0 的 Calib 重算確認。取幾何平均 √(1.83 × 3.04)＝2.358，寫入 D156＝2.36（Derived）；區間 1.83–3.04（Gov_Map）。新增情境 batch_gb200_lo（1.83）、batch_gb200_hi（3.04）。"
+     f"V20 與 vLLM 點同時被用到，V20 不再是獨立驗證點：Checks 標『校準相關（非獨立）』，F 欄改顯示文字，移出驗證計數（若有更好的做法列入待 Project 判斷）。"
+     f"影響：GB200 批次路徑 → Training → IF_AllocRDGW、IF_AllocQ1、AL_Q2、L1_ScaleRD 與 GB200 欄訓練鏈名稱；服務端（IF_TokGW_*、L1_MFleet、IF_AllocServeGW）、L1_LReqFleet_Id、L1_HoldEconMW_*、維護率不變。",
+     "Calib D156、J156、H156；Gov_Map D156；Checks V20；Perf_Batch 第 53 列 → Training → Alloc", "v12.0 已建"),
+    ("H3", "Hopper 批次口徑倍數維持 1：已知低估、無解；區間 1–3.74",
+     "數值維持 1。標記改為『已知低估、無解』：在 C68＝1.5 下，η_d 再大，產出上限也只有 DeepSeek 剖析點目標的 0.941。Gov_Map 區間 1–3.74（新增列；C156 同時改為藍字輸入）。新增情境 batch_hopper_hi（3.74）："
+     "在 C68＝1.5 下這個值不會讓 Hopper 達標，但能呈現研發 GW 的下限方向。獨立的 TensorRT-LLM H200 點（V22）在 Hopper 3.74 下由 0.50 升到 1.05，顯示 1 是下界。",
+     "Calib C156、J156；Gov_Map 新列；情境 batch_hopper_hi", "v12.0 已建"),
+    ("H4", "更正：C68 標記為 Assumed，無來源（原『倒推』一語無證據）",
+     "數值維持 1.5。依 CLAUDE.md 第 6 節不得刪改既有的來源與標記欄，故原字樣保留：Gov_Map GM346 類別欄『倒推』、Calib J68 的『倒推（v5.5 建檔時與 C67 手算配對；Excel 內無公式關聯）』不動；"
+     "更正做法＝在 Calib J68、Gov_Map 理由欄與『標記變更』欄加更正註記，並在本筆 Decisions 記錄：『倒推、與 C67 手算配對』一語出自稽核第 2 批工作單 J4（2026-10-16，d25bb75），v5.2–v5.12 各版工作簿標記皆為 Assumed，沒有證據；"
+     "正確標記為 Assumed，說明『無來源（v5.2 建檔以來的整數假設）』。Gov_Map 區間 1.0–1.5（原 1–3）。新增情境 c68_1（C68＝1.0）。是否改 C68 仍待 Project 判斷（見 BB-G1）。",
+     "Calib J68；Gov_Map GM346 的 K／L／M／N／O 欄；情境 c68_1", "v12.0 已建（更正註記）"),
+    ("H5", "研發 GW 與 Q1 以區間呈現（Alloc N 節）",
+     "IF_AllocRDGW、IF_AllocQ1 沒有低／高欄（L1_Ans1 的 Lo／Hi 只含 Alloc G 節一次動一個輸入的敏感度，不含批次口徑倍數），故在 Alloc 新增 N 節『區間（情境）』並建 AL_RngRDGW_Lo／_Hi、AL_RngQ1_Lo／_Hi（顯示用，下游不得連結）。"
+     "低端＝GB200 3.04、Hopper 3.74；高端＝GB200 1.83、Hopper 1。情境值為建置時以 LibreOffice 重算寫入的常數（第一列基準為即時公式），tests/parity 以情境重算逐列比對。"
+     "各情境值：" + _range_txt() + "。下游應視為區間，不是點值。",
+     "Alloc N 節；AL_Rng*；情境 batch_gb200_lo／hi、batch_hopper_hi、batch_range_lo、c68_1", "v12.0 已建"),
+    ("H6", "文字與解釋",
+     "契約抬頭 v10.2 → v12.0；Calib H156 的區間字樣（原僅 VR200 的 0.70–1.0，與 D156 並列時自相矛盾）改為逐世代說明；scenarios.yaml 的過時說明更新。"
+     "IF_AmortDefault_Astra 在 v11.0 的 GB200 欄上升 0.9% 的原因（追溯公式鏈，不改機制）：K6 預設 (c)＝由上而下總額（固定，3,904）× 該層級在自下而上總額中的占比（Amortize 第 47 列＝第 32 列 × 第 41 列）；"
+     "GB200 批次倍數只壓低 RL rollout 成本，研發計畫成本 Luna −30.7%、Sol −23.7%、Astra −20.2%（Astra 的預訓練占比最高），自下而上總額 −20.9%，Astra 占比因此由 3.86% 升到 3.90%（+0.9%）。",
+     "契約文件抬頭；Calib H156；tests/parity/scenarios.yaml；報告", "v12.0 已建"),
+    ("H7", "V19 改為重算 T 欄應有判定再比對；V18 標恆等式（非驗證）",
+     "查核 #87：V19 以 COUNTA 對 COUNTIF(…,\"一致\")，T 欄被清空或被手填『一致』時差值仍為 0。改為由公式自行重算每列應有的判定（I、J、L、M 欄與 CST_MainMin；不讀 T 公式的結果），與 T 欄逐列比對；"
+     "結果＝不符列數＋實質不一致列數，為 0 才通過。V18：K 欄公式本身就是 J ≥ CST_MainMin，V18 重述同一條件，無法改成獨立於 K 的檢查，標『恆等式（非驗證）』並移出驗證計數。"
+     "新增專屬測試：清空 T 欄一格，V19 必須判失敗。T06（狀態『早期採用』、J＝2 ≥ 門檻）的口徑差仍列待 Project 判斷。",
+     "Checks V18、V19；CHK_Verify*", "v12.0 已建"),
+]
+DECISIONS_V1200 = [[f"BB2-{i}", V, f"v11.1 修補：{t}", txt, DATE, DEC_BY, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+
+def decisions_append(wb):
+    ws = wb["Decisions"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1
+    n = 0
+    for row in DECISIONS_V1200:
+        if row[0] in have: continue
+        for i, v in enumerate(row): put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
+    return n
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（主版：v11.1 修補，" + WO + "——H1 Checks V1–V3 軟上限加失敗門檻 CHK_SoftCapFail（新契約名稱）；H2 CAL_BatchEtaD GB200 2.36（兩點幾何平均，區間 1.83–3.04），V20 改校準相關；"
+                  "H3 Hopper 維持 1（已知低估、無解，區間 1–3.74）；H4 C68 更正註記（Assumed，無來源，區間 1.0–1.5）；H5 研發 GW 與 Q1 區間（Alloc N 節）；H6 文字；H7 V19 重算比對、V18 標恆等式；Decisions BB2-*）。以下為 "
+                  + v1100.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1100.README_TITLE
+README_TITLE = V + _T[len(v1100.V):]
+README_ROW = ("v11.1 修補（v12.0）",
+              "驗證軟上限加失敗門檻 CHK_SoftCapFail；GB200 批次倍數 2.36（兩點幾何平均）、Hopper 維持 1（已知低估、無解）；C68 更正註記；研發 GW 與 Q1 區間（Alloc N 節）；V19 重算比對、V18 與 V20 移出驗證計數。細節見 Decisions BB2-*。")
+```
+
 ## gov_decisions.py
 
 ```python
@@ -27068,6 +29617,7 @@ import v1000                      # v10.0: audit fix 2-5 (D12 LifeSelf names, D4
 import v1020                      # v10.2: eta calibration and verification criteria (E1-E4)
 import v1030                      # v10.3: slimming 4-2a (L1_JudgeTol, Rubin Ultra multipliers, Decisions SL42-*)
 import v1100                      # v11.0: big-batch fix (CAL_BatchEtaD, V20–V22, soft cap V1–V3, CHK_VerifyWarn)
+import v1200                      # v12.0: v11.1 patch (CHK_SoftCapFail, GB200 2.36, C68 correction, Alloc N range, V18/V19)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
 import v601                       # v6.1: audit fix 3B (D3／D6／D10／D13／Q3／Q6 judgement columns, Gov_Map rows, Decisions AF3B-*)
@@ -27252,7 +29802,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000 + v1020.DECISIONS_V1020 + v1030.DECISIONS_V1030 + v1100.DECISIONS_V1100:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000 + v1020.DECISIONS_V1020 + v1030.DECISIONS_V1030 + v1100.DECISIONS_V1100 + v1200.DECISIONS_V1200:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -27404,7 +29954,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb) + v1200.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -27455,7 +30005,7 @@ def gov_map(wb, src_index):
     n_rp = v535.gov_map_repoint(wb, ws)      # v5.35 B5: GM629–GM633 (Cap_In H10 cells that moved one row down) re-pointed before the cell-keyed append (label guard; 0 on a v5.35-based rebuild)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text)      # v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text) + v1200.gov_update(ws, v518._append_text)      # v12.0: D156 range, C68 correction; v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -27879,6 +30429,8 @@ CAL["J"] = v1020.calib_j(wb, CAL, SP)       # v10.2 E1／E3: Calib J section (ca
 CAL["K"] = v1030.calib_k(wb)       # v10.3 F1: Calib K section (L1_JudgeTol; below J, nothing moves)
 import v1100
 CAL["L"] = v1100.calib_l(wb, CAL, SP)       # v11.0 G2／G3: Calib J C／D η_d carries CAL_BatchEtaD; Calib L section (V20–V22 batch-path validation points; below K, nothing moves)
+import v1200
+CAL["M"] = v1200.calib_m(wb)       # v12.0 H1: Calib M section (CHK_SoftCapFail, blue input; below L, nothing moves)
 energy_inputs(wb)
 TR = tech_registry(wb)
 TI = train_in(wb)
@@ -27987,6 +30539,7 @@ V518_LOG += v603.inputs_update(wb)       # v6.3 J1 r1: Spec_Rack ARCH_ScaleGen_L
 V518_LOG += v603.decisions_update(wb)       # v6.3: AF2-D1c r1 note
 V518_LOG += v1030.inputs_update(wb)       # v10.3 F1: Spec_Rack G11／G13 read SR_RU_PxMultLo／Hi (old-formula guards), G14 note
 V518_LOG += v1100.inputs_update(wb)       # v11.0 G2: Calib D156 (CAL_BatchEtaD GB200) 1 -> 3.04 (old-value guard)
+V518_LOG += v1200.inputs_update(wb)       # v12.0 H2: Calib D156 3.04 -> 2.36 (old-value guard)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -28113,6 +30666,8 @@ V1030 = v1030.apply(wb, v518._append_text)       # v10.3 (4-2a): notes and 用�
 print("v1030 slimming 4-2a:", V1030)
 V1100 = v1100.apply(wb, v518._append_text)       # v11.0: notes (J156, J68, Gov_Map C68), Calib L 用途 marks, Decisions BB-*
 print("v1100 big-batch fix:", V1100)
+V1200 = v1200.apply(wb, v518._append_text)       # v12.0: notes (J156, J68, H156), Alloc N range section, Decisions BB2-*
+print("v1200 v11.1 patch:", V1200)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

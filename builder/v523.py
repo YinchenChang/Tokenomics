@@ -37,7 +37,7 @@ def calib_i(wb):
     put(ws, f"A{ROW_VAL}", LAB_VAL); put(ws, f"B{ROW_VAL}", "x")
     for col in "CDEFG":
         if col == VR_COL: put(ws, f"{col}{ROW_VAL}", K_DEFAULT, fmt="0.00")
-        elif col == "D": put(ws, f"{col}{ROW_VAL}", 1, fmt="0.00")      # v11.0 G2：GB200 倍數改為藍字輸入（預設 1；Excel 值 3.04 由 restore 讀回，v1100.inputs_update 只在仍為 1 時寫入）
+        elif col in ("C", "D"): put(ws, f"{col}{ROW_VAL}", 1, fmt="0.00")      # v11.0 G2：GB200 倍數改為藍字輸入（預設 1；Excel 值由 restore 讀回，v1100.inputs_update 只在仍為 1 時寫入）；v12.0 H3：Hopper（C）同樣改為藍字輸入（值維持 1；Gov_Map 區間 1–3.74）
         else: put(ws, f"{col}{ROW_VAL}", 1, F_CALC, fmt="0.00")
     put(ws, f"H{ROW_VAL}", TAG_VR, F_NOTE)
     put(ws, f"J{ROW_VAL}", DESC, F_NOTE, wrap=True)

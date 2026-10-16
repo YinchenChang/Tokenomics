@@ -2,6 +2,20 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v12.0.xlsx（取代 v11.0；主版：新增契約名稱 `CHK_SoftCapFail`；v11.1 修補 H1–H7，依工作單 `docs/workorders/20261016_v11.1修補.md`）
+
+- 分支 `claude/v11-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_v11.1修補.md`；進度檔：`docs/reports/20261016_v11.1修補_進度.md`。底稿：master（v11.0）。
+- Excel（CC 以 `builder/v1200.py` 自 v11.0 產生，經 LibreOffice 重算存檔）：
+  - H1：新增輸入 `CHK_SoftCapFail`＝2（Calib M 節，Assumed，區間 1.5–3）；V1–V3 比值超過它才判失敗，介於 1 與它之間為警示；契約、CHANGELOG、v11.0 報告「未超過上限」的敘述更正。
+  - H2：GB200 `CAL_BatchEtaD` 3.04 → 2.36（＝√(1.83×3.04)，區間 1.83–3.04）；V20 標「校準相關（非獨立）」，不計入驗證總數。
+  - H3：Hopper 維持 1，標已知低估、無解；Gov_Map 區間 1–3.74。
+  - H4：C68 維持 1.5，標 Assumed（無來源，v5.2 建檔以來的整數假設），區間 1.0–1.5；以更正註記與 Decisions 記錄，原文不改。
+  - H5：Alloc N 節列出 `IF_AllocRDGW`／`IF_AllocQ1` 的區間（靜態情境值，由測試守住）。
+  - H6：契約表頭、Calib H156 區間文字、scenarios.yaml 過時描述更正。
+  - H7：V19 由 I/J/L/M 與 CST_MainMin 重算 T 欄並與之比對；V18 標恆等式（非驗證），不計入驗證總數。
+- 變動：GB200 欄研發 GW 與訓練鏈名稱隨 2.36 改變；服務端（`IF_TokGW_*`、`L1_MFleet`、`IF_AllocServeGW`）、`L1_LReqFleet_Id`、`L1_HoldEconMW_*` 不變。
+- 測試：契約快照 `contract_snapshot_v11.0.json` → `contract_snapshot_v12.0.json`；新增 H1–H7 專屬測試與 7 個情境；期望值更新逐項見報告。
+
 ## 20261016_Tokenomics_v11.0.xlsx（取代 v10.3；主版：新增契約名稱 `CHK_VerifyWarn`；大批次修正 G1–G4，依工作單 `docs/workorders/20261016_大批次修正.md`）
 
 - 分支 `claude/bigbatch-fix`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_大批次修正.md`；進度檔：`docs/reports/20261016_大批次修正_進度.md`。底稿：master（v10.3，已確認）。
@@ -9,7 +23,7 @@
   - G1：追查 Calib C68（1.5）是否與固定延遲重複計算——無法確認，C68 不改；追查過程與 Decision BB-G1 記入 Decisions。
   - G2：`CAL_BatchEtaD` GB200 1 → 3.04（Calib D156，Derived，區間 1.5–6.7；對 vLLM 10.1K 的 Calib J 複本列比值 1.0007）；Hopper 在 C68＝1.5 下無解，維持 1（待 Project 判斷）。
   - G3：Calib 新增 L 節（V20–V22 驗證點複製列）；Checks 驗證清單新增 V20（MLPerf v6.0 offline GB200 6,752）、V21（GB300 8,987）、V22（TensorRT-LLM H200 1,436）；新增 `SRC_PERF_079–083`、`SRC_HW_067`／`068`。
-  - G4：V1–V3 改軟上限（高於 1 但未超過上限＝警示），新增 `CHK_VerifyWarn`；`CHK_VerifyTotal`／`Pass`／`Fail`／`Warn` 19／11／8／— → 22／14／7／1。
+  - G4：V1–V3 改軟上限（高於 1 但未超過失敗門檻＝警示；v12.0 H1 更正：v11.0 實作沒有失敗門檻，V1–V3 不會失敗），新增 `CHK_VerifyWarn`；`CHK_VerifyTotal`／`Pass`／`Fail`／`Warn` 19／11／8／— → 22／14／7／1。
 - 變動：`IF_AllocRDGW` 0.2402 → 0.1973、`IF_AllocQ1` 0.2110 → 0.1801、`L1_ScaleRD` 5.318 → 6.476，GB200 欄成本與訓練鏈名稱隨之改變；`IF_AllocServeGW`、`L1_MFleet`、各世代 `IF_TokGW_*` 不變。公式格 49,490 → 49,696；具名範圍 1,362 → 1,370。
 - 測試：期望值更新（逐項舊→新見報告）；契約快照 `contract_snapshot_v10.3.json` → `contract_snapshot_v11.0.json`（637 名稱）；死格基準 3,574 → 3,598（Calib L 節顯示格，已填用途）；未刪除或放寬任何測試。
 

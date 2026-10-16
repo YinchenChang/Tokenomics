@@ -47,6 +47,15 @@ def patch_specs():
                 new = _sub_price(it)
                 assert new != it, it[0]
                 sp[i] = new
+    # M6 (a): H10 2025 column (C) price row on the 2025 price, so that its m rows agree with H5 (self-check row "自我檢查：2025 欄")
+    sp = v534.SPEC_H10
+    for i, it in enumerate(sp):
+        if it[0] == "q_price":
+            it = list(it)
+            assert it[3] == "=$C${P_price}", it[3]
+            it[3] = "=CAP_Price25Mix"
+            it[1] = "付費 token 混合有效單價（C 欄＝2025 年度 CAP_Price25Mix（v9.0 M6，與 H5 同口徑）；D–F 欄＝H4 第 {P_price} 列，2026 快照）"
+            sp[i] = tuple(it)
     # M6 (a): Cap_In I-7 required L (m = L1_MAPI) on the 2025 fleet breakeven, as the fleet row in v800
     sp = v535.SPEC_I
     for i, it in enumerate(sp):

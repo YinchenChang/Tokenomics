@@ -1,0 +1,46 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "ba0ba1cd222051b101096efc778db13000211ae2",
+ "github_sha": "ba0ba1cd222051b101096efc778db13000211ae2",
+ "ref": "refs/heads/claude/eta-calib",
+ "event": "push",
+ "run_id": 38898930454,
+ "run_number": 378,
+ "run_attempt": 1,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 116966088474,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-16T12:12:40Z",
+   "completed_at": "2026-10-16T12:13:32Z",
+   "seconds": 52,
+   "python": "3.11.17"
+  },
+  {
+   "id": 116966089012,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-10-16T12:12:40Z",
+   "completed_at": "2026-10-16T12:26:17Z",
+   "seconds": 817,
+   "python": "3.11.17"
+  },
+  {
+   "id": 116971264062,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-16T12:26:20Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.12.3"
+  }
+ ],
+ "failures": [],
+ "log_excerpts": {},
+ "recalc_seconds": null,
+ "generated_at": "2026-10-16T12:26:26Z",
+ "errors": []
+}

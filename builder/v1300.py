@@ -128,7 +128,7 @@ def checks_rg(wb, A):
     for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]): put(ws, f"{L(i + 1)}{r}", h, F_BOLD)
     r += 1
     rows = [("RG1", "批次口徑區間的計算版本（RNG_Version）不等於現行版本（RNG_Current）：1＝區間過期", f'=IF(RNG_Version=RNG_Current,0,1)', "RNG_Version；RNG_Current（README!B5）；Alloc O 節"),
-            ("RG2", "批次口徑區間：基準值落在 RNG_*_Lo／_Hi 之外的格數（容差 1e-9；上游輸入改動後區間不再涵蓋基準）", "=RNG_OutCount", "RNG_OutCount；Alloc O 節 R 欄")]
+            ("RG2", "批次口徑區間：任一格基準值落在 RNG_*_Lo／_Hi 之外：1＝是（容差 1e-9；上游輸入改動後區間不再涵蓋基準；格數見 RNG_OutCount，計入 GOV_Warnings 時最多算 1）", "=IF(RNG_OutCount>0,1,0)", "RNG_OutCount；Alloc O 節 R 欄")]
     at = {}
     for code, lab, f, note in rows:
         put(ws, f"A{r}", code); put(ws, f"B{r}", lab, wrap=True); put(ws, f"C{r}", "WARN")

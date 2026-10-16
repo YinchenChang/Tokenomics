@@ -514,7 +514,7 @@ def test_batch_etad_expected_values(model, lo):
     assert not bad, f"k＝1 時與 v5.22 不符的具名範圍：{bad[:20]}"
     changed = [n for n in base.names if n != "IDX_SrcID" and n in prev.defined_names
                and not all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n))))]
-    assert len(changed) == 57, len(changed)      # v13.0 K2：GOV_Warnings 隨 RG2 觸發而變，56 → 57； v8.0 L3：研發世代組合 Hopper 0.6/GB200 0.38/GB300 0.02（VR200＝0），VR200 批次 η_d 不再改變研發 GW，Alloc 鏈（AL_ 15、IF_Alloc* 5）與 L1 9 列不再隨之變動；85 → 56
+    assert len(changed) == 56, len(changed)      # v13.0 K2：RG2 最多算 1 後仍為 56（未改期望值）； v8.0 L3：研發世代組合 Hopper 0.6/GB200 0.38/GB300 0.02（VR200＝0），VR200 批次 η_d 不再改變研發 GW，Alloc 鏈（AL_ 15、IF_Alloc* 5）與 L1 9 列不再隨之變動；85 → 56
     by = {p: sum(n.startswith(p) for n in changed) for p in ("IF_", "L1_", "AL_", "TRN_")}
     assert by == {"IF_": 36, "L1_": 12, "AL_": 0, "TRN_": 8} and sum(n.endswith("_Prod") for n in changed) == 3, by       # 82＝IF 38＋L1 21＋TRN 8＋AL 15
     assert not [n for n in changed if n.startswith(("TR_", "IF_RevGW")) or n.endswith("_Life") or n == "IF_TrainGenDefault"]

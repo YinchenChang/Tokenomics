@@ -12,7 +12,7 @@
   - K4：『Pass＋Fail＋Warn＝Total』標恆等式（非驗證），只改標籤。
   - K5：v12.0 報告追加 2026-10-17 更正（名稱數 5／57／87，「73」為筆誤）。
 - 變動：既有 `IF_`／`IFW_`／`L1_`／`CHK_` 名稱數值 0 變動；`GOV_Info` 181 → 182；`LB_Rows`／`LB_LiveCount` 56 → 57。
-- 測試：契約快照 `contract_snapshot_v12.0.json` → `contract_snapshot_v13.0.json`（643 → 755 名稱，4,595 → 5,715 格；快照涵蓋範圍加入 `RNG_*`、`AL_Rng*`）；新增 K1–K4 專屬測試與情境 `batch_corner_x`；期望值更新逐項見報告。
+- 測試：契約快照 `contract_snapshot_v12.0.json` → `contract_snapshot_v13.0.json`（643 → 756 名稱，4,595 → 5,772 格（含因契約文件提及而收錄的 LB_Rows）；快照涵蓋範圍加入 `RNG_*`、`AL_Rng*`）；新增 K1–K4 專屬測試與情境 `batch_corner_x`；期望值更新逐項見報告。
 
 ## 20261016_Tokenomics_v12.0.xlsx（取代 v11.0；主版：新增契約名稱 `CHK_SoftCapFail`；v11.1 修補 H1–H7，依工作單 `docs/workorders/20261016_v11.1修補.md`）
 

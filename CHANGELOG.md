@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v10.3.xlsx（取代 v10.2；次版：第 4 批 4-2a 段，外露寫死參數、重複定義、驗證與契約快照；依工作單 `docs/workorders/20261016_瘦身4-2.md`）
+
+- 分支 `claude/slim-4-2a`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_瘦身4-2a.md`；進度檔：`docs/reports/20261016_瘦身4-2a_進度.md`。底稿：master（v10.2，已確認）。
+- Excel（CC 以 `builder/v1030.py` 自 v10.2 產生，經 LibreOffice 重算存檔）：
+  - F1：新增輸入 `L1_JudgeTol`（Calib K，0.2）、`SR_RU_PxMultLo`／`SR_RU_PxMultHi`（Spec_Rack，1.5／2.5）；L1 判定欄、Checks I3／E5 與 Spec_Rack G11／G13 改讀這些名稱；Gov_Map 新增 3 列（Assumed 區間）；物理慣例 22 處加註。
+  - F2：Sens_Rev B20／B21 改讀 Cap_In 商業壽命區間；Cap_In H10 的 2025 欄 6 格改引用 H 節（值不變）；D10 與現況不符，未執行（待 Project 判斷）。
+  - F3：Checks 驗證清單新增 V18（Tech_Registry K 欄＝主流判定）、V19（T 欄一致性）；CHK_VerifyTotal／Pass／Fail 17／9／8 → 19／11／8。不進 GOV_Errors。
+  - F4：Calib J 欄 105 格死格、Alloc 27 格、70 個無人讀取輸入加用途標記。
+- 不變：所有 `IF_`／`IFW_`／`L1_` 名稱的值（0 格變動）；公式格 49,424 → 49,490；具名範圍 1,359 → 1,362。
+- 測試：新增 `tests/parity/test_snapshot.py`、`tests/parity/fixtures/`（契約快照 636 名稱／4,584 格、死格基準）；`test_slim.py` 新增死格用途標記、D08／D09／D11 與外露參數測試，死格基準 3,599 → 3,574。
+
 ## 20261016_Tokenomics_v10.2.xlsx（取代 v10.1；次版：η 校準與驗證判準；依工作單 `docs/workorders/20261016_η校準.md`）
 
 - 分支 `claude/eta-calib`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_η校準.md`；進度檔：`docs/reports/20261016_η校準_進度.md`。底稿：master（v10.1，已移至 `model/archive/`）。

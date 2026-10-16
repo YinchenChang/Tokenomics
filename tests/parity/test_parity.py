@@ -1169,7 +1169,7 @@ def test_v1000_audit_fix2_5(model, lo):
     assert set(cnt) == kinds
     assert num(n("L1_GapUnexplained")) and abs(n("L1_GapUnexplained") - n("L1_ScaleServe2000") / n("L1_GapProduct")) < 1e-9
     # N3：驗證計數
-    assert n("CHK_VerifyTotal") == 17 and n("CHK_VerifyPass") == 9 and n("CHK_VerifyFail") == 8      # v10.2 E3: 14/7/7 -> 17/9/8 (V2/V3 new references, V15-V17 added)
+    assert n("CHK_VerifyTotal") == 19 and n("CHK_VerifyPass") == 11 and n("CHK_VerifyFail") == 8      # v10.3 4-2a F3: 17/9/8 -> 19/11/8 (V18/V19 added); v10.2 E3: 14/7/7 -> 17/9/8 (V2/V3 new references, V15-V17 added)
     assert n("CHK_VerifyPass") + n("CHK_VerifyFail") == n("CHK_VerifyTotal")
     assert n("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
 
@@ -1193,7 +1193,7 @@ def test_v1020_eta_calibration(model, lo):
         assert n(nm) == old.get_name(nm), nm
     assert abs(n("IF_AllocServeGW") - 0.898096) < 5e-6 and abs(n("IF_AllocRDGW") - 0.240199) < 5e-6
     # E3
-    assert n("CHK_VerifyTotal") == 17 and n("CHK_VerifyPass") == 9 and n("CHK_VerifyFail") == 8
+    assert n("CHK_VerifyTotal") == 19 and n("CHK_VerifyPass") == 11 and n("CHK_VerifyFail") == 8
     assert n("GOV_Errors") == 0
     # 校準複本列：模型 ÷ 目標（Hopper 校準點無解、GB200 校準點 0.37）
     cal = [r for r in range(150, 260) if str(base.get("Calib", f"A{r}") or "").startswith("模型 ÷ 目標")]

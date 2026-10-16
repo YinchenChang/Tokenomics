@@ -153,3 +153,7 @@ scenarios:
   - id: d2_model_2025_hi
     description: L2 2025 年度模型規模倍數 1.1（區間上限）
     inputs: {"ARCH_ScaleGen[1]": 1.1, "ARCH_ScaleGen[2]": 1.1, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0}
+  # ── v9.0 M1（稽核修正 2-4）：快取命中進產能；B4_CacheHit＝0 時產能端應與 v8.0 一致（差異只來自價格端與成本端） ──
+  - id: d9_cache_cap_off
+    description: D9 快取命中率 B4_CacheHit＝0（Cap_In!C13）：prefill 全為新鮮輸入，Perf 系的 TTFT、每請求 GPU 秒、IF_TokGW_* 與 v8.0 同條件值一致；Hopper Astra 回到 TTFT 不可達；價格端與成本端隨快取命中率改變
+    inputs: {"B4_CacheHit": 0}

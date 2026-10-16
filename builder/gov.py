@@ -27,6 +27,7 @@ import v700                       # v7.0: audit fix 2-2 (generation price B, lef
 import v800                       # v8.0: audit fix 2-3 (D2 annual basis, D14 service GW main basis)
 import v1000                      # v10.0: audit fix 2-5 (D12 LifeSelf names, D4 nature column, D5 verification counters)
 import v1020                      # v10.2: eta calibration and verification criteria (E1-E4)
+import v1030                      # v10.3: slimming 4-2a (L1_JudgeTol, Rubin Ultra multipliers, Decisions SL42-*)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
 import v601                       # v6.1: audit fix 3B (D3／D6／D10／D13／Q3／Q6 judgement columns, Gov_Map rows, Decisions AF3B-*)
@@ -211,7 +212,7 @@ def dec_append(wb):
     """v5.15: Decisions A9／A10 are appended only when the ID is absent (Excel-owned afterwards)."""
     ws = wb["Decisions"]; have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1; n = 0
-    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000 + v1020.DECISIONS_V1020:
+    for row in DECISIONS_V515 + v518.decisions_rows() + v519.DECISIONS_V519 + v520.DECISIONS_V520 + v521.DECISIONS_V521 + v522.DECISIONS_V522 + v523.DECISIONS_V523 + v525.DECISIONS_V525 + v527.DECISIONS_V527 + v529.DECISIONS_V529 + v530.DECISIONS_V530 + v531.DECISIONS_V531 + v532.DECISIONS_V532 + v533.DECISIONS_V533 + v534.DECISIONS_V534 + v535.DECISIONS_V535 + v536.DECISIONS_V536 + v600.DECISIONS_V600 + v601.DECISIONS_V601 + v602.DECISIONS_V602 + v603.DECISIONS_V603 + v700.DECISIONS_V700 + v800.DECISIONS_V800 + v810.DECISIONS_V810 + v1000.DECISIONS_V1000 + v1020.DECISIONS_V1020 + v1030.DECISIONS_V1030:
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i+1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
@@ -363,7 +364,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -574,7 +575,7 @@ def l1_sheet(wb):
         # v5.14: D (base value) may be text in some scenarios (e.g. L1_RevGWFleet_OAI2025 reads Checks text "SLO 不可達");
         # guard D as well as M/N so O/P never return an error value. Base-case values are unchanged.
         put(ws, f"O{r}", f'=IF(AND(ISNUMBER(D{r}),ISNUMBER(M{r}),ISNUMBER(N{r})),D{r}/((M{r}+N{r})/2),"{DASH}")', fmt="0.00")
-        put(ws, f"P{r}", f'=IF(ISNUMBER(D{r}),IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),IF(M{r}=N{r},IF(ABS(D{r}/M{r}-1)<=0.2,"±20% 內","差距 >20%"),'
+        put(ws, f"P{r}", f'=IF(ISNUMBER(D{r}),IF(AND(ISNUMBER(M{r}),ISNUMBER(N{r})),IF(M{r}=N{r},IF(ABS(D{r}/M{r}-1)<=L1_JudgeTol,"±"&TEXT(L1_JudgeTol,"0%")&" 內","差距 >"&TEXT(L1_JudgeTol,"0%")),'
                          f'IF(D{r}<M{r},"低於外部區間",IF(D{r}>N{r},"高於外部區間","落在外部區間"))),"無外部對照"),"推算值非數字（本情境）")')
         _nm(wb, f"L1_{key}", f"L1!$D${r}"); _nm(wb, f"L1_{key}_Lo", f"L1!$E${r}"); _nm(wb, f"L1_{key}_Hi", f"L1!$F${r}")
         r += 1
@@ -614,7 +615,7 @@ def checks_gov(wb, l1_rows, l1_nonformula, static_raw_hard, idx_spans):
       ("I1", "DB_Evidence 待判定", "INFO", '=COUNTIF(DB_Evidence!$L$5:$L$500,"待判定")', "DB_Evidence L 欄"),
       ("I2", "DB_Evidence 待 Andy", "INFO", '=COUNTIF(DB_Evidence!$L$5:$L$500,"待 Andy")', "DB_Evidence L 欄"),
       ("I3", "L1 落在外部區間外或差距 >20% 的列", "INFO",
-       '=COUNTIF(L1!$P$5:$P$200,"低於外部區間")+COUNTIF(L1!$P$5:$P$200,"高於外部區間")+COUNTIF(L1!$P$5:$P$200,"差距 >20%")', "L1 P 欄"),
+       '=COUNTIF(L1!$P$5:$P$200,"低於外部區間")+COUNTIF(L1!$P$5:$P$200,"高於外部區間")+COUNTIF(L1!$P$5:$P$200,"差距 >"&TEXT(L1_JudgeTol,"0%"))', "L1 P 欄"),
       ("I4", "原始數據 G0-2 保留藍字（Stage 2 佇列）", "INFO", f'=COUNTIF({GM("F")},"原始數據（G0-2 保留）")', "Gov_Map"),
       ("I5", "Derived 寫死待改公式", "INFO", f'=COUNTIF({GM("F")},"Derived（待改公式）")', "Gov_Map（Arch 21–23 已於 v5.13 D 改公式；餘為 Train_In C44 等）"),
       ("I6", "結構選擇（無數值區間）", "INFO", f'=COUNTIF({GM("M")},"結構選擇（無數值區間）")', "Gov_Map"),
@@ -641,7 +642,7 @@ def checks_block1(wb):
     ck["C4"].value = '=TEXT(SRC_DC_010_Lo,"0")&"–"&TEXT(SRC_DC_010_Hi,"0")'
     ck["E4"].value = '=IF(AND(B4>=SRC_DC_010_Lo,B4<=SRC_DC_010_Hi),"落在區間",IF(B4<SRC_DC_010_Lo,"低於參照","高於參照"))'
     ck["C5"].value = "=SRC_DC_011"
-    ck["E5"].value = '=IF(ABS(B5-C5)/C5<=0.2,"±20% 內","差距 >20%")'
+    ck["E5"].value = '=IF(ABS(B5-C5)/C5<=L1_JudgeTol,"±"&TEXT(L1_JudgeTol,"0%")&" 內","差距 >"&TEXT(L1_JudgeTol,"0%"))'
     ck["C6"].value = '=TEXT(SRC_DC_003,"0.0")&" × "&TEXT(1+SRC_DC_004_Lo,"0.00")&"–"&TEXT(1+SRC_DC_004_Hi,"0.00")'
     ck["E6"].value = '=IF(AND(B6>=SRC_DC_003*(1+SRC_DC_004_Lo)*0.9,B6<=SRC_DC_003*(1+SRC_DC_004_Hi)*1.3),"合理區間","需檢查")'
     ck["C7"].value = "=SRC_DC_012"; ck["C8"].value = "=SRC_DC_013"

@@ -551,8 +551,9 @@ def sens_rev(wb, K, T, A):
     wb.defined_names["CST_Eps"] = DefinedName("CST_Eps", attr_text=f"Sens_Rev!$B${r}")
     r += 1
     put(ws, f"A{r}", "攤提（自下而上，Sol）對商業壽命", F_BOLD); r += 1
-    for lab, m in [("壽命 6 個月", 6), ("壽命 24 個月", 24)]:
-        put(ws, f"A{r}", lab); put(ws, f"B{r}", m, fmt="0")
+    for lab, key in [("壽命 6 個月", "lifelo"), ("壽命 24 個月", "lifehi")]:
+        # v10.3 D08 (4-0 duplicate definition D08): the scenario life is read from Cap_In (Sol column D, rows 商業壽命 低／高) instead of being typed a second time; the label follows the value
+        put(ws, f"A{r}", f'="壽命 "&TEXT(B{r},"0")&" 個月"'); put(ws, f"B{r}", f"=Cap_In!D{K[key]}", fmt="0", fill=FILL_KEY)
         put(ws, f"C{r}", f"=IF(ISNUMBER(Amortize!{col}{A['bu1']}),Amortize!{col}{A['bu1']}*INDEX(B4_Life,1,2)/B{r},Amortize!{col}{A['bu1']})", fmt="0.00000", fill=FILL_KEY)
         put(ws, f"D{r}", f"=IF(ISNUMBER(C{r}),C{r}/Amortize!{col}{A['bu1']},C{r})", fmt="0.00"); put(ws, f"G{r}", "$/M；與 Sol 有效混合單價相比仍極小", F_NOTE); r += 1
     put(ws, f"A{r+1}", "未列入：生產折減（Serving!C18）與利用率之外的產能變動需重算 Perf，見 Sens_Perf；本頁不重算物理產能", F_NOTE)

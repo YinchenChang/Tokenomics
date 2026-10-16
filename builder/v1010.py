@@ -112,11 +112,12 @@ YEL_INPUT = PatternFill("solid", fgColor="FFFFFF00")       # existing convention
 # cells whose formula differs from the first scenario column of the same row (4-0 section 3; the permanent test keeps this list honest)
 YELLOW_FORMULA = {
     "Sensitivity": ["F10", "G10", "T14", "U14", "D17", "E17", "H19", "I19", "J25", "K25", "L26", "M26", "O37", "V40", "W40", "R41", "S41", "P50", "Q50"],
+    "Sens_Rev": ["B20", "B21"],
     "Sens_Har": ["D5", "E5", "F6", "G6", "H7", "I7", "J8", "K8", "L9", "M9", "N10", "O10", "P11", "Q11", "R12", "S12", "R13", "S13", "R14", "S14"],
 }
 YELLOW_INPUT = {
     "Sensitivity": ["X8", "Y8", "N37"],
-    "Sens_Rev": ["B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B17", "B20", "B21"],
+    "Sens_Rev": ["B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B17"],      # v10.3 D08: B20／B21 are links to Cap_In D23／D24 now (formula fill below)
 }
 NONNV_NOTE = " ｜未接線（MAG、智譜、AI 半導體待用；目前不進任何輸出）"
 TRP_NOTE = (" ｜第 90–96 列為本頁自我檢查列，不鏡像 Theory_Rev 的 _Life 列（Theory_Rev 同列為 _Life 輸出列）；列入 tests/parity 的鏡像白名單（v10.1）。")

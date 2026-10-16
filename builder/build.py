@@ -36,6 +36,8 @@ SNAP_RETIRED = [("Arch", (lab, 0), c) for lab in ("KV bytes/token — 情境 1",
 import v535
 SNAP_RETIRED += v535.SNAP_RETIRED       # v5.35 B2: Cap_In H10 mid-tier price index row (four blue 1s) is now a link to I-section L_price
 import v1020
+import v1030
+SNAP_RETIRED += v1030.SNAP_RETIRED       # v10.3 D08: Sens_Rev B20／B21 (blue 6／24) are now links to Cap_In D23／D24
 SNAP_RETIRED += v1020.SNAP_RETIRED       # v10.2 E3: Calib F120 (MLPerf v6.0 GB300 server reference, a blue literal 8,064) is now a link to SRC_PERF_076
 import v536
 for _old, _new in v536.SNAP_MOVES:      # v5.36 B2: the Alloc_In pricing-multiple label was renamed; the Excel values follow it
@@ -66,12 +68,14 @@ for n in list(wb.defined_names.keys()):
 SP = spec_rack(wb)
 import v602
 V602_SC = v602.spec_rack_scale(wb, SP)       # v6.2 D1(c): Spec_Rack model-scale section (ARCH_ScaleGen／_Lo／_Hi)
+V1030_SR = v1030.spec_rack_ru(wb, V602_SC)       # v10.3 F1: Spec_Rack Rubin Ultra price multipliers SR_RU_PxMultLo／Hi (G11／G13 read them after restore)
 AR = arch(wb)
 serving(wb)
 CAL = calib(wb, SP, AR)
 import v523
 v523.calib_i(wb)       # v5.23 X10: Calib I section, CAL_BatchEtaD (after the existing content, nothing moves)
 CAL["J"] = v1020.calib_j(wb, CAL, SP)       # v10.2 E1／E3: Calib J section (calibration copy rows and aligned conditions; below section I, nothing moves)
+CAL["K"] = v1030.calib_k(wb)       # v10.3 F1: Calib K section (L1_JudgeTol; below J, nothing moves)
 energy_inputs(wb)
 TR = tech_registry(wb)
 TI = train_in(wb)
@@ -117,6 +121,7 @@ V536_CAP = v536.cap_in_j(wb, V535_CAP)      # v5.36 B4／B5／B6: Cap_In J secti
 V603_K = v603.cap_in_k(wb, V536_CAP)      # v6.3 K1: Cap_In K section (fleet-basis price for H10; below the reading row, nothing above moves)
 import v700
 V700_L = v700.cap_in_l(wb, V603_K)      # v7.0 B-1: Cap_In L section (CAP_GenGap_*; below K, nothing above moves)
+V1030_CAP = v1030.cap_in_patch(wb)      # v10.3 D09: Cap_In H10 2025 column C reads the H-section cells (patched after every Cap_In section is built, before contract tracing)
 V800_M = v800.cap_in_m(wb, V700_L)      # v8.0 L1／L4／D14: Cap_In M section (2025 annual tier prices, m／required-L comparisons, Astra Epoch implied tokens; below L, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
@@ -177,6 +182,7 @@ V518_LOG += v601.decisions_update(wb)
 V518_LOG += v602.decisions_update(wb)       # v6.2: AF1-D8 status (TTFT part superseded)
 V518_LOG += v603.inputs_update(wb)       # v6.3 J1 r1: Spec_Rack ARCH_ScaleGen_Lo／_Hi (old-value guards)
 V518_LOG += v603.decisions_update(wb)       # v6.3: AF2-D1c r1 note
+V518_LOG += v1030.inputs_update(wb)       # v10.3 F1: Spec_Rack G11／G13 read SR_RU_PxMultLo／Hi (old-formula guards), G14 note
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -299,6 +305,8 @@ V1010 = v1010.apply(wb)       # v10.1 (4-1): slimming that does not change any o
 print("v1010 slimming:", V1010)
 V1020 = v1020.apply(wb, v518._append_text)       # v10.2: Perf_Batch R-S labels (E4), SRC notes and second sources, Decisions status
 print("v1020 eta calibration:", V1020)
+V1030 = v1030.apply(wb, v518._append_text)       # v10.3 (4-2a): notes and 用途 marks, Gov_Map notes, Decisions SL42-*
+print("v1030 slimming 4-2a:", V1030)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

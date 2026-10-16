@@ -79,7 +79,7 @@ README_VERSION = (VERSION + "（Interface 新增 I 節「DC_Cost 構件」：IF_
                   "工作單 docs/workorders/20261007_v5.26.md）。以下為 " + v525.README_VERSION.split("_Tokenomics_", 1)[1])
 _T = v525.README_TITLE
 README_TITLE = VERSION.split("_")[-1] + _T[len(v525.VERSION.split("_")[-1]):]
-README_NAMES = ("Interface I 節（v5.26）", "下游名稱（IF_ 開頭且非 IF_Hdr）共 192 個（v5.25 為 182 個，v5.26 加 10 個）。I 節為 DC_Cost 構件，供下游公司模型"
+README_NAMES = ("Interface I 節（v5.26）", "下游名稱（IF_ 開頭且非 IF_Hdr）現況共 196 個（v10.1 核對；歷史：v5.25 為 182 個，v5.26 加 10 個為 192 個）。I 節為 DC_Cost 構件，供下游公司模型"
                 "（neocloud 每 MW 營運成本）使用：IF_DeprLifeIT（IT 折舊年限，年）、IF_DeprIT（IT 折舊）、IF_DeprFac（廠房折舊，土地不折舊）、"
                 "IF_AvgDraw（平均用電 ÷ 配電設計功率，%）、IF_PowerPrice（電價，$/kWh）、IF_MaintIT（IT 維護）、IF_MaintFac（廠房維護）、"
                 "IF_StaffSW（人員、軟體、水與耗材）、IF_TaxIns（財產稅與保險）、IF_OpexGW（營運費用小計，不含折舊、含電費）；金額為 $B/GW/年。"

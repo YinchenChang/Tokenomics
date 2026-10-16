@@ -10,6 +10,8 @@ import openpyxl
 from openpyxl.styles import PatternFill
 from common import put, F_CALC, F_NOTE, F_BOLD
 import v1000
+import v1010_text
+import v1010_gov
 
 VERSION = "20261016_Tokenomics_v10.1"      # single source of the version string: README!B5 and README!A1 (finish.readme)
 DATE = "2026-10-16"
@@ -171,5 +173,12 @@ def apply(wb):
     log["marks"] = purpose_marks(wb)
     log["yellow"] = yellow_fill(wb)
     log["header_notes"] = header_notes(wb)
+    done, same, drift = v1010_text.apply_fixes(wb)
+    log["text_fixes"] = dict(changed=done, already=same, drift=drift)
+    log["interface_labels"] = v1010_text.interface_labels(wb)
+    log["harness_labels"] = v1010_text.harness_labels(wb)
+    log["src_cites"] = v1010_text.src_cites(wb)
+    log["checks_header"] = v1010_text.checks_header(wb)
+    log["gov"] = v1010_gov.apply(wb)
     log["decisions"] = decisions_append(wb)
     return log

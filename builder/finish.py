@@ -78,7 +78,7 @@ def checks(wb, CAL, PR, SR, U):
       ("第二來源：VR200 ÷ GB300 模型 對 MLPerf", f"=Calib!C{CAL['mVR']}", f"=Calib!C{CAL['mVRm']}", "x", "兩者接近即支持 VR 沿用 GB300 效率係數", "S32"),
       ("來源衝突：GB300 ÷ GB200 模型 對 MLPerf", f"=Calib!C{CAL['mGB']}", f"=Calib!D{CAL['mGB']}", "x", "InferenceX 1.7–2.8、MLPerf 約 1.05、模型居中", "S20、S31"),
       ("能量閉合：各欄最大閉合比", f"=MAX(Perf!C{PR['close']}:Q{PR['close']})", "≤ 100%", "%", "超過代表產出或能量常數有誤", "Perf J 節"),
-      ("SLO 或 TTFT 不可達的欄數（15 欄中）", f"=COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"SLO 不可達\")+COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"TTFT 不可達\")", "—", "欄", "0＝15 欄皆可達；v6.2 起 TTFT 納入可達判斷：基準下 Hopper × Astra 首 token 時間約 6.1 秒，高於上限 5 秒，計 1 欄（decode 速度本身可達）", "Perf G 節（綁定約束列）"),
+      ("SLO 或 TTFT 不可達的欄數（15 欄中）", f"=COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"SLO 不可達\")+COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"TTFT 不可達\")", "—", "欄", "0＝15 欄皆可達；v6.2 起 TTFT 納入可達判斷：v6.2–v8.0 基準下 Hopper × Astra 首 token 時間約 6.1 秒，高於上限 5 秒，計 1 欄；v9.0 起快取命中進 prefill 產能（只計新鮮輸入），該欄約 2.7 秒、符合上限，基準為 0", "Perf G 節（綁定約束列）"),
       ("牌價空間：V4-Pro 8K/1K 牌價 ÷ GB300 Sol 成本（基準利用率）", f"=((8*1.32+3.96)/9)/((8*Unit_Cost!J{U[(2,'cfu')]}+Unit_Cost!J{U[(2,'cdu')]})/9)", "—", "x", "DeepSeek V4-Pro API 牌價 $1.32／$3.96（2026-09 價格追蹤站；記錄於 Tokenomics v4 活頁簿預設表）；只說明空間，不代表 DeepSeek 毛利", "S27"),
     ]
     put(ws, "A13", "項目", F_BOLD); put(ws, "B13", "本模型", F_BOLD); put(ws, "C13", "外部參照", F_BOLD)
@@ -169,8 +169,8 @@ def readme(wb):
       v603.README_ROW,        # v6.3: audit fix 2-1b (appended; no README row moves)        # v6.1: audit fix 3B input values (appended; no README row moves)
       v700.README_ROW,        # v7.0: audit fix 2-2 (appended; no README row moves)
       v800.README_ROW,        # v8.0: audit fix 2-3 (appended; no README row moves)
-      v810.README_ROW,        # v9.0: audit fix 2-4 (appended; no README row moves)
       v535.README_ROW,        # v5.35: L split (L_price × L_demote) and the H10 fixes (appended next to the m rows; no README row moves)
+      v810.README_ROW,        # v9.0: audit fix 2-4 (appended; no README row moves)
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i

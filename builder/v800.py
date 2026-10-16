@@ -263,7 +263,7 @@ def alloc_sections(wb, R):
             out[c] = f'=IF({c}{R["ok"]}=1,({num})*(1-B4_Disc)/{c}{R["wp"]},"{SLO}")'
         return out
     row("k_pg", "各世代付費 token 2025 混合有效單價＝Σ（可達層級的付費組合權重 × 該層級 2025 單價）×（1 − B4_Disc）÷ 可達層級權重合計（全不可達的世代為文字）", "$/M", pg25(""), "0.0000", "AL_PriceGen25", ("C", "F"),
-        note="與第 119 列（2026 快照）同一組可達層級；基準 Hopper 欄排除 Astra")
+        note="與第 119 列（2026 快照）同一組可達層級；v9.0 起基準下全層級可達")
     row("k_pgl", "同上（2025 單價低端）", "$/M", pg25("_Lo"), "0.0000", "AL_PriceGen25_Lo", ("C", "F"))
     row("k_pgh", "同上（2025 單價高端）", "$/M", pg25("_Hi"), "0.0000", "AL_PriceGen25_Hi", ("C", "F"))
     ss = [f"{c}${R['share']}" for c in CF]; ok = [f"{c}${R['ok']}" for c in CF]; cp = [f"{c}${R['capp']}" for c in CF]
@@ -384,7 +384,7 @@ def l1_rows_new():
              "層級對應（Luna 取 nano 線、Astra 取推理旗艦序列）", "牌價本身 Interested-party；層級對應 Derived", "CAP_Price25Mix", "L1 本頁；Cap_In M 節", "顯示用；機隊口徑見 L1_PriceFleet25"),
         _row("PriceFleet25", "機隊口徑 2025 混合有效單價（可達層級重新正規化；世代間以付費 token 占比加權）", "OpenAI 2025；Alloc K 節；v8.0 L1。L1_MFleet、L1_PriceRealFleet、L1_PriceReqBE 讀它",
              "=AL_PriceFleet25", "=AL_PriceFleet25_Lo", "=AL_PriceFleet25_Hi", "$/M", "低／高＝2025 層級單價低端／高端",
-             "與機隊付費 token 同口徑（K1）：Hopper 欄排除 Astra（TTFT 不可達）", "層級單價、世代組合、可達層級", "2025 層級單價：Derived", "AL_PriceFleet25", "L1 本頁；Alloc K 節", "顯示用"),
+             "與機隊付費 token 同口徑（K1）：僅納入可達層級（v9.0 起基準下全層級可達；v8.0 以前 Hopper 欄排除 Astra）", "層級單價、世代組合、可達層級", "2025 層級單價：Derived", "AL_PriceFleet25", "L1 本頁；Alloc K 節", "顯示用"),
         _row("FleetBreakeven2025", "機隊損益兩平乘積（2025 機隊口徑）＝機隊持有成本 ÷（機隊每 GW 營收 ÷ IF_Util）", "服務世代組合 AL_Mix*（Hopper 0.6／GB200 0.4）加權；營收用 2025 單價；v8.0 L4",
              "=AL_FleetBE25", "=AL_FleetBE25_Lo", "=AL_FleetBE25_Hi", "x", "E＝低成本欄、F＝高成本欄（營收不隨成本欄變）",
              "令機隊營收＝持有成本所需的「利用率 × 折減 × L × m」；L1_LReqFleet 與 L1_PriceReqBE 讀它。L1_FleetBreakeven／L1_FleetMargin 維持 VR200 截面（Checks K4 比對的恆等式）",

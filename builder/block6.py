@@ -147,7 +147,7 @@ def alloc(wb, AIN):
     line("wp", "付費組合：可達層級的權重合計（重新正規化的分母）", "%", {c: f"={wsum(mp, c)}" for c in "CDEF"}, "0.0%", note="同 Fleet_1GW 第 41 列")
     line("wf", "免費組合：可達層級的權重合計（重新正規化的分母）", "%", {c: f"={wsum(mf, c)}" for c in "CDEF"}, "0.0%", note="同 Fleet_1GW 第 42 列")
     line("xp", "未服務需求占比（付費）＝被排除層級的付費組合權重合計", "%", {c: f"=SUM({mp})-{c}{R['wp']}" for c in "CDEF"}, "0.0%", "AL_UnservedPaid",
-         "排除不是消失：這一部分的需求沒有被該世代的產能服務；基準下 Hopper 欄＝Astra 的付費組合權重（TTFT 不可達）", span=("C", "F"))
+         "排除不是消失：這一部分的需求沒有被該世代的產能服務；v9.0 起快取命中進 prefill 產能，基準下 15 欄皆可達、此列為 0；改 Serving 的 SLO／TTFT 或 B4_CacheHit 使某層級不可達時，該世代欄＝該層級的付費組合權重", span=("C", "F"))
     line("xf", "未服務需求占比（免費）＝被排除層級的免費組合權重合計", "%", {c: f"=SUM({mf})-{c}{R['wf']}" for c in "CDEF"}, "0.0%", "AL_UnservedFree", span=("C", "F"))
     line("ok", "可服務（付費與免費組合各至少一個層級可達＝1；同 Fleet_1GW 第 18 列）", "旗標",
          {c: f"=IF(AND({c}{R['wp']}>0,{c}{R['wf']}>0),1,0)" for c in "CDEF"}, "0", "AL_GenOK", span=("C", "F"))

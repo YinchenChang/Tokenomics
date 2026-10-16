@@ -1,12 +1,16 @@
 # Perf-like column generator: same row logic for Perf (15 cols) and Sens_Perf (scenario cols)
 from common import *
 
-def perf_rows(SP, AR, CAL, TR):
-    """Row spec: (key, label, unit, fmt, template) ; '§' key = section header. Templates use {X} and row keys."""
+def perf_rows(SP, AR, CAL, TR, cache=True):
+    """v8.1 M1 (D9): cache=True (Perf, Sens_Perf and their _Prod mirrors) counts only the FRESH input ISL x (1 - B4_CacheHit) in prefill time (TTFT, GPU-s per request, prefill GPU share);
+    the served-token definition (ISL + OSL per request) is unchanged. cache=False (Perf_Batch: RL rollout／distillation, no serving cache hit) keeps the full ISL, so Training is untouched.
+    Row spec: (key, label, unit, fmt, template) ; '§' key = section header. Templates use {X} and row keys."""
     I = lambda sheet, rng, idx: f"=INDEX({sheet}!{rng},{{X}}${idx})"
     sp = lambda r: I("Spec_Rack", f"$C${r}:$G${r}", 6)
     ar = lambda r: I("Arch", f"$C${r}:$E${r}", 7)
     sv = lambda r: I("Serving", f"$C${r}:$E${r}", 7)
+    fr = "({X}{isl}*(1-B4_CacheHit))" if cache else "{X}{isl}"      # fresh (non-cached) input tokens per reference request
+    ft = "；v8.1 D9：prefill 只計新鮮輸入 ISL × (1 − B4_CacheHit)" if cache else ""
     return [
       ("§", "0. Tech_Registry 掛鉤（基準＝1；Registry 未啟用任何條目時與 v5.4 相同）"),
       ("hflop", "FLOPs/token 倍數（H_FLOP）", "x", "0.00", f"={TR['H_FLOP']}"),
@@ -75,7 +79,7 @@ def perf_rows(SP, AR, CAL, TR):
       ("wsh", "權重占可用 HBM", "%", "0%", "={X}{W}/{X}{usable}"),
       ("§", "F. Prefill（算力受限）"),
       ("Pp", "prefill tok/s（每 prefill GPU）", "tok/s", "#,##0", "={X}{etap}*{X}{P}*1E15/({X}{Fp}*1E9)"),
-      ("ttftv", "TTFT（計算部分）", "s", "0.00", "={X}{isl}*{X}{Fp}*1E9/({X}{etap}*{X}{P}*1E15*{X}{ninst})"),
+      ("ttftv", "TTFT（計算部分" + ft + "）", "s", "0.00", "=" + fr + "*{X}{Fp}*1E9/({X}{etap}*{X}{P}*1E15*{X}{ninst})"),
       ("ttok", "TTFT 符合上限", "", None, "=IF({X}{ttftv}<={X}{ttft},\"是\",\"否\")"),
       ("§", "G. Decode：每步時間＝固定延遲＋B × 每序列時間；B* ＝ min(SLO 上限, HBM 容量上限)"),
       ("tfix", "每步固定延遲（權重讀取＋逐層延遲）", "ms", "#,##0.00", "={X}{W}/{X}{bw}+({X}{L}+{X}{N})*{X}{tl}/1000"),
@@ -92,8 +96,8 @@ def perf_rows(SP, AR, CAL, TR):
       ("bind", "綁定約束（文字「SLO 不可達」＝decode 不可達；「TTFT 不可達」＝首 token 時間超過上限；兩者皆不符時顯示 SLO；v6.2）", "", None, "=IF({X}{B}<=0,\"SLO 不可達\",IF({X}{ttok}<>\"是\",\"TTFT 不可達\",IF({X}{bslo}<={X}{bcap},\"SLO（\"&{X}{cbind}&\"）\",\"HBM 容量\")))"),
       ("kvsh", "KV 占可用 HBM", "%", "0%", "={X}{B}*{X}{kv}*{X}{ctxd}/1E9/{X}{usable}"),
       ("§", "H. 每架與每 GW（參考任務；P:D 依工作量配比；100% 利用率）"),
-      ("gsr", "每請求 GPU 秒（文字「SLO 不可達」＝decode 不可達；「TTFT 不可達」＝首 token 時間超過上限；兩者皆不符時顯示 SLO；v6.0 D8、v6.2）", "GPU-s", "0.000", "=IF(ISNUMBER({X}{D}),IF({X}{D}>0,IF({X}{ttok}=\"是\",{X}{isl}/{X}{Pp}+{X}{osl}/{X}{D},\"TTFT 不可達\"),\"SLO 不可達\"),\"SLO 不可達\")"),
-      ("psh", "prefill GPU 占比", "%", "0%", "=IF(ISNUMBER({X}{gsr}),IF({X}{gsr}>0,({X}{isl}/{X}{Pp})/{X}{gsr},0),{X}{gsr})"),
+      ("gsr", "每請求 GPU 秒（文字「SLO 不可達」＝decode 不可達；「TTFT 不可達」＝首 token 時間超過上限；兩者皆不符時顯示 SLO；v6.0 D8、v6.2" + ft + "）", "GPU-s", "0.000", "=IF(ISNUMBER({X}{D}),IF({X}{D}>0,IF({X}{ttok}=\"是\"," + fr + "/{X}{Pp}+{X}{osl}/{X}{D},\"TTFT 不可達\"),\"SLO 不可達\"),\"SLO 不可達\")"),
+      ("psh", "prefill GPU 占比", "%", "0%", "=IF(ISNUMBER({X}{gsr}),IF({X}{gsr}>0,(" + fr + "/{X}{Pp})/{X}{gsr},0),{X}{gsr})"),
       ("rtot", "每架總 tok/s", "tok/s", "#,##0", "=IF(ISNUMBER({X}{gsr}),IF({X}{gsr}>0,{X}{gpus}*({X}{isl}+{X}{osl})/{X}{gsr},0),{X}{gsr})"),
       ("rdec", "每架 decode tok/s", "tok/s", "#,##0", "=IF(ISNUMBER({X}{rtot}),{X}{rtot}*{X}{osl}/({X}{isl}+{X}{osl}),{X}{rtot})"),
       ("rpre", "每架 prefill tok/s", "tok/s", "#,##0", "=IF(ISNUMBER({X}{rtot}),{X}{rtot}-{X}{rdec},{X}{rtot})"),
@@ -122,12 +126,12 @@ def perf_rows(SP, AR, CAL, TR):
 
 KEY_ROWS = {"D", "rtot", "gwtot", "cdq", "cfq", "bind", "close", "tpj", "B"}
 
-def write_perf(ws, cols, SP, AR, CAL, TR, start=9, overrides=None, label_col_width=42, ov_link=False):
+def write_perf(ws, cols, SP, AR, CAL, TR, start=9, overrides=None, label_col_width=42, ov_link=False, cache=True):
     """cols: list of column letters; header rows 4-7 already written. overrides: {col: {key: value}}.
     ov_link=True: overrides are standing links (green, no fill) rather than scenario changes (blue on yellow)."""
     overrides = overrides or {}
     R = {}; r = start
-    spec = perf_rows(SP, AR, CAL, TR)
+    spec = perf_rows(SP, AR, CAL, TR, cache=cache)
     for item in spec:
         if item[0] == "§":
             section(ws, r, item[1], 2 + len(cols)); r += 1; continue

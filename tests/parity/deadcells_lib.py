@@ -17,7 +17,7 @@ import openpyxl
 from openpyxl.formula import Tokenizer
 from openpyxl.utils import get_column_letter as L, range_boundaries
 
-ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_")
+ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_", "RNG_", "AL_Rng")      # v13.0 K2：RNG_（批次口徑區間端點與時效旗標）與 AL_Rng*（v12.0 區間表）也是契約名稱，納入根與快照
 NO_TRAVERSE = {"Gov_Map", "Decisions", "DB_Evidence", "Load_Bearing", "SRC_Index"}
 META_PAGES = {"README", "Sources_Legacy"}
 

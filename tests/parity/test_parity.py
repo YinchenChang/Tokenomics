@@ -223,14 +223,23 @@ def test_interface_d_e_shapes(model, lo):
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
     assert len(mkt) == len(eng.get_name("B4_MktCountry")) and set(mkt) <= {0, 1} and 0 < sum(mkt) < len(mkt)
 
+# v10.2 E2：Serving 第 21 列 SLO 改為兩家量測商的幾何平均（84.3／43.3／40.8）。下列機制測試（不可達路徑、文字旗標、文字傳遞、各期望值）
+# 以 v10.1 以前的 SLO 120／65／55 為條件（＝情境 slo_v10 的輸入：SRC_PERF_066–071 兩家皆設舊值），期望值與 v10.1 相同；
+# 新基準的期望值由 test_v1020_eta_calibration 另行斷言。
+OLD_SLO = {"SRC_PERF_066": 120, "SRC_PERF_067": 120, "SRC_PERF_068": 65, "SRC_PERF_069": 65, "SRC_PERF_070": 55, "SRC_PERF_071": 55}
+
+
+def _vo(lo, inputs=None):
+    return lo.view({**OLD_SLO, **(inputs or {})})
+
 
 def _floor_engine(lo, floor):
-    return lo.view({"B5_PFloor": floor})
+    return _vo(lo, {"B5_PFloor": floor})
 
 
 def test_floor_scenarios_expected_values(model, lo):
     """v5.10 M1：floor_0 與 floor_80 的期望值（與 parity 情境互補；parity 保證兩邊一致，這裡保證結果合理）。"""
-    base = lo.view({})
+    base = _vo(lo, {})
     names = base.get_name("IF_HdrTask")
     assert base.get_name("IF_PFloor") == 0.5                                              # 基準 p_min＝50%
     assert base.get_name("IF_FrontSuccVRName") == ["Luna｜標準", "Luna｜標準", "Luna｜選定", "Luna｜選定", "Sol｜選定"]
@@ -283,7 +292,7 @@ def test_scenario_checks(sc, lo, results_store):
 
 def test_alloc_expected_values_and_slo_text(model, lo):
     """v5.15 Block 6：基準值（工作單預期）與 SLO 不可達時回傳文字、無錯誤值（b_prod_derate、f_registry_t07_t09_on）。"""
-    base = lo.view({})
+    base = _vo(lo, {})
     assert abs(base.get_name("AL_DDaily") - 16.48) < 0.01                                 # v5.29 X14 (l)：每則提示 token 數 2,000 → 4,000，每日 token 11.48 → 16.48T
     assert abs(base.get_name("AL_ServeGWSpend") - 0.898096) < 5e-5                        # v5.33 J8：組合持有成本 10.33 → 9.353，1.21964 → 1.34714（工作單 B2 驗收錨點 1.35）；v5.31 J1／J2：1.11399 → 1.21964（支出 ÷ 持有成本，持有成本下降）；v5.29 X14 (k)：支出路線服務 GW 改連 SRC_DEM_018 12.6（r2：只有這條路線用 018；004 維持 Active），0.74266 → 1.11399（LibreOffice 重算值）
     assert abs(base.get_name("AL_RefGWyr") - 0.0562533) < 5e-6                             # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）
@@ -292,7 +301,7 @@ def test_alloc_expected_values_and_slo_text(model, lo):
     assert base.get_name("GOV_Errors") == 0 and sum(base.get_name("AL_SensCheck")) == 0
     for sid, inputs, text in (("f_registry_t07_t09_on", {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1}, True),
                               ("b_prod_derate", {"Serving!C18": 0.7}, True)):      # v5.33 J8：2025 組合含 Hopper 60%，C18＝0.7 時 Hopper SLO 不可達 → Alloc 回傳文字（v5.32 前組合無 Hopper，為數值 0.4570）
-        eng = lo.view(inputs)
+        eng = _vo(lo, inputs)
         for n in ALLOC_IF:                                                                  # 每個 IF_Alloc*：數值或文字「SLO 不可達」，不得為錯誤值
             v = eng.get_name(n)
             assert (isinstance(v, (int, float)) and not isinstance(v, bool)) or v in ("SLO 不可達", "整代不可達"), (sid, n, v)      # v6.3 K2：整代不可達
@@ -325,7 +334,7 @@ def test_alloc_expected_values_and_slo_text(model, lo):
 
 def test_alloc_mix_2025_expected_values(model, lo):
     """補充 2：2025 機隊 Hopper 60%／GB200 40% 的期望值（chat 端獨立重算）。v5.33 J8 起此組合即為基準（Alloc_In C9–C12），本測試改為直接設定同一組合，期望值不變；情境檔 h_alloc_mix_2025 改設 0／40／40／20。"""
-    eng = lo.view({"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0})
+    eng = _vo(lo, {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0})
     for n, want in (("IF_AllocServeGW", 0.898096), ("AL_ServeGW", 0.166128), ("AL_ServeGWSpend", 0.898096), ("IF_AllocQ1", 0.211016), ("IF_AllocQ2", 0.211748)):   # v6.2（2-1-b／c）：Hopper Astra TTFT 不可達並排除、Alloc 層級權重重新正規化：IF_AllocServeGW 0.189082 → 0.166128、IF_AllocQ1 0.324144 → 0.364100、IF_AllocQ2 0.385331 → 0.428053；v6.1（稽核修正 3B）：IF_AllocServeGW 0.182593 → 0.189082、IF_AllocQ1 0.331841 → 0.324144、IF_AllocQ2 0.393635 → 0.385331（D6 Hopper η_d 1.5 → 1.2、D10 計價倍數 0.85、D13 純利用率 0.41 × 生產折減）；AL_ServeGWSpend 不變（支出 ÷ 持有成本，不含計價倍數） ｜v5.31：AL_ServeGWSpend 1.295514 → 1.347144、IF_AllocQ2 0.394559 → 0.393635（持有成本下降；LibreOffice 重算值）； v5.29 X14 (k)(l)：0.140315／0.863676／0.392575／0.458889 → 本列（引擎重算值，與 LibreOffice 一致）
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
@@ -333,7 +342,7 @@ def test_alloc_mix_2025_expected_values(model, lo):
 
 def test_l1_v516_expected_values_and_h3(model, lo):
     """v5.16：L1 毛利率兩列、GPU 小時口徑、第 7、8 題的基準期望值（工作單第 1 節；chat 端計算，精度到小數第 5 位故容差 5e-6），H3＝0。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     want = {"L1_Ans5_GM": (0.95505, 0.92739, 0.96503), "L1_Ans5_FullMargin": (0.918969, 0.869108, 0.936948),     # v5.31 J1／J2：持有成本下降，毛利率上升（LibreOffice 重算值）； v5.18：LibreOffice 重算值（v5.16 為 chat 端計算）；v5.23 X10：FullMargin 與 GPUh 改為 k＝0.75 暫存複本的 LibreOffice 重算值
             "L1_Ans6_GPUh": (0.28231, 0.28231, 0.28231), "L1_Ans7": (1.0, 1.0, 1.0), "L1_Ans8": (0.47940, 0.47940, 0.47940)}      # v5.31：Ans8 0.47928 → 0.47940
     for n, (d, lo, hi) in want.items():
@@ -354,7 +363,7 @@ def _pct(eng, n, k):
 def test_prod_derate_expected_values(model, lo):
     """v5.19 X1（工作單 1.5 節；LibreOffice 重算值）：CTL_ProdDerate 預設 0.85 與 0.7 下，_Prod 列相對基準列的變動；自我檢查 X1＝0。
     欄序：5 世代 × 3 成本情境（低／基準／高），基準欄索引 1、4、7、10、13＝Hopper、GB200、GB300、VR200、Rubin Ultra。"""
-    base = lo.view({})
+    base = _vo(lo, {})
     assert base.get_name("CTL_ProdDerate") == 0.85 and base.get("Serving", "C18") == 1.0   # C18 維持 1.0（G0-11）
     assert base.get_name("GOV_Errors") == 0                                               # 含 Checks X1（替代值改回 C18 時七列等於基準列）
     want = {"IF_FullCost_Sol_Prod": EXPECT_PROD_085["sol"], "IF_FullCost_Astra_Prod": EXPECT_PROD_085["astra"], "IF_RevGWFleet_Prod": EXPECT_PROD_085["fleet"]}
@@ -363,7 +372,7 @@ def test_prod_derate_expected_values(model, lo):
             if v is None:                                                                 # v6.2：Hopper × Astra 為文字旗標（TTFT 不可達），無百分比
                 assert _pct(base, n, k) is None, (n, k, _pct(base, n, k)); continue
             assert abs(_pct(base, n, k) - v) < 5e-4, (n, k, _pct(base, n, k), v)
-    eng = lo.view({"CTL_ProdDerate": 0.7})
+    eng = _vo(lo, {"CTL_ProdDerate": 0.7})
     assert eng.get_name("GOV_Errors") == 0
     assert eng.get_name("IF_FullCost_Astra_Prod")[1] == "SLO 不可達"                       # Hopper：Astra 層 SLO 不可達 → 該層全成本為文字
     for n in ("IF_FullCost_Luna_Prod", "IF_FullCost_Sol_Prod"):                          # v6.0 D8-2：只排除不可達層級，其餘層級照算（v5.36 整欄為文字）
@@ -474,10 +483,10 @@ def test_batch_etad_expected_values(model, lo):
     IF_TrainGenDefault 仍為 4；TR_*、IF_RevGW_*、IF_RevGWFleet、_Life 不變；GOV_Errors＝0（Checks X1 的 _Prod 自我檢查維持 0）。"""
     import openpyxl
     from openpyxl.utils import range_boundaries
-    base = lo.view({})
+    base = _vo(lo, {})
     assert base.get_name("CAL_BatchEtaD") == [1, 1, 1, 0.75, 1]
     assert base.get_name("GOV_Errors") == 0 and base.get_name("IF_TrainGenDefault") == 4
-    eng = lo.view({"CAL_BatchEtaD[4]": 1.0})
+    eng = _vo(lo, {"CAL_BatchEtaD[4]": 1.0})
     cur = eng.evaluate_all()
     assert not any(isinstance(v, str) and v.startswith("#") for v in cur.values()) and eng.get_name("GOV_Errors") == 0
     prev = openpyxl.load_workbook(BATCH_PREV, data_only=True)
@@ -526,7 +535,7 @@ IFW_BASES = ("RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront
 def test_v529_contract_waterfall_expected_values(model, lo):
     """v5.29：IFC_ 四欄與 Interface 資料列同長且值域正確；IFW_ 44 個名稱各 15 欄；有對應列的 _Util／_Prod／_Life 逐格等於來源列（Checks K3＝0）；
     L1 新列的 LibreOffice 重算值（工作單第 3、3b 節）；Checks K2、K3＝0、K4＝0（r2 第 2 項：L1_FleetMargin＝Theory_Rev 機隊比值 × CTL_ProdDerate × CTL_PriceLife × CTL_Monetize）、K5＝50；GOV_Errors＝0。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     conf, use, layer, upd = (eng.get_name(n) for n in ("IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"))
     assert len(conf) == len(use) == len(layer) == len(upd) >= 300
     assert set(x for x in conf if x not in ("", None)) <= {"A", "B", "C", "—", "（表頭）"}
@@ -576,7 +585,7 @@ def _num(x):
 def test_v530_waterfall_running_product(model, lo):
     """v5.30：(a) _Prod＝_Util × CTL_ProdDerate（營收列有 G 節者讀 G 節）、_Life＝_Prod × L × m（營收）／＝_Prod（token）；四層單調遞減；Checks K3＝0；
     VR200 基準欄（索引 10）LibreOffice 重算值；(b) L1_HoldEconMW_*＝L1_HoldEconGW_*（含 _Lo／_Hi）；(c) IFW_ 營收四層與 IFW_TokGW_*_100 的 IFC_Use 含「上限」，K2＝0。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     d, lm = eng.get_name("CTL_ProdDerate"), eng.get_name("CTL_PriceLife") * eng.get_name("CTL_Monetize")
     for b in IFW_BASES:
         v100, util, prod, life = (eng.get_name(f"IFW_{b}_{s}") for s in ("100", "Util", "Prod", "Life"))
@@ -687,7 +696,7 @@ def test_v533_fleet_basis(model, lo):
     上限以 CTL_ProdDerate 取代利用率修正。工作單錨點：AL_ServeGW 0.18、L1_ScaleServe 7.4、AL_ServeGWSpend 1.35、機隊付費 token 8.2e9、上限 12.0e9、機隊 m 0.81、m 下限 0.56。
     L1_MFleet 判讀「落在 0.3–1.0 區間內」、L1_TokCeiling 外部欄＝AL_DPaid；Checks M2＝M3＝0、M1 仍為 1；GOV_Errors＝0。期望值為 LibreOffice 重算值，另以 Python 驗算基準式（1e-12）。"""
     import re
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CTL_Monetize") == 1
     assert eng.get_name("AL_MixGen") == [0.6, 0.4, 0, 0] and eng.get_name("AL_TokPerPrompt_Hi") == 11000 and eng.get_name("AL_TokPerPrompt") == 4000
     assert eng.get_name("AL_GenOK") == [1, 1, 1, 1]                                  # Hopper 等四世代皆至少有一個可達層級（v6.2：Hopper 的 Astra 層 TTFT 不可達，但 Luna、Sol 可達，世代仍可服務；原 B2 硬性條件為三層皆可達）
@@ -735,7 +744,7 @@ def test_v534_m_split(model, lo):
     閉合免費占比 0.213；H10 2026 Q2 欄 m_API 0.3467（0.35）、m_整體 1.3432（1.34）、m_fleet 0.7811（0.78）、m_消費訂閱 4.768、m_商用席次 6.502；Checks M4＝1（WARN，預期）；
     既有 IF_Price*、L1_MImplied、L1_MFleet 不變；GOV_Errors＝0。期望值為 LibreOffice 重算值，另以 Python 由具名範圍驗算基準式（1e-12）。"""
     import re
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CTL_Monetize") == 1
     assert eng.get_name("B4_Disc") == 0.2 and eng.get_name("B4_Disc_Lo") == 0.1 and eng.get_name("B4_Disc_Hi") == 0.4      # J20：只動高端
     assert abs(eng.get_name("IF_PriceRef_Sol") - 1.607111) < 5e-6 and abs(eng.get_name("L1_MImplied") - 2.033528) < 5e-6 and abs(eng.get_name("L1_MFleet") - 0.550473) < 5e-6      # v8.0 L1：0.471739 → 0.550473（2025 年度單價）；v6.3 K1：0.449740 → 0.471739；v6.2：0.536920 → 0.449740（Hopper Astra TTFT 排除、Alloc 重新正規化）
@@ -795,7 +804,7 @@ def test_v535_l_split(model, lo):
     E 欄（g +0.05、T1 5、ρ 1.0）1.1618／1.1618／1.0；回本所需 L＝L1_FleetBreakeven ÷（IF_Util × CTL_ProdDerate × m）：m＝L1_MFleet 0.3645、m＝L1_MAPI 0.5237；H10 2026 三欄：Q1 m_API 0.295／5.744／3.556／1.192、
     Q2 0.340／5.399／4.557／1.343、FY2026 0.348／5.569／8.044／1.432；2025 欄不變；既有 L1_（含 v5.34 六個）與 IF_ 不變；CTL_PriceLife、CTL_Monetize 皆 1。期望值為 LibreOffice 重算值，另以 Python 由具名範圍驗算（1e-12）。"""
     import math, re
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CTL_PriceLife") == 1 and eng.get_name("CTL_Monetize") == 1
     T = eng.get_name("IF_DeprLifeIT")[1]; assert T == 6                                                     # Hopper 基準欄（工作單 I-4：非 6 停下）
     def lp(g): return 1 if abs(math.log(1 + g)) < 1e-12 else ((1 + g) ** T - 1) / (T * math.log(1 + g))
@@ -842,7 +851,7 @@ def test_v535_l_split(model, lo):
 def test_v536_spend_route_kappa_price(model, lo):
     """v5.36（工作單 B1–B6）：支出路線改 SRC_DEM_004（7.5）、計價倍數 1.3、κ 納入服務 GW、GapPrompt 為有效倍數、缺口恆等式與 L1 價格列。
     錨點（工作單，相對容差 1e-3）；IF_ 名稱不變由逐格比較（報告表 2）負責。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("AL_Kappa") == 1.0
     anchors = {"AL_ServeGWSpend": 0.8981, "L1_ScaleServe": 5.406066, "L1_MFleet": 0.550473, "L1_TokPerPromptClose": 27418.144554, "L1_TokCeiling": 1.704455e10,      # v6.2（2-1-b／c）：Hopper Astra 排除、Alloc 重新正規化；v6.1 為 4.7498、0.5369、23406.6、1.52935e10、0.5498、1.3011、1.0527、6.1801
                "L1_LReqFleet": 2.037391, "L1_GapSpendBasis": 0.85, "L1_GapPrompt": 1.298854, "L1_GapISL": 1.0, "L1_GapUtil": 1.7217,      # v7.0（2-2-b）：1.4634 → 1.7217
@@ -866,7 +875,7 @@ def _contract_names(eng):
 def test_v600_audit_fix1_expected_values(model, lo):
     """v6.0（稽核修正1：D7、D8、D11）基準期望值。錨點為 LibreOffice 重算值（相對容差 1e-4）；工作單預期變動：
     FullCost_Luna(Hopper) +46%、FullCostDefault_Luna +94%、FullCostDefault_Sol(VR200) +21%、Astra 不變；付費產能比約 0.712、m 下限約 0.647；IF_*_Life ÷ 舊值 0.486–0.81。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 276 and eng.get_name("GOV_Info") == 176      # v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）
     rel = lambda got, want, tol=1e-4: abs(got - want) <= tol * abs(want)
     # D11：回本溢價分母＝付費 token（Hopper 基準欄＝第 2 欄、VR200 基準欄＝第 11 欄）
@@ -906,10 +915,10 @@ def test_v600_audit_fix1_slo_text(model, lo):
     """v6.0 D8-5：Serving!C18＝0.7 與 Train_In!E31＝100 兩個情境——(1) 沒有任何 IF_／IFW_ 名稱因不可達而由非零變成數值 0；
     (2) 仍可達的層級（Luna、Sol）照常輸出數值；(3) IF_AllocQ1 隨 E31 單調（數值或「SLO 不可達」文字），不再出現 0.332 → 0.459 → 0.612 → 0.225。
     判定錯誤值只計 # 開頭（文字不算）。"""
-    base = lo.view({})
+    base = _vo(lo, {})
     names = _contract_names(base)
     for sid, inputs in (("c18_07", {"Serving!C18": 0.7}), ("e31_100", {"Train_In!E31": 100})):
-        eng = lo.view(inputs)
+        eng = _vo(lo, inputs)
         zero_from_nonzero = []
         for n in names:
             b, v = base.get_name(n), eng.get_name(n)
@@ -922,11 +931,11 @@ def test_v600_audit_fix1_slo_text(model, lo):
         assert not errs, (sid, errs[:5])
         for n in ("IF_TokGW_Luna", "IF_TokGW_Sol", "IF_CostDec_Luna", "IF_CostDec_Sol", "IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGWFleet"):
             assert all(isinstance(x, (int, float)) for x in eng.get_name(n)), (sid, n)           # 仍可達的層級照常輸出數值（Fleet 排除不可達層級後重新正規化）
-    c18 = lo.view({"Serving!C18": 0.7})
+    c18 = _vo(lo, {"Serving!C18": 0.7})
     assert any(isinstance(x, str) for x in c18.get_name("IF_TokGW_Astra")) and any(v != "無" for v in c18.get("Fleet_1GW", "C43:Q43")[0])      # 有層級被排除，且列出排除層級
     q1 = []
     for e in (20, 80, 100, 150):
-        v = lo.view({"Train_In!E31": e}).get_name("IF_AllocQ1")
+        v = _vo(lo, {"Train_In!E31": e}).get_name("IF_AllocQ1")
         q1.append(v)
     nums = [v for v in q1 if isinstance(v, (int, float))]
     assert nums == sorted(nums) and q1[0] < q1[1], q1                                              # v8.0 L3：0.211 → 0.363 → 文字 → 文字（研發世代組合 Hopper 0.6／GB200 0.38／GB300 0.02：E31＝100 時加權世代全不可達，無可重新正規化者）
@@ -938,7 +947,7 @@ def test_v602_model_scale_ttft_alloc(model, lo):
     """v6.2：(a) 基準 ARCH_ScaleGen＝1（1×5，Rubin Ultra 固定 1）；(b) 基準下 Hopper × Astra TTFT 不達標——第 77 列「否」、第 90、93 列「TTFT 不可達」、
     IF_TokGW_Astra Hopper 三欄為文字（不是 0），其餘 12 欄與各層級不變；Checks B27＝1；(c) Alloc：Hopper 欄「未服務需求占比」＝Astra 的付費組合權重 0.15，各世代仍可服務，
     AL_ServeGW 0.166128、L1_MFleet 0.471739（v6.3 K1）；(d) 情境 d1_model_scale（v6.3 J1 r1：0.8／0.55／1.0／1.4）下 Hopper Astra 仍 TTFT 不可達，其餘值為 LibreOffice 重算值。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("ARCH_ScaleGen") == [1, 1, 1, 1, 1] and eng.get_name("ARCH_ScaleGen_Lo") == [0.5, 0.3, 1, 1, 1] and eng.get_name("ARCH_ScaleGen_Hi") == [1.3, 1.0, 1, 2.5, 1]      # v6.3 J1 r1（2Q 報告 Q2）：Lo 0.1／0.3 → 0.5／0.3，Hi 0.5／1.0／—／4.4 → 1.3／1.0／—／2.5
     assert eng.get_name("GOV_Errors") == 0
     # v9.0 D9：快取命中進產能（prefill 只計新鮮輸入）後，基準下 Hopper × Astra 的 TTFT 達標（約 2.7 秒）：第 77 列「是」、IF_TokGW_Astra 全 15 欄為數值、Checks B27＝0、未服務占比 0；
@@ -949,7 +958,7 @@ def test_v602_model_scale_ttft_alloc(model, lo):
         assert all(_num(x) and x > 0 for x in eng.get_name(f"IF_TokGW_{t}"))
     assert eng.get("Checks", "B27") == 0
     assert [round(x, 9) for x in eng.get_name("AL_UnservedPaid")] == [0, 0, 0, 0] and eng.get_name("AL_GenOK") == [1, 1, 1, 1]
-    e0 = lo.view({"B4_CacheHit": 0})
+    e0 = _vo(lo, {"B4_CacheHit": 0})
     assert e0.get_name("GOV_Errors") == 1      # B4_CacheHit＝0 在其藍字區間（Gov_Map 低／高）之外：Checks E10＝1（v8.0 同）；其餘錯誤 0
     assert e0.get("Perf", "E77") == "否" and e0.get("Perf", "E90") == "TTFT 不可達" and e0.get("Perf", "E93") == "TTFT 不可達" and e0.get("Perf_Prod", "E93") == "TTFT 不可達"
     tok = e0.get_name("IF_TokGW_Astra")
@@ -958,7 +967,7 @@ def test_v602_model_scale_ttft_alloc(model, lo):
     assert [round(x, 9) for x in e0.get_name("AL_UnservedPaid")] == [0.15, 0, 0, 0] and e0.get_name("AL_GenOK") == [1, 1, 1, 1]
     for n, v in (("AL_ServeGW", 0.166128), ("L1_MFleet", 0.550473), ("L1_ScaleServe", 5.406066)):
         assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)
-    sc = lo.view({"ARCH_ScaleGen[1]": 0.8, "ARCH_ScaleGen[2]": 0.55, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.4, "B4_CacheHit": 0})      # v9.0：加 B4_CacheHit＝0 以維持 v6.3 的產能口徑（Hopper Astra 不可達）；v6.3 J1 r1（2Q 報告 Q2）：Hopper 0.8 仍不足以讓 Astra 達 TTFT
+    sc = _vo(lo, {"ARCH_ScaleGen[1]": 0.8, "ARCH_ScaleGen[2]": 0.55, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.4, "B4_CacheHit": 0})      # v9.0：加 B4_CacheHit＝0 以維持 v6.3 的產能口徑（Hopper Astra 不可達）；v6.3 J1 r1（2Q 報告 Q2）：Hopper 0.8 仍不足以讓 Astra 達 TTFT
     assert sc.get_name("GOV_Errors") == 1 and sc.get_name("IF_TokGW_Astra")[0] == "TTFT 不可達" and [round(x, 9) for x in sc.get_name("AL_UnservedPaid")] == [0.15, 0, 0, 0]
     rel = lambda got, want: abs(got - want) <= 1e-5 * abs(want)
     for n, k, v in (("IF_TokGW_Luna", 1, 7.80572e+10), ("IF_TokGW_Sol", 1, 2.40211e+10), ("IF_TokGW_Astra", 3, 3.33751e+10), ("IF_TokGW_Luna", 10, 6.02458e+11)):
@@ -970,7 +979,7 @@ def test_v602_model_scale_ttft_alloc(model, lo):
 
 # ── v6.3 2-1b（工作單 docs/workorders/20261016_稽核修正2.md r1 第 2b 節）：K1 機隊口徑單價、K2 整代不可達、K3 TTFT 進 decode 成本列、J1 r1 ──
 def test_v603_fleet_price_k2_k3(model, lo):
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("GOV_Errors") == 0
     # K1：機隊口徑單價（可達層級重新正規化、以付費 token 加權）；Cap_In K 節第 1 欄同值，其餘三欄為各世代單價
     pf, pg, k = eng.get_name("AL_PriceFleet"), eng.get_name("AL_PriceGen"), eng.get_name("B4_PriceFleet")
@@ -979,14 +988,14 @@ def test_v603_fleet_price_k2_k3(model, lo):
     assert abs(eng.get_name("L1_MFleet") * eng.get_name("AL_PriceFleet25") - eng.get_name("L1_PriceRealFleet")) < 1e-12      # 實收單價＝m × 機隊口徑單價＝營收 ÷ 機隊付費 token（與 v6.2 值 0.924927 相同）
     assert abs(eng.get_name("L1_PriceRealFleet") - 0.924927) < 5e-7
     # K3：Hopper × Astra 的 decode 成本列在 B4_CacheHit＝0（v8.0 產能口徑）為文字（不可達），其餘 12 欄為數值；v9.0 基準（快取進產能）全 15 欄為數值
-    e0 = lo.view({"B4_CacheHit": 0})
+    e0 = _vo(lo, {"B4_CacheHit": 0})
     for n in ("IF_CostDec_Astra", "IF_CostDecAcct_Astra", "IF_AmortTD_Astra"):
         v = eng.get_name(n)
         assert all(_num(x) and x > 0 for x in v), n
         v = e0.get_name(n)
         assert all(isinstance(x, str) for x in v[:3]) and all(_num(x) and x > 0 for x in v[3:]), n
     # K2：整代不可達的文字傳遞（f_registry：Hopper 三層全不可達，2025 組合中 Hopper 占 0.6）
-    f = lo.view({"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1})
+    f = _vo(lo, {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1})
     errs = [kk for kk, v in f.evaluate_all().items() if isinstance(v, str) and v.startswith("#")]
     assert not errs, errs[:10]
     for n in ("IF_AllocQ1", "IF_AllocQ2", "IF_AllocServeGW", "AL_PriceFleet", "AL_ServeGW"):
@@ -995,14 +1004,14 @@ def test_v603_fleet_price_k2_k3(model, lo):
         assert f.get_name(n) == "整代不可達", n
     assert f.get_name("L1_PriceRealFleet") == "m 非數字（本情境）" and eng.get_name("AL_UnavailTxt") == "SLO 不可達"
     # C18＝0.7（各世代皆至少有一層可達）：機隊口徑單價為數值
-    b = lo.view({"Serving!C18": 0.7})
+    b = _vo(lo, {"Serving!C18": 0.7})
     assert abs(b.get_name("AL_PriceFleet") - 1.644741100) < 5e-8
 
 
 # ── v7.0 2-2（工作單 docs/workorders/20261016_稽核修正2.md r0 第 3 節；世代價格 B 段 B-1／B-2、2-2-b 遺留）──
 def test_v700_generation_price_thresholds(model, lo):
     """B-1：CAP_GenGap_*（基準／低／高）；B-2：L1_GenPxThr_Rev_*／_Pay_*（基準與情境 d1_model_scale）；H3 排序 E ≤ D ≤ F；門檻不含價格。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("CHK_L1Order") == 0
     for g, (b, l, h) in {"GB200": (1.88, 1.88, 2.17), "GB300": (0.41, 0.41, 0.54), "VR200": (1.18, 1.11, 1.24)}.items():
         assert (eng.get_name(f"CAP_GenGap_{g}"), eng.get_name(f"CAP_GenGap_{g}_Lo"), eng.get_name(f"CAP_GenGap_{g}_Hi")) == (b, l, h), g
@@ -1021,7 +1030,7 @@ def test_v700_generation_price_thresholds(model, lo):
         hc = eng.get_name(f"L1_HoldEconMW_{g}") / eng.get_name(f"L1_HoldEconMW_{prev[g]}")
         assert abs(eng.get_name(f"L1_GenPxThr_Pay_{g}") - ((hc / q) ** (1 / dd) - 1)) < 1e-12
     # 情境 d1_model_scale（ARCH_ScaleGen 0.8／0.55／1.0／1.4）：模型變大時的門檻
-    sc = lo.view({"ARCH_ScaleGen[1]": 0.8, "ARCH_ScaleGen[2]": 0.55, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.4})
+    sc = _vo(lo, {"ARCH_ScaleGen[1]": 0.8, "ARCH_ScaleGen[2]": 0.55, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.4})
     want_sc = {"Rev_GB200": (-0.635671, -0.635671, -0.583038), "Rev_GB300": (0.34922, 0.255355, 0.34922), "Rev_VR200": (-0.142878, -0.339663, 0.47674),
                "Pay_GB200": (-0.653531, -0.653531, -0.600806), "Pay_GB300": (1.24941, 0.850595, 1.24941), "Pay_VR200": (-0.054332, -0.274904, 0.639428)}
     for k, (d, e, f) in want_sc.items():
@@ -1030,13 +1039,13 @@ def test_v700_generation_price_thresholds(model, lo):
         assert got[1] <= got[0] <= got[2], (k, got)
     assert sc.get_name("GOV_Errors") == 0
     # f_registry（Hopper 整代不可達）情境：無錯誤值
-    f = lo.view({"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1})
+    f = _vo(lo, {"Tech_Registry!O11": 1, "Tech_Registry!O12": 1, "Tech_Registry!O13": 1})
     assert not [k for k, v in f.evaluate_all().items() if isinstance(v, str) and v.startswith("#")]
 
 
 def test_v700_leftovers(model, lo):
     """2-2-b：L1_FleetProdRatio／L1_FleetMargin／Checks K4 讀重解值；L1_GapUtil 乘生產折減；Interface A231 標題；J3／J4／J5。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     rev_p, rev_u = eng.get_name("IFW_RevGWFleet_Prod")[10], eng.get_name("IFW_RevGWFleet_Util")[10]
     assert abs(eng.get_name("L1_FleetProdRatio") - rev_p / rev_u) < 1e-12 and abs(eng.get_name("L1_FleetProdRatio") - 0.772761) < 5e-6
     assert abs(eng.get_name("L1_FleetMargin") - 3.554764) < 5e-6 and abs(eng.get_name("L1_FleetBreakeven") - 0.130432) < 5e-6
@@ -1045,7 +1054,7 @@ def test_v700_leftovers(model, lo):
     a231 = eng.get("Interface", "A231")
     assert "重解 SLO" in a231 and "_Prod＝_Util × CTL_ProdDerate" not in a231
     # K4 在 CTL_ProdDerate＝0.7 情境仍成立（恆等式）
-    p7 = lo.view({"CTL_ProdDerate": 0.7})
+    p7 = _vo(lo, {"CTL_ProdDerate": 0.7})
     assert p7.get("Checks", "D121") == 0 and abs(p7.get_name("L1_FleetProdRatio") - p7.get_name("IFW_RevGWFleet_Prod")[10] / p7.get_name("IFW_RevGWFleet_Util")[10]) < 1e-12
     assert abs(p7.get_name("L1_GapUtil") - p7.get_name("IF_Util") / (p7.get_name("AL_UtilActual") * 0.7)) < 1e-12
     # J3：Serving C18 基準 1.0
@@ -1070,7 +1079,7 @@ def test_v700_leftovers(model, lo):
 def test_v800_audit_fix2_3(model, lo):
     """L1：m 用 2025 年度層級單價（CAP_Px25_*、AL_PriceFleet25）；L2：2025 年度模型規模倍數（情境）；L3：研發世代組合（AL_RDMix*）加權；L4：所需 L 讀 2025 機隊損益兩平；L5：服務 GW 主口徑＝支出路線。
     基準期望值為 LibreOffice 重算值；恆等式以具名範圍驗算（1e-12）。"""
-    eng = lo.view({})
+    eng = _vo(lo, {})
     n = eng.get_name
     num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
     assert n("GOV_Errors") == 0 and n("CHK_RDMixSum") == 0 and n("AL_RDShareExcl") == 0
@@ -1108,13 +1117,13 @@ def test_v800_audit_fix2_3(model, lo):
     # L2：2025 年度模型規模倍數三個情境（Hopper、GB200；其餘 1）
     for sid, ins, want in (("d2_model_2025", 0.65, (0.387138, 0.164989, 7.686916)), ("d2_model_2025_lo", 0.35, (0.244465, 0.119326, 12.173111)),
                            ("d2_model_2025_hi", 1.1, (0.604240, 0.223273, 4.925020))):
-        sc = lo.view({"ARCH_ScaleGen[1]": ins, "ARCH_ScaleGen[2]": ins, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0})
+        sc = _vo(lo, {"ARCH_ScaleGen[1]": ins, "ARCH_ScaleGen[2]": ins, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0})
         assert sc.get_name("GOV_Errors") == 0, sid
         for nm, w in zip(("L1_MFleet", "IF_AllocQ1", "L1_ScaleServe"), want):
             assert abs(sc.get_name(nm) - w) < 5e-6, (sid, nm, sc.get_name(nm), w)
         assert abs(sc.get_name("IF_AllocServeGW") - 0.898096) < 5e-6      # 支出路線不隨模型規模倍數改變
     # 單調：規模倍數越大，m 越大、Q1 越大
-    ms = [lo.view({"ARCH_ScaleGen[1]": v, "ARCH_ScaleGen[2]": v, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0}).get_name("L1_MFleet") for v in (0.35, 0.65, 1.1)]
+    ms = [_vo(lo, {"ARCH_ScaleGen[1]": v, "ARCH_ScaleGen[2]": v, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0}).get_name("L1_MFleet") for v in (0.35, 0.65, 1.1)]
     assert ms[0] < ms[1] < ms[2]
 
 
@@ -1162,3 +1171,31 @@ def test_v1000_audit_fix2_5(model, lo):
     assert n("CHK_VerifyTotal") == 17 and n("CHK_VerifyPass") == 9 and n("CHK_VerifyFail") == 8      # v10.2 E3: 14/7/7 -> 17/9/8 (V2/V3 new references, V15-V17 added)
     assert n("CHK_VerifyPass") + n("CHK_VerifyFail") == n("CHK_VerifyTotal")
     assert n("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
+
+
+def test_v1020_eta_calibration(model, lo):
+    """v10.2（η 校準與驗證判準）：新基準的期望值（LibreOffice 重算值）。
+    E2 SLO 為兩家量測商中位數的幾何平均；E1 的 C67／D67 未改（停損）；E3 驗證清單 17／9／8；不得變動的名稱與 v10.1 相同。"""
+    base, old = lo.view({}), lo.view(OLD_SLO)
+    n = base.get_name
+    sl = base.get_name("SRC_PERF_066"), base.get_name("SRC_PERF_067")
+    assert abs(base.get("Serving", "C21") - (116.5 * 61) ** 0.5) < 1e-9 and abs(base.get("Serving", "D21") - (50.7 * 37) ** 0.5) < 1e-9
+    assert abs(base.get("Serving", "E21") - (52.1 * 32) ** 0.5) < 1e-9 and sl == (116.5, 61)
+    assert base.get("Calib", "C67") == 1.2 and base.get("Calib", "D67") == 1.0          # E1：停損，未寫入（待 Project 判斷）
+    # E2 的效果：Sol 欄各世代 IF_TokGW 變動倍數（基準欄索引 1、4、7、10、13）；舊 SLO 的情境值＝v10.1 值
+    for k, ratio in zip((1, 4, 7, 10, 13), (1.484, 1.201, 1.201, 1.130, 1.113)):
+        assert abs(n("IF_TokGW_Sol")[k] / old.get_name("IF_TokGW_Sol")[k] - ratio) < 5e-4, (k, ratio)
+    assert abs(n("L1_MFleet") - 0.407295) < 5e-6 and abs(old.get_name("L1_MFleet") - 0.550473) < 5e-6
+    assert abs(n("L1_ScaleServe") - 7.306476) < 5e-6
+    # 不得變動
+    for nm in ("IF_AllocServeGW", "IF_AllocRDGW", "L1_LReqFleet_Id", "L1_LTotal"):
+        assert n(nm) == old.get_name(nm), nm
+    assert abs(n("IF_AllocServeGW") - 0.898096) < 5e-6 and abs(n("IF_AllocRDGW") - 0.240199) < 5e-6
+    # E3
+    assert n("CHK_VerifyTotal") == 17 and n("CHK_VerifyPass") == 9 and n("CHK_VerifyFail") == 8
+    assert n("GOV_Errors") == 0
+    # 校準複本列：模型 ÷ 目標（Hopper 校準點無解、GB200 校準點 0.37）
+    cal = [r for r in range(150, 260) if str(base.get("Calib", f"A{r}") or "").startswith("模型 ÷ 目標")]
+    assert cal and abs(base.get("Calib", f"C{cal[0]}") - 0.338) < 5e-3 and abs(base.get("Calib", f"D{cal[0]}") - 0.372) < 5e-3
+    # 新 SRC 名稱
+    assert n("SRC_PERF_075") == 4668.1 and abs(n("SRC_PERF_076") - 5561.6) < 1e-9 and n("SRC_PERF_073") == 1850

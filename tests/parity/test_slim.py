@@ -13,7 +13,7 @@ import deadcells_lib
 REPO = Path(__file__).resolve().parents[2]
 CONTRACT = REPO / "docs" / "plan" / "Tokenomics_downstream_contract.md"
 # 死格基準（v10.1 建置值；與 4-0 同一定義，另加 Sens_／_Prod 頁為根）。新增死格需先在工作單說明，否則此測試失敗。
-DEAD_BASELINE = 3494
+DEAD_BASELINE = 3599      # v10.2 E1：+105＝Calib J 節 C、D 欄（校準點複本列，工作單 E1 要求；顯示模型 ÷ 目標與所需倍數，無下游讀取）；v10.1：3494
 
 
 @lru_cache(maxsize=1)

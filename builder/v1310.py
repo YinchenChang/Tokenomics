@@ -333,6 +333,7 @@ def alloc_fingerprint(wb):
     put(ws, f"C{r_d}", f"=SUM(E{first}:E{last})", F_CALC, fmt="0")
     put(ws, f"D{r_n}", "指紋檔的葉格數（builder/v1310_fingerprint.json）；tests/parity 以依賴圖重新推導並要求逐格相等", F_NOTE)
     put(ws, f"D{r_d}", "不為 0＝上游輸入已改動而端點未重新產生；Checks RG3（WARN）", F_NOTE)
+    put(ws, f"Y{r_n}", "顯示用：指紋格數（C 欄）無公式讀取；與指紋檔葉格數的對照由 tests/parity 檢查", F_NOTE)      # 死格需有『用途』標記（Alloc 用途欄＝Y）
     # RNG_StaleFlag also requires the fingerprint to match
     ref = wb.defined_names["RNG_StaleFlag"].attr_text.split("!")[1].replace("$", "")
     cell = ws[ref]

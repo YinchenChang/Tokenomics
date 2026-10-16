@@ -1,0 +1,47 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "684681c124e8df39fdf9337f6651234a1f428ae6",
+ "github_sha": "23a9da1f07423796c5719d96950bba7846057f77",
+ "ref": "refs/pull/95/merge",
+ "event": "pull_request",
+ "run_id": 38954648713,
+ "run_number": 412,
+ "run_attempt": 1,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 117154323824,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-10-16T19:24:12Z",
+   "completed_at": "2026-10-16T19:43:20Z",
+   "seconds": 1148,
+   "python": "3.11.17"
+  },
+  {
+   "id": 117154324033,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-16T19:24:12Z",
+   "completed_at": "2026-10-16T19:25:08Z",
+   "seconds": 56,
+   "python": "3.11.17"
+  },
+  {
+   "id": 117162255390,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-16T19:43:23Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.12.3"
+  }
+ ],
+ "failures": [],
+ "log_excerpts": {},
+ "recalc_seconds": null,
+ "pr_number": 95,
+ "generated_at": "2026-10-16T19:43:30Z",
+ "errors": []
+}

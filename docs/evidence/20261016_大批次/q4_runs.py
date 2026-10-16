@@ -175,6 +175,10 @@ def scen():
     S["B1_早升+A2J_50%"] = (a2J_edits(0.5), dict(shape=SHAPE_EARLY, f_latJ=0.5))
     S["B1_早升_離線"] = (OFF, dict(shape=SHAPE_EARLY, offline=True))
     S["BU_早升_全世代(檢查)"] = ({}, dict(shape=SHAPE_EARLY, univ=True))
+    # 對照：差距若是「世代水準」（不分批次的常數倍數），即 η 校準報告 E1 的假設性倍數
+    S["G_const"] = ({"Calib!C67": 4.49, "Calib!D67": 3.04}, None)
+    # 建議方向的試算：大批次倍數只放進既有的批次口徑倍數 CAL_BatchEtaD（Calib C156／D156；只作用於 Perf_Batch）
+    S["X10_batch"] = ({"Calib!C156": 3.74, "Calib!D156": 3.04}, None)
     return S
 
 

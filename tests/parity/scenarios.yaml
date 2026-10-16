@@ -159,5 +159,5 @@ scenarios:
     inputs: {"B4_CacheHit": 0}
   # ── v10.2 E2（η 校準與驗證判準）：Serving 第 21 列改為兩家量測商中位數的幾何平均（84.3／43.3／40.8）；本情境改回舊口徑 120／65／55（GPT-5.6 時代，S26），保留對照 ──
   - id: slo_v10
-    description: 舊口徑 SLO 120／65／55 tok/s/user（Serving!C21:E21 為公式，故改 SRC_PERF_066–071 兩家皆設為舊值，幾何平均即 120／65／55；v10.2 基準為 84.3／43.3／40.8）；IF_TokGW_* 與下游變動
+    description: 舊口徑 SLO 120／65／55 tok/s/user（Serving!C21:E21 為公式，故改 SRC_PERF_066–071 兩家皆設為舊值，幾何平均即 120／65／55；v10.2 基準為 84.3／43.3／40.8）；IF_TokGW_* 與下游變動；注意：舊 SLO 落在 Gov_Map GM239–GM241 區間之外，此情境 GOV_Errors＝3（Checks E10），屬預期（4-2a 補註）
     inputs: {"SRC_PERF_066": 120, "SRC_PERF_067": 120, "SRC_PERF_068": 65, "SRC_PERF_069": 65, "SRC_PERF_070": 55, "SRC_PERF_071": 55}

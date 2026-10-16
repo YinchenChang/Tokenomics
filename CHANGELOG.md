@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v11.0.xlsx（取代 v10.3；主版：新增契約名稱 `CHK_VerifyWarn`；大批次修正 G1–G4，依工作單 `docs/workorders/20261016_大批次修正.md`）
+
+- 分支 `claude/bigbatch-fix`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_大批次修正.md`；進度檔：`docs/reports/20261016_大批次修正_進度.md`。底稿：master（v10.3，已確認）。
+- Excel（CC 以 `builder/v1100.py` 自 v10.3 產生，經 LibreOffice 重算存檔）：
+  - G1：追查 Calib C68（1.5）是否與固定延遲重複計算——無法確認，C68 不改；追查過程與 Decision BB-G1 記入 Decisions。
+  - G2：`CAL_BatchEtaD` GB200 1 → 3.04（Calib D156，Derived，區間 1.5–6.7；對 vLLM 10.1K 的 Calib J 複本列比值 1.0007）；Hopper 在 C68＝1.5 下無解，維持 1（待 Project 判斷）。
+  - G3：Calib 新增 L 節（V20–V22 驗證點複製列）；Checks 驗證清單新增 V20（MLPerf v6.0 offline GB200 6,752）、V21（GB300 8,987）、V22（TensorRT-LLM H200 1,436）；新增 `SRC_PERF_079–083`、`SRC_HW_067`／`068`。
+  - G4：V1–V3 改軟上限（高於 1 但未超過上限＝警示），新增 `CHK_VerifyWarn`；`CHK_VerifyTotal`／`Pass`／`Fail`／`Warn` 19／11／8／— → 22／14／7／1。
+- 變動：`IF_AllocRDGW` 0.2402 → 0.1973、`IF_AllocQ1` 0.2110 → 0.1801、`L1_ScaleRD` 5.318 → 6.476，GB200 欄成本與訓練鏈名稱隨之改變；`IF_AllocServeGW`、`L1_MFleet`、各世代 `IF_TokGW_*` 不變。公式格 49,490 → 49,696；具名範圍 1,362 → 1,370。
+- 測試：期望值更新（逐項舊→新見報告）；契約快照 `contract_snapshot_v10.3.json` → `contract_snapshot_v11.0.json`（637 名稱）；死格基準 3,574 → 3,598（Calib L 節顯示格，已填用途）；未刪除或放寬任何測試。
+
 ## 20261016_Tokenomics_v10.3.xlsx（取代 v10.2；次版：第 4 批 4-2a 段，外露寫死參數、重複定義、驗證與契約快照；依工作單 `docs/workorders/20261016_瘦身4-2.md`）
 
 - 分支 `claude/slim-4-2a`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_瘦身4-2a.md`；進度檔：`docs/reports/20261016_瘦身4-2a_進度.md`。底稿：master（v10.2，已確認）。

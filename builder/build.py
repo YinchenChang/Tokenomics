@@ -76,6 +76,8 @@ import v523
 v523.calib_i(wb)       # v5.23 X10: Calib I section, CAL_BatchEtaD (after the existing content, nothing moves)
 CAL["J"] = v1020.calib_j(wb, CAL, SP)       # v10.2 E1／E3: Calib J section (calibration copy rows and aligned conditions; below section I, nothing moves)
 CAL["K"] = v1030.calib_k(wb)       # v10.3 F1: Calib K section (L1_JudgeTol; below J, nothing moves)
+import v1100
+CAL["L"] = v1100.calib_l(wb, CAL, SP)       # v11.0 G2／G3: Calib J C／D η_d carries CAL_BatchEtaD; Calib L section (V20–V22 batch-path validation points; below K, nothing moves)
 energy_inputs(wb)
 TR = tech_registry(wb)
 TI = train_in(wb)
@@ -183,6 +185,7 @@ V518_LOG += v602.decisions_update(wb)       # v6.2: AF1-D8 status (TTFT part sup
 V518_LOG += v603.inputs_update(wb)       # v6.3 J1 r1: Spec_Rack ARCH_ScaleGen_Lo／_Hi (old-value guards)
 V518_LOG += v603.decisions_update(wb)       # v6.3: AF2-D1c r1 note
 V518_LOG += v1030.inputs_update(wb)       # v10.3 F1: Spec_Rack G11／G13 read SR_RU_PxMultLo／Hi (old-formula guards), G14 note
+V518_LOG += v1100.inputs_update(wb)       # v11.0 G2: Calib D156 (CAL_BatchEtaD GB200) 1 -> 3.04 (old-value guard)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -307,6 +310,8 @@ V1020 = v1020.apply(wb, v518._append_text)       # v10.2: Perf_Batch R-S labels 
 print("v1020 eta calibration:", V1020)
 V1030 = v1030.apply(wb, v518._append_text)       # v10.3 (4-2a): notes and 用途 marks, Gov_Map notes, Decisions SL42-*
 print("v1030 slimming 4-2a:", V1030)
+V1100 = v1100.apply(wb, v518._append_text)       # v11.0: notes (J156, J68, Gov_Map C68), Calib L 用途 marks, Decisions BB-*
+print("v1100 big-batch fix:", V1100)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

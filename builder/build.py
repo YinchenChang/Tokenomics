@@ -35,6 +35,8 @@ SNAP_RETIRED = [("Arch", (lab, 0), c) for lab in ("KV bytes/token — 情境 1",
                 for c in (3, 4, 5)] + [("Cap_In", (row[0], 0), 14) for row in PRICE_ROWS]
 import v535
 SNAP_RETIRED += v535.SNAP_RETIRED       # v5.35 B2: Cap_In H10 mid-tier price index row (four blue 1s) is now a link to I-section L_price
+import v1020
+SNAP_RETIRED += v1020.SNAP_RETIRED       # v10.2 E3: Calib F120 (MLPerf v6.0 GB300 server reference, a blue literal 8,064) is now a link to SRC_PERF_076
 import v536
 for _old, _new in v536.SNAP_MOVES:      # v5.36 B2: the Alloc_In pricing-multiple label was renamed; the Excel values follow it
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
@@ -69,6 +71,7 @@ serving(wb)
 CAL = calib(wb, SP, AR)
 import v523
 v523.calib_i(wb)       # v5.23 X10: Calib I section, CAL_BatchEtaD (after the existing content, nothing moves)
+CAL["J"] = v1020.calib_j(wb, CAL, SP)       # v10.2 E1／E3: Calib J section (calibration copy rows and aligned conditions; below section I, nothing moves)
 energy_inputs(wb)
 TR = tech_registry(wb)
 TI = train_in(wb)
@@ -294,6 +297,8 @@ print("gov:", {k: v for k, v in GOV.items() if k != "fm_log"})
 import v1010
 V1010 = v1010.apply(wb)       # v10.1 (4-1): slimming that does not change any output; runs last so it is applied on top of everything else
 print("v1010 slimming:", V1010)
+V1020 = v1020.apply(wb, v518._append_text)       # v10.2: Perf_Batch R-S labels (E4), SRC notes and second sources, Decisions status
+print("v1020 eta calibration:", V1020)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

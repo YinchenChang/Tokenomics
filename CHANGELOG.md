@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261016_Tokenomics_v10.2.xlsx（取代 v10.1；次版：η 校準與驗證判準；依工作單 `docs/workorders/20261016_η校準.md`）
+
+- 分支 `claude/eta-calib`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_η校準.md`；進度檔：`docs/reports/20261016_η校準_進度.md`。底稿：master（v10.1，已移至 `model/archive/`）。
+- Excel（CC 以 `builder/v1020.py` 自 v10.1 產生，經 LibreOffice 重算存檔）：
+  - E1：Calib 新增 J 節（校準與條件對齊複本列）。Hopper 在 DeepSeek profile 條件下無解（EP 通訊項下限使產出上限只有目標的 0.94），GB200 的解（約 3.0）使有效算力高於 GB300 並使 V5 失敗：依停損規則 C67（1.2）、GB200 倍數**未寫入**，列待 Project 判斷。
+  - E2：Serving C21:E21 改為 AA 與 OpenRouter 中位數的幾何平均 84.3／43.3／40.8 tok/s/user（SRC_PERF_066–071）；Gov_Map GM239–GM241 改 Derived；新增情境 `slo_v10`（120／65／55）。
+  - E3：V2 改 MLPerf v6.0 GB200 NVL72 4,668、V3 改 GB300 72 GPU 機櫃 5,562、V7／V8 條件對齊、V13／V14 加上限 3、新增 V15（DeepSeek 線上服務 1,850）、V16／V17（原 Checks B26／B36）；驗證計數 14／7／7 → 17／9／8。新增 SRC_PERF_066–078、證據 E379、Decisions ETA-*。
+  - E4：Perf_Batch R–S 欄標註「只供敏感度情境」，Decisions 記錄 Andy 2026-10-16 18:22 決定 (b)。
+- 不變：`IF_AllocServeGW`、`IF_AllocRDGW`、`L1_LReqFleet_Id`、`L1_HoldEconMW_*`、Training 各頁。
+- 測試：`tests/parity/scenarios.yaml` 新增情境 `slo_v10`、更新公式格數 49,424、具名範圍 1,359、SRC 名稱 458；`test_parity.py` 驗證計數 17／9／8。
+
 ## 20261016_Tokenomics_v10.1.xlsx（取代 v10.0；工程類（CC 執行）：第 4 批 4-1 瘦身，輸出不變；依工作單 `docs/workorders/20261016_瘦身4.md` 第 1 節）
 
 - 分支 `claude/slim-4-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261016_瘦身4-1.md`；進度檔：`docs/reports/20261016_瘦身4-1_進度.md`。底稿：master（v10.0，已移至 `model/archive/`）。

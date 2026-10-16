@@ -187,9 +187,9 @@ CK_NATURE = {
     14: ("校準：擬合點重現", CK_ID), 15: ("樣本外：GB300 SGLang", CK_V), 16: ("樣本外：GB300 vLLM", CK_V), 17: ("樣本外：GB200 vLLM", CK_V), 18: ("樣本外：GB200／GB300 110", CK_CMP),
     19: ("GB300 Sol 經濟成本 vs InferenceX", CK_CMP), 20: ("VR200 ÷ GB300 每 GW 產出", CK_CMP), 21: ("GB300 每 GPU 功率", CK_CMP), 22: ("VR200 ÷ GB300 decode", CK_CMP),
     23: ("第二來源：GB300 interactive", CK_V), 24: ("第二來源：VR200 ÷ GB300", CK_CMP), 25: ("來源衝突：GB300 ÷ GB200", CK_CMP),
-    26: ("能量閉合", CK_ID), 27: ("SLO 或 TTFT 不可達", CK_CMP), 28: ("牌價空間", CK_CMP),
+    26: ("能量閉合", CK_V), 27: ("SLO 或 TTFT 不可達", CK_CMP), 28: ("牌價空間", CK_CMP),
     32: ("DeepSeek V3 推導 MFU", CK_CMP), 33: ("RL ÷ 預訓練 GPU 小時：VR200 Astra", CK_CMP), 34: ("RL ÷ 預訓練 GPU 小時：VR200 Sol", CK_CMP), 35: ("RL 有效 MFU", CK_CMP),
-    36: ("後訓練占比：GPU 小時口徑", CK_ID), 37: ("最終訓練 ÷ 研發計畫", CK_CMP), 38: ("前沿錨點中值", CK_CMP), 39: ("Astra 最終訓練占 1 GW", CK_CMP),
+    36: ("後訓練占比：GPU 小時口徑", CK_V), 37: ("最終訓練 ÷ 研發計畫", CK_CMP), 38: ("前沿錨點中值", CK_CMP), 39: ("Astra 最終訓練占 1 GW", CK_CMP),
     43: ("OpenAI 2025 對帳", CK_CMP), 44: ("DeepSeek V4-Pro 尖峰", CK_CMP), 45: ("DeepSeek V4-Pro 離峰", CK_CMP), 46: ("DeepSeek V4.1-Flash", CK_CMP),
     47: ("單價前緣模型：Luna", CK_CMP), 48: ("單價前緣模型：Sol", CK_CMP), 49: ("單價前緣模型：Astra", CK_CMP), 50: ("中國合格者最低", CK_CMP), 51: ("隱含每 GW 年家族研發", CK_CMP),
     52: ("Fleet_1GW 服務 GW 閉合", CK_ID), 53: ("自下而上攤提", CK_CMP), 54: ("K6 縮放倍數", CK_CMP), 55: ("K6 (c)", CK_CMP), 56: ("機隊各層級貢獻合計", CK_ID),
@@ -243,25 +243,29 @@ def checks_v(wb, CAL):
     mT, mO = CAL["mT"], CAL["mO"]
     for vid, col, lab, src in (
             ("V1", "G", "MLPerf v5.1 server（DeepSeek-R1）：Hopper——模型 ÷ MLPerf ≤ 1", "SRC_PERF_060；DGX H200（8 GPU，NVIDIA 提交，NVIDIA 註明 Hopper 結果未經 MLCommons 驗證）；模型為 H100 規格（頻寬較 H200 低，上限偏寬）"),
-            ("V2", "H", "MLPerf v5.1 server：GB200 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_061；NVIDIA 提交，Closed"),
-            ("V3", "F", "MLPerf v6.0 server：GB300 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_026；v6.0 Closed（3A 第 2 節）"),
+            ("V2", "H", "MLPerf v6.0 server：GB200 NVL72（NVIDIA 72 GPU）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_075（4,668，NVIDIA，Interested-party；v10.2 E3 取代 v5.1 的 SRC_PERF_061＝2,327）；第二來源 CoreWeave 64 GPU 4,868（SRC_PERF_077）"),
+            ("V3", "F", "MLPerf v6.0 server：GB300 NVL72（NVIDIA 72 GPU 機櫃）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_076（5,562，NVIDIA 72 GPU；v10.2 E3 取代 Nebius 8 GPU 單機 8,064＝SRC_PERF_026）；同輪機櫃範圍 5,562–7,994（Nebius 72 GPU 7,994＝SRC_PERF_078）"),
             ("V4", "C", "MLPerf v6.1 interactive：GB300 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_028／SRC_HW_047；Calib H 節第 1 驗證點"),
             ("V5", "D", "MLPerf v6.0 interactive：GB200 NVL72——模型 ÷ MLPerf ≤ 1", "SRC_PERF_025／SRC_HW_047；Calib H 節第 2 驗證點"),
             ("V6", "E", "MLPerf v6.1 interactive：VR200 NVL72（預覽類）——模型 ÷ MLPerf ≤ 1", "SRC_PERF_027／SRC_HW_047；預覽類提交，Calib H 節第 3 驗證點")):
         items.append((vid, lab, f"=Calib!{col}{mO}", f"=Calib!{col}{mT}", None, 0, 1, "MLPerf（Interested-party）；" + src))
     items += [
-        ("V7", "LMSYS H100 decode：Hopper × Sol——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0（口徑不嚴，無明確 SLO）", "=INDEX(DRV_DecTokGPU,1,2)", "=SRC_PERF_062", None, 0.5, 2.0,
-         "SRC_PERF_062（LMSYS／SGLang，96×H100，輸入 2,000，ITL 約 100 ms；Atlas Cloud 有商業動機）；模型值＝Perf 第 88 列 Hopper Sol（SLO 約 65 tok/s/user，遠嚴於 LMSYS）；不用於校準"),
-        ("V8", "LMSYS GB200 decode：GB200 × Sol——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0（口徑不嚴，無明確 SLO）", "=INDEX(DRV_DecTokGPU,1,5)", "=SRC_PERF_063", None, 0.5, 2.0,
-         "SRC_PERF_063（LMSYS／SGLang，GB200 NVL72，NVFP4，輸入 2,000，decode 48 rank，無 TPOT；與 NVIDIA 合作，Interested-party 成分高）；模型值＝Perf 第 88 列 GB200 Sol；不用於校準"),
+        ("V7", "LMSYS H100 decode（條件對齊）：Hopper——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0", f"=Calib!F{CAL['J']['jD']}", "=SRC_PERF_062", None, 0.5, 2.0,
+         "SRC_PERF_062（LMSYS／SGLang，96×H100，輸入 2,000，ITL 約 100 ms；Atlas Cloud 有商業動機）；v10.2 E3：模型值改為 Calib J 節 F 欄（條件對齊：DeepSeek-V3 規模、輸入 2,000、ITL 100 ms＝10 tok/s/user，批次由速度下限與 HBM 決定）；不用於校準"),
+        ("V8", "LMSYS GB200 decode（條件對齊）：GB200——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0", f"=Calib!G{CAL['J']['jD']}", "=SRC_PERF_063", None, 0.5, 2.0,
+         "SRC_PERF_063（LMSYS／SGLang，GB200 NVL72，NVFP4，輸入 2,000，decode 48 rank，無 TPOT；與 NVIDIA 合作，Interested-party 成分高）；v10.2 E3：模型值改為 Calib J 節 G 欄（條件對齊，同 V7）；不用於校準"),
         ("V9", "RL ÷ 預訓練 GPU 小時：Luna（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,10)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3,
          "對照值＝Olmo 3（AI2）RL ÷ 預訓練約 0.11（SRC_PERF_064）；DeepSeek-V3.2 ≥ 0.1（SRC_PERF_065）；帶 0.1–0.3（3A 第 3 節）；模型值＝Training 第 78 列（J9 目標約 0.3，基準校準值，不是證據）"),
         ("V10", "RL ÷ 預訓練 GPU 小時：Sol（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,11)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3, "同上；Sol"),
         ("V11", "harness 輪數倍數 ≥ 1（Coding agent；選定檔案；SWE Atlas：原生 scaffold 工具呼叫多 1.5–2 倍，只判方向）", "=INDEX(B5_SelT,1,5)", "=SRC_HAR_016_Lo", "=C{r}", 1, None,
          "SRC_HAR_016（SWE Atlas arXiv 2605.08366：原生 scaffold 對 mini-SWE-agent 工具呼叫 1.5–2 倍）；基準 0.7（Har_In 第 12 列，Q3＝R1）預期失敗，如實顯示，不調輸入；工具呼叫數不等於輪數，只作方向證據"),
         ("V12", "樣本外：GB300 SGLang＋MTP 50 tok/s——模型 ÷ 實測 ±10%（Checks B15）", "—", "=Checks!C15", "=Checks!B15", 0.9, 1.1, "SRC_PERF_004；Checks B15 原判準「±10% 內視為前緣形狀成立」"),
-        ("V13", "樣本外：GB300 vLLM 無 MTP 27 tok/s——模型 ÷ 實測 > 1（Checks B16）", "—", "=Checks!C16", "=Checks!B16", 1, None, "SRC_PERF_001；Checks B16 原判準「應 >1：舊軟體」"),
-        ("V14", "樣本外：GB200 vLLM 無 MTP 27 tok/s——模型 ÷ 實測 > 1（Checks B17）", "—", "=Checks!C17", "=Checks!B17", 1, None, "SRC_PERF_002；Checks B17 原判準「應 >1：舊軟體＋記憶體限制配方」"),
+        ("V13", "樣本外：GB300 vLLM 無 MTP 27 tok/s——模型 ÷ 實測 > 1（Checks B16）", "—", "=Checks!C16", "=Checks!B16", 1, 3, "SRC_PERF_001；Checks B16 原判準「應 >1：舊軟體」；v10.2 E3 加上限 ≤ 3（chat 端預設，可撤回）：舊軟體點模型應高於實測，但不應高出數倍"),
+        ("V14", "樣本外：GB200 vLLM 無 MTP 27 tok/s——模型 ÷ 實測 > 1（Checks B17）", "—", "=Checks!C17", "=Checks!B17", 1, 3, "SRC_PERF_002；Checks B17 原判準「應 >1：舊軟體＋記憶體限制配方」；v10.2 E3 加上限 ≤ 3（同 V13，可撤回）"),
+        ("V15", "DeepSeek 線上服務 decode（條件對齊）：Hopper H800——模型 ÷ 實測，通過帶 0.5–2.0", f"=Calib!E{CAL['J']['jD']}", "=SRC_PERF_073", None, 0.5, 2.0,
+         "SRC_PERF_073（1,850 tok/s/GPU，24 小時平均）；與校準點 2,324 同一家公司，相關性高；模型值＝Calib J 節 E 欄（KV 4,989、EP144、約 21 tok/s/user）；不用於校準"),
+        ("V16", "能量閉合：各欄最大閉合比 ≤ 100%（Checks B26）", "—", "—", "=Checks!B26", 0, 1, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
+        ("V17", "後訓練占比：GPU 小時口徑 − FLOPs 口徑 ≥ 0（Checks B36）", "—", "—", "=Checks!B36", 0, None, "原『恆等式（非驗證）』；單邊界限，輸入改變時可能失敗，v10.2 E3 改回驗證計數"),
     ]
     for vid, lab, c, d, e, lo, hi, note in items:
         put(ws, f"A{r}", vid); put(ws, f"B{r}", lab, wrap=True)

@@ -822,7 +822,7 @@ def test_v535_l_split(model, lo):
     import openpyxl
     wb = openpyxl.load_workbook(model, read_only=True)
     cap = {wb["Cap_In"][f"A{r}"].value: r for r in range(182, 275) if isinstance(wb["Cap_In"][f"A{r}"].value, str)}
-    row = lambda p: next(r for lab, r in cap.items() if lab.startswith(p))
+    row = lambda p: next(r for lab, r in cap.items() if re.sub(r"^【[^】]*】", "", lab).startswith(p))   # v10.1 4-1：歷史說明列加「【各版演進記錄…】」前綴
     i0 = row("I. L 拆分")
     assert row("H10. m 季度序列") < row("自我檢查：2025 欄") < i0 < row("讀法")                                   # I 節在 H10 之後、讀法列之前
     for lab, cols in (("m_API", (0.657758, 0.294994, 0.340278, 0.348339)), ("m_消費訂閱", (4.972653, 5.743864, 5.398635, 5.568844)), ("m_商用席次", (2.131137, 3.555726, 4.557290, 8.043885)),

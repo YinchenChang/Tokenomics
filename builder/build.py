@@ -317,6 +317,9 @@ V1100 = v1100.apply(wb, v518._append_text)       # v11.0: notes (J156, J68, Gov_
 print("v1100 big-batch fix:", V1100)
 V1200 = v1200.apply(wb, v518._append_text)       # v12.0: notes (J156, J68, H156), Alloc N range section, Decisions BB2-*
 print("v1200 v11.1 patch:", V1200)
+import v1300
+V1300 = v1300.apply(wb, v518._append_text)       # v13.0 (4-2b-1): RNG_ range section (Alloc O), range freshness check (Checks RG), K4 label, Decisions BB3-*
+print("v1300 4-2b-1:", {k: v for k, v in V1300.items() if k != "table"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

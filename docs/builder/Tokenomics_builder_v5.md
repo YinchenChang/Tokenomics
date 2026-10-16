@@ -1521,6 +1521,7 @@ import v1020
 import v1030
 import v1100
 import v1200
+import v1300
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1627,7 +1628,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v1200.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v1300.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1674,11 +1675,12 @@ def readme(wb):
       v1030.README_ROW,       # v10.3: slimming 4-2a (appended; no README row moves)
       v1100.README_ROW,       # v11.0: big-batch fix (appended; no README row moves)
       v1200.README_ROW,       # v12.0: v11.1 patch (appended; no README row moves)
+      v1300.README_ROW,       # v13.0: ranges and K1–K5 (appended; no README row moves)
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v1200.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v1300.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -29259,6 +29261,255 @@ README_ROW = ("v11.1 修補（v12.0）",
               "驗證軟上限加失敗門檻 CHK_SoftCapFail；GB200 批次倍數 2.36（兩點幾何平均）、Hopper 維持 1（已知低估、無解）；C68 更正註記；研發 GW 與 Q1 區間（Alloc N 節）；V19 重算比對、V18 與 V20 移出驗證計數。細節見 Decisions BB2-*。")
 ```
 
+## v1300.py
+
+```python
+# v13.0 (work order docs/workorders/20261017_4-2b.md section 1 = 4-2b-1, branch claude/4-2b-1; K1–K5).
+#   K1  Batch-multiplier ranges for every contract name that moves with CAL_BatchEtaD[GB200] / [Hopper]: RNG_<name>_Lo / RNG_<name>_Hi (Alloc section O; same shape as <name>).
+#       Endpoints are scenario recalculations (tools/gen_ranges.py -> builder/v1300_ranges.json), written as black constants; the list of names is derived from the recalculation itself.
+#   K2  Freshness: RNG_Version (version at which the endpoints were generated) vs RNG_Current (README!B5) and a base-inside-range count; RNG_StaleFlag shows 一致／區間過期; Checks RG1／RG2 (WARN, counted in GOV_Warnings).
+#       tests/parity (test_v1300_*) recompute all endpoints from scenarios and require equality (1e-9).
+#   K3  Calib C68 category (Gov_Map col F) 倒推 -> Assumed (enters Load_Bearing); the old category and the pre-v12.0 interval are kept in a new Gov_Map column AL; note appended to col N and O.
+#   K4  Checks V: "Pass + Fail + Warn = Total" is labelled a structural identity (not a verification); it was never in the verification count, so only labels change.
+#   K5  Name-count reconciliation of the v12.0 build report (text only: docs/reports/20261016_v11.1修補.md, appended correction).
+# Major version: new contract names RNG_* (CLAUDE.md section 4). Every write to an Excel-owned cell is guarded (old value / old text); existing values of IF_／IFW_／L1_／CHK_ names do not change.
+import json
+from copy import copy
+from pathlib import Path
+
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.utils import get_column_letter as L
+from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+import v1020
+import v1200
+
+VERSION = "20261017_Tokenomics_v13.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-17"
+V = "v13.0"
+WO = "工作單 docs/workorders/20261017_4-2b.md 第 1 節（4-2b-1）"
+DEC_BY = "Andy 2026-10-17 01:46「開始」（工作單 4-2b；K1–K5 的處理方式為 chat 端預設，可撤回）"
+DASH = "—"
+RANGES_JSON = Path(__file__).resolve().parent / "v1300_ranges.json"
+
+
+def load_ranges():
+    if not RANGES_JSON.exists():
+        return {"version": "", "names": {}, "graph_only_vr200": [], "graph_only_static": [], "display_names_moved": []}
+    return json.loads(RANGES_JSON.read_text(encoding="utf-8"))
+
+
+RNG = load_ranges()
+
+SEC_TITLE = ("O. 批次口徑倍數區間端點（v13.0 K1／K2）：凡隨 CAL_BatchEtaD 的 GB200（Calib D156）或 Hopper（Calib C156）倍數變動的契約名稱 X，各有 RNG_X_Lo／RNG_X_Hi（形狀同 X）。"
+             "端點＝情境重算（高端：GB200 1.83；低端：GB200 3.04、Hopper 3.74）兩者每格的較小／較大者，不是情境的『低端／高端』；以黑字數值寫入（不是公式，改輸入後不會自動更新）。"
+             "時效：RNG_Version 必須等於現行版本，且基準落在區間內，否則 RNG_StaleFlag 顯示『區間過期』（Checks RG1／RG2，WARN）；tests/parity 以情境重算逐格比對全部端點（容差 1e-9）。重新產生：python3 tools/gen_ranges.py")
+HDR = ["名稱 X", "列", "（以下每格＝X 的同一格；15 格名稱依序為 5 個世代 × 低成本／基準／高成本）"]
+WIDTH_COLS = 15
+
+
+# ================================================================== K1／K2: Alloc section O
+def _last_row(ws):
+    return max(c.row for row in ws.iter_rows() for c in row if c.value is not None)
+
+
+def alloc_ranges(wb):
+    """Section O of the Alloc sheet below section N. Names: RNG_<X>_Lo／_Hi (X ordered), RNG_Version, RNG_Current, RNG_OutCount, RNG_StaleFlag."""
+    ws = wb["Alloc"]
+    names = RNG["names"]
+    r0 = _last_row(ws) + 2
+    section(ws, r0, SEC_TITLE, 18)
+    r = r0 + 1
+    gens = [wb["Spec_Rack"].cell(4, c).value for c in range(3, 8)]
+    gens = [g if isinstance(g, str) else f"世代{i + 1}" for i, g in enumerate(gens)]
+    var = ["低成本", "基準", "高成本"]
+    # control cells
+    put(ws, f"A{r}", "區間計算版本（寫入端點時的版本）", F_BOLD); put(ws, f"C{r}", RNG["version"], F_CALC)
+    put(ws, f"D{r}", "RNG_Version：tools/gen_ranges.py 產生端點檔時的活頁簿版本（builder/v1300_ranges.json 的 version）；改版後若未重新產生，與下一格不一致", F_NOTE)
+    r_ver = r; r += 1
+    put(ws, f"A{r}", "現行版本（README!B5 開頭的檔名）", F_BOLD); put(ws, f"C{r}", '=IFERROR(LEFT(README!$B$5,FIND("（",README!$B$5)-1),README!$B$5)', F_LINK)
+    put(ws, f"D{r}", "RNG_Current：與 model/CURRENT 的檔名主幹相同（test_readme_version_consistency 守護）", F_NOTE)
+    r_cur = r; r += 1
+    r_out = r; r += 1
+    r_flag = r; r += 1
+    r += 1      # blank row
+    # table header
+    hdr_row = r
+    put(ws, f"A{r}", HDR[0], F_BOLD); put(ws, f"B{r}", HDR[1], F_BOLD)
+    for k in range(WIDTH_COLS):
+        put(ws, f"{L(3 + k)}{r}", f"{gens[k // 3]}｜{var[k % 3]}", F_BOLD, wrap=True)
+    put(ws, f"{L(3 + WIDTH_COLS)}{r}", "基準落在區間外的格數（容差 1e-9）", F_BOLD, wrap=True)
+    ws.row_dimensions[r].height = 44
+    r += 1
+    first = r
+    made = []
+    out_rows = []
+    for n in sorted(names):
+        rec = names[n]; cnt = rec["n"]
+        rl, rb, rh = r, r + 1, r + 2
+        put(ws, f"A{rl}", n, F_BOLD); put(ws, f"A{rb}", n); put(ws, f"A{rh}", n)
+        put(ws, f"B{rl}", "下限 Lo", F_CALC); put(ws, f"B{rb}", "基準（即時）", F_CALC); put(ws, f"B{rh}", "上限 Hi", F_CALC)
+        for k in range(cnt):
+            col = L(3 + k)
+            put(ws, f"{col}{rl}", rec["lo"][k], F_CALC)
+            put(ws, f"{col}{rh}", rec["hi"][k], F_CALC)
+            put(ws, f"{col}{rb}", f"={n}" if cnt == 1 else f"=INDEX({n},1,{k + 1})", F_CALC)
+        lc = L(2 + cnt)
+        b = f"C{rb}:{lc}{rb}" if cnt > 1 else f"C{rb}"
+        lo = f"C{rl}:{lc}{rl}" if cnt > 1 else f"C{rl}"
+        hi = f"C{rh}:{lc}{rh}" if cnt > 1 else f"C{rh}"
+        put(ws, f"{L(3 + WIDTH_COLS)}{rb}",
+            f"=SUMPRODUCT(({b}<{lo}-1E-9*ABS({lo})-1E-12)+({b}>{hi}+1E-9*ABS({hi})+1E-12))", F_CALC, fmt="0")
+        out_rows.append(rb)
+        for tag, row in (("Lo", rl), ("Hi", rh)):
+            ref = f"Alloc!$C${row}:${lc}${row}" if cnt > 1 else f"Alloc!$C${row}"
+            wb.defined_names[f"RNG_{n}_{tag}"] = DefinedName(f"RNG_{n}_{tag}", attr_text=ref)
+        made.append(n)
+        r += 3
+    last = r - 1
+    oc = L(3 + WIDTH_COLS)
+    put(ws, f"A{r_out}", "基準落在區間外的格數（全部名稱合計）", F_BOLD)
+    put(ws, f"C{r_out}", f"=SUM({oc}{first}:{oc}{last})", F_CALC, fmt="0")
+    put(ws, f"D{r_out}", "RNG_OutCount：不為 0 表示上游輸入已改動、端點不再涵蓋基準（需重新產生端點檔）", F_NOTE)
+    put(ws, f"A{r_flag}", "區間時效旗標", F_BOLD)
+    put(ws, f"C{r_flag}", f'=IF(AND(C{r_ver}=C{r_cur},C{r_out}=0),"一致","區間過期")', F_BOLD, fill=FILL_KEY)
+    put(ws, f"D{r_flag}", "RNG_StaleFlag：『一致』＝端點產生於現行版本且基準仍在區間內；『區間過期』＝請勿使用 RNG_*，須重新產生（Checks RG1／RG2 WARN）", F_NOTE)
+    for nm, ref in (("RNG_Version", f"Alloc!$C${r_ver}"), ("RNG_Current", f"Alloc!$C${r_cur}"), ("RNG_OutCount", f"Alloc!$C${r_out}"), ("RNG_StaleFlag", f"Alloc!$C${r_flag}")):
+        wb.defined_names[nm] = DefinedName(nm, attr_text=ref)
+    # excluded names (upstream contains CAL_BatchEtaD but the two endpoint scenarios do not move them): listed so that nobody reads their absence as 'certain'
+    r = last + 2
+    vr = RNG["graph_only_vr200"]; st = RNG["graph_only_static"]
+    put(ws, f"A{r}", "未建區間的名稱（依賴圖上游含 CAL_BatchEtaD，但兩個端點情境下值不變）：", F_BOLD); r += 1
+    put(ws, f"A{r}", f"（a）只經 VR200 欄（CAL_BatchEtaD 第 4 格＝0.75；Gov_Map H156 區間 0.70–1.0）{len(vr)} 個，GB200／Hopper 倍數改變時不動，VR200 倍數改變時會動；"
+                     f"本版區間只涵蓋 GB200／Hopper 倍數，未涵蓋 VR200 倍數：{'、'.join(vr) if vr else '（無）'}", F_NOTE); r += 1
+    put(ws, f"A{r}", f"（b）依賴圖上有路徑、但任何倍數改變都不動（計數、守衛或不選用的欄）{len(st)} 個：{'、'.join(st) if st else '（無）'}", F_NOTE); r += 1
+    return {"first": first, "last": last, "names": len(made), "cells": sum(names[n]["n"] for n in made), "ver_row": r_ver, "cur_row": r_cur, "out_row": r_out, "flag_row": r_flag,
+            "out_rows": out_rows, "end": r}
+
+
+# ================================================================== K2: Checks RG section
+def checks_rg(wb, A):
+    ws = wb["Checks"]
+    r = _last_row(ws) + 2
+    section(ws, r, "RG. 批次口徑區間時效檢查（v13.0 K2，工作單 4-2b-1）：RG1、RG2 為 WARN，計入 GOV_Warnings（不阻擋）；端點本身由 tests/parity 以情境重算逐格比對", 6); r += 1
+    for i, h in enumerate(["編號", "檢查", "等級", "筆數", "範圍與算法"]): put(ws, f"{L(i + 1)}{r}", h, F_BOLD)
+    r += 1
+    rows = [("RG1", "批次口徑區間的計算版本（RNG_Version）不等於現行版本（RNG_Current）：1＝區間過期", f'=IF(RNG_Version=RNG_Current,0,1)', "RNG_Version；RNG_Current（README!B5）；Alloc O 節"),
+            ("RG2", "批次口徑區間：任一格基準值落在 RNG_*_Lo／_Hi 之外：1＝是（容差 1e-9；上游輸入改動後區間不再涵蓋基準；格數見 RNG_OutCount，計入 GOV_Warnings 時最多算 1）", "=IF(RNG_OutCount>0,1,0)", "RNG_OutCount；Alloc O 節 R 欄")]
+    at = {}
+    for code, lab, f, note in rows:
+        put(ws, f"A{r}", code); put(ws, f"B{r}", lab, wrap=True); put(ws, f"C{r}", "WARN")
+        put(ws, f"D{r}", f, F_CALC, fmt="0"); put(ws, f"E{r}", note, F_NOTE); at[code] = r; r += 1
+    ref = wb.defined_names["GOV_Warnings"].attr_text.split("!")[1].replace("$", "")
+    cell = ws[ref]
+    for c in ("RG1", "RG2"):
+        if f"D{at[c]}" not in str(cell.value): cell.value = f"{cell.value}+D{at[c]}"
+    lab = ws[f"B{int(ref[1:])}"]
+    if "RG1" not in str(lab.value): lab.value = (str(lab.value)[:-1] + "、RG1、RG2）") if str(lab.value).endswith("）") else f"{lab.value}、RG1、RG2"
+    return at
+
+
+# ================================================================== K3: Gov_Map C68 (called from gov.py's update chain)
+GM_NEW_COL = "AL"
+GM_NEW_HDR = "v13.0 前的類別與區間（保留原文；工作單 4-2b K3）"
+N_ADD = (" ｜v13.0（4-2b-1 K3）：類別由『倒推』更正為 Assumed（無來源，見 Decisions BB2-H4）；原類別字樣與 v12.0 以前的區間文字保留於本列 AL 欄。C68 隨之進入 Load_Bearing（高段 Assumed）")
+O_ADD = " ｜v13.0 K3：類別欄由『倒推』改為 Assumed，原字樣保留於 AL 欄"
+
+
+def gov_update(ws, append_text):
+    n = 0
+    r = v1020._gm_row(ws, "Calib", "C68")
+    hdr = ws[f"{GM_NEW_COL}4"]
+    if hdr.value in (None, ""):
+        hdr.value = GM_NEW_HDR
+        src = ws["AK4"]
+        hdr.font = copy(src.font); hdr.fill = copy(src.fill); hdr.alignment = copy(src.alignment)
+        ws.column_dimensions[GM_NEW_COL].width = 46
+        n += 1
+    if ws[f"F{r}"].value == "倒推":
+        old_m = "1–3（原註）"      # v11.0 and earlier: 區間文字; K／L were 1／3
+        ws[f"{GM_NEW_COL}{r}"].value = ("v13.0 前：類別＝倒推（v5.11 起；v12.0 H4 已註明無證據，Decisions BB2-H4）｜v12.0 前：區間文字＝" + old_m + "（低 1、高 3）｜"
+                                         "v12.0：區間 1.0–1.5（低 1、高 1.5）；現行區間 1.0–1.5 維持")
+        ws[f"F{r}"].value = "Assumed"; n += 2
+    n += append_text(ws[f"N{r}"], N_ADD)
+    n += append_text(ws[f"O{r}"], O_ADD)
+    return n
+
+
+# ================================================================== K4: labels in Checks V
+def k4_labels(wb, append_text):
+    ws = wb["Checks"]
+    n = 0
+    vt = next(r for r in range(100, ws.max_row + 1) if ws.cell(r, 1).value == "VT")
+    n += append_text(ws[f"B{vt}"], "｜恆等式（非驗證）：Pass＋Fail＋Warn＝Total 是結構恆等式（Fail 以 COUNT(F)−Pass 算出，Total 以 COUNT(F)＋警示數算出），不能失敗，不是驗證項目，也不在本計數內（v13.0 K4）")
+    intro = vt - 1
+    n += append_text(ws[f"A{intro}"], "｜v13.0 K4：『Pass＋Fail＋Warn＝Total』是結構恆等式（恆等式（非驗證）），不計入驗證項目數；它由 tests/parity 以斷言守護。")
+    return n
+
+
+# ================================================================== end of build
+def apply(wb, append_text):
+    log = {}
+    log["table"] = alloc_ranges(wb)
+    A = log["table"]
+    log["checks_rg"] = checks_rg(wb, A)
+    log["k4_labels"] = k4_labels(wb, append_text)
+    log["decisions"] = decisions_append(wb)
+    return {**{k: v for k, v in log.items() if k != "table"}, "ranges": {k: v for k, v in A.items() if k not in ("out_rows",)}, "table": A}
+
+
+# ================================================================== Decisions (10 columns; layout of v1200)
+_D = [
+    ("K1", "批次口徑倍數區間：全部受影響的契約名稱補低／高端（RNG_<名稱>_Lo／_Hi）",
+     f"查核 #92 第 1 項：v12.0 只給 IF_AllocRDGW、IF_AllocQ1 區間，其餘隨 GB200／Hopper 倍數變動的名稱仍是點值。本版依賴圖＋情境重算決定名單：納入 {len(RNG['names'])} 個契約名稱（IF_／L1_），"
+     f"共 {sum(v['n'] for v in RNG['names'].values())} 格；端點＝兩個端點情境（高端：GB200 1.83；低端：GB200 3.04、Hopper 3.74）每格的較小／較大者，並確認其他三個角落（1.83×3.74、3.04×1、Hopper 3.74 單獨）與基準都落在端點之內。"
+     f"有 {sum(1 for v in RNG['names'].values() if v.get('inverted_cells'))} 個名稱隨倍數增加而下降或反向（_Lo 對應情境的高端），故 _Lo／_Hi 一律指數值較小／較大端。依賴圖上游含 CAL_BatchEtaD 但兩個端點情境下值不變者另列於 Alloc O 節末（只經 VR200 欄或與倍數無關的路徑），本版不建區間。"
+     "IF_AllocRDGW、IF_AllocQ1 的舊表 AL_RngRDGW／Q1_Lo／Hi（6 位小數、v12.0）保留不動，新表 RNG_IF_AllocRDGW／Q1_* 為全精度，兩者差異 < 5e-7。",
+     "Alloc O 節；RNG_*；tools/gen_ranges.py；builder/v1300_ranges.json；下游契約文件", "v13.0 已建"),
+    ("K2", "區間時效保證（RNG_Version、RNG_StaleFlag、Checks RG1／RG2、parity 逐格重算）",
+     "查核 #92 第 2 項（原則 2：搜得到的數字不得是陷阱）：區間端點是情境重算結果，只能以數值寫入 Excel，輸入改動後會悄悄過期。四道保證：（1）RNG_Version 記錄產生端點時的版本；（2）RNG_Current 讀 README!B5，兩者不同或基準落在區間外時 RNG_StaleFlag 顯示『區間過期』；"
+     "（3）Checks RG1／RG2（WARN）計入 GOV_Warnings；（4）tests/parity 的 test_v1300_ranges_equal_scenarios 以情境重算全部端點並要求等於 Excel 內的值（容差 1e-9），名單也由重算結果決定（新出現受倍數影響的契約名稱而沒有區間，測試失敗）；"
+     "（5）全部 RNG_*_Lo／_Hi 與 AL_Rng* 納入契約快照。（4）才是真正的時效保證；（1）–（3）是使用者在 Excel 內看得到的警告。",
+     "Alloc O 節；Checks RG；tests/parity", "v13.0 已建"),
+    ("K3", "C68 類別欄更正為 Assumed，進入 Load_Bearing；原類別與 v12.0 以前區間保留於 Gov_Map AL 欄",
+     "查核 #92 第 3 項：v12.0 H4 把 C68 的正確標記說成 Assumed，但 Gov_Map F 欄仍是『倒推』，所以 C68 不在 Load_Bearing（類別∈{Assumed, Analogy} 且高段）。本版依工作單把 F 欄改為 Assumed，"
+     "並在新增的 Gov_Map AL 欄保留『v13.0 前：類別＝倒推』與『v12.0 前：區間文字 1–3（原註）、低 1、高 3』，N 欄理由與 O 欄標記變更追加更正說明。現行區間 1.0–1.5 維持。"
+     "注意：這是改動標記欄（CLAUDE.md 第 6 節），原字樣已保留，依工作單明文處理，見報告待 Project 判斷。Calib J68 的『倒推』舊字樣不動（v12.0 H4 已加更正註記）。",
+     "Gov_Map 第 350 列（GM346）F／N／O／AL；Load_Bearing；LB_Rows／LB_LiveCount", "v13.0 已建"),
+    ("K4", "『Pass＋Fail＋Warn＝Total』標為恆等式（非驗證）",
+     "查核 #92 第 4 項：Fail 以 COUNT(F)−Pass 算出，故恆等式在結構上不可能失敗，不是獨立檢查。它本來就不是 Checks V 的 F 欄項目，不在驗證計數內，所以只改標籤：Checks VT 列與 V 節說明追加『恆等式（非驗證）』。"
+     "CHK_VerifyTotal／Pass／Fail／Warn 的數值與公式不變（20／12／7／1）。是否另設獨立計數使其可失敗，列待 Project 判斷。",
+     "Checks V 節 A／B 欄標籤", "v13.0 已建"),
+    ("K5", "v12.0 建置報告的名稱數更正（文字，不改模型）",
+     "查核 #92 第 5 項：v12.0 報告寫『新增 6 個名稱、73 個值有變動』。重算：（i）活頁簿具名範圍 1,370 → 1,375，新增 5 個（CHK_SoftCapFail、AL_Rng*_Lo／Hi 四個）；『6』是契約快照的條目數（637 → 643），"
+     "其中 3 個是真正的新名稱（CHK_SoftCapFail、AL_RngRDGW_Lo、AL_RngQ1_Lo），3 個是既有名稱首次被快照收錄（CAL_BatchEtaD、SRC_HW_067、SRC_PERF_079）；（ii）值有變動：快照名稱 57 個（IF_ 41、L1_ 12、CHK_Verify 2、GOV_ 2，共 129 格），"
+     "全部具名範圍 87 個（另含 AL_ 17、TRN_ 8、LB_ 3、IDX_ 1、CAL_ 1）；『73』在任何口徑下都無法重現，判定為報告筆誤。更正註記已追加於 docs/reports/20261016_v11.1修補.md。",
+     "docs/reports/20261016_v11.1修補.md（追加更正）", "v13.0 已建"),
+]
+DECISIONS_V1300 = [[f"BB3-{i}", V, f"4-2b-1：{t}", txt, DATE, DEC_BY, st, where, f"{WO} {i}", "否"] for i, t, txt, where, st in _D]
+
+
+def decisions_append(wb):
+    ws = wb["Decisions"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1
+    n = 0
+    for row in DECISIONS_V1300:
+        if row[0] in have: continue
+        for i, v in enumerate(row): put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
+    return n
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（主版：" + WO + "——K1 批次口徑倍數區間（RNG_<名稱>_Lo／_Hi，Alloc O 節）；K2 區間時效（RNG_Version、RNG_StaleFlag、Checks RG1／RG2、parity 逐格重算）；"
+                  "K3 C68 類別更正為 Assumed 並進入 Load_Bearing；K4 『Pass＋Fail＋Warn＝Total』標恆等式；K5 名稱數更正；Decisions BB3-*）。以下為 "
+                  + v1200.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1200.README_TITLE
+README_TITLE = V + _T[len(v1200.V):]
+README_ROW = ("區間完整化與時效（v13.0）",
+              "全部隨 GB200／Hopper 批次倍數變動的契約名稱補低／高端（RNG_<名稱>_Lo／_Hi，Alloc O 節）；區間時效旗標 RNG_StaleFlag 與 Checks RG1／RG2；C68 類別更正為 Assumed。細節見 Decisions BB3-*。")
+```
+
 ## gov_decisions.py
 
 ```python
@@ -29618,6 +29869,7 @@ import v1020                      # v10.2: eta calibration and verification crit
 import v1030                      # v10.3: slimming 4-2a (L1_JudgeTol, Rubin Ultra multipliers, Decisions SL42-*)
 import v1100                      # v11.0: big-batch fix (CAL_BatchEtaD, V20–V22, soft cap V1–V3, CHK_VerifyWarn)
 import v1200                      # v12.0: v11.1 patch (CHK_SoftCapFail, GB200 2.36, C68 correction, Alloc N range, V18/V19)
+import v1300                      # v13.0: 4-2b-1 (RNG_ ranges, range freshness, C68 category -> Assumed, K4 label)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
 import v601                       # v6.1: audit fix 3B (D3／D6／D10／D13／Q3／Q6 judgement columns, Gov_Map rows, Decisions AF3B-*)
@@ -30005,7 +30257,7 @@ def gov_map(wb, src_index):
     n_rp = v535.gov_map_repoint(wb, ws)      # v5.35 B5: GM629–GM633 (Cap_In H10 cells that moved one row down) re-pointed before the cell-keyed append (label guard; 0 on a v5.35-based rebuild)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text) + v1200.gov_update(ws, v518._append_text)      # v12.0: D156 range, C68 correction; v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text) + v1200.gov_update(ws, v518._append_text) + v1300.gov_update(ws, v518._append_text)      # v13.0: C68 category Assumed + v13.0-前 column; v12.0: D156 range, C68 correction; v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -30668,6 +30920,9 @@ V1100 = v1100.apply(wb, v518._append_text)       # v11.0: notes (J156, J68, Gov_
 print("v1100 big-batch fix:", V1100)
 V1200 = v1200.apply(wb, v518._append_text)       # v12.0: notes (J156, J68, H156), Alloc N range section, Decisions BB2-*
 print("v1200 v11.1 patch:", V1200)
+import v1300
+V1300 = v1300.apply(wb, v518._append_text)       # v13.0 (4-2b-1): RNG_ range section (Alloc O), range freshness check (Checks RG), K4 label, Decisions BB3-*
+print("v1300 4-2b-1:", {k: v for k, v in V1300.items() if k != "table"})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

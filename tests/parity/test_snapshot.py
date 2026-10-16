@@ -2,7 +2,7 @@
 讀 LibreOffice 重算後的值（`lo.view({})`，即新 SLO 基準；其他測試的 `_vo` 會改回舊 SLO，所以 GOV 計數在新基準下需要在這裡斷言）。
 
 快照更新規則：之後每個版本若有預期變動，必須在同一個 PR 以 `python3 tools/make_test_fixtures.py <重算後的 xlsx>` 更新
-tests/parity/fixtures/contract_snapshot_v12.0.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
+tests/parity/fixtures/contract_snapshot_v13.0.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
 import json
 import re
 from pathlib import Path
@@ -11,8 +11,8 @@ import pytest
 from openpyxl.utils import get_column_letter as L, range_boundaries
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-SNAP = json.loads((FIXTURES / "contract_snapshot_v12.0.json").read_text(encoding="utf-8"))
-ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_")
+SNAP = json.loads((FIXTURES / "contract_snapshot_v13.0.json").read_text(encoding="utf-8"))
+ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_", "RNG_", "AL_Rng")      # v13.0 K2：RNG_*（批次口徑區間端點）與 AL_Rng*（v12.0 區間表）全部納入快照
 
 
 def _cells(attr):
@@ -36,7 +36,7 @@ def _same(a, b):
 
 
 def test_contract_snapshot_values(lo):
-    """契約名稱（下游契約文件所列＋全部 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_）逐格值等於 v12.0 快照（相對容差 1e-9）。"""
+    """契約名稱（下游契約文件所列＋全部 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_）逐格值等於 v13.0 快照（相對容差 1e-9）。"""
     v = lo.view({})
     bad, ncell = [], 0
     for name, rec in SNAP["names"].items():
@@ -54,7 +54,7 @@ def test_contract_snapshot_values(lo):
 
 
 def test_snapshot_covers_every_prefix_name(lo):
-    """新增的 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_ 名稱必須同時加進快照（避免新名稱沒有人看守）。"""
+    """新增的 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_／RNG_／AL_Rng 名稱必須同時加進快照（避免新名稱沒有人看守）。"""
     v = lo.view({})
     cur = {n for n, t in v.names.items() if n.startswith(ROOT_PREFIX) and "!" in t}
     missing = sorted(cur - set(SNAP["names"]))
@@ -118,6 +118,6 @@ def test_verify_totals_and_list_complete(lo):
 
 
 def test_gov_counts_new_baseline(lo):
-    """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 181（v12.0：179 → 181，Gov_Map 『標記變更』欄 +1＝C68 更正註記；Load_Bearing 高段 Assumed 列 +1＝新增 Hopper C156 列）。"""
+    """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 182（v13.0：181 → 182，Calib C68 類別更正為 Assumed 進 Load_Bearing；v12.0：179 → 181，Gov_Map 『標記變更』欄 +1＝C68 更正註記；Load_Bearing 高段 Assumed 列 +1＝新增 Hopper C156 列）。"""
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 282, 181)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 282, 182)      # v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）

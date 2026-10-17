@@ -10,9 +10,11 @@ import lib
 from catalog import FINDINGS, S0, FIX, DEC, KEEP, OPEN, RANK
 from judgments import J
 SUF = os.environ.get('LEDGER_SUFFIX', '')      # v15.0：非空時套用 resolve_v15（O1–O22 結案後狀態），輸出另存帶後綴新檔，不覆寫原結案報告與總帳
-if SUF:
+if SUF == '_v15.0':
     import resolve_v15
     resolve_v15.apply_findings(FINDINGS)
+elif SUF == '_v15.1':      # v15.1：逐單元重判（resolve_v151.py）；不再以編號整批翻轉主題狀態
+    import resolve_v151
 REP = os.path.join(lib.ROOT, 'docs', 'reports')
 SEVR = {'高': 0, '中': 1, '低': 2}
 
@@ -108,8 +110,13 @@ for seg, fn, idcol in SEGS:
 print('unknown ids', dict(unknown))
 
 # ---------- 統計 ----------
-if SUF:
+RES151 = None
+if SUF == '_v15.0':
     resolve_v15.apply_rows(ledger)
+elif SUF == '_v15.1':
+    RES151 = resolve_v151.judge_all(ledger, s1)
+    resolve_v151.topic_status(FINDINGS, ledger, RANK)
+    print('v15.1 重判', RES151['rejudged'], '個；找不到證據', RES151['still_open'], '個')
 def cnt(rows):
     c = collections.Counter(r['status'] for r in rows)
     return {s: c.get(s, 0) for s in (FIX, DEC, KEEP, OPEN)}
@@ -137,6 +144,17 @@ topic = collections.Counter(FINDINGS[i]['status'] for i in FINDINGS if i[0] in '
 stats['topics'] = dict(topic); stats['n_topics'] = sum(topic.values())
 ytopic = collections.Counter(FINDINGS[i]['status'] for i in FINDINGS if i[0] == 'Y')
 stats['ytopics'] = dict(ytopic)
+if SUF == '_v15.1':
+    stats['ev_kinds'] = dict(collections.Counter(r['ev_kind'] for r in ledger))
+    hi_s1 = [r for r in ledger if r['seg'] == '稽核1' and r['sev'] == '高']
+    stats['hi_s1_n'] = len(hi_s1)
+    stats['hi_assumed_nosrc'] = len([r for r in hi_s1 if r['ext_src'].startswith('無（Assumed')])
+    stats['hi_nosrc_other'] = len([r for r in hi_s1 if r['ext_src'].startswith('無 SRC')])
+    stats['hi_with_src'] = len([r for r in hi_s1 if r['ext_src'].startswith('有')])
+    stats['unresolved'] = [dict(uid=r['uid'], sheet=r['sheet'], cell=r['cell'], sev=r['sev']) for r in RES151['unresolved']]
+    old150 = {(r['uid'], r['sheet'], r['cell']): r for r in json.load(open(os.path.join(HERE, 'ledger_v15.0.json')))['ledger']}
+    stats['changed_vs_v150'] = [dict(uid=r['uid'], sheet=r['sheet'], cell=r['cell'], sev=r['sev'], old=old150[(r['uid'], r['sheet'], r['cell'])]['status'], new=r['status'], kind=r['ev_kind'], ptr=r['ev_ptr'])
+                                for r in ledger if old150[(r['uid'], r['sheet'], r['cell'])]['status'] != r['status']]
 json.dump(dict(stats=stats, ledger=ledger), open(os.path.join(HERE, 'ledger%s.json' % SUF), 'w'), ensure_ascii=False, indent=1, default=str)
 print(json.dumps({k: v for k, v in stats.items() if k != 'hi_open_groups'}, ensure_ascii=False, indent=1))
 print(len(stats['hi_open_groups']), 'high-open groups')
@@ -222,9 +240,10 @@ ws = wb.active; ws.title = '說明'
 for r in readme:
     ws.append(r)
 ws.column_dimensions['A'].width = 140
-sheet('總帳', ['單元ID', '段', '發現編號', '頁', '格／列', '列標籤', '嚴重度', '描述', '狀態', '處理（版本／PR／決策）', '查證依據', '殘餘', '待判斷編號'],
-      [[r['uid'], r['seg'], r['ids'], r['sheet'], r['cell'], r['label'], r['sev'], r['desc'], r['status'], r['how'], r['evidence'], r['residual'], r['open']] for r in ledger],
-      [20, 8, 12, 12, 10, 28, 7, 50, 10, 34, 44, 30, 9], status_col=9)
+EXTRA = SUF == '_v15.1'      # v15.1：新增 證據類型／證據指標／有無外部來源／本輪是否重判
+sheet('總帳', ['單元ID', '段', '發現編號', '頁', '格／列', '列標籤', '嚴重度', '描述', '狀態', '處理（版本／PR／決策）', '查證依據', '殘餘', '待判斷編號'] + (['證據類型', '證據指標', '有無外部來源', '本輪是否重判'] if EXTRA else []),
+      [[r['uid'], r['seg'], r['ids'], r['sheet'], r['cell'], r['label'], r['sev'], r['desc'], r['status'], r['how'], r['evidence'], r['residual'], r['open']] + ([r['ev_kind'], r['ev_ptr'], r['ext_src'], r['rejudged']] if EXTRA else []) for r in ledger],
+      [20, 8, 12, 12, 10, 28, 7, 50, 10, 34, 44, 30, 9] + ([18, 40, 24, 12] if EXTRA else []), status_col=9)
 cat_rows = [[k, v['title'], v['status'], v['how'], v['evidence'], v['residual'], v['open']] for k, v in FINDINGS.items()]
 sheet('發現主題', ['編號', '主題', '狀態', '處理（版本／PR／決策）', '現行活頁簿查證', '殘餘', '待判斷編號'], cat_rows, [8, 40, 10, 40, 60, 40, 9], status_col=3)
 sheet('D1-D16', ['決定', '內容', '狀態', '處理', '現行簿證據', '殘餘'], D, [6, 36, 10, 36, 50, 40], status_col=3)

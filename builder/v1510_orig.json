@@ -1,0 +1,3 @@
+{
+ "alloc_a_orig": "（a）只經 VR200 欄（CAL_BatchEtaD 第 4 格＝0.75；Gov_Map H156 區間 0.70–1.0）12 個，GB200／Hopper 倍數改變時不動，VR200 倍數改變時會動；本版區間只涵蓋 GB200／Hopper 倍數，未涵蓋 VR200 倍數：L1_Ans5_FullMargin、L1_Ans5_FullMargin_Hi、L1_Ans5_FullMargin_Lo、L1_Ans6_GPUh、L1_Ans6_GPUh_Hi、L1_Ans6_GPUh_Lo、L1_RLshare_Astra_VR200、L1_RLshare_Astra_VR200_Hi、L1_RLshare_Astra_VR200_Lo、L1_RLshare_Sol_VR200、L1_RLshare_Sol_VR200_Hi、L1_RLshare_Sol_VR200_Lo"
+}

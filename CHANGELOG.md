@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261017_Tokenomics_v15.1.xlsx（取代 v15.0；**次版：只改文字、標籤、Decisions 與帳本，具名範圍值不變**；依工作單 `docs/workorders/20261017_v15.1_結案收尾.md`）
+
+- 分支 `claude/v15-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v15.1_結案收尾.md`；進度檔：`docs/reports/20261017_v15.1_進度.md`。
+- Excel（CC 以 `builder/v1510.py` 自 v15.0 產生，經 LibreOffice 重算存檔）：
+  - U1（修訂九更正，原文逐字保留）：SL46-20 的 Alloc_In C15「區間已涵蓋」更正（SL46-25）；Alloc 第 398 列還原 v14.2 原文（SL46-26）；Calib D67:G67 補決策（SL46-27）；Alloc_In C16 token／支出口徑說明（SL46-28）。
+  - U2：17 列補 O12 口徑標籤（SL46-29）；Spec_Rack G26、D41、Har_In C48:E48 列入刻意保留清單（SL46-30，含 Harness 126／129／132）；Sens_Rev A17 標籤改隨 CST_Eps，基準顯示文字不變（SL46-31）。
+  - 具名範圍：增減 0；值差異只有 `RNG_Version`、`RNG_Current`（版本字串）。GOV 0／280／182。
+- 測試：契約快照 v15.1（名稱 822 → 826，新增的 4 個名稱 v15.0 簿內已存在、值相同，因契約文件提及而納入快照）；`scenarios.yaml` formula_cells 52,225 → 52,226（Sens_Rev A17 變公式）；新增 `tests/parity/test_v1510.py`。
+- 帳本：`docs/reports/20261017_稽核結案對帳_v15.1.md` 與明細（逐單元重判，未處理 0；高嚴重度輸入格仍有 98／146 標 Assumed 且無 SRC）。
+- 工程修正：`tools/gen_builder_md.py` 的順序表補上 `v1500.py`（v15.0 的 builder md 漏列）與 `v1510.py`。
+
 ## 20261017_Tokenomics_v15.0.xlsx（取代 v14.2；**主版：契約改變，新增 32 個名稱**；稽核結案，依工作單 `docs/workorders/20261017_v14.3_稽核結案.md` r1）
 
 - 分支 `claude/v14-3`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v14.3_稽核結案.md`；進度檔：`docs/reports/20261017_v14.3_進度.md`。底稿：master（v14.2，`0e8f3c5`）。版號判定：O13 與 T3-2 新增 `RNG_*`、B11 新增 `IF_FrontSuccVRQual`，依 CLAUDE.md 第 4 節為契約改變 → 主版 v15.0（工作單以 v14.3 暫稱）。

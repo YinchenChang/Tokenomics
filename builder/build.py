@@ -332,6 +332,9 @@ V1400 = v1400.apply(wb, v518._append_text)       # v14.0 (4-3B): Q1 deletion, D1
 print("v1400 4-3B:", V1400)
 V1410 = v1410.apply(wb, v518._append_text)       # v14.1: R1 texts, R3 Har_In flags, R4 labels, R5 Cap_In cells, R6 small items, Decisions SL44-*
 print("v1410 v14.1:", {k: (v if not isinstance(v, dict) else {kk: vv for kk, vv in v.items() if kk not in ("list", "orig", "anchor_orig")}) for k, v in V1410.items()})
+import v1420
+V1420 = v1420.apply(wb, v518._append_text)       # v14.2: S1 Cap_In 285／286 (P25Lo／P25Hi) floor like R1, S2 Har_In 20／32 A／B labels, Decisions SL45-*
+print("v1420 v14.2:", V1420)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

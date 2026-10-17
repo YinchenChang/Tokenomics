@@ -23,6 +23,7 @@ CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_", "GOV_")
 R1_CHANGED = {"L1_MFleet_Lo": 0.215398033949784, "L1_PriceRealFleet_Lo": 0.361920392563785, "L1_LReqFleet_Hi": 3.80253905516642}      # v14.1 新值（舊值 0.1838665514316／0.308939934377431／4.45464077137931）
 R2_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
+P25_V142 = {"L1_MFleet_P25Lo", "L1_MFleet_P25Hi"}      # v14.2 S1：預期變動（新值與下限由 test_v1420.py 逐一斷言）
 SC_HI = {"Alloc_In!E24": 1.0}      # 低端欄（token 取高）的實際利用率 0.65 → 1.0：點估計 token 再高 1.54 倍
 SC_LO_OK = {"Alloc_In!E24": 0.3}      # 0.65 → 0.3：點估計 token 降到上限之下（點估計 m 0.398 > 下限 0.215）
 SC_BASE = {"Alloc_In!C24": 1.5}      # 基準欄的實際利用率 0.41 → 1.5：基準欄點估計 m（約 0.111）低於基準欄下限 0.301
@@ -116,7 +117,7 @@ def test_v1410_names_off_the_chain_unchanged(lo):
     例外只有：R1 的三個名稱（上方斷言新值）、R2 的 CHK_VerifyTotal／Pass（24／16 → 22／14）、版本字串。"""
     prev = openpyxl.load_workbook(V140_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES]
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES and n not in P25_V142]
     assert len(keep) >= 700, len(keep)      # 789 個名稱中的契約前綴者，扣除上列例外後仍有 742 個
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)

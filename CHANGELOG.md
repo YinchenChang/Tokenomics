@@ -2,9 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261017_Tokenomics_v14.2.xlsx（取代 v14.1；次版：無新增契約名稱；v14.2 修補，依工作單 `docs/workorders/20261017_v14.2修補.md` r0）
+
+- 分支 `claude/v14-2`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v14.2修補.md`；進度檔：`docs/reports/20261017_v14.2修補_進度.md`。底稿：master（v14.1，`32dfce0`）。
+- Excel（CC 以 `builder/v1420.py` 自 v14.1 產生，經 LibreOffice 重算存檔）：
+  - S1：Cap_In 第 285、286 列（`L1_MFleet_P25Lo`／`L1_MFleet_P25Hi`）C／D／E 各欄改為 `MAX(該欄點估計, 該欄同單價下限)`，下限＝營收 ÷（該欄機隊付費 token 上限（第 118 列）× 該列單價）；機制同 v14.1 R1，全部是 Excel 公式。低端欄（D）`L1_MFleet_P25Lo` 0.3535 → 0.4141、`L1_MFleet_P25Hi` 0.1066 → 0.1249；其他欄與 `L1_MFleet` 三端不變。數值變動的契約名稱只有這兩個（這兩個名稱沒有任何下游公式讀取）。
+  - S2：Har_In 第 20、32 列 A、B 欄標籤清空（原文記入 Decisions SL45-2；H、I 欄保留）。
+  - Decisions 新增 SL45-1…3；區間檔 `builder/v1300_ranges.json` 與指紋檔 `builder/v1310_fingerprint.json` 只更新版本字串（端點與指紋格逐值不變）。
+- 測試：契約快照 `contract_snapshot_v14.1.json` → `contract_snapshot_v14.2.json`（789 個名稱不變，值變動 2 個加版本字串）；新增 `tests/parity/test_v1420.py`（S1 專屬：低端欄必須截在同欄同單價下限、不亂截斷、基準欄同樣適用、依賴鏈以外的名稱與 v14.1 逐格相同；S2 逐格斷言）；`test_v1400_q3_floor_and_mfleet_lo_values_unchanged` 改名為 `test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor`（內容不變）；沒有刪除或放寬任何測試。
+
 ## 20261017_Tokenomics_v14.1.xlsx（取代 v14.0；次版：無新增契約名稱；v14.1 修補，依工作單 `docs/workorders/20261017_v14.1修補.md` r1）
 
-- 分支 `claude/v14-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v14.1修補.md`；進度檔：`docs/reports/20261017_v14.1修補_進度.md`。底稿：master（v14.0，`e7693a3`）。
+- 分支 `claude/v14-1`（PR #106，合併 SHA `ee5ccf7`；v14.2 S3 補記）。報告：`docs/reports/20261017_v14.1修補.md`；進度檔：`docs/reports/20261017_v14.1修補_進度.md`。底稿：master（v14.0，`e7693a3`）。
 - Excel（CC 以 `builder/v1410.py` 自 v14.0 產生，經 LibreOffice 重算存檔）：
   - R1：Cap_In 第 119 列（機隊 m）各欄改為 `MAX(該欄點估計, 第 121 列同欄下限)`（Excel 公式，下限截斷）；`L1_MFleet`／`_Lo`／`_Hi` 由 [0.184, 0.407, 1.179] 變 [0.215, 0.407, 1.179]；受影響名稱只有 `L1_MFleet_Lo`、`L1_PriceRealFleet_Lo`、`L1_LReqFleet_Hi`；`RNG_*` 端點、`IF_AllocQ1`／`IF_AllocRDGW` 不變。Cap_In 第 121 列用途標記由「待定義」改為正式定義，不升級為契約名稱。
   - R2：Checks V23、V24 標「恆等式（非驗證）」，移出驗證計數：`CHK_Verify*` 24／16／7／1 → 22／14／7／1。

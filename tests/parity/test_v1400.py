@@ -222,7 +222,7 @@ def test_v1400_d104_d140_read_alloc_in_and_fail_when_mix_not_100(model, lo):
 
 
 # ── Q3：只查明，不改數值 ──
-def test_v1400_q3_floor_and_mfleet_lo_values_unchanged(lo):
+def test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor(lo):
     """Q3→v14.1 R1：Cap_In 第 121 列（m 同欄下限）數值不變（0.301／0.215／0.637）；L1_MFleet 區間由 [0.184, 0.407, 1.179] 改為 [0.215, 0.407, 1.179]（低端下限截斷，基準與高端不變）。"""
     v = lo.view({})
     want = {"C": 0.300967115929835, "D": 0.215398033949784, "E": 0.637342127851415}

@@ -50,7 +50,7 @@ J = [
   default='B（現狀，契約已要求下游註明讀法）；對外時採 A。', reason='口徑是定義問題，不是錯誤；契約已寫明。',
   impact='L1_LReqFleet、L1_FleetBreakeven2025、L1_PriceReqBE。'),
  dict(id='O11', title='v14.1 修補餘下事項', blocks='否', refs='v14.1 待判斷 1–7',
-  bg='v14.1 報告留下：L1_MFleet_P25Lo／Hi 顯示用區間沒有比照截斷（D 欄 0.1066 低於同單價下限約 0.125）；Interface 第 321–327 列 18 格追蹤文字變動；Har_In 第 20、32 列只清旗標值；測試函式名稱沿用；Decisions 分六筆。',
+  bg='v14.1 報告留下：L1_MFleet_P25Lo／Hi 顯示用區間沒有比照截斷（D 欄 0.1066 低於同單價下限約 0.125）；Interface 第 321–327 列 18 格追蹤文字變動；Har_In 第 20、32 列只清旗標值；測試函式名稱沿用；Decisions 分六筆。master 上的 v14.1 獨立查核（20261017_v14.1_獨立查核.md）已確認與建置報告不符 0 項，故獨立查核本身已完成。',
   opts='A. 全部接受現狀，P25 顯示區間在下一個工程類小版比照截斷。B. 逐項回覆。',
   default='A。', reason='皆為顯示或登錄細節；契約名稱的 _Lo／_Hi 已按 R1 截斷。',
   impact='L1_MFleet_P25Lo／Hi（顯示用，不乘入 _Lo／_Hi）。'),

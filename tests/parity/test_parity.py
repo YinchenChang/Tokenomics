@@ -1239,17 +1239,17 @@ def test_v1200_soft_cap_fail_threshold(lo):
     assert base.get_name("CHK_SoftCapFail") == 2
     r = _vrow(base, "V1")
     assert abs(base.get("Checks", f"E{r}") - 1.217676) < 5e-6 and base.get("Checks", f"F{r}") == "警示"
-    assert _vcounts(base) == (24, 16, 7, 1)      # v14.0（4-3B Q4）：新增 V23–V26（各通過）：20/12/7/1 → 24/16/7/1
+    assert _vcounts(base) == (22, 14, 7, 1)      # v14.0（4-3B Q4）：新增 V23–V26（各通過）：20/12/7/1 → 24/16/7/1
     # 比值 2.5 > 2：失敗（不再只是警示）
     v = lo.view(_scen_inputs("softcap_v1_fail"))
     e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
     assert 2.4 < e < 2.6 and f == 0, (e, f)
-    assert _vcounts(v) == (24, 16, 8, 0) and v.get_name("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
+    assert _vcounts(v) == (22, 14, 8, 0) and v.get_name("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
     # 比值 1.5：警示
     v = lo.view(_scen_inputs("softcap_v1_warn"))
     e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
     assert 1.4 < e < 1.6 and f == "警示", (e, f)
-    assert _vcounts(v) == (24, 16, 7, 1)
+    assert _vcounts(v) == (22, 14, 7, 1)
     # 門檻本身可改：1.2177 > 1.1 失敗；< 1.3 警示
     assert lo.view({"CHK_SoftCapFail": 1.1}).get("Checks", f"F{r}") == 0
     assert lo.view({"CHK_SoftCapFail": 1.3}).get("Checks", f"F{r}") == "警示"
@@ -1377,7 +1377,8 @@ def test_v1200_v19_detects_cleared_and_handfilled_T(model, tmp_path):
 # ── v13.0（4-2b-1 K1–K4）：區間完整化與時效保證 ──
 V120_PREV = HERE.parent.parent / "model" / "archive" / "20261016_Tokenomics_v12.0.xlsx"      # v12.0（LibreOffice 重算存檔）：v13.0 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_")
-Q4_VERIFY_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # v14.0（4-3B Q4）：新增 Checks V23–V26（20/12 → 24/16）；其餘既有契約名稱的值不得變
+Q4_VERIFY_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass", "L1_MFleet_Lo", "L1_PriceRealFleet_Lo", "L1_LReqFleet_Hi"}      # v14.1：加入 R1 受影響的三個名稱（L1_MFleet_Lo 同欄下限截斷及其依賴鏈；新值由 test_v1410.py 逐一斷言）；CHK_Verify* 另受 R2 影響（V23、V24 移出計數，24/16 → 22/14）
+#      # v14.0（4-3B Q4）：新增 Checks V23–V26（20/12 → 24/16）；其餘既有契約名稱的值不得變
 PREWARM["test_v1300_stale_flag_fires"] = [{"RNG_Version": "20261016_Tokenomics_v12.0"}, {"RNG_IF_AllocQ1_Lo": 0.5}]
 
 
@@ -1478,7 +1479,7 @@ def test_v1300_existing_contract_names_unchanged(model, lo):
             assert len(got) >= len(want) and all(_same(a, b) for a, b in zip(want, got)), n
             continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (24, 16, 7, 1)      # v14.0（4-3B Q4）：CHK_Verify* 只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (22, 14, 7, 1)      # v14.0（4-3B Q4）：CHK_Verify* 只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）
 
 
 def test_v1300_c68_assumed_and_identity_label(lo):

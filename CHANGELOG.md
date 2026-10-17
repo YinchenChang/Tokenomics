@@ -2,6 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261017_Tokenomics_v14.1.xlsx（取代 v14.0；次版：無新增契約名稱；v14.1 修補，依工作單 `docs/workorders/20261017_v14.1修補.md` r1）
+
+- 分支 `claude/v14-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v14.1修補.md`；進度檔：`docs/reports/20261017_v14.1修補_進度.md`。底稿：master（v14.0，`e7693a3`）。
+- Excel（CC 以 `builder/v1410.py` 自 v14.0 產生，經 LibreOffice 重算存檔）：
+  - R1：Cap_In 第 119 列（機隊 m）各欄改為 `MAX(該欄點估計, 第 121 列同欄下限)`（Excel 公式，下限截斷）；`L1_MFleet`／`_Lo`／`_Hi` 由 [0.184, 0.407, 1.179] 變 [0.215, 0.407, 1.179]；受影響名稱只有 `L1_MFleet_Lo`、`L1_PriceRealFleet_Lo`、`L1_LReqFleet_Hi`；`RNG_*` 端點、`IF_AllocQ1`／`IF_AllocRDGW` 不變。Cap_In 第 121 列用途標記由「待定義」改為正式定義，不升級為契約名稱。
+  - R2：Checks V23、V24 標「恆等式（非驗證）」，移出驗證計數：`CHK_Verify*` 24／16／7／1 → 22／14／7／1。
+  - R3：Har_In 第 20、32 列供應商旗標清空；Gov_Map 該兩列加註「v14.1 已移除」，原文保留。
+  - R4：v14.0 刪除的 73 列 A、B 欄標籤清空；清單寫入 Decisions SL44-4。
+  - R5：Cap_In 24 格（C 欄 23 列＋G175）刪除前以依賴圖確認無外部讀者後清空；原公式寫入 Decisions SL44-5。
+  - R6：Gov_Map GM629 註記、三筆用途標記更正（Cap_In 76、Training 122、Price_Frontier 27）、Cap_In 206–209／223 過時錨點文字改為「以現值為準」。
+  - Decisions 新增 SL44-1…6；區間檔 `builder/v1300_ranges.json` 與指紋檔 `builder/v1310_fingerprint.json` 只更新版本字串（端點與指紋格逐值不變）。
+- 測試：契約快照 `contract_snapshot_v14.0.json` → `contract_snapshot_v14.1.json`（789 個名稱不變，值變動 7 個）；新增 `tests/parity/test_v1410.py`（R1 專屬：低端欄 token 推過上限時 `L1_MFleet_Lo` 必須等於同欄下限；另測不亂截斷、基準欄同樣適用、依賴鏈以外的名稱與 v14.0 逐格相同；R3–R6 逐格斷言）；期望值依預期變動更新；沒有刪除或放寬任何測試。
+
 ## 20261017_Tokenomics_v14.0.xlsx（取代 v13.1；主版：新增 18 個契約名稱；4-3 B 段依 A 段建議執行瘦身，依工作單 `docs/workorders/20261017_4-3B.md`）
 
 - 分支 `claude/4-3b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_4-3B.md`；進度檔：`docs/reports/20261017_4-3B_進度.md`。底稿：master（v13.1，`ab7fca7`）。

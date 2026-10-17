@@ -17,7 +17,8 @@ from parity_lib import lo_recalc
 REPO = Path(__file__).resolve().parents[2]
 V131_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v13.1.xlsx"      # v13.1（LibreOffice 重算存檔）：v14.0 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_")
-Q4_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # 因新增 V23–V26 而變
+Q4_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # 因新增 V23–V26 而變（v14.1 R2：V23、V24 移出計數後仍與 v13.1 不同，見下方斷言）
+R1_CHANGED = {"L1_MFleet_Lo", "L1_PriceRealFleet_Lo", "L1_LReqFleet_Hi"}      # v14.1 R1：L1_MFleet_Lo 改用同欄下限及其依賴鏈；新值由 test_v1410.py 逐一斷言
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 IFC_RANGES = {"IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"}      # Interface 新增 M 節列，範圍變長
 NEW_IF = ["IF_TaskTokMult", "IF_AmortRevShare"] + [f"IF_{p}_{t}" for p in ("TrainFLOP", "TrainInferShare", "GMDefault") for t in ("Luna", "Sol", "Astra")]
@@ -105,7 +106,7 @@ def test_v1400_new_names_exist_with_tier_and_token_type(model, lo):
         assert len([x for x in _flat(v.get_name(n)) if isinstance(x, (int, float))]) == k, n
     ci = wb["Cap_In"]
     pc = next(c for c in range(3, ci.max_column + 2) if ci.cell(3, c).value == "用途")
-    assert "待定義，見 4-3B 報告" in str(ci.cell(121, pc).value)      # Q3：Cap_In 121 保留為顯示用，用途標記
+    assert "v14.1 正式定義" in str(ci.cell(121, pc).value) and "待定義" not in str(ci.cell(121, pc).value).split("原標記")[0]      # v14.1 R1：Cap_In 121 用途標記由『待定義』改為正式定義
 
 
 def test_v1400_existing_contract_names_unchanged(lo):
@@ -113,7 +114,7 @@ def test_v1400_existing_contract_names_unchanged(lo):
     例外只有：CHK_VerifyTotal／Pass（新增 V23–V26）、IFC_*（Interface 新增列，範圍變長）、RNG_Version／Current（版本字串）。"""
     prev = openpyxl.load_workbook(V131_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES]
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED]
     assert len(keep) >= 700, len(keep)
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
@@ -122,7 +123,7 @@ def test_v1400_existing_contract_names_unchanged(lo):
         got = _flat(v.get_name(n))
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     assert (v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (7, 1)
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass")) == (24, 16)
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass")) == (22, 14)      # v14.1 R2：V23、V24 移出計數（24／16 → 22／14；v13.1 為 20／12）
     assert v.get_name("RNG_Version") == model_path().name[: -len(".xlsx")] == v.get_name("RNG_Current")
 
 
@@ -150,7 +151,10 @@ def test_v1400_deleted_cells_empty_and_names_removed(model, lo):
 # ── Checks V23–V26（每條都能失敗） ──
 def test_v1400_new_checks_pass_on_base(lo):
     v = lo.view({})
-    for code in ("V23", "V24", "V25", "V26"):
+    for code in ("V23", "V24"):      # v14.1 R2：恆等式（非驗證），F 欄為文字
+        r = _chk(v, code)
+        assert v.get("Checks", f"G{r}") == "恆等式（非驗證）" and v.get("Checks", f"F{r}") == "恆等式（非驗證）", (code, v.get("Checks", f"F{r}"))
+    for code in ("V25", "V26"):
         r = _chk(v, code)
         assert v.get("Checks", f"G{r}") == "驗證" and v.get("Checks", f"F{r}") == 1, (code, v.get("Checks", f"F{r}"))
     r = _chk(v, "V23")
@@ -166,10 +170,10 @@ def test_v1400_v23_fails_when_actual_speed_below_slo(model, tmp_path, sheet):
     assert old == "=MAX(0,MIN(C85,C86))", old
     wb = _recalc_with_edits(model, tmp_path, {(sheet, "C87"): "=MAX(0,MIN(C85,C86))*1000"})
     r = _v_row(wb, "V23")
-    assert r["C"] >= 1 and r["E"] >= 1 and r["F"] == 0, r
+    assert r["C"] >= 1 and r["E"] >= 1 and r["F"] == "恆等式不成立", r      # v14.1 R2：恆等式不成立（原判失敗 0）
     d = wb.defined_names["CHK_VerifyFail"]
     sh, ref = d.attr_text.rsplit("!", 1)
-    assert wb[sh.strip("'")][ref.replace("$", "")].value == 8
+    assert wb[sh.strip("'")][ref.replace("$", "")].value == 7      # 恆等式不計入驗證失敗數（v14.0 為 8）
 
 
 def test_v1400_v23_not_vacuous_when_some_columns_unreachable(lo):
@@ -185,7 +189,7 @@ def test_v1400_v24_fails_when_cap_in_147_differs_from_l1_mimplied(model, tmp_pat
     assert old == "=(C135+C136+C137)*1000000000/((C140+C141+C142)*CAP_Price25Mix)", old
     wb = _recalc_with_edits(model, tmp_path, {("Cap_In", "C147"): old + "*1.01"})
     r = _v_row(wb, "V24")
-    assert r["E"] > 1e-9 and r["F"] == 0, r
+    assert r["E"] > 1e-9 and r["F"] == "恆等式不成立", r      # v14.1 R2：原判失敗 0
     assert abs(r["E"] - 0.01 * 2.03352783356479) < 1e-6      # 差 1% × 2025 年度 m_整體 2.0335
 
 
@@ -219,11 +223,11 @@ def test_v1400_d104_d140_read_alloc_in_and_fail_when_mix_not_100(model, lo):
 
 # ── Q3：只查明，不改數值 ──
 def test_v1400_q3_floor_and_mfleet_lo_values_unchanged(lo):
-    """Q3：Cap_In 第 121 列（m 下限）與 L1_MFleet 區間的數值本版不變（0.301／0.215／0.637；0.407／0.184／1.179）。"""
+    """Q3→v14.1 R1：Cap_In 第 121 列（m 同欄下限）數值不變（0.301／0.215／0.637）；L1_MFleet 區間由 [0.184, 0.407, 1.179] 改為 [0.215, 0.407, 1.179]（低端下限截斷，基準與高端不變）。"""
     v = lo.view({})
     want = {"C": 0.300967115929835, "D": 0.215398033949784, "E": 0.637342127851415}
     for c, w in want.items():
         assert abs(v.get("Cap_In", f"{c}121") - w) < 1e-12, c
-    assert abs(v.get_name("L1_MFleet") - 0.407295434678084) < 1e-12 and abs(v.get_name("L1_MFleet_Lo") - 0.1838665514316) < 1e-12
+    assert abs(v.get_name("L1_MFleet") - 0.407295434678084) < 1e-12 and abs(v.get_name("L1_MFleet_Lo") - 0.215398033949784) < 1e-12      # v14.1 R1：0.184 → 0.215（＝D121）
     assert abs(v.get_name("L1_MFleet_Hi") - 1.17876090506834) < 1e-12
     assert "L1_MFleetFloor" not in v.names      # 不升級

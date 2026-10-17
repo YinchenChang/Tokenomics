@@ -283,6 +283,8 @@ def o9_v16(wb, append_text):
         assert ws["G164"].value == "恆等式（非驗證）", ws["G164"].value
     n += append_text(ws["B164"], V16_B)
     n += append_text(ws["J164"], "｜" + V16_J)
+    assert str(ws["A143"].value).startswith("判準寫在 H"), ws["A143"].value
+    n += append_text(ws["A143"], "｜v15.0 O9：V16 亦為恆等式（非驗證），F 欄為文字，不計入驗證項目數（驗證計數 22 → 21）")
     return n
 
 
@@ -331,8 +333,8 @@ def o20_kappa(wb):
     ref = r
     for lab, I, O, chi, w in KAP_TYPES:
         put(ws, f"A{r}", lab)
-        put(ws, f"B{r}", I, F_IN); put(ws, f"C{r}", O, F_IN)
-        put(ws, f"D{r}", "=B4_CacheHit" if chi is None else chi, F_LINK if chi is None else F_IN)
+        put(ws, f"B{r}", I, F_CALC); put(ws, f"C{r}", O, F_CALC)
+        put(ws, f"D{r}", "=B4_CacheHit" if chi is None else chi, F_LINK if chi is None else F_CALC)
         put(ws, f"E{r}", f"={w}" if w else "—", F_LINK if w else F_CALC)
         put(ws, f"F{r}", f"=B{r}*((1-D{r})*Sens_Perf!$C$101+D{r}*Sens_Perf!$C$102)/1000000+C{r}*Sens_Perf!$C$103/1000000", F_CALC, fmt="0.000000")
         put(ws, f"G{r}", f"=(B{r}+C{r})/F{r}", F_CALC, fmt="#,##0")
@@ -348,7 +350,7 @@ def o20_kappa(wb):
     put(ws, f"A{r}", "重算值落在 AL_Kappa 區間（0.65–1.2）內？（1＝是）", F_BOLD)
     put(ws, f"H{r}", f"=IF(AND(H{r_kap}>=AL_Kappa_Lo,H{r_kap}<=AL_Kappa_Hi),1,0)", F_CALC, fmt="0")
     r_in = r
-    put(ws, f"A{r + 1}", "輸入欄 I、O、χ（藍字）取自 v5.36A 第 3.2 節的請求類型表（Analogy：OpenRouter／無伺服器平台追蹤、v5.33A 五組成基準）；權重為簿內 Alloc 第 5–7 列需求 token。v5.36A 的 1.035 所用 GW 權重未存於簿內，本表以需求 token 權重重算，數值可能與 1.035 不同。", F_NOTE)
+    put(ws, f"A{r + 1}", "輸入欄 I、O、χ（黑字常數：方法常數，不是模型輸入，不登錄藍字輸入；改動請走工作單）取自 v5.36A 第 3.2 節的請求類型表（Analogy：OpenRouter／無伺服器平台追蹤、v5.33A 五組成基準）；權重為簿內 Alloc 第 5–7 列需求 token。v5.36A 的 1.035 所用 GW 權重未存於簿內，本表以需求 token 權重重算，數值可能與 1.035 不同。", F_NOTE)
     wb.defined_names["AL_KappaCalc"] = DefinedName("AL_KappaCalc", attr_text=f"Alloc_In!$H${r_kap}")
     wb.defined_names["AL_KappaCalcIn"] = DefinedName("AL_KappaCalcIn", attr_text=f"Alloc_In!$H${r_in}")
     return {"row0": r0, "kap_row": r_kap, "in_row": r_in}

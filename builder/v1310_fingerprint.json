@@ -1,6 +1,6 @@
 {
-"version": "20261017_Tokenomics_v14.2",
-"roots": 59,
+"version": "20261017_Tokenomics_v15.0",
+"roots": 71,
 "leaves": [
 [
 "Inputs",
@@ -1479,6 +1479,11 @@
 ],
 [
 "Train_In",
+"C16",
+4
+],
+[
+"Train_In",
 "C21",
 1
 ],
@@ -1990,6 +1995,66 @@
 [
 "Training",
 "Q7",
+3
+],
+[
+"Sens_Train",
+"O6",
+4
+],
+[
+"Sens_Train",
+"P6",
+4
+],
+[
+"Sens_Train",
+"Q6",
+4
+],
+[
+"Sens_Train",
+"R6",
+4
+],
+[
+"Sens_Train",
+"O7",
+2
+],
+[
+"Sens_Train",
+"P7",
+3
+],
+[
+"Sens_Train",
+"Q7",
+2
+],
+[
+"Sens_Train",
+"R7",
+3
+],
+[
+"Sens_Train",
+"O8",
+0.3
+],
+[
+"Sens_Train",
+"P8",
+0.3
+],
+[
+"Sens_Train",
+"Q8",
+3
+],
+[
+"Sens_Train",
+"R8",
 3
 ],
 [

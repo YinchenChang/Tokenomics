@@ -341,6 +341,9 @@ print("v1500 v15.0:", V1500)
 import v1510
 V1510 = v1510.apply(wb, v518._append_text)       # v15.1: U1/U2 text corrections after the v15.0 independent check, Sens_Rev A17 label formula, Decisions SL46-25…31
 print("v1510 v15.1:", V1510)
+import v1520
+V1520 = v1520.apply(wb, v518._append_text)       # v15.2: B2 Cap_In C280:E280, B3 Calib D67, B4／J2 labels, notes, Decisions SL47-*, DB_Evidence E387…E392 (Gov_Map edits run in gov.py)
+print("v1520 v15.2:", V1520)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

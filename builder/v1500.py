@@ -375,7 +375,7 @@ def o20_checks_kp(wb):
 O8_NOTE = "；v15.0 O8：Hopper 吞吐為保守下界（獨立對照 V7、V8、V15 顯示模型約為實測 0.26–0.27 倍；Hopper η 倍數無獨立依據，Decisions SL46-13）；對外引用 Hopper 欄請標『保守下界』"
 O8_IF_A2 = "；v15.0 O8：Hopper 欄的吞吐與營收為保守下界（模型約為獨立實測的 0.26–0.27 倍，V7、V8、V15 失敗已揭露；Decisions SL46-13）"
 O12_TAG = ("｜v15.0 O12 口徑：機隊占比取 2025 OpenAI 推論 ÷（推論＋訓練）支出比（B4_Serve×(1−B4_Free)，全部世代同值，Assumed）；"
-           "訓練成本以 100% 利用率計、服務以 ÷IF_Util 計；縮放倍數與隱含家族計畫數為 Assumed，接受為決策（Decisions SL46-15）")
+           "訓練成本以 100% 利用率計、服務以 ÷IF_Util 計；縮放倍數與隱含家族計畫數為 Assumed，接受為決策（Decisions SL46-16）")
 O12_ROWS = {"Fleet_1GW": (10, 12, 13, 33, 34), "Amortize": (41,),
             "Interface": (98, 100, 116, 118, 134, 136, 140, 141, 142, 144, 145, 146, 248, 249, 268)}
 
@@ -400,7 +400,7 @@ def o8_o12_labels(wb, append_text):
 
 # ================================================================== T3-1 O5: SRC_PERF_060 register correction (revision 9: original wording kept)
 O5_URL = "https://developer.nvidia.com/blog/nvidia-blackwell-ultra-sets-new-inference-records-in-mlperf-debut"
-O5_TAIL = ("｜v15.0 更正（修訂九，Decisions SL46-18）：原出處欄＝『{j}』；原一手／二手欄＝『{n}』；原立場說明＝『{m}』；原口徑欄＝『{g}』。"
+O5_TAIL = ("｜v15.0 更正（修訂九，Decisions SL46-23）：原出處欄＝『{j}』；原一手／二手欄＝『{n}』；原立場說明＝『{m}』；原口徑欄＝『{g}』。"
            "回查結果（docs/reports/20261017_查證_O4O5.md）：數字 556 在 NVIDIA 技術部落格表 2（DGX H200，8 GPU，Server，DeepSeek-R1）找到，非 MLCommons 正式結果，"
            "NVIDIA 表下註明 Hopper results not verified by MLCommons Association；『待回查』結案")
 O5_NEW = dict(
@@ -427,9 +427,9 @@ def t3_src060(wb, append_text):
     old = "MLPerf（MLCommons 稽核）／NVIDIA 提交（v5.1；3A 查證轉引）"
     if cal["G121"].value == old:
         cal["G121"].value = "NVIDIA 自測（Interested-party；未經 MLCommons 驗證；NVIDIA 技術部落格表 2，v5.1 DGX H200）"; n += 1
-        n += append_text(cal["J121"], "｜v15.0 更正（修訂九，Decisions SL46-18）：G121 原文＝『" + old + "』；SRC_PERF_060 實為 NVIDIA 自測值，非 MLCommons 稽核結果")
+        n += append_text(cal["J121"], "｜v15.0 更正（修訂九，Decisions SL46-23）：G121 原文＝『" + old + "』；SRC_PERF_060 實為 NVIDIA 自測值，非 MLCommons 稽核結果")
     ck = wb["Checks"]
-    n += append_text(ck["J149"], "｜v15.0 更正：SRC_PERF_060＝556 已回查（NVIDIA 技術部落格表 2，非 MLCommons 結果；NVIDIA 自測未經驗證），上句『對照值未回查』結案；V1 判定不變（1.22，警示）；Decisions SL46-18")
+    n += append_text(ck["J149"], "｜v15.0 更正：SRC_PERF_060＝556 已回查（NVIDIA 技術部落格表 2，非 MLCommons 結果；NVIDIA 自測未經驗證），上句『對照值未回查』結案；V1 判定不變（1.22，警示）；Decisions SL46-23")
     de = wb["DB_Evidence"]
     rr = next((x for x in range(5, de.max_row + 1) if de.cell(x, 1).value == "E384"), None)
     if rr:
@@ -536,7 +536,8 @@ def _decisions():
          "既有 59 個名稱的端點與其 VR200 欄（108 格點值）不變，列待 Project 判斷。更正『VR200 批次倍數無證據』字樣（原字樣保留於 Alloc 說明列與契約文件，更正附後）。"
          "結構風險：0.75 是相對 GB300（倍數 1，未校準）之值；若日後校準 GB300，VR200 須改絕對口徑（約 1.20–1.28），避免重複折減。", "Alloc O 節；builder/v1300_ranges.json；tools/gen_ranges.py"),
     ]
-    return [[f"SL46-{i:02d}", V, f"v15.0 稽核結案：{t}", txt, DATE, DEC_BY, "v15.0 已建", where, f"{WO} {t[:3]}", "否"] for i, (t, txt, where) in enumerate(D, 1)]
+    DEC_T3 = "Andy 2026-10-17 13:52（回覆『照建議』：docs/reports/20261017_查證_O4O5.md）"
+    return [[f"SL46-{i:02d}", V, f"v15.0 稽核結案：{t}", txt, DATE, DEC_T3 if t.startswith(("O5 ", "O4 ")) else DEC_BY, "v15.0 已建", where, f"{WO} {t[:3]}", "否"] for i, (t, txt, where) in enumerate(D, 1)]
 
 
 # ================================================================== entry points

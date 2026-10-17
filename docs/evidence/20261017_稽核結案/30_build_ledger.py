@@ -9,6 +9,10 @@ sys.path.insert(0, HERE)
 import lib
 from catalog import FINDINGS, S0, FIX, DEC, KEEP, OPEN, RANK
 from judgments import J
+SUF = os.environ.get('LEDGER_SUFFIX', '')      # v15.0：非空時套用 resolve_v15（O1–O22 結案後狀態），輸出另存帶後綴新檔，不覆寫原結案報告與總帳
+if SUF:
+    import resolve_v15
+    resolve_v15.apply_findings(FINDINGS)
 REP = os.path.join(lib.ROOT, 'docs', 'reports')
 SEVR = {'高': 0, '中': 1, '低': 2}
 
@@ -104,6 +108,8 @@ for seg, fn, idcol in SEGS:
 print('unknown ids', dict(unknown))
 
 # ---------- 統計 ----------
+if SUF:
+    resolve_v15.apply_rows(ledger)
 def cnt(rows):
     c = collections.Counter(r['status'] for r in rows)
     return {s: c.get(s, 0) for s in (FIX, DEC, KEEP, OPEN)}
@@ -131,7 +137,7 @@ topic = collections.Counter(FINDINGS[i]['status'] for i in FINDINGS if i[0] in '
 stats['topics'] = dict(topic); stats['n_topics'] = sum(topic.values())
 ytopic = collections.Counter(FINDINGS[i]['status'] for i in FINDINGS if i[0] == 'Y')
 stats['ytopics'] = dict(ytopic)
-json.dump(dict(stats=stats, ledger=ledger), open(os.path.join(HERE, 'ledger.json'), 'w'), ensure_ascii=False, indent=1, default=str)
+json.dump(dict(stats=stats, ledger=ledger), open(os.path.join(HERE, 'ledger%s.json' % SUF), 'w'), ensure_ascii=False, indent=1, default=str)
 print(json.dumps({k: v for k, v in stats.items() if k != 'hi_open_groups'}, ensure_ascii=False, indent=1))
 print(len(stats['hi_open_groups']), 'high-open groups')
 
@@ -175,7 +181,7 @@ for r in V.iter_rows(min_row=1, max_row=V.max_row, values_only=True):
         vrows.append(r[:9])
 
 # ---------- Excel ----------
-OUT = os.path.join(REP, '20261017_稽核結案對帳_明細.xlsx')
+OUT = os.path.join(REP, '20261017_稽核結案對帳_明細%s.xlsx' % SUF)
 wb = openpyxl.Workbook()
 HF = PatternFill('solid', fgColor='DDE6F0'); BOLD = Font(bold=True)
 FILL = {FIX: 'E2F0D9', DEC: 'DDEBF7', KEEP: 'FFF2CC', OPEN: 'F8CBAD'}

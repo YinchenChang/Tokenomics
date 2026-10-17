@@ -126,7 +126,7 @@ def test_v1530_c2_batch_multiple(wbf, lo):
     r = _gm(gm, "Calib", "D156")
     assert gm[f"A{r}"].value == "GM685" and gm[f"K{r}"].value == 1.59 and gm[f"L{r}"].value == 2.64 and gm[f"F{r}"].value == "Derived"
     assert gm[f"M{r}"].value.startswith("1.83–3.04（兩個批次口徑反推點") and "v15.3 C2" in gm[f"M{r}"].value
-    assert "原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明" in gm[f"N{r}"].value and "v15.3 r1：上端改同口徑（D201 ÷ D67）；原 3.04 保留" in gm[f"N{r}"].value and "v15.3 r1：上端改同口徑（D201 ÷ D67）；原 3.04 保留" in gm[f"M{r}"].value and "退回 1" in gm[f"N{r}"].value
+    assert "原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明" in gm[f"N{r}"].value and "v15.3 r1：上端改同口徑（D201 ÷ D67）；原 3.04 保留" in gm[f"N{r}"].value and "v15.3 r1：上端改同口徑（D201 ÷ D67＝3.0373 ÷ 1.15＝2.641，取 2.64）；原 3.04 保留" in gm[f"M{r}"].value and "退回 1" in gm[f"N{r}"].value
     assert "v15.3 C2" in cal["J156"].value and "v15.3 C2" in cal["H156"].value and "v12.0 H2：GB200 D156 由 3.04 改為 2.36" in cal["J156"].value
     # 區間端點：高端情境 1.59 與低端 3.04／3.74 之內含基準
     assert v.get_name("IF_AllocRDGW") >= v.get_name("RNG_IF_AllocRDGW_Lo") and v.get_name("IF_AllocRDGW") <= v.get_name("RNG_IF_AllocRDGW_Hi")
@@ -197,13 +197,13 @@ def test_v1530_changed_cells_only_expected():
             diffs[ws.title] = d
     assert set(diffs) <= {"README", "Calib", "Cap_In", "L1", "Alloc", "Interface", "Gov_Map", "Decisions", "DB_Evidence"}, set(diffs)
     assert diffs["Calib"] == ["D156", "H156", "J156"]
-    assert diffs["Cap_In"] == sorted(["A242", "A243", "C226", "C242", "D226", "D228", "D242", "E228", "E242", "F226", "F228", "G226", "G228", "G242", "G243"])
-    assert diffs["L1"] == ["H86", "H87", "H88"]
+    assert diffs["Cap_In"] == sorted(["A226", "A228", "A230", "A242", "A243", "C226", "C242", "D226", "D228", "D242", "E228", "E242", "F226", "F228", "G226", "G228", "G242", "G243"])
+    assert diffs["L1"] == ["C86", "C87", "H86", "H87", "H88", "K86", "K87", "K88", "P89", "S87"]      # r1：過期標籤與 P89 三態
     assert sorted(diffs["README"]) == ["A1", "A60", "B5", "B60"]
     gm = [x for x in diffs["Gov_Map"] if not x.startswith("AA")]
     assert sorted(gm) == sorted(["AL638", "AL639", "AL642", "AL643", "F638", "F639", "F642", "F643", "M638", "M639", "M642", "M643", "N638", "N639", "N640", "N642", "N643",
-                                 "K689", "M689", "N689", "U689"]), gm
-    assert len(diffs["Decisions"]) == 80 and len(diffs["DB_Evidence"]) == 90
+                                 "K689", "L689", "M689", "N689", "U689", "E638", "E639", "E642", "E643"]), gm
+    assert len(diffs["Decisions"]) == 90 and len(diffs["DB_Evidence"]) == 90
     # Interface：只有 R–W 欄（契約追溯文字與公式，D156 公式使上游登錄輸入變多）
     assert {re.match("[A-Z]+", x).group() for x in diffs["Interface"]} <= {"R", "S", "T", "U", "V", "W"}
 

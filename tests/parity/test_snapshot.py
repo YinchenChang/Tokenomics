@@ -2,7 +2,7 @@
 讀 LibreOffice 重算後的值（`lo.view({})`，即新 SLO 基準；其他測試的 `_vo` 會改回舊 SLO，所以 GOV 計數在新基準下需要在這裡斷言）。
 
 快照更新規則：之後每個版本若有預期變動，必須在同一個 PR 以 `python3 tools/make_test_fixtures.py <重算後的 xlsx>` 更新
-tests/parity/fixtures/contract_snapshot_v15.2.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
+tests/parity/fixtures/contract_snapshot_v15.3.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
 import json
 import re
 from pathlib import Path
@@ -11,7 +11,7 @@ import pytest
 from openpyxl.utils import get_column_letter as L, range_boundaries
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-SNAP = json.loads((FIXTURES / "contract_snapshot_v15.2.json").read_text(encoding="utf-8"))
+SNAP = json.loads((FIXTURES / "contract_snapshot_v15.3.json").read_text(encoding="utf-8"))
 ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_", "RNG_", "AL_Rng")      # v13.0 K2：RNG_*（批次口徑區間端點）與 AL_Rng*（v12.0 區間表）全部納入快照
 
 
@@ -69,7 +69,7 @@ VERIFY_EXPECTED = {
     "V9": (0.379829822080908, 0), "V10": (0.371397626434424, 0), "V11": (0.7, 0), "V12": (0.99108369917347, 1),
     "V13": (2.18428412747673, 1), "V14": (4.49289494127437, 0), "V15": (0.266287875672857, 0), "V16": (0.0852702650102943, "恆等式（非驗證）"),
     "V17": (0.252262860133895, 1), "V18": (0, "恆等式（非驗證）"), "V19": (0, 1),      # v12.0 H7：V18 改標恆等式（F 欄為文字，不計入驗證）；V19 的 E＝（T 欄與重算判定不符列數）＋實質不一致列數＝0
-    "V20": (1.41821027964517, "校準相關（非獨立）：帶內"), "V21": (0.645585696466193, 1), "V22": (0.501000545281522, 1),
+    "V20": (1.25405497807807, "校準相關（非獨立）：帶內"), "V21": (0.645585696466193, 1), "V22": (0.501000545281522, 1),
     "V23": (0, "恆等式（非驗證）"), "V24": (0, "恆等式（非驗證）"), "V25": (0.223686973168842, 1), "V26": (0, 1),      # v14.0（4-3B Q4）新增：V23 實際速度 ≥ SLO（低於 SLO 的可達欄數）、V24 Cap_In 147＝L1_MImplied（最大絕對差）、V25 需求÷上限（Cap_In 175 最大值）、V26 2026 世代組合合計（最大絕對差）；v14.1 R2：V23、V24 改標恆等式（F 欄為文字，不計入驗證）
          # v11.0 G3 新增；v12.0 H2：V20 比值 1.563 → 1.255（GB200 倍數 3.04 → 2.36），改標校準相關（非獨立），F 欄為文字，不計入驗證
 }

@@ -16,7 +16,7 @@ import pytest
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 RANGES = json.loads((REPO / "builder" / "v1300_ranges.json").read_text(encoding="utf-8"))
 VR_NAMES = sorted(n for n, d in RANGES["names"].items() if d.get("source") == "vr200")
@@ -63,7 +63,7 @@ def _chk_row(v, cid):
 def test_v1500_o13_names_and_base_inside(lo):
     """六個端點名稱 ＋ OutCount 存在；基準值不變（0.898096／0.184322／0.184983）且落在 _Lo／_Hi 之內；服務 GW 與 SRC_DEM_004 區間成正比。"""
     v = lo.view({})
-    want = {"IF_AllocServeGW": 0.898096, "IF_AllocQ1": 0.181823, "IF_AllocQ2": 0.182477}      # v15.2 B3：Q1／Q2 0.184322／0.184983 → 0.181823／0.182477（D67 使 GB200 欄研發 GW 略降）
+    want = {"IF_AllocServeGW": 0.898096, "IF_AllocQ1": 0.184347, "IF_AllocQ2": 0.185009}      # v15.3 C2：Q1／Q2 再升為 0.182997／0.183654（GB200 批次倍數 2.36 → 2.198）；v15.2 B3：Q1／Q2 0.184322／0.184983 → 0.181823／0.182477（D67 使 GB200 欄研發 GW 略降）
     for n in SPEND:
         base = v.get_name(n)
         assert abs(base - want[n]) < 5e-6, (n, base)      # 基準不變（同 test_parity）

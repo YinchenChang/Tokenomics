@@ -2,7 +2,7 @@
 讀 LibreOffice 重算後的值（`lo.view({})`，即新 SLO 基準；其他測試的 `_vo` 會改回舊 SLO，所以 GOV 計數在新基準下需要在這裡斷言）。
 
 快照更新規則：之後每個版本若有預期變動，必須在同一個 PR 以 `python3 tools/make_test_fixtures.py <重算後的 xlsx>` 更新
-tests/parity/fixtures/contract_snapshot_v14.2.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
+tests/parity/fixtures/contract_snapshot_v15.0.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
 import json
 import re
 from pathlib import Path
@@ -11,7 +11,7 @@ import pytest
 from openpyxl.utils import get_column_letter as L, range_boundaries
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-SNAP = json.loads((FIXTURES / "contract_snapshot_v14.2.json").read_text(encoding="utf-8"))
+SNAP = json.loads((FIXTURES / "contract_snapshot_v15.0.json").read_text(encoding="utf-8"))
 ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_", "RNG_", "AL_Rng")      # v13.0 K2：RNG_*（批次口徑區間端點）與 AL_Rng*（v12.0 區間表）全部納入快照
 
 
@@ -67,14 +67,14 @@ VERIFY_EXPECTED = {
     "V1": (1.21767628625269, "警示"), "V2": (0.718430345941003, 1), "V3": (0.904516154853064, 1), "V4": (0.702796711119185, 1),
     "V5": (0.494242858903564, 1), "V6": (0.689214136000581, 1), "V7": (0.267266126717592, 0), "V8": (0.261055812652461, 0),
     "V9": (0.379829822080908, 0), "V10": (0.371397626434424, 0), "V11": (0.7, 0), "V12": (0.99108369917347, 1),
-    "V13": (2.18428412747673, 1), "V14": (4.1124545381639, 0), "V15": (0.266287875672857, 0), "V16": (0.0852702650102943, 1),
+    "V13": (2.18428412747673, 1), "V14": (4.1124545381639, 0), "V15": (0.266287875672857, 0), "V16": (0.0852702650102943, "恆等式（非驗證）"),
     "V17": (0.252262860133895, 1), "V18": (0, "恆等式（非驗證）"), "V19": (0, 1),      # v12.0 H7：V18 改標恆等式（F 欄為文字，不計入驗證）；V19 的 E＝（T 欄與重算判定不符列數）＋實質不一致列數＝0
     "V20": (1.25527448454775, "校準相關（非獨立）：帶內"), "V21": (0.645585696466193, 1), "V22": (0.501000545281522, 1),
     "V23": (0, "恆等式（非驗證）"), "V24": (0, "恆等式（非驗證）"), "V25": (0.245362088692091, 1), "V26": (0, 1),      # v14.0（4-3B Q4）新增：V23 實際速度 ≥ SLO（低於 SLO 的可達欄數）、V24 Cap_In 147＝L1_MImplied（最大絕對差）、V25 需求÷上限（Cap_In 175 最大值）、V26 2026 世代組合合計（最大絕對差）；v14.1 R2：V23、V24 改標恆等式（F 欄為文字，不計入驗證）
          # v11.0 G3 新增；v12.0 H2：V20 比值 1.563 → 1.255（GB200 倍數 3.04 → 2.36），改標校準相關（非獨立），F 欄為文字，不計入驗證
 }
 SOFT = {"V1", "V2", "V3"}      # v11.0 G4：MLPerf server 軟上限（> 1 為「警示」；v12.0 H1：> CHK_SoftCapFail 為失敗）
-UNCOUNTED = {"V18", "V20", "V23", "V24"}      # v12.0：V18 恆等式（非驗證）、V20 校準相關（非獨立）：F 欄為文字，不計入驗證項目數；v14.1 R2：V23、V24 恆等式（非驗證）
+UNCOUNTED = {"V16", "V18", "V20", "V23", "V24"}      # v15.0 O9：V16 恆等式（非驗證）；v12.0：V18 恆等式（非驗證）、V20 校準相關（非獨立）：F 欄為文字，不計入驗證項目數；v14.1 R2：V23、V24 恆等式（非驗證）
 
 
 def _verify_rows(v):
@@ -101,7 +101,7 @@ def test_verify_item(lo, vid):
         fail_t = v.get_name("CHK_SoftCapFail")
         assert (0 if e < lo_b else (1 if inside else (0 if e > fail_t else "警示"))) == f, (vid, e, lo_b, hi_b, fail_t, f)
     elif vid in UNCOUNTED:      # F 欄為文字；帶內／帶外仍須與通過帶一致
-        if vid in ("V18", "V23", "V24"):
+        if vid in ("V16", "V18", "V23", "V24"):
             assert (f == "恆等式（非驗證）") == (e == 0), (vid, e, f)
         else:
             assert f == "校準相關（非獨立）：" + ("帶內" if inside else "帶外"), (vid, e, lo_b, hi_b, f)
@@ -113,13 +113,13 @@ def test_verify_totals_and_list_complete(lo):
     """清單完整（V1–V26 共 26 項，無缺列；v14.0 4-3B Q4 新增 V23–V26，皆通過，CHK_Verify* 20／12／7／1 → 24／16／7／1）；CHK_VerifyTotal／Pass／Fail／Warn＝20／12／7／1（v10.3：19／11／8；v11.0：22／14／7／1，V1 改警示、新增 V20–V22 皆通過；v12.0：V18 改恆等式、V20 改校準相關，皆移出計數，Pass 14 → 12、Total 22 → 20）；恆等式 Pass＋Fail＋Warn＝Total。"""
     v = lo.view({})
     assert sorted(_verify_rows(v), key=lambda x: int(x[1:])) == [f"V{i}" for i in range(1, 27)]
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (22, 14, 7, 1)      # v14.1 R2：V23、V24 移出計數（24／16／7／1 → 22／14／7／1）
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (21, 13, 7, 1)      # v15.0 O9：V16 移出計數（22／14／7／1 → 21／13／7／1）；v14.1 R2：V23、V24 移出計數（24／16／7／1 → 22／14／7／1）
     assert v.get_name("CHK_VerifyPass") + v.get_name("CHK_VerifyFail") + v.get_name("CHK_VerifyWarn") == v.get_name("CHK_VerifyTotal")
-    assert sum(1 for _, p in VERIFY_EXPECTED.values() if p == 1) == 14      # v14.1 R2：16 → 14
+    assert sum(1 for _, p in VERIFY_EXPECTED.values() if p == 1) == 13      # v15.0 O9：14 → 13（V16 改標恆等式）；v14.1 R2：16 → 14
     assert sum(1 for _, p in VERIFY_EXPECTED.values() if p == 0) == 7 and sum(1 for _, p in VERIFY_EXPECTED.values() if p == "警示") == 1
 
 
 def test_gov_counts_new_baseline(lo):
     """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 182（v13.0：181 → 182，Calib C68 類別更正為 Assumed 進 Load_Bearing；v12.0：179 → 181，Gov_Map 『標記變更』欄 +1＝C68 更正註記；Load_Bearing 高段 Assumed 列 +1＝新增 Hopper C156 列）。"""
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 184)      # v13.1 D15 B 段：Warnings 282 → 280（SRC_HW_067／068 有第二來源）、Info 182 → 184（DB_Evidence 新增 2 筆待判定）； v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)      # v15.0：Info 184 → 182（L1 外部對照換算後，第 31、60、63 列轉為 ±20% 內、第 65 列轉為差距 >20%，淨減 2）； v13.1 D15 B 段：Warnings 282 → 280（SRC_HW_067／068 有第二來源）、Info 182 → 184（DB_Evidence 新增 2 筆待判定）； v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）

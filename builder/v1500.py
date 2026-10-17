@@ -338,7 +338,7 @@ def o20_kappa(wb):
         put(ws, f"E{r}", f"={w}" if w else "—", F_LINK if w else F_CALC)
         put(ws, f"F{r}", f"=B{r}*((1-D{r})*Sens_Perf!$C$101+D{r}*Sens_Perf!$C$102)/1000000+C{r}*Sens_Perf!$C$103/1000000", F_CALC, fmt="0.000000")
         put(ws, f"G{r}", f"=(B{r}+C{r})/F{r}", F_CALC, fmt="#,##0")
-        put(ws, f"H{r}", f"=G{r}/$G${ref}", F_CALC, fmt="0.000")
+        put(ws, f"H{r}", "（基準 1）" if r == ref else f"=G{r}/$G${ref}", F_NOTE if r == ref else F_CALC, fmt="0.000")
         put(ws, f"I{r}", f"=E{r}/H{r}" if w else "—", F_CALC, fmt="#,##0")
         r += 1
     last = r - 1

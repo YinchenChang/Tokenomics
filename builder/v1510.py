@@ -99,6 +99,9 @@ def u21(wb, append_text):
         for r in rows:
             assert ws[f"A{r}"].value not in (None, ""), (sh, r)
             n += int(append_text(ws[f"A{r}"], O12_TAG))
+            mp = sh + "_Prod"          # 鏡像頁的標籤是核心頁標籤的文字複本，須同步（test_slim 鏡像檢查）
+            if mp in wb.sheetnames:
+                n += int(append_text(wb[mp][f"A{r}"], O12_TAG))
     d = wb["Decisions"]
     n += int(append_text(d[f"D{_row_of(d, 'SL46-16')}"], U21_DEC16))
     return n

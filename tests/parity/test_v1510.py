@@ -155,7 +155,8 @@ def test_v1510_changed_cells_only_expected(wbf):
     """與 v15.0 逐格比對：公式／值不同的儲存格只在預期頁：Alloc（398 與版本字串兩格）、Alloc_In、Amortize、Calib、Decisions、Interface、README、Sens_Rev、Theory_Rev。
     不同頁其餘格 0；Sens_Rev 的公式差異只有 A17。"""
     prev = openpyxl.load_workbook(PREV)
-    allowed = {"Alloc", "Alloc_In", "Amortize", "Calib", "Decisions", "Interface", "README", "Sens_Rev", "Theory_Rev"}
+    allowed = {"Alloc", "Alloc_In", "Amortize", "Calib", "Decisions", "Interface", "README", "Sens_Rev", "Theory_Rev",
+               "Interface_Prod", "Amortize_Prod", "Theory_Rev_Prod"}   # 鏡像頁同步 17 列的 O12 口徑標籤
     diffs = {}
     for ws in prev:
         wn = wbf[ws.title]
@@ -170,4 +171,7 @@ def test_v1510_changed_cells_only_expected(wbf):
     assert sorted(diffs["Amortize"]) == ["A10", "A19", "A29", "A40"]
     assert sorted(diffs["Theory_Rev"]) == ["A18", "A20", "A36", "A38", "A54", "A56"]
     assert sorted(diffs["Interface"]) == sorted(f"A{r}" for r in (2, 55, 60, 64, 69, 73, 78, 148))
+    assert sorted(diffs["Interface_Prod"]) == sorted(f"A{r}" for r in (55, 60, 64, 69, 73, 78, 148))
+    assert sorted(diffs["Amortize_Prod"]) == ["A10", "A19", "A29", "A40"]
+    assert sorted(diffs["Theory_Rev_Prod"]) == ["A18", "A20", "A36", "A38", "A54", "A56"]
     assert len(diffs["Decisions"]) == 74      # 7 筆新決策 × 10 欄 ＋ 四筆既有決策的 D 欄附加

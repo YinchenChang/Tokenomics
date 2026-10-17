@@ -170,7 +170,7 @@ def _decisions():
         ("U2-4 Sens_Rev A17 標籤隨 CST_Eps（Y9）",
          f"依據：{A}。Sens_Rev A17『ε＝0.5、有效算力 ×7（J8 缺口全數轉為能力）』寫死 ε（S1-GM566），屬 Y9『敏感度頁未跟隨輸入』範圍。照 Y9 對 Sens_Rev A8／A9 的做法，標籤改為公式："
          "=\"ε＝\"&TEXT(CST_Eps,\"0.0#\")&\"、有效算力 ×\"&B17&\"（J8 缺口全數轉為能力）\"；基準值下顯示文字與原文完全相同。CST_Eps 即 Sens_Rev B18，D17 本來就讀它，數值不改。原文逐字保留於本筆：『{A17_OLD}』。",
-         "Sens_Rev A17（B17）；G18", "Sens_Rev A17；G18"),
+         "Sens_Rev A17、B17；G18", "Sens_Rev A17；G18"),
     ]
     return [[f"SL46-{25 + i:02d}", V, f"v15.1 稽核結案收尾：{t}", txt, DATE, B, "v15.1 已建", where, f"{WO} {t[:4]}", "否"] for i, (t, txt, where, _) in enumerate(D)]
 

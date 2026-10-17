@@ -249,7 +249,7 @@ def decisions_append(wb):
         if row[0] in have: continue
         for i, v in enumerate(row): put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
         r += 1; n += 1
-    assert r - 1 < 300, "Decisions beyond Gov_Map AA's COUNTIF span ($A$5:$A$300)"
+    assert r - 1 <= 300, "Decisions beyond Gov_Map AA's COUNTIF span ($A$5:$A$300)"
     return n
 
 

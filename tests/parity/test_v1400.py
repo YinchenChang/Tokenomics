@@ -15,6 +15,7 @@ from conftest import model_path
 from parity_lib import lo_recalc
 
 REPO = Path(__file__).resolve().parents[2]
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
 V131_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v13.1.xlsx"      # v13.1（LibreOffice 重算存檔）：v14.0 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_")
 Q4_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # 因新增 V23–V26 而變（v14.1 R2：V23、V24 移出計數後仍與 v13.1 不同，見下方斷言）
@@ -114,8 +115,8 @@ def test_v1400_existing_contract_names_unchanged(lo):
     例外只有：CHK_VerifyTotal／Pass（新增 V23–V26）、IFC_*（Interface 新增列，範圍變長）、RNG_Version／Current（版本字串）。"""
     prev = openpyxl.load_workbook(V131_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED]
-    assert len(keep) >= 700, len(keep)
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED | V152_CHANGED]
+    assert len(keep) >= 340, len(keep)      # v15.2：同上；原 ≥ 700
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -159,7 +160,7 @@ def test_v1400_new_checks_pass_on_base(lo):
         assert v.get("Checks", f"G{r}") == "驗證" and v.get("Checks", f"F{r}") == 1, (code, v.get("Checks", f"F{r}"))
     r = _chk(v, "V23")
     assert v.get("Checks", f"D{r}") == 32 and v.get("Checks", f"C{r}") == 0      # 可達欄 32（Perf 15＋Perf_Batch 17）、低於 SLO 的欄數 0
-    assert abs(v.get("Checks", f"E{_chk(v, 'V25')}") - 0.245362088692091) < 1e-9
+    assert abs(v.get("Checks", f"E{_chk(v, 'V25')}") - 0.223686973168842) < 1e-9
     assert v.get("Checks", f"E{_chk(v, 'V24')}") == 0 and v.get("Checks", f"E{_chk(v, 'V26')}") == 0
 
 
@@ -190,7 +191,7 @@ def test_v1400_v24_fails_when_cap_in_147_differs_from_l1_mimplied(model, tmp_pat
     wb = _recalc_with_edits(model, tmp_path, {("Cap_In", "C147"): old + "*1.01"})
     r = _v_row(wb, "V24")
     assert r["E"] > 1e-9 and r["F"] == "恆等式不成立", r      # v14.1 R2：原判失敗 0
-    assert abs(r["E"] - 0.01 * 2.03352783356479) < 1e-6      # 差 1% × 2025 年度 m_整體 2.0335
+    assert abs(r["E"] - 0.01 * 2.51354667422089) < 1e-6      # 差 1% × 2025 年度 m_整體 2.0335
 
 
 def test_v1400_v25_fails_when_demand_exceeds_ceiling(lo):
@@ -225,9 +226,9 @@ def test_v1400_d104_d140_read_alloc_in_and_fail_when_mix_not_100(model, lo):
 def test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor(lo):
     """Q3→v14.1 R1：Cap_In 第 121 列（m 同欄下限）數值不變（0.301／0.215／0.637）；L1_MFleet 區間由 [0.184, 0.407, 1.179] 改為 [0.215, 0.407, 1.179]（低端下限截斷，基準與高端不變）。"""
     v = lo.view({})
-    want = {"C": 0.300967115929835, "D": 0.215398033949784, "E": 0.637342127851415}
+    want = {"C": 0.339147884513574, "D": 0.242723485975401, "E": 0.718195520146393}      # v15.2：隨 B2（Astra 單價 7.174 → 4.5）與 B3 改變；舊值 0.301／0.215／0.637
     for c, w in want.items():
         assert abs(v.get("Cap_In", f"{c}121") - w) < 1e-12, c
-    assert abs(v.get_name("L1_MFleet") - 0.407295434678084) < 1e-12 and abs(v.get_name("L1_MFleet_Lo") - 0.215398033949784) < 1e-12      # v14.1 R1：0.184 → 0.215（＝D121）
-    assert abs(v.get_name("L1_MFleet_Hi") - 1.17876090506834) < 1e-12
+    assert abs(v.get_name("L1_MFleet") - 0.460003106109943) < 1e-12 and abs(v.get_name("L1_MFleet_Lo") - 0.242723485975401) < 1e-12      # v14.1 R1：0.184 → 0.215（＝D121）
+    assert abs(v.get_name("L1_MFleet_Hi") - 1.33130310709466) < 1e-12
     assert "L1_MFleetFloor" not in v.names      # 不升級

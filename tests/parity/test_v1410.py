@@ -17,11 +17,12 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
 sys.path.insert(0, str(REPO / "builder"))
 V140_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v14.0.xlsx"      # v14.0（LibreOffice 重算存檔）
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_", "GOV_")
 V150_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass", "GOV_Info", "GOV_Table"}      # v15.0 預期變動：O9（V16 移出驗證計數 22／14 → 21／13）、O14（L1 外部對照換算，Info 184 → 182，GOV_Table 為其明細表）
-R1_CHANGED = {"L1_MFleet_Lo": 0.215398033949784, "L1_PriceRealFleet_Lo": 0.361920392563785, "L1_LReqFleet_Hi": 3.80253905516642}      # v14.1 新值（舊值 0.1838665514316／0.308939934377431／4.45464077137931）
+R1_CHANGED = {"L1_MFleet_Lo": 0.242723485975401, "L1_PriceRealFleet_Lo": 0.329948597895522, "L1_LReqFleet_Hi": 3.80958617071992}      # v15.2 B2／B3 後的值；      # v14.1 新值（舊值 0.1838665514316／0.308939934377431／4.45464077137931）
 R2_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 P25_V142 = {"L1_MFleet_P25Lo", "L1_MFleet_P25Hi"}      # v14.2 S1：預期變動（新值與下限由 test_v1420.py 逐一斷言）
@@ -74,8 +75,8 @@ def test_v1410_r1_mechanism_is_an_excel_formula(wbf):
 def test_v1410_r1_base_values(lo):
     """基準：L1_MFleet [Lo, 基準, Hi] 由 [0.1839, 0.4073, 1.1788] 改為 [0.2154, 0.4073, 1.1788]；基準與高端不變，低端＝D121。"""
     v = lo.view({})
-    assert abs(v.get_name("L1_MFleet") - 0.407295434678084) < 1e-12 and abs(v.get_name("L1_MFleet_Hi") - 1.17876090506834) < 1e-12
-    assert abs(v.get_name("L1_MFleet_Lo") - 0.215398033949784) < 1e-12 and abs(v.get("Cap_In", "D119") - v.get("Cap_In", "D121")) < 1e-15
+    assert abs(v.get_name("L1_MFleet") - 0.460003106109943) < 1e-12 and abs(v.get_name("L1_MFleet_Hi") - 1.33130310709466) < 1e-12
+    assert abs(v.get_name("L1_MFleet_Lo") - 0.242723485975401) < 1e-12 and abs(v.get("Cap_In", "D119") - v.get("Cap_In", "D121")) < 1e-15
     assert v.get_name("L1_MFleet_Lo") < v.get_name("L1_MFleet") < v.get_name("L1_MFleet_Hi")
     for n, w in R1_CHANGED.items():
         assert abs(v.get_name(n) - w) <= 1e-12 * w, n
@@ -92,8 +93,8 @@ def test_v1410_r1_floor_binds_low_end_column(lo):
     floor = v.get("Cap_In", "D121")
     assert v.get("Cap_In", "D116") > v.get("Cap_In", "D118")      # token 超過同欄上限
     assert raw < floor * 0.7, (raw, floor)      # 點估計遠低於下限（沒有截斷時 L1_MFleet_Lo 會是 raw）
-    assert abs(v.get_name("L1_MFleet_Lo") - floor) <= 1e-12 and abs(floor - 0.215398033949784) < 1e-12      # 同欄下限不受該利用率影響
-    assert abs(v.get_name("L1_MFleet") - 0.407295434678084) < 1e-12 and abs(v.get_name("L1_MFleet_Hi") - 1.17876090506834) < 1e-12
+    assert abs(v.get_name("L1_MFleet_Lo") - floor) <= 1e-12 and abs(floor - 0.242723485975401) < 1e-12      # 同欄下限不受該利用率影響
+    assert abs(v.get_name("L1_MFleet") - 0.460003106109943) < 1e-12 and abs(v.get_name("L1_MFleet_Hi") - 1.33130310709466) < 1e-12
 
 
 def test_v1410_r1_floor_does_not_cut_when_point_above_floor(lo):
@@ -110,7 +111,7 @@ def test_v1410_r1_floor_applies_to_base_column(lo):
     v = lo.view(SC_BASE)
     raw = _raw_m(v, "C")
     floor = v.get("Cap_In", "C121")
-    assert raw < floor and abs(v.get_name("L1_MFleet") - floor) <= 1e-12 and abs(floor - 0.300967115929835) < 1e-12
+    assert raw < floor and abs(v.get_name("L1_MFleet") - floor) <= 1e-12 and abs(floor - 0.339147884513574) < 1e-12
 
 
 def test_v1410_names_off_the_chain_unchanged(lo):
@@ -118,8 +119,8 @@ def test_v1410_names_off_the_chain_unchanged(lo):
     例外只有：R1 的三個名稱（上方斷言新值）、R2 的 CHK_VerifyTotal／Pass（24／16 → 22／14）、版本字串。"""
     prev = openpyxl.load_workbook(V140_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES and n not in P25_V142 and n not in V150_CHANGED]
-    assert len(keep) >= 700, len(keep)      # 789 個名稱中的契約前綴者，扣除上列例外後仍有 742 個
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES and n not in P25_V142 and n not in V150_CHANGED and n not in V152_CHANGED]
+    assert len(keep) >= 340, len(keep)      # v15.2：同上；原 ≥ 700      # 789 個名稱中的契約前綴者，扣除上列例外後仍有 742 個
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

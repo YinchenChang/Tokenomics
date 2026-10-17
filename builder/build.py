@@ -45,6 +45,9 @@ for _old, _new in v536.SNAP_MOVES:      # v5.36 B2: the Alloc_In pricing-multipl
 import v601
 for _old, _new in v601.SNAP_MOVES:      # v6.1 D13: the Alloc_In pure-utilisation label was renamed; the Excel values follow it
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
+import v1520
+for _old, _new in v1520.SNAP_MOVES:      # v15.2 B2: Cap_In A280 label renamed (days-on-sale -> volume weighted); the Excel values follow it back to the builder's label
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
@@ -341,6 +344,9 @@ print("v1500 v15.0:", V1500)
 import v1510
 V1510 = v1510.apply(wb, v518._append_text)       # v15.1: U1/U2 text corrections after the v15.0 independent check, Sens_Rev A17 label formula, Decisions SL46-25…31
 print("v1510 v15.1:", V1510)
+import v1520
+V1520 = v1520.apply(wb, v518._append_text)       # v15.2: B2 Cap_In C280:E280, B3 Calib D67, B4／J2 labels, notes, Decisions SL47-*, DB_Evidence E387…E392 (Gov_Map edits run in gov.py)
+print("v1520 v15.2:", V1520)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

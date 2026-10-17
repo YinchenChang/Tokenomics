@@ -13,6 +13,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.0.xlsx"
 PREV142 = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
@@ -53,7 +54,7 @@ def test_v1510_every_name_value_equals_v150(lo):
     v = lo.view({})
     n_ok = 0
     for n, d in prev.defined_names.items():
-        if n in VERSION_NAMES or "!" not in d.attr_text or "," in d.attr_text:
+        if n in VERSION_NAMES or n in V152_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -61,10 +62,10 @@ def test_v1510_every_name_value_equals_v150(lo):
         got = _flat(v.get_name(n))
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
         n_ok += 1
-    assert n_ok >= 1500, n_ok
+    assert n_ok >= 1000, n_ok      # v15.2：B2／B3 預期變動的 455 個名稱（V152_CHANGED）不比，其餘仍逐值相同
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v15.1") and str(v.get_name("RNG_Current")).endswith("v15.1")
+    assert str(v.get_name("RNG_Version")).endswith("v15.2") and str(v.get_name("RNG_Current")).endswith("v15.2")      # v15.2：版本字串隨版本
 
 
 def test_v1510_decisions_recorded(wbf):
@@ -104,7 +105,7 @@ def test_v1510_calib_d67_g67_note_and_values(wbf):
     ws = wbf["Calib"]
     j = ws["J67"].value
     assert "SL46-27" in j and "未獨立驗證" in j and "SL46-13" in j
-    assert [ws[f"{c}67"].value for c in "CDEFG"] == [1.2, 1, 1, 1, 1]
+    assert [ws[f"{c}67"].value for c in "CDEFG"] == [1.2, 1.15, 1, 1, 1]      # v15.2 B3：D67 1 → 1.15
     assert "SL46-27" in wbf["Interface"]["A2"].value
     d = _dec(wbf, "SL46-27")
     assert "Calib D67:G67" in d["H"] and "GM342" in d["D"]
@@ -155,19 +156,20 @@ def test_v1510_changed_cells_only_expected(wbf):
     """與 v15.0 逐格比對：公式／值不同的儲存格只在預期頁：Alloc（398 與版本字串兩格）、Alloc_In、Amortize、Calib、Decisions、Interface、README、Sens_Rev、Theory_Rev。
     不同頁其餘格 0；Sens_Rev 的公式差異只有 A17。"""
     prev = openpyxl.load_workbook(PREV)
+    p151 = openpyxl.load_workbook(REPO / "model" / "archive" / "20261017_Tokenomics_v15.1.xlsx")      # v15.2：v15.1→v15.2 的格差異另由 test_v1520 逐格釘住，這裡遮掉，其餘仍須與原斷言相同
     allowed = {"Alloc", "Alloc_In", "Amortize", "Calib", "Decisions", "Interface", "README", "Sens_Rev", "Theory_Rev",
                "Interface_Prod", "Amortize_Prod", "Theory_Rev_Prod"}   # 鏡像頁同步 17 列的 O12 口徑標籤
     diffs = {}
     for ws in prev:
         wn = wbf[ws.title]
         coords = {c.coordinate for row in ws.iter_rows() for c in row if c.value is not None} | {c.coordinate for row in wn.iter_rows() for c in row if c.value is not None}
-        d = [a for a in coords if ws[a].value != wn[a].value]
+        d = [a for a in coords if ws[a].value != wn[a].value and p151[ws.title][a].value == wn[a].value]
         if d:
             diffs[ws.title] = sorted(d)
     assert set(diffs) <= allowed, set(diffs) - allowed
-    assert sorted(diffs["Alloc"]) == ["A398", "C177"], diffs["Alloc"]
+    assert sorted(diffs["Alloc"]) == ["A398"], diffs["Alloc"]      # v15.2：C177（版本字串）屬 v15.1→v15.2 差異，被遮掉
     assert diffs["Sens_Rev"] == ["A17", "G18"] or sorted(diffs["Sens_Rev"]) == ["A17", "G18"], diffs["Sens_Rev"]
-    assert sorted(diffs["Alloc_In"]) == ["G15", "G16"] and diffs["Calib"] == ["J67"]
+    assert sorted(diffs["Alloc_In"]) == ["G15", "G16"] and "Calib" not in diffs      # v15.2：J67 另被 v15.2 附加，遮掉
     assert sorted(diffs["Amortize"]) == ["A10", "A19", "A29", "A40"]
     assert sorted(diffs["Theory_Rev"]) == ["A18", "A20", "A36", "A38", "A54", "A56"]
     assert sorted(diffs["Interface"]) == sorted(f"A{r}" for r in (2, 55, 60, 64, 69, 73, 78, 148))

@@ -1,5 +1,5 @@
 {
-"version": "20261017_Tokenomics_v15.1",
+"version": "20261017_Tokenomics_v15.2",
 "roots": 71,
 "leaves": [
 [
@@ -760,7 +760,7 @@
 [
 "Calib",
 "D67",
-1
+1.15
 ],
 [
 "Calib",

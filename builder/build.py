@@ -335,6 +335,9 @@ print("v1410 v14.1:", {k: (v if not isinstance(v, dict) else {kk: vv for kk, vv 
 import v1420
 V1420 = v1420.apply(wb, v518._append_text)       # v14.2: S1 Cap_In 285／286 (P25Lo／P25Hi) floor like R1, S2 Har_In 20／32 A／B labels, Decisions SL45-*
 print("v1420 v14.2:", V1420)
+import v1500
+V1500 = v1500.apply(wb, v518._append_text)       # v15.0: audit close-out O13/O14/O15/O9/O6/O20, T3 O5/O4 notes, Decisions SL46-*
+print("v1500 v15.0:", V1500)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

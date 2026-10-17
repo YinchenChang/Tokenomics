@@ -9,7 +9,8 @@
   凡契約前綴（IF_／IFW_／IFC_／L1_／CHK_／CAP_）的具名範圍，只要在任一端點情境下與基準不同，就納入；
   RNG_<名稱>_Lo／_Hi 的每一格＝兩個端點情境該格值的較小／較大者（不是情境的「低端／高端」：有些名稱隨倍數增加而上升）。
   另外重算兩個交叉角落（GB200 1.83 × Hopper 3.74、GB200 3.04 × Hopper 1）與 Hopper 單獨 3.74，確認它們都落在端點之內；
-  並以 VR200 倍數單獨改變（CAL_BatchEtaD[4]＝1）區分「圖上游含 CAL_BatchEtaD、但兩個端點情境不動」的名稱（僅經 VR200 欄，或與倍數無關的路徑）。
+  v15.0 T3-2：另以 VR200 倍數的兩個端點情境（CAL_BatchEtaD[4]＝0.70、1.0；基準 0.75）重算；凡在上述兩個批次端點情境不動、但隨 VR200 倍數變動的契約名稱，
+  也建 RNG_<名稱>_Lo／_Hi（端點＝vr200_lo／vr200_hi 兩情境每格較小／較大者，JSON 中標 "source": "vr200"）。既有 59 個名稱的端點與其 VR200 欄（點值）不變。
 區間端點是情境重算結果，只能以數值寫入 Excel；每次改版（或改動任何上游輸入）後必須重跑本工具，並在同一個 PR 更新 builder/v1300_ranges.json。"""
 import argparse
 import json
@@ -36,7 +37,9 @@ CHECK = {
     "corner_gb200_hi_hopper_1": {"CAL_BatchEtaD[2]": 3.04},
     "hopper_hi_only": {"CAL_BatchEtaD[1]": 3.74},
 }
-VR = {"vr200_1": {"CAL_BatchEtaD[4]": 1.0}}
+VR_LO = {"CAL_BatchEtaD[4]": 0.70}      # v15.0 T3-2：VR200 欄批次倍數區間下端（Gov_Map GM595；MLPerf v6.1 offline Nebius 0.70）
+VR_HI = {"CAL_BatchEtaD[4]": 1.0}       # 上端（Andy 2026-10-07 假設，Assumed）
+VR = {"vr200_lo": VR_LO, "vr200_hi": VR_HI}
 OUT = REPO / "builder" / "v1300_ranges.json"
 
 
@@ -128,15 +131,33 @@ def derive(src, version=None):
         out_names[n] = {"ref": names[n], "n": len(base[n]), "lo": lo_v, "hi": hi_v,
                         "inverted_cells": [i for i in range(len(base[n])) if isinstance(res["lo"][n][i], (int, float)) and isinstance(res["hi"][n][i], (int, float))
                                            and res["lo"][n][i] > res["hi"][n][i] + 1e-12 * abs(res["hi"][n][i])]}
-    up = sorted(n for n in graph_upstream(src) if n in contract and n not in moved)
-    vr_only = [n for n in up if any(not same(a, b) for a, b in zip(base[n], res["vr200_1"][n]))]
+    # v15.0 T3-2：只經 VR200 欄的名稱（兩個批次端點情境下不動、VR200 倍數改變時才動）也建區間；端點＝vr200_lo／vr200_hi 兩個情境每格的較小／較大者
+    vr_moved = sorted(n for n in contract if n not in moved and any(not same(a, b) for sc in ("vr200_lo", "vr200_hi") for a, b in zip(base[n], res[sc][n])))
+    for n in vr_moved:
+        lo_v, hi_v = [], []
+        for i, b in enumerate(base[n]):
+            a, c = res["vr200_hi"][n][i], res["vr200_lo"][n][i]
+            if not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in (a, c, b)):
+                if not (same(a, b) and same(c, b)):
+                    problems.append(f"{n}[{i}] 非數值但有變動（VR200）")
+                lo_v.append(b); hi_v.append(b); continue
+            lo_i, hi_i = min(a, c), max(a, c)
+            lo_v.append(lo_i); hi_v.append(hi_i)
+            tol = 1e-9 * max(abs(lo_i), abs(hi_i), 1e-300)
+            if b < lo_i - tol or b > hi_i + tol:
+                problems.append(f"{n}[{i}] 基準 {b} 在 VR200 端點 [{lo_i},{hi_i}] 之外")
+        out_names[n] = {"ref": names[n], "n": len(base[n]), "lo": lo_v, "hi": hi_v, "source": "vr200",
+                        "inverted_cells": [i for i in range(len(base[n])) if isinstance(res["vr200_lo"][n][i], (int, float)) and isinstance(res["vr200_hi"][n][i], (int, float))
+                                           and res["vr200_lo"][n][i] > res["vr200_hi"][n][i] + 1e-12 * abs(res["vr200_hi"][n][i])]}
+    up = sorted(n for n in graph_upstream(src) if n in contract and n not in moved and n not in vr_moved)
+    vr_only = []      # v15.0：不再有『只經 VR200 欄而無區間』的名稱（已全部納入 vr200 區間）
     still = [n for n in up if n not in vr_only]
     non_contract_moved = sorted(n for n in names if n in base and not n.startswith(PREFIX) and n != "CAL_BatchEtaD" and not n.startswith("RNG_")
                                 and any(not same(a, b) for sc in ("hi", "lo") for a, b in zip(base[n], res[sc][n])))
     return {
         "version": version,
         "generated_from": src.name,
-        "scenarios": {"hi": END_HI, "lo": END_LO},
+        "scenarios": {"hi": END_HI, "lo": END_LO, "vr200_lo": VR_LO, "vr200_hi": VR_HI},
         "corner_checks": CHECK,
         "names": out_names,
         "graph_only_vr200": vr_only,
@@ -156,7 +177,7 @@ def main():
     src = Path(a.xlsx).resolve()
     d = derive(src, a.version)
     print("納入名稱", len(d["names"]), "格", sum(v["n"] for v in d["names"].values()), "| 問題", len(d["problems"]),
-          "| 圖上游含但僅經 VR200", len(d["graph_only_vr200"]), "| 圖上游含且各情境不動", len(d["graph_only_static"]))
+          "| 其中 VR200 區間", sum(1 for v in d["names"].values() if v.get("source") == "vr200"), "| 圖上游含且各情境不動", len(d["graph_only_static"]))
     for p in d["problems"]:
         print("  問題：", p)
     if a.check:

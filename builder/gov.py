@@ -31,6 +31,7 @@ import v1030                      # v10.3: slimming 4-2a (L1_JudgeTol, Rubin Ult
 import v1100                      # v11.0: big-batch fix (CAL_BatchEtaD, V20–V22, soft cap V1–V3, CHK_VerifyWarn)
 import v1200                      # v12.0: v11.1 patch (CHK_SoftCapFail, GB200 2.36, C68 correction, Alloc N range, V18/V19)
 import v1300                      # v13.0: 4-2b-1 (RNG_ ranges, range freshness, C68 category -> Assumed, K4 label)
+import v1500                      # v15.0: SRC_PRC_047 record (O14)
 import v1310                      # v13.1: D15 B (Gov_Map J／H completion, Decisions D15-*, new SRC records, DB_Evidence column R, range fingerprint)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
@@ -112,7 +113,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records():
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records():
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue

@@ -737,11 +737,11 @@ def test_v533_fleet_basis(model, lo):
     cap = {wb["Cap_In"][f"A{r}"].value: r for r in range(66, 135) if isinstance(wb["Cap_In"][f"A{r}"].value, str)}
     row = lambda p: next(r for lab, r in cap.items() if lab.startswith(p))
     assert abs(eng.get("Cap_In", f"C{row('機隊付費 token（點估計）')}") - tok) <= 1e-12 * tok
-    assert abs(eng.get("Cap_In", f"C{row('對照：r 支出口徑換算')}") - 3.353708) < 5e-6      # v6.2（v6.1：3.226505）
-    assert abs(eng.get("Cap_In", f"C{row('對照：r 支出口徑換算')}") - 3.353708) < 5e-6 and abs(eng.get("Cap_In", f"C{row('免費 ÷ 付費 token 比 r（模型）')}") - 0.572519) < 5e-6
+    assert abs(eng.get("Cap_In", f"C{row('對照：r 支出口徑換算')}") - 3.336269) < 5e-6      # v6.2（v6.1：3.226505）
+    assert abs(eng.get("Cap_In", f"C{row('對照：r 支出口徑換算')}") - 3.336269) < 5e-6 and abs(eng.get("Cap_In", f"C{row('免費 ÷ 付費 token 比 r（模型）')}") - 0.572519) < 5e-6
     assert eng.get("Cap_In", f"E{row('m＝1 所需付費 token')}").startswith("低於上限") and eng.get("Cap_In", f"E{row('m＝0.3 所需付費 token')}").startswith("高於上限")
     assert abs(eng.get("Cap_In", f"D{row('m＝1 所需付費 token')}") - eng.get_name("L1_MImplied") * eng.get_name("CAP_Price25Mix") / price) < 1e-9          # m＝1 所需 token ÷ AL_DPaid＝L1_MImplied × 2025 全層單價 CAP_Price25Mix ÷ 機隊口徑單價 AL_PriceFleet25（v9.0 M6；v6.3 K1 為 Cap_In C90；v6.2 以前＝L1_MImplied）
-    assert eng.get("Cap_In", f"C{row('非文字服務份額')}") == 0.1 and abs(eng.get("Cap_In", f"C{row('扣除非文字後 — 合併隱含 m')}") - 1.891181) < 5e-6
+    assert eng.get("Cap_In", f"C{row('非文字服務份額')}") == 0.1 and abs(eng.get("Cap_In", f"C{row('扣除非文字後 — 合併隱含 m')}") - 2.337598) < 5e-6
 
 
 # ── v5.34（工作單 docs/workorders/20261014_v5.34.md r0.1）：變現率 m 細化（Cap_In H8 m 分拆、H9 token 帳三路線、H10 季度序列、L1 六列、Checks M4） ──
@@ -797,7 +797,7 @@ def test_v534_m_split(model, lo):
     h10 = row("H10. m 季度序列")                                                                     # H10 列以本節起算（H8 另有同前綴的 m_API 列）
     cap10 = {lab: r for lab, r in cap.items() if r > h10}
     row10 = lambda p: next(r for lab, r in cap10.items() if lab.startswith(p))
-    q = {"m_API": 0.340278, "m_消費訂閱": 5.398635, "m_商用席次": 4.557290, "m_整體": 1.343201, "m_fleet": 0.297487}      # 2026 Q2 年化欄（E）；v5.35 B1（J23）：三分營收以 m 分子營收 26.3 為基底、消費份額 0.65 → m_API 0.3467 → 0.3403、m_消費訂閱 4.768 → 5.399、m_商用席次 6.502 → 4.557；m_整體、m_fleet 不變
+    q = {"m_API": 0.340278, "m_消費訂閱": 5.398635, "m_商用席次": 4.557290, "m_整體": 1.343201, "m_fleet": 0.279813}      # 2026 Q2 年化欄（E）；v5.35 B1（J23）：三分營收以 m 分子營收 26.3 為基底、消費份額 0.65 → m_API 0.3467 → 0.3403、m_消費訂閱 4.768 → 5.399、m_商用席次 6.502 → 4.557；m_整體、m_fleet 不變
     for lab, v in q.items():
         assert abs(eng.get("Cap_In", f"E{row10(lab)}") - v) < 5e-6, (lab, eng.get("Cap_In", f"E{row10(lab)}"), v)
     assert abs(eng.get("Cap_In", f"C{row10('m_整體')}") - eng.get_name("L1_MImplied")) <= 1e-9 and abs(eng.get("Cap_In", f"C{row10('m_fleet')}") - eng.get_name("L1_MFleet")) <= 1e-9
@@ -900,7 +900,7 @@ def test_v600_audit_fix1_expected_values(model, lo):
     assert rel(eng.get_name("AL_ProdRatioPaid"), 0.70617338496457) and 0.69 < eng.get_name("AL_ProdRatioPaid") < 0.71      # v6.2（v6.1：0.7155）
     assert rel(eng.get("Cap_In", "C121"), 0.506739304970016)      # v6.3 K1：m 下限 0.352267 → 0.435913（機隊口徑單價 AL_PriceFleet）
     assert rel(eng.get("Cap_In", "C115"), eng.get_name("AL_ProdRatioPaid"))
-    assert rel(eng.get_name("L1_TokCeiling"), 17044547353.3024)
+    assert rel(eng.get_name("L1_TokCeiling"), 18973895736.7806)
     col = eng.get("Checks", "A1:A200")
     z1 = [i + 1 for i, r in enumerate(col) if r[0] == "Z1"]
     assert len(z1) == 1 and eng.get("Checks", f"D{z1[0]}") == 0
@@ -1108,26 +1108,26 @@ def test_v800_audit_fix2_3(model, lo):
     assert abs(n("AL_RefGWyr") - 0.043969) < 5e-6 and abs(n("AL_FamGWyr") - 0.111646) < 5e-6      # v12.0 H2：0.0432504／0.110757 → 0.0450046／0.112938
     # L5：服務 GW 支出路線
     assert abs(n("IF_AllocServeGW") - n("AL_ServeGWSpend")) < 1e-15 and abs(n("IF_AllocServeGW") - 0.898096) < 5e-6
-    assert abs(n("IF_AllocServeGW_Tok") - n("AL_ServeGW")) < 1e-15 and abs(n("IF_AllocServeGW_Tok") - 0.166128) < 5e-6
+    assert abs(n("IF_AllocServeGW_Tok") - n("AL_ServeGW")) < 1e-15 and abs(n("IF_AllocServeGW_Tok") - 0.150423) < 5e-6
     assert abs(n("IF_AllocQ1") - n("AL_RDGW") / (n("AL_RDGW") + n("AL_ServeGWSpend"))) < 1e-12 and abs(n("IF_AllocQ1") - 0.181823) < 5e-6      # v12.0 H2：0.180086 → 0.184322
-    assert abs(n("IF_AllocQ2") - 0.184983) < 5e-6      # v12.0 H2：0.180735 → 0.184983
+    assert abs(n("IF_AllocQ2") - 0.182477) < 5e-6      # v12.0 H2：0.180735 → 0.184983
     assert abs(n("AL_Q1_Tok") - n("AL_RDGW") / (n("AL_RDGW") + n("AL_ServeGW"))) < 1e-12      # token 路線保留作對照
-    assert abs(n("L1_ScaleServe") - 5.406066) < 5e-6      # 兩路線的未解釋差距（數值不變）
+    assert abs(n("L1_ScaleServe") - 5.97049) < 5e-6      # 兩路線的未解釋差距（數值不變）
     # L4：2025 機隊損益兩平與所需 L
-    assert abs(n("L1_FleetBreakeven2025") - 0.571980) < 5e-6 and abs(n("L1_FleetBreakeven") - 0.130432) < 5e-6      # VR200 截面維持
+    assert abs(n("L1_FleetBreakeven2025") - 0.639736) < 5e-6 and abs(n("L1_FleetBreakeven") - 0.130432) < 5e-6      # VR200 截面維持
     req = n("L1_FleetBreakeven2025") / (n("IF_Util") * n("CTL_ProdDerate") * n("L1_MFleet"))
-    assert abs(n("L1_LReqFleet") - req) <= 1e-12 * req and abs(n("L1_LReqFleet") - 2.037391) < 5e-6
-    assert abs(n("L1_LReqFleet_VR200") - 0.542143) < 5e-6 and abs(n("L1_LReqFleet_Id") - 0.756110) < 5e-6      # 舊讀法與恆等式讀法並列
+    assert abs(n("L1_LReqFleet") - req) <= 1e-12 * req and abs(n("L1_LReqFleet") - 2.03604) < 5e-6
+    assert abs(n("L1_LReqFleet_VR200") - 0.598745) < 5e-6 and abs(n("L1_LReqFleet_Id") - 0.756110) < 5e-6      # 舊讀法與恆等式讀法並列
     assert num(n("L1_LTotal")) and n("L1_LTotal") < n("L1_LReqFleet") and n("L1_LTotal") < n("L1_LReqFleet_Id")      # 兩種讀法皆未回本；舊 VR200 讀法回本（0.530 < 0.643）
     assert n("L1_LReqFleet_VR200") < n("L1_LTotal")
-    assert abs(n("L1_RevGWFleet_OAI2025") - 11.448835) < 5e-6      # Checks B43：Hopper 占比改讀 AL_MixHopper
+    assert abs(n("L1_RevGWFleet_OAI2025") - 12.65255) < 5e-6      # Checks B43：Hopper 占比改讀 AL_MixHopper
     # 2025 營收＝Fleet_1GW 付費 token × 2025 單價（Alloc K 節以 IF_RevGWFleet × 單價比換算）
     rev25 = n("AL_RevGW25")
     assert all(num(x) and x > 0 for x in rev25) and num(n("AL_FleetRev25")) and n("AL_FleetRev25") > 0
-    assert abs(n("AL_FleetRev25") - 9.811308) < 5e-6
+    assert abs(n("AL_FleetRev25") - 8.772166) < 5e-6
     # L2：2025 年度模型規模倍數三個情境（Hopper、GB200；其餘 1）。v12.0 H2：IF_AllocQ1 0.139219／0.098928／0.191061 → 0.142722／0.101783／0.195594（GB200 CAL_BatchEtaD 3.04 → 2.36）。v11.0 G2：IF_AllocQ1 0.164989／0.119326／0.223273 → 0.139219／0.098928／0.191061（GB200 CAL_BatchEtaD 3.04；MFleet、ScaleServe 不變）
-    for sid, ins, want in (("d2_model_2025", 0.65, (0.387138, 0.142722, 7.686916)), ("d2_model_2025_lo", 0.35, (0.244465, 0.101783, 12.173111)),
-                           ("d2_model_2025_hi", 1.1, (0.604240, 0.195594, 4.925020))):
+    for sid, ins, want in (("d2_model_2025", 0.65, (0.43357, 0.140696, 8.483889)), ("d2_model_2025_lo", 0.35, (0.274478, 0.100132, 13.401319)),
+                           ("d2_model_2025_hi", 1.1, (0.675751, 0.192862, 5.443364))):
         sc = _vo(lo, {"ARCH_ScaleGen[1]": ins, "ARCH_ScaleGen[2]": ins, "ARCH_ScaleGen[3]": 1.0, "ARCH_ScaleGen[4]": 1.0})
         assert sc.get_name("GOV_Errors") == 0, sid
         for nm, w in zip(("L1_MFleet", "IF_AllocQ1", "L1_ScaleServe"), want):

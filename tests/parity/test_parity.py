@@ -12,6 +12,7 @@ from conftest import model_path
 from parity_lib import lo_recalc, read_defined_names_xml, set_inputs
 
 HERE = Path(__file__).parent
+V152_CHANGED = set(__import__("json").load(open(HERE / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
 CFG = yaml.safe_load((HERE / "scenarios.yaml").read_text(encoding="utf-8"))
 SCENARIOS = CFG["scenarios"]
 EXPECT = CFG["workbook_expectations"]
@@ -337,7 +338,7 @@ def test_alloc_expected_values_and_slo_text(model, lo):
 def test_alloc_mix_2025_expected_values(model, lo):
     """補充 2：2025 機隊 Hopper 60%／GB200 40% 的期望值（chat 端獨立重算）。v5.33 J8 起此組合即為基準（Alloc_In C9–C12），本測試改為直接設定同一組合，期望值不變；情境檔 h_alloc_mix_2025 改設 0／40／40／20。"""
     eng = _vo(lo, {"AL_MixHopper": 0.6, "AL_MixGB200": 0.4, "AL_MixGB300": 0, "AL_MixVR200": 0})
-    for n, want in (("IF_AllocServeGW", 0.898096), ("AL_ServeGW", 0.166128), ("AL_ServeGWSpend", 0.898096), ("IF_AllocQ1", 0.184322), ("IF_AllocQ2", 0.184983)):   # v12.0 H2：Q1 0.180086 → 0.184322、Q2 0.180735 → 0.184983（GB200 CAL_BatchEtaD 3.04 → 2.36）； v11.0 G2：Q1 0.211016 → 0.180086、Q2 0.211748 → 0.180735（GB200 CAL_BatchEtaD 3.04）； v6.2（2-1-b／c）：Hopper Astra TTFT 不可達並排除、Alloc 層級權重重新正規化：IF_AllocServeGW 0.189082 → 0.166128、IF_AllocQ1 0.324144 → 0.364100、IF_AllocQ2 0.385331 → 0.428053；v6.1（稽核修正 3B）：IF_AllocServeGW 0.182593 → 0.189082、IF_AllocQ1 0.331841 → 0.324144、IF_AllocQ2 0.393635 → 0.385331（D6 Hopper η_d 1.5 → 1.2、D10 計價倍數 0.85、D13 純利用率 0.41 × 生產折減）；AL_ServeGWSpend 不變（支出 ÷ 持有成本，不含計價倍數） ｜v5.31：AL_ServeGWSpend 1.295514 → 1.347144、IF_AllocQ2 0.394559 → 0.393635（持有成本下降；LibreOffice 重算值）； v5.29 X14 (k)(l)：0.140315／0.863676／0.392575／0.458889 → 本列（引擎重算值，與 LibreOffice 一致）
+    for n, want in (("IF_AllocServeGW", 0.898096), ("AL_ServeGW", 0.166128), ("AL_ServeGWSpend", 0.898096), ("IF_AllocQ1", 0.181823), ("IF_AllocQ2", 0.182477)):   # v15.2 B3：Q1／Q2 0.184322／0.184983 →   # v12.0 H2：Q1 0.180086 → 0.184322、Q2 0.180735 → 0.184983（GB200 CAL_BatchEtaD 3.04 → 2.36）； v11.0 G2：Q1 0.211016 → 0.180086、Q2 0.211748 → 0.180735（GB200 CAL_BatchEtaD 3.04）； v6.2（2-1-b／c）：Hopper Astra TTFT 不可達並排除、Alloc 層級權重重新正規化：IF_AllocServeGW 0.189082 → 0.166128、IF_AllocQ1 0.324144 → 0.364100、IF_AllocQ2 0.385331 → 0.428053；v6.1（稽核修正 3B）：IF_AllocServeGW 0.182593 → 0.189082、IF_AllocQ1 0.331841 → 0.324144、IF_AllocQ2 0.393635 → 0.385331（D6 Hopper η_d 1.5 → 1.2、D10 計價倍數 0.85、D13 純利用率 0.41 × 生產折減）；AL_ServeGWSpend 不變（支出 ÷ 持有成本，不含計價倍數） ｜v5.31：AL_ServeGWSpend 1.295514 → 1.347144、IF_AllocQ2 0.394559 → 0.393635（持有成本下降；LibreOffice 重算值）； v5.29 X14 (k)(l)：0.140315／0.863676／0.392575／0.458889 → 本列（引擎重算值，與 LibreOffice 一致）
         assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))
     assert eng.get_name("GOV_Errors") == 0
 
@@ -1108,7 +1109,7 @@ def test_v800_audit_fix2_3(model, lo):
     # L5：服務 GW 支出路線
     assert abs(n("IF_AllocServeGW") - n("AL_ServeGWSpend")) < 1e-15 and abs(n("IF_AllocServeGW") - 0.898096) < 5e-6
     assert abs(n("IF_AllocServeGW_Tok") - n("AL_ServeGW")) < 1e-15 and abs(n("IF_AllocServeGW_Tok") - 0.166128) < 5e-6
-    assert abs(n("IF_AllocQ1") - n("AL_RDGW") / (n("AL_RDGW") + n("AL_ServeGWSpend"))) < 1e-12 and abs(n("IF_AllocQ1") - 0.184322) < 5e-6      # v12.0 H2：0.180086 → 0.184322
+    assert abs(n("IF_AllocQ1") - n("AL_RDGW") / (n("AL_RDGW") + n("AL_ServeGWSpend"))) < 1e-12 and abs(n("IF_AllocQ1") - 0.181823) < 5e-6      # v12.0 H2：0.180086 → 0.184322
     assert abs(n("IF_AllocQ2") - 0.184983) < 5e-6      # v12.0 H2：0.180735 → 0.184983
     assert abs(n("AL_Q1_Tok") - n("AL_RDGW") / (n("AL_RDGW") + n("AL_ServeGW"))) < 1e-12      # token 路線保留作對照
     assert abs(n("L1_ScaleServe") - 5.406066) < 5e-6      # 兩路線的未解釋差距（數值不變）
@@ -1191,11 +1192,11 @@ def test_v1020_eta_calibration(model, lo):
     sl = base.get_name("SRC_PERF_066"), base.get_name("SRC_PERF_067")
     assert abs(base.get("Serving", "C21") - (116.5 * 61) ** 0.5) < 1e-9 and abs(base.get("Serving", "D21") - (50.7 * 37) ** 0.5) < 1e-9
     assert abs(base.get("Serving", "E21") - (52.1 * 32) ** 0.5) < 1e-9 and sl == (116.5, 61)
-    assert base.get("Calib", "C67") == 1.2 and base.get("Calib", "D67") == 1.0          # E1：停損，未寫入（待 Project 判斷）
+    assert base.get("Calib", "C67") == 1.2 and base.get("Calib", "D67") == 1.15          # E1：停損，未寫入（待 Project 判斷）；v15.2 B3：D67 1 → 1.15（工作單 B3）
     # E2 的效果：Sol 欄各世代 IF_TokGW 變動倍數（基準欄索引 1、4、7、10、13）；舊 SLO 的情境值＝v10.1 值
     for k, ratio in zip((1, 4, 7, 10, 13), (1.484, 1.201, 1.201, 1.130, 1.113)):
         assert abs(n("IF_TokGW_Sol")[k] / old.get_name("IF_TokGW_Sol")[k] - ratio) < 5e-4, (k, ratio)
-    assert abs(n("L1_MFleet") - 0.407295) < 5e-6 and abs(old.get_name("L1_MFleet") - 0.550473) < 5e-6
+    assert abs(n("L1_MFleet") - 0.460003) < 5e-6 and abs(old.get_name("L1_MFleet") - 0.550473) < 5e-6
     assert abs(n("L1_ScaleServe") - 7.306476) < 5e-6
     # 不得變動
     for nm in ("IF_AllocServeGW", "IF_AllocRDGW", "L1_LReqFleet_Id", "L1_LTotal"):
@@ -1278,7 +1279,7 @@ def test_v1200_gb200_geomean_and_v20_dependence(model, lo):
     numeric = sum(1 for r in range(1, 400) if re.fullmatch(r"V\d+", str(v.get("Checks", f"A{r}") or "")) and isinstance(v.get("Checks", f"F{r}"), (int, float)))
     assert numeric == 20 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # v15.0：V16 恆等式，數字 F 欄 21 → 20； V18、V20 的 F 欄為文字，不計入
     n = v.get_name
-    for name, want in (("IF_AllocRDGW", 0.202947), ("IF_AllocQ1", 0.184322), ("IF_AllocQ2", 0.184983), ("L1_ScaleRD", 6.294125)):      # v11.0：0.197258／0.180086／0.180735／6.475644
+    for name, want in (("IF_AllocRDGW", 0.199583), ("IF_AllocQ1", 0.181823), ("IF_AllocQ2", 0.182477), ("L1_ScaleRD", 6.294125)):      # v11.0：0.197258／0.180086／0.180735／6.475644
         assert abs(n(name) - want) < 5e-6, (name, n(name), want)
     assert n("GOV_Errors") == 0
 
@@ -1289,9 +1290,9 @@ def test_v1200_service_side_unchanged(model, lo):
     from openpyxl.utils import range_boundaries
     prev = openpyxl.load_workbook(V110_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(("IF_TokGW_", "L1_MFleet", "IF_AllocServeGW", "L1_LReqFleet_Id", "L1_HoldEconMW_", "IF_MaintIT", "IF_RevGW")) and n != "L1_MFleet_Lo"]      # v14.1 R1：L1_MFleet_Lo 改用同欄下限（0.1839 → 0.2154），其餘（含 L1_MFleet 基準與 _Hi）仍須與 v11.0 相同
+    keep = [n for n in prev.defined_names if n.startswith(("IF_TokGW_", "L1_MFleet", "IF_AllocServeGW", "L1_LReqFleet_Id", "L1_HoldEconMW_", "IF_MaintIT", "IF_RevGW")) and n != "L1_MFleet_Lo" and n not in V152_CHANGED]      # v15.2：B2／B3 預期變動名單      # v14.1 R1：L1_MFleet_Lo 改用同欄下限（0.1839 → 0.2154），其餘（含 L1_MFleet 基準與 _Hi）仍須與 v11.0 相同
     assert len(keep) >= 40, len(keep)
-    assert abs(v.get_name("L1_MFleet_Lo") - 0.215398033949784) < 1e-12 and abs(v.get_name("L1_MFleet_Lo") - v.get("Cap_In", "D121")) < 1e-15      # R1 的新值：＝同欄下限
+    assert abs(v.get_name("L1_MFleet_Lo") - 0.242723485975401) < 1e-12 and abs(v.get_name("L1_MFleet_Lo") - v.get("Cap_In", "D121")) < 1e-15      # R1 的新值：＝同欄下限
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

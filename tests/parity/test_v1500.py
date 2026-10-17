@@ -16,6 +16,7 @@ import pytest
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 RANGES = json.loads((REPO / "builder" / "v1300_ranges.json").read_text(encoding="utf-8"))
 VR_NAMES = sorted(n for n, d in RANGES["names"].items() if d.get("source") == "vr200")
@@ -62,7 +63,7 @@ def _chk_row(v, cid):
 def test_v1500_o13_names_and_base_inside(lo):
     """六個端點名稱 ＋ OutCount 存在；基準值不變（0.898096／0.184322／0.184983）且落在 _Lo／_Hi 之內；服務 GW 與 SRC_DEM_004 區間成正比。"""
     v = lo.view({})
-    want = {"IF_AllocServeGW": 0.898096, "IF_AllocQ1": 0.184322, "IF_AllocQ2": 0.184983}
+    want = {"IF_AllocServeGW": 0.898096, "IF_AllocQ1": 0.181823, "IF_AllocQ2": 0.182477}      # v15.2 B3：Q1／Q2 0.184322／0.184983 → 0.181823／0.182477（D67 使 GB200 欄研發 GW 略降）
     for n in SPEND:
         base = v.get_name(n)
         assert abs(base - want[n]) < 5e-6, (n, base)      # 基準不變（同 test_parity）
@@ -258,7 +259,7 @@ def test_v1500_other_contract_names_unchanged_from_v142(lo):
     prev = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
     pw = openpyxl.load_workbook(prev, data_only=True)
     v = lo.view({})
-    skip = {"CHK_VerifyTotal", "CHK_VerifyPass", "RNG_Version", "RNG_Current", "GOV_Info", "GOV_Table"}
+    skip = {"CHK_VerifyTotal", "CHK_VerifyPass", "RNG_Version", "RNG_Current", "GOV_Info", "GOV_Table"} | V152_CHANGED      # v15.2：B2／B3 預期變動名單
     n_ok = 0
     from openpyxl.utils import range_boundaries
     for n, d in pw.defined_names.items():
@@ -270,4 +271,4 @@ def test_v1500_other_contract_names_unchanged_from_v142(lo):
         got = _flat(v.get_name(n))
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
         n_ok += 1
-    assert n_ok >= 700, n_ok
+    assert n_ok >= 340, n_ok      # v15.2：扣除 V152_CHANGED 後；原 ≥ 700

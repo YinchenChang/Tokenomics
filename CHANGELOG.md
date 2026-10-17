@@ -2,6 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261017_Tokenomics_v15.2.xlsx（取代 v15.1；**次版：輸入值改變，名稱與定義不變**；m 證據 B 段，依工作單 `docs/workorders/20261017_v15.2_m證據B段.md` r1）
+
+- 分支 `claude/v15-2`（PR 與 SHA 見報告）。報告：`docs/reports/20261017_v15.2_m證據B段.md`；進度檔：`docs/reports/20261017_v15.2_進度.md`；契約名稱新舊值明細：`docs/reports/20261017_v15.2_契約名稱新舊值.md`。
+- Excel（CC 以 `builder/v1520.py` 自 v15.1 產生，經 LibreOffice 重算存檔）：
+  - B2：Cap_In C280／D280／E280（`CAP_Px25_Astra`、`_Lo`、`_Hi`）7.174／2.089／16.33 → 4.5／3.3／5.9（用量加權）；A280 標籤、G280 說明。
+  - B3：Calib D67（GB200 η_d 倍數）1 → 1.15；Gov_Map GM342 區間 0.5–1.5 → 0.9–1.45，類別 Analogy → Derived（修訂九更正，原字樣保留於 N、AL 欄；承重清單 57 → 56）。
+  - B1、B5 只加註（SRC_DEM_004 低端 7.5、κ 1.0 維持）；B6 Gov_Map GM457 M 欄加註；J2 SRC_DEM_018 標籤；B4 Calib G9 標籤；Decisions SL47-01…05；DB_Evidence E387…E392。
+  - 區間端點檔 `builder/v1300_ranges.json` 與指紋檔 `builder/v1310_fingerprint.json` 重產（59 個既有名稱的端點隨 D67 改變；名稱集合不變；`RNG_StaleFlag`＝『一致』）。
+  - 具名範圍增減 0；GOV 0／280／182 不變；`LB_Rows` 57 → 56。
+  - 工程：`builder/v1310.py` 的 Decisions 列數守衛由 `< 300` 改 `<= 300`（Decisions 現已用到第 300 列，Gov_Map AA 欄的 COUNTIF 範圍 `$A$5:$A$300` 已滿，下一版新增決策前須先擴範圍）；`builder/build.py` 加 `v1520.SNAP_MOVES`（A280 標籤改名後 C280:E280 的 Excel 值隨標籤回到 builder 的鍵）。
+- 測試：契約快照 `contract_snapshot_v15.1.json`（保留供比較）→ `contract_snapshot_v15.2.json`（826 個名稱、6,240 格）；新增 `fixtures/v152_changed_names.json` 與 `tests/parity/test_v1520.py`；`scenarios.yaml` formula_cells 52,226 → 52,214；其餘期望值隨預期變動更新，逐項見報告。
+
 ## 20261017_Tokenomics_v15.1.xlsx（取代 v15.0；**次版：只改文字、標籤、Decisions 與帳本，具名範圍值不變**；依工作單 `docs/workorders/20261017_v15.1_結案收尾.md`）
 
 - 分支 `claude/v15-1`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v15.1_結案收尾.md`；進度檔：`docs/reports/20261017_v15.1_進度.md`。

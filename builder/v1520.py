@@ -26,6 +26,10 @@ B2_NEW = {"C": 4.5, "D": 3.3, "E": 5.9}
 B2_OLD = {"C": 7.174, "D": 2.089, "E": 16.33}
 A280_OLD = "（參考請求混合單價，表列未折扣；在售天數加權）"
 A280_NEW = "（參考請求混合單價，表列未折扣；用量加權）"
+A280_FULL_OLD = "2025 年度層級單價：Astra" + A280_OLD
+A280_FULL_NEW = "2025 年度層級單價：Astra" + A280_NEW
+# build.py: the builder re-writes the OLD label on every build; when the base already carries the new label, the Excel values (C280:E280) follow the label back to the builder's key
+SNAP_MOVES = [(("Cap_In", (A280_FULL_NEW, 0), c), ("Cap_In", (A280_FULL_OLD, 0), c)) for c in (3, 4, 5)]
 G280_NOTE = ("｜v15.2 B2：改用量加權（原為在售天數加權 7.174，區間 2.089–16.33，保留於本說明）。量指數＝Azure 推論季別支出（Q1 2.075、Q2 2.947、Q3 3.648、Q4＝Q3×1.075，SRC_DEM_018 同源），"
              "GPT-5（2025-08-07）後推理占比 ×2（Assumed；Altman 2025-08-10 用戶比例：免費 <1%→7%、Plus 7%→24%）。只量指數 5.88、×3.4 為 3.67、×7 為 2.82；基準 4.5、區間 3.3–5.9。"
              "各模型 token 占比：已搜尋，未找到。來源 " + A_REP + " 第 1 節")

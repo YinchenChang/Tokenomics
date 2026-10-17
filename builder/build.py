@@ -45,6 +45,9 @@ for _old, _new in v536.SNAP_MOVES:      # v5.36 B2: the Alloc_In pricing-multipl
 import v601
 for _old, _new in v601.SNAP_MOVES:      # v6.1 D13: the Alloc_In pure-utilisation label was renamed; the Excel values follow it
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
+import v1520
+for _old, _new in v1520.SNAP_MOVES:      # v15.2 B2: Cap_In A280 label renamed (days-on-sale -> volume weighted); the Excel values follow it back to the builder's label
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",

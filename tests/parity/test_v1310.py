@@ -10,6 +10,7 @@ from conftest import model_path
 import deadcells_lib
 
 REPO = Path(__file__).resolve().parents[2]
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
 V130_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v13.0.xlsx"      # v13.0（LibreOffice 重算存檔）：v13.1 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_")
 NEW_IN_V131 = {"RNG_Version", "RNG_Current"}      # 版本字串，隨版本改變
@@ -86,8 +87,8 @@ def test_v1310_existing_contract_names_unchanged(lo):
     只有 RNG_Version／RNG_Current 兩個版本字串可以不同（隨版本更新）。"""
     prev = openpyxl.load_workbook(V130_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED]
-    assert len(keep) >= 600, len(keep)
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED]
+    assert len(keep) >= 350, len(keep)      # v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

@@ -92,6 +92,9 @@ def test_v1310_existing_contract_names_unchanged(lo):
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
+        if n.startswith("IFC_"):      # v14.0（4-3B Q2）：Interface 新增 M 節（第 330 列起），IFC_ 欄範圍向後延長；原有的前段逐格須相同
+            assert len(got) >= len(want) and all(_same(a, b) for a, b in zip(want, got)), n
+            continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     assert v.get_name("RNG_Version") == model_path().name[: -len(".xlsx")]
     assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (24, 16, 7, 1)      # v14.0（4-3B Q4）：只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）

@@ -18,6 +18,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "builder"))
 V141_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v14.1.xlsx"      # v14.1（LibreOffice 重算存檔）
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_", "GOV_")
+V150_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass", "GOV_Info", "GOV_Table"}      # v15.0 預期變動：O9（驗證計數 22／14 → 21／13）、O14（Info 184 → 182）
 P25_CHANGED = {"L1_MFleet_P25Lo", "L1_MFleet_P25Hi"}      # v14.2 S1 預期變動（只有低端欄 D）
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 P25_LO_NEW = [0.783006655732561, 0.41409276867464, 2.26611338012012]      # 舊 [0.783006655732561, 0.353474950317881, 2.26611338012012]
@@ -145,17 +146,21 @@ def test_v1420_names_off_the_chain_unchanged(lo):
     prev = openpyxl.load_workbook(V141_PREV, data_only=True)
     v = lo.view({})
     names = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX)]
-    keep = [n for n in names if n not in P25_CHANGED and n not in VERSION_NAMES]
+    keep = [n for n in names if n not in P25_CHANGED and n not in VERSION_NAMES and n not in V150_CHANGED]
     assert len(keep) >= 740, len(keep)
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
+        if n.startswith("IFC_"):      # v15.0：Interface 第 193 列新增（IF_FrontSuccVRQual 的 IFC_ 中繼資料）；舊版該列為空，其餘逐格須相同
+            skip = {193 - r1}
+            assert len(want) == len(got) and all(_same(a, b) for i, (a, b) in enumerate(zip(want, got)) if i not in skip) and all(want[i] in (None, "") for i in skip), n
+            continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     assert any(n.startswith("RNG_") for n in keep) and any(n.startswith("IF_AllocQ1") for n in keep) and any(n.startswith("IF_TokGW_") for n in keep)
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 184)
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (22, 14, 7, 1)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)      # v15.0：Info 184 → 182（O14）
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (21, 13, 7, 1)      # v15.0 O9：V16 移出計數
     assert v.get_name("RNG_StaleFlag") == "一致"      # 區間檔與指紋檔的版本字串已隨 v14.2 更新，端點與指紋格逐值不變
 
 

@@ -1,6 +1,6 @@
 {
- "version": "20261017_Tokenomics_v14.2",
- "generated_from": "20261017_Tokenomics_v14.2.xlsx",
+ "version": "20261017_Tokenomics_v15.0",
+ "generated_from": "20261017_Tokenomics_v15.0.xlsx",
  "scenarios": {
   "hi": {
    "CAL_BatchEtaD[2]": 1.83
@@ -8,6 +8,12 @@
   "lo": {
    "CAL_BatchEtaD[2]": 3.04,
    "CAL_BatchEtaD[1]": 3.74
+  },
+  "vr200_lo": {
+   "CAL_BatchEtaD[4]": 0.7
+  },
+  "vr200_hi": {
+   "CAL_BatchEtaD[4]": 1.0
   }
  },
  "corner_checks": {
@@ -1904,22 +1910,171 @@
    "inverted_cells": [
     0
    ]
+  },
+  "L1_Ans5_FullMargin": {
+   "ref": "L1!$D$50",
+   "n": 1,
+   "lo": [
+    0.929355267188663
+   ],
+   "hi": [
+    0.929798362553058
+   ],
+   "source": "vr200",
+   "inverted_cells": []
+  },
+  "L1_Ans5_FullMargin_Hi": {
+   "ref": "L1!$F$50",
+   "n": 1,
+   "lo": [
+    0.945028925617829
+   ],
+   "hi": [
+    0.945373728480778
+   ],
+   "source": "vr200",
+   "inverted_cells": []
+  },
+  "L1_Ans5_FullMargin_Lo": {
+   "ref": "L1!$E$50",
+   "n": 1,
+   "lo": [
+    0.885886931666831
+   ],
+   "hi": [
+    0.886602625254
+   ],
+   "source": "vr200",
+   "inverted_cells": []
+  },
+  "L1_Ans6_GPUh": {
+   "ref": "L1!$D$51",
+   "n": 1,
+   "lo": [
+    0.255750165631584
+   ],
+   "hi": [
+    0.289555034699528
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_Ans6_GPUh_Hi": {
+   "ref": "L1!$F$51",
+   "n": 1,
+   "lo": [
+    0.255750165631584
+   ],
+   "hi": [
+    0.289555034699528
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_Ans6_GPUh_Lo": {
+   "ref": "L1!$E$51",
+   "n": 1,
+   "lo": [
+    0.255750165631584
+   ],
+   "hi": [
+    0.289555034699528
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_RLshare_Astra_VR200": {
+   "ref": "L1!$D$33",
+   "n": 1,
+   "lo": [
+    0.972034022206469
+   ],
+   "hi": [
+    1.17149666077117
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_RLshare_Astra_VR200_Hi": {
+   "ref": "L1!$F$33",
+   "n": 1,
+   "lo": [
+    2.91610206661941
+   ],
+   "hi": [
+    3.51448998231351
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_RLshare_Astra_VR200_Lo": {
+   "ref": "L1!$E$33",
+   "n": 1,
+   "lo": [
+    0.291610206661941
+   ],
+   "hi": [
+    0.351448998231351
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_RLshare_Sol_VR200": {
+   "ref": "L1!$D$32",
+   "n": 1,
+   "lo": [
+    0.324106750891038
+   ],
+   "hi": [
+    0.384909305161106
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_RLshare_Sol_VR200_Hi": {
+   "ref": "L1!$F$32",
+   "n": 1,
+   "lo": [
+    0.972320252673115
+   ],
+   "hi": [
+    1.15472791548332
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
+  },
+  "L1_RLshare_Sol_VR200_Lo": {
+   "ref": "L1!$E$32",
+   "n": 1,
+   "lo": [
+    0.0972320252673115
+   ],
+   "hi": [
+    0.115472791548332
+   ],
+   "source": "vr200",
+   "inverted_cells": [
+    0
+   ]
   }
  },
- "graph_only_vr200": [
-  "L1_Ans5_FullMargin",
-  "L1_Ans5_FullMargin_Hi",
-  "L1_Ans5_FullMargin_Lo",
-  "L1_Ans6_GPUh",
-  "L1_Ans6_GPUh_Hi",
-  "L1_Ans6_GPUh_Lo",
-  "L1_RLshare_Astra_VR200",
-  "L1_RLshare_Astra_VR200_Hi",
-  "L1_RLshare_Astra_VR200_Lo",
-  "L1_RLshare_Sol_VR200",
-  "L1_RLshare_Sol_VR200_Hi",
-  "L1_RLshare_Sol_VR200_Lo"
- ],
+ "graph_only_vr200": [],
  "graph_only_static": [
   "CHK_L1Order",
   "CHK_VerifyFail",

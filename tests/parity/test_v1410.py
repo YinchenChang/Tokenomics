@@ -20,6 +20,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "builder"))
 V140_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v14.0.xlsx"      # v14.0（LibreOffice 重算存檔）
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_", "GOV_")
+V150_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass", "GOV_Info", "GOV_Table"}      # v15.0 預期變動：O9（V16 移出驗證計數 22／14 → 21／13）、O14（L1 外部對照換算，Info 184 → 182，GOV_Table 為其明細表）
 R1_CHANGED = {"L1_MFleet_Lo": 0.215398033949784, "L1_PriceRealFleet_Lo": 0.361920392563785, "L1_LReqFleet_Hi": 3.80253905516642}      # v14.1 新值（舊值 0.1838665514316／0.308939934377431／4.45464077137931）
 R2_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
@@ -117,17 +118,21 @@ def test_v1410_names_off_the_chain_unchanged(lo):
     例外只有：R1 的三個名稱（上方斷言新值）、R2 的 CHK_VerifyTotal／Pass（24／16 → 22／14）、版本字串。"""
     prev = openpyxl.load_workbook(V140_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES and n not in P25_V142]
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES and n not in P25_V142 and n not in V150_CHANGED]
     assert len(keep) >= 700, len(keep)      # 789 個名稱中的契約前綴者，扣除上列例外後仍有 742 個
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
+        if n.startswith("IFC_"):      # v15.0：Interface 第 193 列新增（IF_FrontSuccVRQual 的 IFC_ 中繼資料）；舊版該列為空，其餘逐格須相同
+            skip = {193 - r1}
+            assert len(want) == len(got) and all(_same(a, b) for i, (a, b) in enumerate(zip(want, got)) if i not in skip) and all(want[i] in (None, "") for i in skip), n
+            continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     for n in ("IF_AllocQ1", "IF_AllocRDGW", "IF_AllocServeGW", "IF_AllocQ2"):      # 工作單點名的名稱
         assert n not in R1_CHANGED
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 184)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)      # v15.0：Info 184 → 182（O14 L1 外部對照換算，P 欄旗標淨減 2）
 
 
 # ── R3 ──

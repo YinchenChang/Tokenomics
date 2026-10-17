@@ -218,7 +218,7 @@ def test_interface_d_e_shapes(model, lo):
         assert isinstance(v, list) and len(v) == 15 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n}: {v!r}"
     v = eng.get_name("IF_WarrantyYrs"); assert not isinstance(v, list) and isinstance(v, (int, float)) and not isinstance(v, bool), v
     v531_new |= {"IF_WarrantyYrs"}
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) - len(v531_new) == 132  # v5.31 新增 3 個； v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) - len(v531_new) == 133  # v15.0：132 → 133（downstream_names 207 → 208，新增 IF_FrontSuccVRQual）； v5.31 新增 3 個； v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
@@ -353,7 +353,7 @@ def test_l1_v516_expected_values_and_h3(model, lo):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 281 and eng.get_name("GOV_Info") == 184      # v13.0 K2：舊 SLO 視圖改動上游輸入，基準落在 RNG_* 區間外，Checks RG2 觸發（上限算 1）：Warnings 282 → 283； v13.0 K3：Info 181 → 182（Calib C68 類別『倒推』更正為 Assumed，列入 Load_Bearing，K5 計數 +1）； v12.0：Info 179 → 181（Gov_Map 新增 CHK_SoftCapFail、Calib C156 Hopper 兩列，皆為 Assumed 帶區間的資訊列）； v10.0：Warnings 271 → 276（W1 +5：SRC_PERF_060–064 為利害關係方 Active、無第二來源；SRC_HAR_016 為 Alt 不計）；v8.0：Warnings 271 不變、Info 174 → 177（I3 L1 區間外或差距 >20% 的列 18 → 21）；v7.0：Info 175 → 174（Calib C68 類別 Assumed → 倒推，Load_Bearing 56 → 55）；v6.1：Info 169 → 172（Load_Bearing 列數 50 → 53，K5 計入新增的 3 列高段 Assumed Gov_Map 登錄；Q3 RL 區間）；v5.35：Warnings 270 → 271（W1 +1：SRC_DEM_072 利害關係方 Active、無第二來源）；Info 不變（L1_LTotal 判讀「區間內」、L1_LReqFleet 判讀「回本」、L1_LPrice／LDemote「無外部對照」皆不計入 I3）；v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213      # v6.2：Info 172 → 175（Gov_Map 新增 3 列 Assumed 模型規模倍數，K5 Load_Bearing 53 → 56）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 281 and eng.get_name("GOV_Info") == 181      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：舊 SLO 視圖改動上游輸入，基準落在 RNG_* 區間外，Checks RG2 觸發（上限算 1）：Warnings 282 → 283； v13.0 K3：Info 181 → 182（Calib C68 類別『倒推』更正為 Assumed，列入 Load_Bearing，K5 計數 +1）； v12.0：Info 179 → 181（Gov_Map 新增 CHK_SoftCapFail、Calib C156 Hopper 兩列，皆為 Assumed 帶區間的資訊列）； v10.0：Warnings 271 → 276（W1 +5：SRC_PERF_060–064 為利害關係方 Active、無第二來源；SRC_HAR_016 為 Alt 不計）；v8.0：Warnings 271 不變、Info 174 → 177（I3 L1 區間外或差距 >20% 的列 18 → 21）；v7.0：Info 175 → 174（Calib C68 類別 Assumed → 倒推，Load_Bearing 56 → 55）；v6.1：Info 169 → 172（Load_Bearing 列數 50 → 53，K5 計入新增的 3 列高段 Assumed Gov_Map 登錄；Q3 RL 區間）；v5.35：Warnings 270 → 271（W1 +1：SRC_DEM_072 利害關係方 Active、無第二來源）；Info 不變（L1_LTotal 判讀「區間內」、L1_LReqFleet 判讀「回本」、L1_LPrice／LDemote「無外部對照」皆不計入 I3）；v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213      # v6.2：Info 172 → 175（Gov_Map 新增 3 列 Assumed 模型規模倍數，K5 Load_Bearing 53 → 56）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬
 
 
 def _pct(eng, n, k):
@@ -572,7 +572,7 @@ def test_v529_contract_waterfall_expected_values(model, lo):
     assert abs(eng.get_name("L1_FleetMargin") - eng.get_name("IFW_RevGWFleet_Prod")[10] / eng.get_name("IF_HoldEcon")[10] * eng.get_name("CTL_PriceLife") * eng.get_name("CTL_Monetize")) < 1e-9      # v7.0（2-2-b）：讀重解值（Interface 第 210 列），不再線性乘 CTL_ProdDerate
     assert abs(eng.get_name("L1_FleetProdRatio") - eng.get_name("IFW_RevGWFleet_Prod")[10] / eng.get_name("IFW_RevGWFleet_Util")[10]) < 1e-12 and abs(eng.get_name("L1_FleetProdRatio") - 0.772761) < 5e-6
     assert abs(eng.get_name("L1_GapUtil") - eng.get_name("IF_Util") / (eng.get_name("AL_UtilActual") * eng.get_name("CTL_ProdDerate"))) < 1e-12
-    assert eng.get("Checks", "D121") == 0 and eng.get("Checks", "D91") == 20        # v5.34：I3 17 → 18（L1_TokPerPromptClose 判讀「高於外部區間」）；v5.31：I3 15 → 17（L1_GPUhr_GB300_vsBE、L1_GapProduct）；r2：K4＝0；I3 17 → 15（FleetMargin、HoldEconMW_GB300 外部欄改「—」）
+    assert eng.get("Checks", "D121") == 0 and eng.get("Checks", "D91") == 17      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 I3（L1 外部對照差距 >20% 的列數）20 → 17；        # v5.34：I3 17 → 18（L1_TokPerPromptClose 判讀「高於外部區間」）；v5.31：I3 15 → 17（L1_GPUhr_GB300_vsBE、L1_GapProduct）；r2：K4＝0；I3 17 → 15（FleetMargin、HoldEconMW_GB300 外部欄改「—」）
     assert eng.get("L1", "P53") == "無外部對照" and eng.get("L1", "P56") == "無外部對照"
     assert abs(eng.get_name("L1_GapProduct") - eng.get_name("L1_GapPrompt") * eng.get_name("L1_GapSpendBasis") * eng.get_name("L1_GapISL") * eng.get_name("L1_GapUtil")) < 1e-9
     assert eng.get_name("LB_LiveCount") == 57 and len(eng.get_name("LB_Rows")) == 57      # v13.0 K3：56 → 57（Calib C68 類別『倒推』更正為 Assumed，高段，回到承重清單）； v12.0 H3：55 → 56（Gov_Map 新增 Calib C156 Hopper 列，Assumed、高段，列入 Load_Bearing）； v7.0：56 → 55（Calib C68 類別 Assumed → 倒推）；v6.2：53 → 56（模型規模倍數三列，高段 Assumed）
@@ -886,7 +886,7 @@ def test_v600_audit_fix1_expected_values(model, lo):
     """v6.0（稽核修正1：D7、D8、D11）基準期望值。錨點為 LibreOffice 重算值（相對容差 1e-4）；工作單預期變動：
     FullCost_Luna(Hopper) +46%、FullCostDefault_Luna +94%、FullCostDefault_Sol(VR200) +21%、Astra 不變；付費產能比約 0.712、m 下限約 0.647；IF_*_Life ÷ 舊值 0.486–0.81。"""
     eng = _vo(lo, {})
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 281 and eng.get_name("GOV_Info") == 184      # v13.0 K2：同上，Warnings 282 → 283（RG2）； v13.0 K3：Info 181 → 182（同上）； v12.0：Info 179 → 181（同上）； v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 281 and eng.get_name("GOV_Info") == 181      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：同上，Warnings 282 → 283（RG2）； v13.0 K3：Info 181 → 182（同上）； v12.0：Info 179 → 181（同上）； v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬
     rel = lambda got, want, tol=1e-4: abs(got - want) <= tol * abs(want)
     # D11：回本溢價分母＝付費 token（Hopper 基準欄＝第 2 欄、VR200 基準欄＝第 11 欄）
     old = {("IF_FullCost_Luna", 1): 0.184810505721705, ("IF_FullCostDefault_Luna", 1): 0.198387926107027, ("IF_FullCostDefault_Sol", 10): 0.107287815966711}
@@ -1178,7 +1178,7 @@ def test_v1000_audit_fix2_5(model, lo):
     assert set(cnt) == kinds
     assert num(n("L1_GapUnexplained")) and abs(n("L1_GapUnexplained") - n("L1_ScaleServe2000") / n("L1_GapProduct")) < 1e-9
     # N3：驗證計數
-    assert n("CHK_VerifyTotal") == 22 and n("CHK_VerifyPass") == 14 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.1 R2：V23、V24 移出計數 → 22/14/7/1； v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0 H1/H7：22/14/7/1 → 20/12/7/1（V18 恆等式、V20 校準相關移出計數）； v11.0 G3/G4: 19/11/8 -> 22/14/7 + 警示 1 (V20-V22 added; V1 soft cap -> warn); v10.3 4-2a F3: 17/9/8 -> 19/11/8; v10.2 E3: 14/7/7 -> 17/9/8
+    assert n("CHK_VerifyTotal") == 21 and n("CHK_VerifyPass") == 13 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：V16 移出計數 22/14/7/1 → 21/13/7/1      # v14.1 R2：V23、V24 移出計數 → 22/14/7/1； v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0 H1/H7：22/14/7/1 → 20/12/7/1（V18 恆等式、V20 校準相關移出計數）； v11.0 G3/G4: 19/11/8 -> 22/14/7 + 警示 1 (V20-V22 added; V1 soft cap -> warn); v10.3 4-2a F3: 17/9/8 -> 19/11/8; v10.2 E3: 14/7/7 -> 17/9/8
     assert n("CHK_VerifyPass") + n("CHK_VerifyFail") + n("CHK_VerifyWarn") == n("CHK_VerifyTotal")
     assert n("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
 
@@ -1202,7 +1202,7 @@ def test_v1020_eta_calibration(model, lo):
         assert n(nm) == old.get_name(nm), nm
     assert abs(n("IF_AllocServeGW") - 0.898096) < 5e-6 and abs(n("IF_AllocRDGW") - 0.202947) < 5e-6      # v12.0 H2: 0.197258 -> 0.202947 (GB200 CAL_BatchEtaD 3.04 -> 2.36); v11.0 G2: IF_AllocRDGW 0.240199 -> 0.197258 (GB200 CAL_BatchEtaD 1 -> 3.04)
     # E3
-    assert n("CHK_VerifyTotal") == 22 and n("CHK_VerifyPass") == 14 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.1 R2：V23、V24 移出計數 → 22/14/7/1； v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0：22/14/7/1 → 20/12/7/1（同上）； v11.0: 19/11/8 -> 22/14/7 + 警示 1
+    assert n("CHK_VerifyTotal") == 21 and n("CHK_VerifyPass") == 13 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：V16 移出計數 22/14/7/1 → 21/13/7/1      # v14.1 R2：V23、V24 移出計數 → 22/14/7/1； v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0：22/14/7/1 → 20/12/7/1（同上）； v11.0: 19/11/8 -> 22/14/7 + 警示 1
     assert n("GOV_Errors") == 0
     # 校準複本列：模型 ÷ 目標（Hopper 校準點無解、GB200 校準點 0.37）
     cal = [r for r in range(150, 260) if str(base.get("Calib", f"A{r}") or "").startswith("模型 ÷ 目標")]
@@ -1243,17 +1243,17 @@ def test_v1200_soft_cap_fail_threshold(lo):
     assert base.get_name("CHK_SoftCapFail") == 2
     r = _vrow(base, "V1")
     assert abs(base.get("Checks", f"E{r}") - 1.217676) < 5e-6 and base.get("Checks", f"F{r}") == "警示"
-    assert _vcounts(base) == (22, 14, 7, 1)      # v14.0（4-3B Q4）：新增 V23–V26（各通過）：20/12/7/1 → 24/16/7/1
+    assert _vcounts(base) == (21, 13, 7, 1)      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：V16 移出計數 22/14 → 21/13；      # v14.0（4-3B Q4）：新增 V23–V26（各通過）：20/12/7/1 → 24/16/7/1
     # 比值 2.5 > 2：失敗（不再只是警示）
     v = lo.view(_scen_inputs("softcap_v1_fail"))
     e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
     assert 2.4 < e < 2.6 and f == 0, (e, f)
-    assert _vcounts(v) == (22, 14, 8, 0) and v.get_name("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
+    assert _vcounts(v) == (21, 13, 8, 0)      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：同上； and v.get_name("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
     # 比值 1.5：警示
     v = lo.view(_scen_inputs("softcap_v1_warn"))
     e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
     assert 1.4 < e < 1.6 and f == "警示", (e, f)
-    assert _vcounts(v) == (22, 14, 7, 1)
+    assert _vcounts(v) == (21, 13, 7, 1)      # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：同上
     # 門檻本身可改：1.2177 > 1.1 失敗；< 1.3 警示
     assert lo.view({"CHK_SoftCapFail": 1.1}).get("Checks", f"F{r}") == 0
     assert lo.view({"CHK_SoftCapFail": 1.3}).get("Checks", f"F{r}") == "警示"
@@ -1276,7 +1276,7 @@ def test_v1200_gb200_geomean_and_v20_dependence(model, lo):
     r20 = _vrow(v, "V20")
     assert v.get("Checks", f"G{r20}") == "校準相關（非獨立）" and str(v.get("Checks", f"F{r20}")).startswith("校準相關（非獨立）")
     numeric = sum(1 for r in range(1, 400) if re.fullmatch(r"V\d+", str(v.get("Checks", f"A{r}") or "")) and isinstance(v.get("Checks", f"F{r}"), (int, float)))
-    assert numeric == 21 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # V18、V20 的 F 欄為文字，不計入
+    assert numeric == 20 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # v15.0：V16 恆等式，數字 F 欄 21 → 20； V18、V20 的 F 欄為文字，不計入
     n = v.get_name
     for name, want in (("IF_AllocRDGW", 0.202947), ("IF_AllocQ1", 0.184322), ("IF_AllocQ2", 0.184983), ("L1_ScaleRD", 6.294125)):      # v11.0：0.197258／0.180086／0.180735／6.475644
         assert abs(n(name) - want) < 5e-6, (name, n(name), want)
@@ -1400,13 +1400,25 @@ def test_v1300_ranges_equal_scenarios(model, lo):
     base = lo.view({})
     hi_v, lo_v = lo.view(_scen_inputs("batch_gb200_lo")), lo.view(_scen_inputs("batch_range_lo"))
     corners = {s: lo.view(_scen_inputs(s)) for s in ("batch_gb200_hi", "batch_hopper_hi", "batch_corner_x")}
+    vr_lo_v, vr_hi_v = lo.view(_scen_inputs("batch_vr200_lo")), lo.view(_scen_inputs("batch_vr200_hi"))      # v15.0 T3-2：VR200 倍數 0.70／1.0 兩個端點情境
     contract = [n for n in base.names if n.startswith(CONTRACT_PREFIX)]
     moved = {n for n in contract if any(not _same(x, y) for sv in (hi_v, lo_v) for x, y in zip(_flat(base.get_name(n)), _flat(sv.get_name(n))))}
+    moved_vr = {n for n in contract if n not in moved and any(not _same(x, y) for sv in (vr_lo_v, vr_hi_v) for x, y in zip(_flat(base.get_name(n)), _flat(sv.get_name(n))))}
     have = _rng_pairs(base.names)
-    assert moved == have, ("缺區間", sorted(moved - have), "多餘區間", sorted(have - moved))
-    assert len(have) == 59 and sum(len(_flat(base.get_name(n))) for n in have) == 647      # v14.0（4-3B）：53 → 59 個名稱、557 → 647 格（新增 IF_GMDefault_／IF_TrainInferShare_ 各 3 個；既有 53 個端點逐值不變）
+    assert moved | moved_vr == have and not (moved & moved_vr), ("缺區間", sorted((moved | moved_vr) - have), "多餘區間", sorted(have - (moved | moved_vr)))
+    assert len(moved) == 59 and sum(len(_flat(base.get_name(n))) for n in moved) == 647      # v14.0（4-3B）：53 → 59 個名稱、557 → 647 格（新增 IF_GMDefault_／IF_TrainInferShare_ 各 3 個；既有 53 個端點逐值不變）；v15.0：原 59 個名稱與 647 格不變
+    assert len(moved_vr) == 12 and len(have) == 71 and sum(len(_flat(base.get_name(n))) for n in have) == 659      # v15.0 T3-2：+12 個只經 VR200 欄的名稱、+12 格
     bad, ncell = [], 0
-    for n in sorted(have):
+    for n in sorted(moved_vr):      # v15.0：VR200 區間的端點＝兩個 VR200 情境每格的較小／較大者；基準 0.75 在其內
+        b, a, c = (_flat(v.get_name(n)) for v in (base, vr_hi_v, vr_lo_v))
+        lo_x, hi_x = _flat(base.get_name(f"RNG_{n}_Lo")), _flat(base.get_name(f"RNG_{n}_Hi"))
+        for i in range(len(b)):
+            want_lo, want_hi = min(a[i], c[i]), max(a[i], c[i])
+            tol = 1e-9 * max(abs(lo_x[i]), abs(hi_x[i]), 1e-300)
+            if not (_same(lo_x[i], want_lo) and _same(hi_x[i], want_hi) and lo_x[i] - tol <= b[i] <= hi_x[i] + tol):
+                bad.append((n, i, lo_x[i], want_lo, hi_x[i], want_hi, b[i]))
+    assert bad == [], (len(bad), bad[:8])
+    for n in sorted(moved):
         b, a, c = (_flat(v.get_name(n)) for v in (base, hi_v, lo_v))
         lo_x, hi_x = _flat(base.get_name(f"RNG_{n}_Lo")), _flat(base.get_name(f"RNG_{n}_Hi"))
         assert len(lo_x) == len(hi_x) == len(b), n
@@ -1481,10 +1493,11 @@ def test_v1300_existing_contract_names_unchanged(model, lo):
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
         if n.startswith("IFC_"):      # v14.0（4-3B Q2）：Interface 新增 M 節（第 330 列起），IFC_ 欄範圍向後延長；原有的前段逐格須相同
-            assert len(got) >= len(want) and all(_same(a, b) for a, b in zip(want, got)), n
+            skip = {193 - r1}      # v15.0：Interface 第 193 列新增（IF_FrontSuccVRQual 的 IFC_ 中繼資料）；舊版該列為空，其餘逐格須相同
+            assert len(got) >= len(want) and all(_same(a, b) for i, (a, b) in enumerate(zip(want, got)) if i not in skip) and all(want[i] in (None, "") for i in skip), n
             continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (22, 14, 7, 1)      # v14.0（4-3B Q4）：CHK_Verify* 只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (21, 13, 7, 1)      # v15.0 O9：V16 移出計數（22/14 → 21/13）； v14.0（4-3B Q4）：CHK_Verify* 只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）
 
 
 def test_v1300_c68_assumed_and_identity_label(lo):

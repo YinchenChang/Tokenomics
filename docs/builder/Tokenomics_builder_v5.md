@@ -1524,6 +1524,7 @@ import v1200
 import v1300
 import v1310
 import v1400
+import v1410
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1630,7 +1631,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v1400.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v1410.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1680,11 +1681,12 @@ def readme(wb):
       v1300.README_ROW,       # v13.0: ranges and K1–K5 (appended; no README row moves)
       v1310.README_ROW,       # v13.1: D15 B and range fingerprint (appended; no README row moves)
       v1400.README_ROW,       # v14.0: slimming 4-3B (appended; no README row moves)
+      v1410.README_ROW,       # v14.1: patch (appended; no README row moves)
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v1400.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v1410.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -27112,7 +27114,7 @@ def checks_v(wb, CAL):
     section(ws, r, "V. 驗證計數（工作單 稽核修正2 6r1 N3，D5，v10.0）：只計能失敗的檢查；驗證失敗不進 GOV_Errors（不阻擋合併），報告必須列出", 10); r += 1
     put(ws, f"A{r}", "判準寫在 H（下限）與 I（上限）兩格（chat 端 J2 決定；黑字，不登錄 Gov_Map）。F 欄＝1 通過、0 失敗、警示（v11.0 G4：只用於 V1–V3）、—＝不適用（任一側非數字）。MLPerf interactive 為廠商最佳化後的可達上限（模型高於 MLPerf 才判失敗）；"
                    "MLPerf server（V1–V3）為軟上限（v11.0 G4；v12.0 H1 加失敗門檻）：比值 ≤ 1 通過；1 至 CHK_SoftCapFail（基準 2，Calib M 節）之間判『警示』，不計失敗；> CHK_SoftCapFail 判失敗（server 的 TPOT 80 ms 是 p99 口徑，模型取平均；超過 2 倍表示模型高估，不再只是口徑差；同條件 TensorRT-LLM H200 為 MLPerf v5.1 的 2.6 倍）；"
-                   "V18 為恆等式（非驗證，v12.0 H7）、V20 為校準相關（非獨立，v12.0 H2）：兩者的 F 欄為文字，不計入驗證項目數；"
+                   "V18 為恆等式（非驗證，v12.0 H7）、V23 與 V24 為恆等式（非驗證，v14.1 R2）、V20 為校準相關（非獨立，v12.0 H2）：這些項目的 F 欄為文字，不計入驗證項目數；"
                    "LMSYS 兩點口徑不嚴（無明確 SLO，模型 Sol 級≠DeepSeek-V3 規模），帶寬 0.5–2.0；RL 帶 0.1–0.3；harness 輪數倍數 ≥ 1（SWE Atlas 方向證據，只判方向）", F_NOTE); r += 1
     sum_rows = {}
     for key, lab in (("T", "驗證項目數（F 欄為數字或『警示』者）"), ("P", "通過"), ("F", "失敗"), ("W", "警示（MLPerf server 軟上限：模型高於 1 但未超過 CHK_SoftCapFail，不計失敗；v11.0 G4、v12.0 H1）")):
@@ -27191,11 +27193,13 @@ def checks_v(wb, CAL):
             put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(E{r}<H{r},0,IF(IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE),1,IF(E{r}>CHK_SoftCapFail,0,"警示"))),"—")', F_BOLD, fmt="0")
         elif vid == "V18":        # v12.0 H7: identity (not a verification): text result, not counted
             put(ws, f"F{r}", f'=IF(ISNUMBER(E{r}),IF(E{r}=0,"恆等式（非驗證）","恆等式不成立（K 被改寫）"),"—")', F_BOLD)
+        elif vid in ("V23", "V24"):        # v14.1 R2: structural identities (not verifications), like V18: text result, not counted; a broken formula shows "恆等式不成立"
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),"恆等式（非驗證）","恆等式不成立"),"—")', F_BOLD)
         elif vid == "V20":        # v12.0 H2: calibration-related (not independent): text result, not counted
             put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),"校準相關（非獨立）："&IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),"帶內","帶外"),"—")', F_BOLD)
         else:
             put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),1,0),"—")', F_BOLD, fmt="0")
-        put(ws, f"G{r}", {"V18": "恆等式（非驗證）", "V20": "校準相關（非獨立）"}.get(vid, "驗證"), F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
+        put(ws, f"G{r}", {"V18": "恆等式（非驗證）", "V23": "恆等式（非驗證）", "V24": "恆等式（非驗證）", "V20": "校準相關（非獨立）"}.get(vid, "驗證"), F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
         if hi is not None: put(ws, f"I{r}", hi, F_CALC, fmt="0.00")
         put(ws, f"J{r}", note, F_NOTE, wrap=True); r += 1
     last = r - 1
@@ -30102,14 +30106,14 @@ def v_items(wb):
     """Items in the format of v1000.checks_v: (id, label, C, D, E, lower, upper, note). F = 1 if lower <= E <= upper."""
     E_NUM = '=IF(ISNUMBER(C{r}),C{r},"—")'
     return [
-        ("V23", "實際每用戶 decode 速度 ≥ SLO（Perf 與 Perf_Batch 第 89 列對第 41 列；可達欄中低於 SLO 的欄數＝0；全部層級，token 類型＝decode token）",
+        ("V23", "實際每用戶 decode 速度 ≥ SLO（Perf 與 Perf_Batch 第 89 列對第 41 列；可達欄中低於 SLO 的欄數＝0；全部層級，token 類型＝decode token）【恆等式（非驗證）；v14.1 R2】",
          "=IFERROR(SUMPRODUCT((Perf!$C$87:$Q$87>0)*(Perf!$C$89:$Q$89<Perf!$C$41:$Q$41*(1-0.000000001)))"
          "+SUMPRODUCT((Perf_Batch!$C$87:$S$87>0)*(Perf_Batch!$C$89:$S$89<Perf_Batch!$C$41:$S$41*(1-0.000000001))),1)",
          "=SUMPRODUCT(--(Perf!$C$87:$Q$87>0))+SUMPRODUCT(--(Perf_Batch!$C$87:$S$87>0))",
          '=IF(AND(ISNUMBER(C{r}),ISNUMBER(D{r})),IF(D{r}>0,C{r},1),"—")', 0, 0,
          "v14.0 4-3B Q4（A 段第 4 節）：模型值＝低於 SLO 的可達欄數（Perf 15 欄＋Perf_Batch 17 欄；B*＝0 的不可達欄不計）；對照值＝可達欄數（為 0 時本項判失敗，防止空轉）。"
          "結構性恆成立（B* ＝ MIN(SLO 限制批次, 記憶體限制批次)），程式或公式被改壞時才會失敗；專屬測試改寫 Perf!C87 公式（無法只靠改輸入使其失敗，見報告）"),
-        ("V24", "m_整體一致：Cap_In 第 147 列（Σ營收 ÷（Σtoken × 單價））＝ L1_MImplied（基準／_Lo／_Hi 三格的最大絕對差，容差 1e-9）；層級＝整體，token 類型＝付費 token（混合）",
+        ("V24", "m_整體一致：Cap_In 第 147 列（Σ營收 ÷（Σtoken × 單價））＝ L1_MImplied（基準／_Lo／_Hi 三格的最大絕對差，容差 1e-9）；層級＝整體，token 類型＝付費 token（混合）【恆等式（非驗證）；v14.1 R2】",
          "=IFERROR(MAX(ABS(Cap_In!$C$147-L1_MImplied),ABS(Cap_In!$D$147-L1_MImplied_Lo),ABS(Cap_In!$E$147-L1_MImplied_Hi)),1)", 0, E_NUM, 0, 0.000000001,
          "v14.0 4-3B Q4：兩條路徑各自算 m_整體（Cap_In 第 147 列用 H8 三分合計；L1_MImplied 取 Cap_In 第 94 列用合併 token）；差異＝0 才通過。"
          "目前兩者由同一組輸入恆等；公式被改寫（例如分子或分母漏項）時才會失敗；專屬測試改寫 Cap_In!C147 公式（見報告）"),
@@ -30211,6 +30215,335 @@ def apply(wb, append_text):
     log["marks"] = purpose_marks(wb)
     log["decisions"] = decisions_append(wb)
     return log
+```
+
+## v1410.py
+
+```python
+# v14.1 (work order docs/workorders/20261017_v14.1修補.md r1, branch claude/v14-1): patch after the 4-3B slimming (v14.0).
+# Minor version: no new contract name; one existing contract name changes value (L1_MFleet_Lo, plus its dependants), everything else unchanged.
+#   R1  m low end on "same-column floor": Cap_In row 119 (機隊 m) of every column = MAX(that column's point estimate, that column's own floor in row 121).
+#       Row 121 is computed with the same column's service GW and utilisation convention as row 119, so the low-end column (D, token-high) is floored at 0.215 (not at the base column's 0.301).
+#       The mechanism is an Excel formula in Cap_In (patch_specs below edits the v5.33 spec before the sheet is written, so the build-time precedent tracing sees it);
+#       no Python-side computation. L1_MFleetFloor is NOT raised to a defined name (nothing downstream needs it; row 121 stays a display/mechanism row).
+#   R2  Checks V23／V24 marked "恆等式（非驗證）" like V18 (builder/v1000.py checks_v): out of the verification count (24／16／7／1 -> 22／14／7／1); their must-fail tests stay.
+#   R3  Har_In rows 20／32 (vendor-specific flags; no formula reads them since the Har_In 44 deletion in v14.0): values C:G cleared; Gov_Map rows get the note; original text kept.
+#   R4  the A／B labels of the 73 rows deleted in v14.0 are cleared; the list (sheet, row, original A／B) is written to Decisions SL44-4.
+#   R5  Cap_In 24 cells (C of rows 185, 187–193, 196–202, 205, 216–222 and the text cell G175) cleared after a reader check (every reader of the group is in the group); original formulas in Decisions SL44-5.
+#   R6  small items of the v14.0 independent check (PR #104): Gov_Map GM629 note, three 用途 corrections (Cap_In 76, Training 122, Price_Frontier 27), stale "錨點" texts of Cap_In 206–209 and 223.
+# Every write to an Excel-owned cell is guarded (old value / old text).
+import json
+import re
+from pathlib import Path
+
+import openpyxl
+from openpyxl.utils import get_column_letter as L
+from openpyxl.styles import PatternFill
+
+from common import put, F_NOTE, F_CALC
+import v1400
+
+VERSION = "20261017_Tokenomics_v14.1"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-17"
+V = "v14.1"
+WO = "工作單 docs/workorders/20261017_v14.1修補.md"
+DEC_BY = "Andy 2026-10-17 10:46（回覆『照預設』，同意 chat 端 10:40 的 7 項預設；R1 選 (b)）"
+HERE = Path(__file__).resolve().parent
+NO_FILL = PatternFill(fill_type=None)
+PURPOSE = "用途"
+_PATCHED = False
+
+
+# ================================================================== R1: Cap_In row 119 = MAX(point estimate, same-column floor row 121)
+def patch_specs():
+    """Call right after v810.patch_specs() and before the Cap_In H7 section is written."""
+    global _PATCHED
+    if _PATCHED:
+        return
+    import v533
+    for i, it in enumerate(v533.SPEC):
+        if it[0] != "m_fleet":
+            continue
+        it = list(it)
+        for k, col in ((3, "C"), (4, "D"), (5, "E")):
+            old = it[k]
+            m = re.fullmatch(r'=IF\(ISNUMBER\(%s\{tok_fleet\}\),(SRC_DEM_007\*1000000000/\(%s\{tok_fleet\}\*AL_PriceFleet25\)),"SLO 不可達"\)' % (col, col), old)
+            assert m, ("m_fleet spec changed", old)
+            x = m.group(1)
+            it[k] = ('=IF(ISNUMBER(%s{tok_fleet}),MAX(%s,IF(ISNUMBER(%s{m_floor}),%s{m_floor},0)),"SLO 不可達")' % (col, x, col, col))
+        v533.SPEC[i] = tuple(it)
+        break
+    else:
+        raise AssertionError("m_fleet spec not found")
+    _PATCHED = True
+
+
+# ================================================================== helpers
+def _purpose_col(ws):
+    return v1400._purpose_col(ws, create=False)
+
+
+def _set_text(ws, ref, old, new):
+    """Guarded text write: the cell must hold `old` (or already `new`)."""
+    cur = ws[ref].value
+    if cur == new:
+        return 0
+    assert cur == old, (ws.title, ref, cur)
+    ws[ref].value = new
+    return 1
+
+
+def _gm_rows(wb, sheet, cell):
+    ws = wb["Gov_Map"]
+    return [r for r in range(5, ws.max_row + 1) if (ws[f"C{r}"].value, ws[f"D{r}"].value) == (sheet, cell)]
+
+
+# ================================================================== R1 texts
+R1_G119_TAIL = "；下限截斷：v14.1 起，低端不得低於同欄物理下限（第 121 列同欄）"
+R1_G121_TAIL = "；v14.1 起第 119 列各欄＝MAX(點估計, 本列同欄)，故 L1_MFleet 的 _Lo／基準／_Hi 都不低於各自欄的本列"
+R1_MARK_OLD = "顯示用：C121:E121（待定義，見 4-3B 報告）｜物理下限 0.301 與 L1_MFleet_Lo 0.184 的定義不同，三種處理待 Project 判斷；本版不升級為契約名稱"
+R1_MARK_NEW = ("公式列：C121:E121（機隊 m 的同欄物理下限；v14.1 正式定義）｜每一欄用該欄自己的服務 GW 與利用率口徑算出『token 上限 → m 下限』；"
+               "第 119 列（機隊 m，→ L1_MFleet／_Lo／_Hi）各欄＝MAX(點估計, 本列同欄)；不升級為契約名稱 L1_MFleetFloor（下游不讀此列，只讀截斷後的 L1_MFleet 區間）；"
+               "原標記『待定義，見 4-3B 報告』（v14.0）")
+
+
+def r1_texts(wb, append_text):
+    ws = wb["Cap_In"]
+    n = 0
+    for ref, tail in (("G119", R1_G119_TAIL), ("G121", R1_G121_TAIL)):
+        cur = ws[ref].value
+        assert isinstance(cur, str) and cur.startswith("="), (ref, cur)
+        n += append_text(ws[ref], tail)
+    pc = _purpose_col(ws)
+    n += _set_text(ws, f"{L(pc)}121", R1_MARK_OLD, R1_MARK_NEW)
+    return n
+
+
+# ================================================================== R3: Har_In 20／32
+HAR_ROWS = (20, 32)
+R3_MARK = "已清空（v14.1，R3）：供應商專屬旗標（輸入）無任何公式讀取（對應的第 44 列已於 v14.0 刪除）；原值 {vals}，原『來源與標記』欄 H、說明欄 I 原文保留；見 Decisions SL44-3"
+R3_GM_TAIL = " ｜v14.1 已移除（R3，修訂九更正註記）：Har_In {rng} 的旗標值已清空（無任何公式讀取）；本列原文與原值保留於此與 Decisions SL44-3"
+
+
+def r3_har_flags(wb, append_text):
+    ws = wb["Har_In"]
+    pc = _purpose_col(ws)
+    orig = {}
+    n = 0
+    for r in HAR_ROWS:
+        vals = [ws.cell(r, c).value for c in range(3, 8)]
+        if all(v is None for v in vals):
+            continue                              # already cleared (rebuild from v14.1)
+        assert ws.cell(r, 1).value == "供應商專屬（1＝是）", (r, ws.cell(r, 1).value)
+        orig[r] = vals
+        for c in range(3, 8):
+            ws.cell(r, c).value = None; ws.cell(r, c).fill = NO_FILL
+        put(ws, f"{L(pc)}{r}", R3_MARK.format(vals="／".join(str(v) for v in vals)), F_NOTE)
+        n += 1
+    gm = 0
+    for r in HAR_ROWS:
+        rng = f"C{r}:G{r}"
+        rows = _gm_rows(wb, "Har_In", rng)
+        assert len(rows) == 1, (rng, rows)
+        gm += append_text(wb["Gov_Map"][f"N{rows[0]}"], R3_GM_TAIL.format(rng=rng))
+    return dict(rows=n, gov_map=gm, orig=orig)
+
+
+# ================================================================== R4: A／B labels of the 73 v14.0-deleted rows
+def r4_labels(wb):
+    data = v1400.DATA["delete"]
+    lst = []
+    n = 0
+    for e in data:
+        ws = wb[e["sheet"]]
+        a, b = ws.cell(e["row"], 1).value, ws.cell(e["row"], 2).value
+        if a is None and b is None:
+            continue
+        lst.append((e["sheet"], e["row"], a, b))
+        ws.cell(e["row"], 1).value = None; ws.cell(e["row"], 2).value = None
+        n += 1
+    return dict(rows=n, list=lst)
+
+
+# ================================================================== R5: Cap_In 24 cells
+R5_ROWS = [185] + list(range(187, 194)) + list(range(196, 203)) + [205] + list(range(216, 223))
+R5_CELLS = [f"C{r}" for r in R5_ROWS] + ["G175"]
+R5_MARK_OLD_PREFIX = "顯示用：C{r}（H10 的 2025 年度欄"
+R5_MARK_NEW = "已清空 C{r}（v14.1，R5）：H10 的 2025 年度欄，原本只與 D–F 欄並列對照、無任何公式讀取（刪除前已逐格確認）；原公式記於 Decisions SL44-5"
+R5_G175_MARK_OLD = "顯示用：G175（說明動態文字：現值取代過時數字）｜C175:E175 為殘差讀數，v14.0 起由 Checks V25 讀取"
+R5_G175_MARK_NEW = "已清空 G175（v14.1，R5）：說明動態文字無任何公式讀取；C175:E175 為殘差讀數，v14.0 起由 Checks V25 讀取；原公式記於 Decisions SL44-5"
+
+
+def r5_cap_in(wb):
+    from deps import Deps
+    ws = wb["Cap_In"]
+    live = [c for c in R5_CELLS if ws[c].value is not None]
+    if not live:
+        return dict(cleared=0, orig=[], kept=[])
+    D = Deps(wb)
+    group = {("Cap_In", c) for c in live}
+    rev = {}
+    for k in D.formulas:
+        for p in D.direct(k):
+            if p in group:
+                rev.setdefault(p, set()).add(k)
+    kept = []
+    for c in live:
+        outside = sorted(k for k in rev.get(("Cap_In", c), ()) if k not in group)
+        if outside:
+            kept.append((c, outside))
+    keep_set = {c for c, _ in kept}
+    # a cell whose reader is kept is itself kept (closure); loop until stable
+    changed = True
+    while changed:
+        changed = False
+        for c in live:
+            if c in keep_set:
+                continue
+            if any(k[0] == "Cap_In" and k[1] in keep_set for k in rev.get(("Cap_In", c), ())):
+                keep_set.add(c); changed = True
+    pc = _purpose_col(ws)
+    orig = []
+    for c in live:
+        if c in keep_set:
+            continue
+        orig.append((c, ws[c].value))
+        ws[c].value = None; ws[c].fill = NO_FILL
+        r = int(c[1:])
+        if c == "G175":
+            _set_text(ws, f"{L(pc)}{r}", R5_G175_MARK_OLD, R5_G175_MARK_NEW)
+        else:
+            cur = ws[f"{L(pc)}{r}"].value
+            assert str(cur).startswith(R5_MARK_OLD_PREFIX.format(r=r)), (r, cur)
+            ws[f"{L(pc)}{r}"].value = R5_MARK_NEW.format(r=r)
+    return dict(cleared=len(orig), orig=orig, kept=[(c, o) for c, o in kept])
+
+
+# ================================================================== R6
+GM629_TAIL = " ｜v14.0 已清空（修訂九更正註記；v14.1 R6 補記）：Cap_In C204:F204 的值已於 v14.0（4-3B Q1）清空，本列原文保留"
+ANCHOR_ROWS = (206, 207, 208, 209, 223)
+ANCHOR_NEW = "錨點：以本列 C–F 欄現值為準（v5.35 B1 建置時的數字已刪除，避免與現值不一致；原文見 Decisions SL44-6）"
+MARK_FIX = [
+    ("Cap_In", 76, "顯示用：C76（H2 訂閱人數（SRC_DEM 複本與 2025 期間平均）：每人直覺檢查與 ARPU 的上游）",
+     "顯示用：C76（H2 訂閱人數的 SRC_DEM 複本，只供與 2025 期間平均並列對照；目前沒有任何公式讀取；v14.1 R6 更正：原標記稱『每人直覺檢查與 ARPU 的上游』與實際依賴不符）"),
+    ("Training", 122, "顯示用：C122:Q122（核心列：Sens_Train 有同列同標籤的列，常設測試以此為逐格比對基準；下游用 IF_TrainCost_*／IF_ProgCost_*）",
+     "顯示用：C122:Q122（核心列：Sens_Train 有同列同標籤的列，常設測試以此為逐格比對基準；本列沒有公式讀取，下游 IF_TrainCost_*／IF_ProgCost_* 實際讀第 120 列（研發計畫 GPU 小時，TRN_GPUhProg）；v14.1 R6 更正）"),
+    ("Price_Frontier", 27, "顯示用：C27:E27（前緣分項牌價（新鮮輸入／快取輸入／輸出）：B 節前緣表的形狀；下游用 IF_FrontRef_*（混合））",
+     "顯示用：C27:E27（前緣分項牌價（新鮮輸入／快取輸入／輸出）：B 節前緣表的形狀；本列沒有公式讀取，下游 IF_FrontRef_* 實際讀第 46 列（B4_FrontRef，前緣混合單價）；v14.1 R6 更正）"),
+]
+
+
+def r6_small(wb, append_text):
+    log = {}
+    gm = _gm_rows(wb, "Cap_In", "C204:F204")
+    assert len(gm) == 1, gm
+    log["gm629"] = append_text(wb["Gov_Map"][f"N{gm[0]}"], GM629_TAIL)
+    n = 0
+    for sh, r, old, new in MARK_FIX:
+        ws = wb[sh]
+        pc = _purpose_col(ws)
+        n += _set_text(ws, f"{L(pc)}{r}", old, new)
+    log["marks"] = n
+    ws = wb["Cap_In"]
+    orig = []
+    for r in ANCHOR_ROWS:
+        cur = ws[f"H{r}"].value
+        if cur == ANCHOR_NEW:
+            continue
+        assert isinstance(cur, str) and cur.startswith("錨點：") and not cur.startswith("錨點：以本列"), (r, cur)
+        orig.append((r, cur))
+        ws[f"H{r}"].value = ANCHOR_NEW
+    log["anchors"] = len(orig)
+    log["anchor_orig"] = orig
+    return log
+
+
+# ================================================================== Decisions
+def _decisions(r3, r4, r5, r6):
+    lab = "；".join(f"{s}!{r}：{a}｜{b}" for s, r, a, b in r4["list"])
+    r5t = "；".join(f"Cap_In!{c}：{f}" for c, f in r5["orig"])
+    r6t = "；".join(f"Cap_In!H{r}：{t}" for r, t in r6["anchor_orig"])
+    _D = [
+        ("1", "R1 機隊 m 低端改用『同欄下限』（下限截斷）",
+         "Cap_In 第 119 列（機隊 m，C 基準／D token 取高／E token 取低）各欄改為 MAX(該欄點估計, 該欄第 121 列的物理下限)；第 121 列每一欄用該欄自己的服務 GW 與利用率口徑算出，"
+         "所以低端欄（D）的下限是 0.215（不是基準欄的 0.301）。原因（4-3B 報告第 6 節）：D 欄 token 取高的點估計 token（423 億）高於它自己那一欄的上限（361 億，比值 1.17），"
+         "兩者差在服務 GW 與利用率修正的口徑不同，造成 L1_MFleet_Lo 0.184 低於物理下限。處理：下限截斷（Andy 選 (b)）。基準 0.407 與高端 1.179 高於各自欄的下限，不受影響。"
+         "機制寫在 Excel 公式（Cap_In 第 119 列）；說明欄寫明『下限截斷：v14.1 起，低端不得低於同欄物理下限』。Cap_In 第 121 列用途由『待定義』改為正式定義；不升級為契約名稱 L1_MFleetFloor（下游不讀）。"
+         "受影響的名稱：L1_MFleet_Lo、L1_PriceRealFleet_Lo、L1_LReqFleet_Hi（及其依賴格 Cap_In E240／E242、CHK_L1Order、GOV_Warnings 的輸入；新舊值見報告）。",
+         "Cap_In 第 119、121 列；L1 第 78 列", "v14.1 已建"),
+        ("2", "R2 V23、V24 標『恆等式（非驗證）』",
+         "Checks V23（Perf 實際速度 ≥ SLO）與 V24（Cap_In 第 147 列＝L1_MImplied）是結構性恆等式（4-3B 報告第 5 節）：定義上恆成立，無法只靠改輸入使其失敗。比照 V18，F 欄改顯示文字『恆等式（非驗證）』，"
+         "移出驗證項目數／通過／失敗；公式被改壞時 F 欄顯示『恆等式不成立』，專屬必須失敗測試保留（改公式格）。驗證計數 24／16／7／1 → 22／14／7／1。",
+         "Checks V23、V24；CHK_VerifyTotal／Pass", "v14.1 已建"),
+        ("3", "R3 Har_In 第 20、32 列供應商旗標清空",
+         "供應商專屬旗標（Har_In 第 20、32 列 C:G）自第 44 列於 v14.0 刪除後已無任何公式讀取，v14.1 清空。原值：" +
+         "；".join(f"第 {r} 列 " + "／".join(str(v) for v in vals) for r, vals in sorted(r3["orig"].items())) +
+         "。H 欄（來源與標記）與 I 欄（說明）原文保留；Gov_Map 該兩列（列 493、501）加註『v14.1 已移除』，原文保留（修訂九）。需要時再接線。",
+         "Har_In 第 20、32 列；Gov_Map 列 493、501（GM489、GM497）", "v14.1 已建"),
+        ("4", "R4 v14.0 刪除的 73 列：A、B 欄標籤清空",
+         "v14.0（SL43-1）刪除的 73 列，v14.1 一併清空 A、B 欄標籤。可追溯清單（工作表!列：原 A 欄｜原 B 欄）：" + lab,
+         "各頁（見清單）", "v14.1 已建"),
+        ("5", "R5 Cap_In 24 格清空",
+         "Cap_In 第 185、187–193、196–202、205、216–222 列 C 欄（23 格）與第 175 列說明文字格 G175，刪除前以依賴圖逐格確認：這 24 格的讀者全部在這 24 格之內（沒有任何其他格、名稱、Checks 讀取），所以整組清空。"
+         "保留（有組外讀者）：" + ("無" if not r5["kept"] else "；".join(f"{c}：{o}" for c, o in r5["kept"])) + "。原公式：" + r5t,
+         "Cap_In C 欄上述各列；G175", "v14.1 已建"),
+        ("6", "R6 v14.0 獨立查核（PR #104）的小項",
+         "(1) Gov_Map GM629（Cap_In C204:F204）加註『v14.0 已清空』，原文保留。(2) 用途標記三筆更正：Cap_In 76（實際無公式讀取）、Training 122（下游實為第 120 列）、Price_Frontier 27（下游實為第 46 列）；原標記文字保留於各列 O／該頁用途欄的更正句。"
+         "(3) Cap_In 第 206–209、223 列 H 欄『錨點』舊文字與現值不符，改為『以本列 C–F 欄現值為準』；原文：" + r6t + "。數值全部不變。",
+         "Gov_Map GM629；Cap_In 76、206–209、223；Training 122；Price_Frontier 27", "v14.1 已建"),
+    ]
+    return [[f"SL44-{i}", V, f"v14.1 修補：{t}", txt, DATE, DEC_BY, st, where, f"{WO} R{i}", "否"] for i, t, txt, where, st in _D]
+
+
+def decisions_append(wb, rows):
+    ws = wb["Decisions"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max([rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")] or [4]) + 1
+    n = 0
+    for row in rows:
+        if row[0] in have:
+            continue
+        for i, v in enumerate(row):
+            put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 5, 7))
+        r += 1; n += 1
+    return n
+
+
+def old_decision_tail(wb, append_text):
+    """SL43-4 (v14.0) says V23–V26 are counted in the verification count: add the v14.1 R2 correction."""
+    ws = wb["Decisions"]
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value == "SL43-4":
+            return append_text(ws[f"D{r}"], " ｜v14.1 R2：V23、V24 已改標『恆等式（非驗證）』，移出驗證計數（見 SL44-2）；V25、V26 仍計入")
+    return 0
+
+
+# ================================================================== apply
+def apply(wb, append_text):
+    log = {}
+    log["r1_texts"] = r1_texts(wb, append_text)
+    log["r3"] = r3_har_flags(wb, append_text)
+    log["r4"] = r4_labels(wb)
+    log["r5"] = r5_cap_in(wb)
+    log["r6"] = r6_small(wb, append_text)
+    ws = wb["Decisions"]
+    have_dec = any(ws.cell(r, 1).value == "SL44-1" for r in range(5, ws.max_row + 1))
+    if not have_dec:
+        # lists come from the live sheets before clearing; on a rebuild from v14.1 the sheets are rebuilt so they are complete again
+        log["decisions"] = decisions_append(wb, _decisions(log["r3"], log["r4"], log["r5"], log["r6"]))
+        log["sl43_4"] = old_decision_tail(wb, append_text)
+    return log
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（次版：" + WO + "——R1 機隊 m 低端改用同欄下限（Cap_In 第 119 列各欄＝MAX(點估計, 第 121 列同欄)；L1_MFleet_Lo 0.184 → 0.215，基準與高端不變）；"
+                  "R2 Checks V23、V24 標恆等式（驗證計數 24／16／7／1 → 22／14／7／1）；R3 Har_In 第 20、32 列供應商旗標清空；R4 v14.0 刪除列的 A、B 標籤清空；R5 Cap_In 24 格清空；"
+                  "R6 v14.0 獨立查核小項（GM629 註記、三筆用途更正、過時錨點文字）；Decisions SL44-*）。以下為 "
+                  + v1400.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1400.README_TITLE
+README_TITLE = V + _T[len(v1400.V):]
+README_ROW = ("v14.1 修補",
+              "機隊 m 低端改用同欄下限（L1_MFleet_Lo 0.184 → 0.215）；V23、V24 標恆等式；清空無人讀取的旗標與標籤；用途標記與過時文字更正。細節見 Decisions SL44-*。")
 ```
 
 ## gov_decisions.py
@@ -31421,6 +31754,8 @@ import v800
 v800.patch_specs()      # v8.0 L1／L4: the same rows read the 2025 fleet-basis price AL_PriceFleet25; Cap_In I-7 required L reads L1_FleetBreakeven2025 (patched after v603, before they are written)
 import v810
 v810.patch_specs()      # v9.0 M6: demand-route m (H5／H8) on the 2025 price CAP_Price25Mix; Cap_In I-7 required L (m = L1_MAPI) on L1_FleetBreakeven2025 (patched after v800, before they are written)
+import v1410
+v1410.patch_specs()      # v14.1 R1: Cap_In row 119 (m_fleet) = MAX(point estimate, same-column floor row 121) (patched after v810, before H7 is written)
 V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
 import v533
 V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
@@ -31635,6 +31970,8 @@ V1310 = v1310.apply(wb, v518._append_text)       # v13.1 (D15 B): P1 notes／DB_
 print("v1310 D15 B:", V1310)
 V1400 = v1400.apply(wb, v518._append_text)       # v14.0 (4-3B): Q1 deletion, D104／D140, 用途 marks, Decisions SL43-*
 print("v1400 4-3B:", V1400)
+V1410 = v1410.apply(wb, v518._append_text)       # v14.1: R1 texts, R3 Har_In flags, R4 labels, R5 Cap_In cells, R6 small items, Decisions SL44-*
+print("v1410 v14.1:", {k: (v if not isinstance(v, dict) else {kk: vv for kk, vv in v.items() if kk not in ("list", "orig", "anchor_orig")}) for k, v in V1410.items()})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

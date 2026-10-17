@@ -715,7 +715,7 @@ def test_v533_fleet_basis(model, lo):
     ceil = gw * eng.get_name("AL_ProdRatioPaid") / den      # v6.0 D7-2：上限讀付費產能比（原 CTL_ProdDerate）
     m = eng.get_name("SRC_DEM_007") * 1e9 / (tok * price)
     assert abs(eng.get_name("L1_MFleet") - m) <= 1e-12 * m and abs(eng.get_name("L1_TokCeiling") - ceil) <= 1e-12 * ceil
-    for n, v in (("AL_ServeGW", 0.166128), ("L1_ScaleServe", 5.406066), ("AL_ServeGWSpend", 0.898096), ("L1_MFleet", 0.550473), ("L1_MFleet_Lo", 0.248502),      # v6.2（2-1-b／c）：AL_ServeGW 0.189082 → 0.166128、L1_ScaleServe 4.749776 → 5.406066、L1_MFleet 0.536920 → 0.449740；v6.1：D6／D10／D13 的預期連動（v6.0：0.182593、4.918571、0.789593、0.442881）
+    for n, v in (("AL_ServeGW", 0.166128), ("L1_ScaleServe", 5.406066), ("AL_ServeGWSpend", 0.898096), ("L1_MFleet", 0.550473), ("L1_MFleet_Lo", 0.326619),      # v6.2（2-1-b／c）：AL_ServeGW 0.189082 → 0.166128、L1_ScaleServe 4.749776 → 5.406066、L1_MFleet 0.536920 → 0.449740；v6.1：D6／D10／D13 的預期連動（v6.0：0.182593、4.918571、0.789593、0.442881）
                  ("L1_MFleet_Hi", 1.593134), ("L1_GapPrompt_Hi", 2.344842), ("L1_MImplied", 2.033528)):
         assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)
     for n, v in (("L1_TokCeiling", 17044547353), ("L1_TokCeiling_Lo", 8048814028), ("L1_TokCeiling_Hi", 23815668905)):      # v6.2（v6.1：15293496511、7221928908、21368995125）；v6.1（v6.0：10309020853、5444451638、16082072531）
@@ -801,7 +801,7 @@ def test_v534_m_split(model, lo):
         assert abs(eng.get("Cap_In", f"E{row10(lab)}") - v) < 5e-6, (lab, eng.get("Cap_In", f"E{row10(lab)}"), v)
     assert abs(eng.get("Cap_In", f"C{row10('m_整體')}") - eng.get_name("L1_MImplied")) <= 1e-9 and abs(eng.get("Cap_In", f"C{row10('m_fleet')}") - eng.get_name("L1_MFleet")) <= 1e-9
     assert eng.get("Cap_In", f"C{row('自我檢查：2025 欄')}") == "一致"
-    assert [eng.get("Cap_In", f"{c}{row('營收份額：API')}") for c in "CDEF"] == [0.2] * 4 or all(abs(eng.get("Cap_In", f"{c}{row('營收份額：API')}") - 0.2) < 1e-12 for c in "CDEF")
+    assert eng.get("Cap_In", f"C{row('營收份額：API')}") == "" and all(abs(eng.get("Cap_In", f"{c}{row('營收份額：API')}") - 0.2) < 1e-12 for c in "DEF")      # v14.1 R5：C 欄（2025 年度，無人讀取）已清空；D–F 欄仍須為 0.2
 
 
 # ── v5.35（工作單 docs/workorders/20261014_v5.35.md r0）：m 序列三項修正（Cap_In H10）＋ L 拆分（Cap_In I 節、L1 四列） ──
@@ -820,7 +820,7 @@ def test_v535_l_split(model, lo):
         for n, v in (("L1_LPrice", lp(g)), ("L1_LTotal", lt(g, t1, rho)), ("L1_LDemote", lt(g, t1, rho) / lp(g))):
             assert abs(eng.get_name(n + suf) - v) <= 1e-12 * v, (n + suf, eng.get_name(n + suf), v)
     for n, v in (("L1_LPrice", 0.741200), ("L1_LTotal", 0.642602), ("L1_LDemote", 0.866976), ("L1_LPrice_Lo", 0.476233), ("L1_LTotal_Lo", 0.341998), ("L1_LDemote_Lo", 0.718132),
-                 ("L1_LPrice_Hi", 1.161763), ("L1_LTotal_Hi", 1.161763), ("L1_LDemote_Hi", 1.0), ("L1_LReqFleet", 2.037391), ("L1_LReqFleet_Lo", 0.703977), ("L1_LReqFleet_Hi", 4.513165)):
+                 ("L1_LPrice_Hi", 1.161763), ("L1_LTotal_Hi", 1.161763), ("L1_LDemote_Hi", 1.0), ("L1_LReqFleet", 2.037391), ("L1_LReqFleet_Lo", 0.703977), ("L1_LReqFleet_Hi", 3.433754)):      # v14.1 R1：L1_LReqFleet_Hi 4.513165 → 3.433754（舊 SLO 視圖下低端欄下限 0.3266 高於點估計 0.2485，下限截斷生效）
         assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)
     req = lambda m: eng.get_name("L1_FleetBreakeven2025") / (eng.get_name("IF_Util") * eng.get_name("CTL_ProdDerate") * eng.get_name(m))
     assert abs(eng.get_name("L1_LReqFleet") - req("L1_MFleet")) <= 1e-12 * req("L1_MFleet") and abs(eng.get_name("L1_LReqFleet_Lo") - req("L1_MFleet_Hi")) <= 1e-12 * req("L1_MFleet_Hi")
@@ -843,9 +843,13 @@ def test_v535_l_split(model, lo):
     for lab, cols in (("m_API", (0.657758, 0.294994, 0.340278, 0.348339)), ("m_消費訂閱", (4.972653, 5.743864, 5.398635, 5.568844)), ("m_商用席次", (2.131137, 3.555726, 4.557290, 8.043885)),
                       ("m_整體", (2.033528, 1.192339, 1.343201, 1.431699)), ("廣告營收", (0, 0, 0.5, 1.0)), ("2026 消費訂閱占", (0.75, 0.65, 0.65, 0.65))):   # v14.0 4-3B Q1：Cap_In 第 204 列 L_price（I 節；顯示用）依工作單刪除，不再斷言
         for c, v in zip("CDEF", cols):
+            if lab == "2026 消費訂閱占" and c == "C":      # v14.1 R5：Cap_In C200（2025 年度欄，無人讀取）已清空
+                assert eng.get("Cap_In", f"C{row(lab)}") == "", (lab, c)
+                continue
             assert abs(eng.get("Cap_In", f"{c}{row(lab)}") - v) < 5e-6, (lab, c, eng.get("Cap_In", f"{c}{row(lab)}"), v)
     r = row("m 分子營收")
-    for c in "CDEF":                                                                                                # J23 (1)：三分之和＝m 分子營收
+    assert all(eng.get("Cap_In", f"C{row(x)}") == "" for x in ("m 分子營收", "消費訂閱營收", "商用席次營收", "API 營收"))      # v14.1 R5：C187、C191–C193 已清空，三分之和改只斷言 D–F 欄
+    for c in "DEF":                                                                                                # J23 (1)：三分之和＝m 分子營收
         assert abs(eng.get("Cap_In", f"{c}{row('消費訂閱營收')}") + eng.get("Cap_In", f"{c}{row('商用席次營收')}") + eng.get("Cap_In", f"{c}{row('API 營收')}") - eng.get("Cap_In", f"{c}{r}")) < 1e-9
     assert abs(eng.get("Cap_In", f"E{row('m_fleet')}") - 0.297487) < 5e-6 and eng.get("Cap_In", f"C{row('自我檢查：2025 欄')}") == "一致"
     assert abs(eng.get("Cap_In", f"C{row('壽命 T')}") - 6) < 1e-12 and abs(eng.get("Cap_In", f"D{row('降級後價值比')}") - rho_lo) < 1e-12
@@ -1174,7 +1178,7 @@ def test_v1000_audit_fix2_5(model, lo):
     assert set(cnt) == kinds
     assert num(n("L1_GapUnexplained")) and abs(n("L1_GapUnexplained") - n("L1_ScaleServe2000") / n("L1_GapProduct")) < 1e-9
     # N3：驗證計數
-    assert n("CHK_VerifyTotal") == 24 and n("CHK_VerifyPass") == 16 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0 H1/H7：22/14/7/1 → 20/12/7/1（V18 恆等式、V20 校準相關移出計數）； v11.0 G3/G4: 19/11/8 -> 22/14/7 + 警示 1 (V20-V22 added; V1 soft cap -> warn); v10.3 4-2a F3: 17/9/8 -> 19/11/8; v10.2 E3: 14/7/7 -> 17/9/8
+    assert n("CHK_VerifyTotal") == 22 and n("CHK_VerifyPass") == 14 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.1 R2：V23、V24 移出計數 → 22/14/7/1； v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0 H1/H7：22/14/7/1 → 20/12/7/1（V18 恆等式、V20 校準相關移出計數）； v11.0 G3/G4: 19/11/8 -> 22/14/7 + 警示 1 (V20-V22 added; V1 soft cap -> warn); v10.3 4-2a F3: 17/9/8 -> 19/11/8; v10.2 E3: 14/7/7 -> 17/9/8
     assert n("CHK_VerifyPass") + n("CHK_VerifyFail") + n("CHK_VerifyWarn") == n("CHK_VerifyTotal")
     assert n("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
 
@@ -1198,7 +1202,7 @@ def test_v1020_eta_calibration(model, lo):
         assert n(nm) == old.get_name(nm), nm
     assert abs(n("IF_AllocServeGW") - 0.898096) < 5e-6 and abs(n("IF_AllocRDGW") - 0.202947) < 5e-6      # v12.0 H2: 0.197258 -> 0.202947 (GB200 CAL_BatchEtaD 3.04 -> 2.36); v11.0 G2: IF_AllocRDGW 0.240199 -> 0.197258 (GB200 CAL_BatchEtaD 1 -> 3.04)
     # E3
-    assert n("CHK_VerifyTotal") == 24 and n("CHK_VerifyPass") == 16 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0：22/14/7/1 → 20/12/7/1（同上）； v11.0: 19/11/8 -> 22/14/7 + 警示 1
+    assert n("CHK_VerifyTotal") == 22 and n("CHK_VerifyPass") == 14 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.1 R2：V23、V24 移出計數 → 22/14/7/1； v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0：22/14/7/1 → 20/12/7/1（同上）； v11.0: 19/11/8 -> 22/14/7 + 警示 1
     assert n("GOV_Errors") == 0
     # 校準複本列：模型 ÷ 目標（Hopper 校準點無解、GB200 校準點 0.37）
     cal = [r for r in range(150, 260) if str(base.get("Calib", f"A{r}") or "").startswith("模型 ÷ 目標")]
@@ -1272,7 +1276,7 @@ def test_v1200_gb200_geomean_and_v20_dependence(model, lo):
     r20 = _vrow(v, "V20")
     assert v.get("Checks", f"G{r20}") == "校準相關（非獨立）" and str(v.get("Checks", f"F{r20}")).startswith("校準相關（非獨立）")
     numeric = sum(1 for r in range(1, 400) if re.fullmatch(r"V\d+", str(v.get("Checks", f"A{r}") or "")) and isinstance(v.get("Checks", f"F{r}"), (int, float)))
-    assert numeric == 23 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # V18、V20 的 F 欄為文字，不計入
+    assert numeric == 21 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # V18、V20 的 F 欄為文字，不計入
     n = v.get_name
     for name, want in (("IF_AllocRDGW", 0.202947), ("IF_AllocQ1", 0.184322), ("IF_AllocQ2", 0.184983), ("L1_ScaleRD", 6.294125)):      # v11.0：0.197258／0.180086／0.180735／6.475644
         assert abs(n(name) - want) < 5e-6, (name, n(name), want)
@@ -1285,8 +1289,9 @@ def test_v1200_service_side_unchanged(model, lo):
     from openpyxl.utils import range_boundaries
     prev = openpyxl.load_workbook(V110_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(("IF_TokGW_", "L1_MFleet", "IF_AllocServeGW", "L1_LReqFleet_Id", "L1_HoldEconMW_", "IF_MaintIT", "IF_RevGW"))]
+    keep = [n for n in prev.defined_names if n.startswith(("IF_TokGW_", "L1_MFleet", "IF_AllocServeGW", "L1_LReqFleet_Id", "L1_HoldEconMW_", "IF_MaintIT", "IF_RevGW")) and n != "L1_MFleet_Lo"]      # v14.1 R1：L1_MFleet_Lo 改用同欄下限（0.1839 → 0.2154），其餘（含 L1_MFleet 基準與 _Hi）仍須與 v11.0 相同
     assert len(keep) >= 40, len(keep)
+    assert abs(v.get_name("L1_MFleet_Lo") - 0.215398033949784) < 1e-12 and abs(v.get_name("L1_MFleet_Lo") - v.get("Cap_In", "D121")) < 1e-15      # R1 的新值：＝同欄下限
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

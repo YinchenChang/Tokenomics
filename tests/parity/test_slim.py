@@ -177,8 +177,9 @@ def test_cap_in_h10_2025_column_reads_h_section(lo):
     """4-2a F2 D09：Cap_In H10 2025 欄（C206–C209、C222–C223）直接引用 H 節對應格；第 224 列一致性檢查保留。"""
     import openpyxl
     ws = openpyxl.load_workbook(model_path(), read_only=True)["Cap_In"]
-    for r, src in ((206, 144), (207, 145), (208, 146), (209, 94), (222, 116), (223, 119)):
+    for r, src in ((206, 144), (207, 145), (208, 146), (209, 94), (223, 119)):
         assert ws[f"C{r}"].value == f"=C{src}", (r, ws[f"C{r}"].value)
+    assert ws["C222"].value is None      # v14.1 R5：C222（機隊付費 token 的 2025 年度複本，無人讀取）已清空；其餘 2025 欄連結不變
     assert "一致性" in str(ws["A224"].value) or "自我檢查" in str(ws["A224"].value)
     assert lo.view({}).get("Cap_In", "C224") == "一致"
 

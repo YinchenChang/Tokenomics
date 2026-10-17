@@ -177,10 +177,10 @@ def test_v1400_v23_fails_when_actual_speed_below_slo(model, tmp_path, sheet):
 
 
 def test_v1400_v23_not_vacuous_when_some_columns_unreachable(lo):
-    """V23 不因『不可達欄』而空轉或誤判：Train_In!E31＝100（Perf_Batch 部分欄 SLO 不可達）時，可達欄數少於 32 但仍 > 0，V23 仍通過。"""
+    """V23 不因『不可達欄』而空轉或誤判：Train_In!E31＝100（Perf_Batch 部分欄 SLO 不可達）時，可達欄數少於 32 但仍 > 0，V23 仍成立（v14.1 R2：F 欄＝「恆等式（非驗證）」，而非「恆等式不成立」）。"""
     v = lo.view({"Train_In!E31": 100})
     r = _chk(v, "V23")
-    assert 0 < v.get("Checks", f"D{r}") < 32 and v.get("Checks", f"F{r}") == 1, (v.get("Checks", f"D{r}"), v.get("Checks", f"F{r}"))
+    assert 0 < v.get("Checks", f"D{r}") < 32 and v.get("Checks", f"F{r}") == "恆等式（非驗證）", (v.get("Checks", f"D{r}"), v.get("Checks", f"F{r}"))      # v14.1 R2：V23 改標恆等式，F 欄為文字；可達欄數 > 0 與 < 32 仍斷言（防空轉）
 
 
 def test_v1400_v24_fails_when_cap_in_147_differs_from_l1_mimplied(model, tmp_path):

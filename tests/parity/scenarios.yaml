@@ -167,14 +167,14 @@ scenarios:
     description: H2 區間低端 GB200 批次口徑倍數＝1.59（v15.3 C2：MLPerf v6.0 offline 反推值，D67 改 1.15 後由 1.83 變 1.5911；Gov_Map 區間下限）；Hopper 維持 1。這是研發 GW 區間的高端（IF_AllocRDGW 最高）
     inputs: {"CAL_BatchEtaD[2]": 1.59}
   - id: batch_gb200_hi
-    description: H2 區間高端 GB200 批次口徑倍數＝3.04（vLLM 10.1K 反推值；v11.0 的基準）；Hopper 維持 1
-    inputs: {"CAL_BatchEtaD[2]": 3.04}
+    description: H2 區間高端 GB200 批次口徑倍數＝2.64（v15.3 r1：vLLM 10.1K 反推值 3.0373 ÷ D67 1.15＝2.641；v13.0–v15.2 為 3.04）；Hopper 維持 1
+    inputs: {"CAL_BatchEtaD[2]": 2.64}
   - id: batch_hopper_hi
     description: H3 Hopper 批次口徑倍數＝3.74（Gov_Map 區間上限；C68＝1.5 下產出飽和處）；在 C68＝1.5 下不會讓 Hopper 達標（上限 0.941），只呈現研發 GW 的下限方向；GB200 維持基準（v15.3 起為公式 √(C254×D201)＝2.198；v12.0–v15.2 為 2.36）
     inputs: {"CAL_BatchEtaD[1]": 3.74}
   - id: batch_range_lo
-    description: H5 研發 GW 區間的低端組合：GB200 3.04、Hopper 3.74（IF_AllocRDGW、IF_AllocQ1 最低）
-    inputs: {"CAL_BatchEtaD[2]": 3.04, "CAL_BatchEtaD[1]": 3.74}
+    description: H5 研發 GW 區間的低端組合：GB200 2.64（v15.3 r1；原 3.04）、Hopper 3.74（IF_AllocRDGW、IF_AllocQ1 最低）
+    inputs: {"CAL_BatchEtaD[2]": 2.64, "CAL_BatchEtaD[1]": 3.74}
   - id: c68_1
     description: H4 假設 C68（Hopper 每層延遲倍數）＝1.0（Gov_Map 區間下限）；服務端 Hopper 的 IF_TokGW_*、L1_MFleet 隨之改變（預期，這是情境，不是基準）
     inputs: {"Calib!C68": 1.0}

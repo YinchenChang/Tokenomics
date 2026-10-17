@@ -63,7 +63,7 @@ def _chk_row(v, cid):
 def test_v1500_o13_names_and_base_inside(lo):
     """六個端點名稱 ＋ OutCount 存在；基準值不變（0.898096／0.184322／0.184983）且落在 _Lo／_Hi 之內；服務 GW 與 SRC_DEM_004 區間成正比。"""
     v = lo.view({})
-    want = {"IF_AllocServeGW": 0.898096, "IF_AllocQ1": 0.182997, "IF_AllocQ2": 0.183654}      # v15.3 C2：Q1／Q2 再升為 0.182997／0.183654（GB200 批次倍數 2.36 → 2.198）；v15.2 B3：Q1／Q2 0.184322／0.184983 → 0.181823／0.182477（D67 使 GB200 欄研發 GW 略降）
+    want = {"IF_AllocServeGW": 0.898096, "IF_AllocQ1": 0.184347, "IF_AllocQ2": 0.185009}      # v15.3 C2：Q1／Q2 再升為 0.182997／0.183654（GB200 批次倍數 2.36 → 2.198）；v15.2 B3：Q1／Q2 0.184322／0.184983 → 0.181823／0.182477（D67 使 GB200 欄研發 GW 略降）
     for n in SPEND:
         base = v.get_name(n)
         assert abs(base - want[n]) < 5e-6, (n, base)      # 基準不變（同 test_parity）

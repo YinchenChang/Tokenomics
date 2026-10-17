@@ -29065,12 +29065,12 @@ SOFT_LABEL = "驗證軟上限的失敗門檻（CHK_SoftCapFail）"
 
 # ================================================================== H5: scenario values (constants; filled from LibreOffice scenario runs, guarded by tests/parity)
 # row: (label, GB200 multiplier, Hopper multiplier, C68, IF_AllocRDGW, IF_AllocQ1)
-RANGE_ROWS = [      # v15.3 重產（C2：GB200 高端 1.83 → 1.59、基準 2.36 → 公式 2.198；與 RNG_IF_AllocRDGW／Q1_* 同源，6 位小數）。v15.2 值：高端 0.206625／0.187038、低端 0.160922／0.151954、3.04／1 0.194699／0.178166、2.36／3.74 0.164158／0.154538、C68＝1.0 0.196612／0.179602；v12.0 值：高端 0.211597／0.190680、低端 0.162622／0.153313、3.04／1 0.197258／0.180086、2.36／3.74 0.166368／0.156293、C68＝1.0 0.199873／0.182039。 values from LibreOffice scenario runs of the workbook (tests/parity scenarios batch_gb200_lo／hi, batch_hopper_hi, batch_range_lo, c68_1)
+RANGE_ROWS = [      # v15.3 r1 重產（C2 同口徑：基準 2.050＝√(C254×D201÷D67)、低端 GB200 3.04 → 2.64；r0 為 2.198／3.04：低端 0.160922／0.151954、3.04／1 0.194699／0.178166、2.198／3.74 0.165197／0.155363、C68＝1.0 0.198141／0.180747）。v15.3 r0 重產（C2：GB200 高端 1.83 → 1.59、基準 2.36 → 公式 2.198；與 RNG_IF_AllocRDGW／Q1_* 同源，6 位小數）。v15.2 值：高端 0.206625／0.187038、低端 0.160922／0.151954、3.04／1 0.194699／0.178166、2.36／3.74 0.164158／0.154538、C68＝1.0 0.196612／0.179602；v12.0 值：高端 0.211597／0.190680、低端 0.162622／0.153313、3.04／1 0.197258／0.180086、2.36／3.74 0.166368／0.156293、C68＝1.0 0.199873／0.182039。 values from LibreOffice scenario runs of the workbook (tests/parity scenarios batch_gb200_lo／hi, batch_hopper_hi, batch_range_lo, c68_1)
     ("高端（GB200 1.59、Hopper 1）", 1.59, 1, 1.5, 0.211628, 0.190703),
-    ("低端（GB200 3.04、Hopper 3.74）", 3.04, 3.74, 1.5, 0.160922, 0.151954),
-    ("GB200 3.04、Hopper 1（v11.0 的基準）", 3.04, 1, 1.5, 0.194699, 0.178166),
-    ("GB200 2.198、Hopper 3.74（只加 Hopper）", 2.198, 3.74, 1.5, 0.165197, 0.155363),
-    ("C68＝1.0（GB200 2.198、Hopper 1；服務端 L1_MFleet 也會改變）", 2.198, 1, 1.0, 0.198141, 0.180747),
+    ("低端（GB200 2.64、Hopper 3.74）", 2.64, 3.74, 1.5, 0.162639, 0.153327),
+    ("GB200 2.64、Hopper 1", 2.64, 1, 1.5, 0.197284, 0.180105),
+    ("GB200 2.05、Hopper 3.74（只加 Hopper）", 2.05, 3.74, 1.5, 0.166391, 0.156311),
+    ("C68＝1.0（GB200 2.05、Hopper 1；服務端 L1_MFleet 也會改變）", 2.05, 1, 1.0, 0.199906, 0.182063),
 ]
 
 
@@ -29321,7 +29321,7 @@ def load_ranges():
 RNG = load_ranges()
 
 SEC_TITLE = ("O. 批次口徑倍數區間端點（v13.0 K1／K2）：凡隨 CAL_BatchEtaD 的 GB200（Calib D156）或 Hopper（Calib C156）倍數變動的契約名稱 X，各有 RNG_X_Lo／RNG_X_Hi（形狀同 X）。"
-             "端點＝情境重算（高端：GB200 1.59（v15.3 起；v13.0–v15.2 為 1.83）；低端：GB200 3.04、Hopper 3.74）兩者每格的較小／較大者，不是情境的『低端／高端』；以黑字數值寫入（不是公式，改輸入後不會自動更新）。"
+             "端點＝情境重算（高端：GB200 1.59（v15.3 起；v13.0–v15.2 為 1.83）；低端：GB200 2.64（v15.3 r1 起；v13.0–v15.2 為 3.04）、Hopper 3.74）兩者每格的較小／較大者，不是情境的『低端／高端』；以黑字數值寫入（不是公式，改輸入後不會自動更新）。"
              "時效：RNG_Version 必須等於現行版本，且基準落在區間內，否則 RNG_StaleFlag 顯示『區間過期』（Checks RG1／RG2，WARN）；tests/parity 以情境重算逐格比對全部端點（容差 1e-9）。重新產生：python3 tools/gen_ranges.py")
 HDR = ["名稱 X", "列", "（以下每格＝X 的同一格；15 格名稱依序為 5 個世代 × 低成本／基準／高成本）"]
 WIDTH_COLS = 15
@@ -31725,9 +31725,10 @@ README_ROW = ("v15.2 m 證據 B 段",
 #       E2  Cap_In D228 (rho low end) formula x INDEX(IF_TokGW_Luna,1,4)/INDEX(IF_TokGW_Sol,1,4) (GB200 column); E228 1 -> 0.7; mark Assumed -> Derived (two readings).
 #       E3  Cap_In C227 (T1) unchanged (Gov_Map GM636 N note only).
 #   W2  D1  Cap_In row 242 = three-state reading (L_total interval vs required-L interval, identity reading L1_LReqFleet_Id); row 243 relabelled as a literal-reading comparison.
-#   W3  C2  Calib D156 (CAL_BatchEtaD GB200) 2.36 -> =SQRT(C254*D201) (= 2.198); Gov_Map GM685 K 1.83 -> 1.59.
+#   W3  C2  Calib D156 (CAL_BatchEtaD GB200) 2.36 -> =SQRT(C254*D201/$D$67) (= 2.050; r1, same-basis; r0 was SQRT(C254*D201) = 2.198); Gov_Map GM685 K 1.83 -> 1.59, L 3.04 -> 2.64.
+#   r1  P89 three-state; stale labels (L1 K86-K88, C86/C87, S87; Cap_In A226/A228/A230; Gov_Map E column); Decisions SL48-09.
 #   W4  Gov_Map AA COUNTIF span $A$5:$A$300 -> $A$5:$A$1000 (gov.py); README／CHANGELOG／contract.
-#   W5  Decisions SL48-01..08.   W6  DB_Evidence E393..E397.
+#   W5  Decisions SL48-01..09.   W6  DB_Evidence E393..E397.
 # Every write to an Excel-owned cell is guarded (old value / old text); appended texts keep the original wording (CLAUDE.md section 6, revision 9).
 # The cell-level edits (inputs_update) run BEFORE gov_all so that the contract tracing (Deps) and Load_Bearing see the final formulas;
 # Gov_Map edits run in gov.py's update chain; labels on L1, Decisions and DB_Evidence run last (apply).
@@ -31785,15 +31786,17 @@ G243_ADD = "｜v15.3 D1：本列標籤改為『對照（字面讀法，口徑不
 
 # ---------------------------------------------------------------- W3 (C2)
 D156_OLD = 2.36
-D156_NEW = "=IF(AND(ISNUMBER(C254),ISNUMBER(D201)),SQRT(C254*D201),1)"      # C254 = V20 back-solve (1.5911), D201 = vLLM 10.1K back-solve (3.0373); fallback 1 (uncalibrated, as the Hopper column) when either point has no solution
+D156_NEW = "=IF(AND(ISNUMBER(C254),ISNUMBER(D201)),SQRT(C254*D201/$D$67),1)"      # C254 = V20 back-solve (1.5911, already relative to the adopted eta_d incl. D67), D201 = vLLM 10.1K back-solve (3.0373, relative to CAL_EtaD = D67 x CAL_BatchEtaD) / D67 = 2.641 (same basis); fallback 1 (uncalibrated, as the Hopper column) when either point has no solution
 GM685_K = (1.83, 1.59)
-GM685_M_ADD = "｜v15.3 C2：D67 改 1.15 後 V20 反推點（Calib C254）由 1.83 變 1.5911；基準改為兩個反推點的幾何平均 √(1.5911 × 3.0373)＝2.198（Calib D156 公式）；原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明"
-GM685_N_ADD = ("｜v15.3 C2：D156 由常數 2.36 改為公式 =SQRT(C254*D201)（兩個反推點所在格：V20＝Calib C254、vLLM 10.1K＝Calib D201；v15.2 實測 1.5911、3.0373，幾何平均 2.198）。"
-               "區間低端 K 1.83→1.59，高端 L 3.04 不變。原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明。"
-               "注意：D201 為『相對 CAL_EtaD』的解（含 D67），D67＝1.15 時以 CAL_BatchEtaD 自身口徑應為 3.0373÷1.15＝2.641（待 Project 判斷，見 v15.3 報告）。無解（C254 或 D201 非數字）時退回 1（未校準）")
-CAL_J156_ADD = ("｜v15.3 C2（Decisions SL48-02）：D156 由常數 2.36 改為公式 =SQRT(C254*D201)＝2.198（兩個反推點：V20＝C254 1.5911，D67 改 1.15 後由 1.83 變；vLLM 10.1K＝D201 3.0373）。"
-                "原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於上。無解時退回 1（未校準）")
-CAL_H156_ADD = "｜v15.3 C2：GB200（D156）改為兩個反推點的即時幾何平均 √(C254×D201)＝2.198（區間 1.59–3.04）"
+GM685_L = (3.04, 2.64)      # r1: upper end = D201 / D67 = 3.0373 / 1.15 = 2.641 (rounded to 2 decimals); original 3.04 kept in M / N
+GM685_M_ADD = ("｜v15.3 C2：D67 改 1.15 後 V20 反推點（Calib C254）由 1.83 變 1.5911；基準改為兩個反推點的幾何平均 √(1.5911 × 3.0373 ÷ 1.15)＝2.050（Calib D156 公式）；原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明"
+               "｜v15.3 r1：上端改同口徑（D201 ÷ D67＝3.0373 ÷ 1.15＝2.641，取 2.64）；原 3.04 保留；區間 1.59–2.64")
+GM685_N_ADD = ("｜v15.3 C2：D156 由常數 2.36 改為公式 =SQRT(C254*D201/$D$67)（兩個反推點所在格：V20＝Calib C254、vLLM 10.1K＝Calib D201；v15.2 實測 1.5911、3.0373；D201 為相對 CAL_EtaD 的總倍數＝D67 × CAL_BatchEtaD，故除以 D67 換成批次口徑 2.641；幾何平均 2.050）。"
+               "區間低端 K 1.83→1.59，高端 L 3.04→2.64（v15.3 r1，同口徑）。原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明。"
+               "｜v15.3 r1：上端改同口徑（D201 ÷ D67）；原 3.04 保留。無解（C254 或 D201 非數字）時退回 1（未校準，同 Hopper 欄慣例）")
+CAL_J156_ADD = ("｜v15.3 C2（Decisions SL48-02）：D156 由常數 2.36 改為公式 =SQRT(C254*D201/$D$67)＝2.050（兩個反推點：V20＝C254 1.5911，D67 改 1.15 後由 1.83 變；vLLM 10.1K＝D201 3.0373 ÷ D67 1.15＝2.641）。"
+                "原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於上。無解時退回 1（未校準）｜v15.3 r1：上端改同口徑（D201 ÷ D67）；原 3.04 保留")
+CAL_H156_ADD = "｜v15.3 C2：GB200（D156）改為兩個反推點的即時幾何平均 √(C254×D201÷D67)＝2.050（區間 1.59–2.64；r1 同口徑）"
 
 # ---------------------------------------------------------------- Gov_Map (E1, E2, E3, C2)
 GM_ROWS = {
@@ -31810,6 +31813,19 @@ GM_ROWS = {
                               m_old="C228 的高端 1.0（不降級）；低端 D 欄為公式，不登錄",
                               m_new="C228 的高端 0.7（讀法乙：市場機會價值；v15.3 E2，原 1.0＝不降級保留於 AL 欄）；低端 D 欄為公式，不登錄", n_add=E2_TXT, dec="SL48-05"),
 }
+
+
+A226_OLD, A226_NEW = "中階 token 牌價年變化率 g（I-1；Assumed）", "中階 token 牌價年變化率 g（I-1；Derived）"
+A228_OLD = "降級後價值比 ρ（I-3；Assumed；D 欄＝IF_PriceRef_Luna ÷ IF_PriceRef_Sol）"
+A228_NEW = "降級後價值比 ρ（I-3；Derived（兩種讀法）；D 欄＝IF_PriceRef_Luna ÷ IF_PriceRef_Sol × 低階模型每 GPU 吞吐倍數（GB200 欄））"
+A230_OLD_SUB, A230_NEW_SUB = "錨點 基準 L_price 0.7412、L_total 0.6426、L_demote 0.867", "錨點 基準 L_price 0.7637、L_total 0.6595、L_demote 0.8636"
+GM_E_LABELS = {("Cap_In", "C226"): (A226_OLD, A226_NEW), ("Cap_In", "D226:E226"): (A226_OLD, A226_NEW),
+               ("Cap_In", "C228"): (A228_OLD, A228_NEW), ("Cap_In", "E228"): (A228_OLD, A228_NEW)}
+
+
+# build.py: v535 re-writes the OLD labels on every build; when the base already carries the new labels, the Excel values (g C226:E226, rho C228/E228) follow the label back to the builder's key
+SNAP_MOVES = ([(("Cap_In", (A226_NEW, 0), c), ("Cap_In", (A226_OLD, 0), c)) for c in (3, 4, 5)]
+              + [(("Cap_In", (A228_NEW, 0), c), ("Cap_In", (A228_OLD, 0), c)) for c in (3, 4, 5)])
 
 
 def _al_text(dec, f_old, m_old, k_old=None):
@@ -31834,12 +31850,17 @@ def gov_update(ws, append_text):
     n += int(append_text(ws[f"N{r}"], "｜" + E3_TXT))
     r = v1020._gm_row(ws, "Calib", "D156")       # C2
     if ws[f"K{r}"].value == GM685_K[0]:
-        assert ws[f"L{r}"].value == 3.04, ws[f"L{r}"].value
-        ws[f"K{r}"].value = GM685_K[1]; n += 1
+        assert ws[f"L{r}"].value == GM685_L[0], ws[f"L{r}"].value
+        ws[f"K{r}"].value = GM685_K[1]; ws[f"L{r}"].value = GM685_L[1]; n += 2
     else:
-        assert ws[f"K{r}"].value == GM685_K[1], ws[f"K{r}"].value
+        assert ws[f"K{r}"].value == GM685_K[1] and ws[f"L{r}"].value == GM685_L[1], (ws[f"K{r}"].value, ws[f"L{r}"].value)
     n += int(append_text(ws[f"M{r}"], GM685_M_ADD))
     n += int(append_text(ws[f"N{r}"], GM685_N_ADD))
+    for (sh, cell), (old, new) in GM_E_LABELS.items():      # r1: stale marks in the Gov_Map E (item label) column; originals quoted in Decisions SL48-09
+        r = v1020._gm_row(ws, sh, cell)
+        if ws[f"E{r}"].value != new:
+            assert ws[f"E{r}"].value == old, (cell, ws[f"E{r}"].value)
+            ws[f"E{r}"].value = new; n += 1
     return n
 
 
@@ -31910,9 +31931,41 @@ L1_EDITS = [      # (cell, old, new) : engineering-class label text; every old s
 ]
 
 
+L1_SUB_EDITS = [      # r1 (chat-side ruling 2026-10-18): stale marks / numbers -> current ones (engineering class; originals quoted in Decisions SL48-09). (cell, old substring, new substring)
+    ("C86", "Assumed −0.10；−0.25～+0.05", "Derived −0.09；−0.20～+0.05"),
+    ("C87", "ρ（Assumed 0.5；0.05–1.0）", "ρ（Derived（兩種讀法）0.5；0.17–0.7）"),
+    ("K86", "g：Assumed（chat 端迴歸；歷史牌價等級 3）", "g：Derived（牌價序列迴歸 −9.1%／年，窗口敏感；DB_Evidence E393；歷史牌價等級 3）"),
+    ("K87", "T1、ρ：Assumed（無直接觀測）", "T1：Assumed（E3 維持）；ρ：Derived（兩種讀法；DB_Evidence E395）"),
+    ("K88", "三者皆 Assumed", "g、ρ：Derived；T1：Assumed"),
+    ("S87", "低端以 Luna ÷ Sol 參考請求單價 0.05 為代理", "低端以 Luna ÷ Sol 參考請求單價 0.05 × 低階模型每 GPU 吞吐倍數 3.41（GB200 欄）＝0.17 為代理"),
+]
+P89_OLD_SUB = 'IF(M89>=D107,"回本","未回本")'
+P89_STATE = ('IF(AND(ISNUMBER(E88),ISNUMBER(F88),ISNUMBER(E107),ISNUMBER(F107)),IF(F88<E107,"未回本",IF(E88>F107,"回本","未定")),'
+             'IF(M89>=D107,"回本","未回本"))')
+
+
 def l1_text(wb):
     ws = wb["L1"]
     n = 0
+    for ref, old, new in L1_SUB_EDITS:
+        cur = ws[ref].value
+        if new in cur:
+            continue
+        assert cur.count(old) == 1, (ref, cur)
+        ws[ref].value = cur.replace(old, new); n += 1
+    cur = ws["P89"].value      # D1 (r1): L1 P89 three-state, identity reading, same rule as Cap_In C242 (intervals non-numeric -> falls back to the point comparison)
+    if P89_STATE not in cur:
+        assert cur.count(P89_OLD_SUB) == 2, cur
+        ws["P89"].value = cur.replace(P89_OLD_SUB, P89_STATE); n += 1
+    ci = wb["Cap_In"]
+    for ref, old, new in (("A226", A226_OLD, A226_NEW), ("A228", A228_OLD, A228_NEW)):
+        if ci[ref].value != new:
+            assert ci[ref].value == old, (ref, ci[ref].value)
+            ci[ref].value = new; n += 1
+    cur = ci["A230"].value
+    if A230_NEW_SUB not in cur:
+        assert cur.count(A230_OLD_SUB) == 1, cur
+        ci["A230"].value = cur.replace(A230_OLD_SUB, A230_NEW_SUB); n += 1
     for ref, old, new in L1_EDITS:
         cur = ws[ref].value
         if cur == new:
@@ -31922,6 +31975,12 @@ def l1_text(wb):
     return n
 
 
+_R1_ORIG = "；".join(
+    [f"L1 {ref}「{old}」→「{new}」" for ref, old, new in L1_SUB_EDITS]
+    + [f"Cap_In A226「{A226_OLD}」→「{A226_NEW}」", f"Cap_In A228「{A228_OLD}」→「{A228_NEW}」", f"Cap_In A230「{A230_OLD_SUB}」→「{A230_NEW_SUB}」",
+       f"Gov_Map E 欄（GM634／GM635）「{A226_OLD}」→「{A226_NEW}」", f"Gov_Map E 欄（GM638／GM639）「{A228_OLD}」→「{A228_NEW}」"])
+
+
 def _decisions():
     D = [
         ("接受 D67 對 Training 與 IF_Train*（GB200 欄）的連帶變動（C1；v15.2 補登）",
@@ -31929,10 +31988,11 @@ def _decisions():
          "決議：接受此連帶變動，不把 Training 的批次倍數與 D67 脫鉤。本筆為 v15.2 發生之事的補登，v15.3 不再變動這些格（W3 的 D156 另計於 SL48-02）。",
          "Andy 2026-10-17 23:55「原文的问题按建议，然后继续做下去。」（C1）；chat 端建議，可撤回", "Training 頁 GB200 欄；IF_Train*（GB200）；Calib D67"),
         ("批次口徑倍數 CAL_BatchEtaD GB200 改為兩個反推點的幾何平均公式（C2）",
-         "Calib D156：2.36（常數，＝√(1.83×3.04)）→ 公式 =SQRT(C254*D201)＝2.198（兩個反推點：V20＝Calib C254 在 D67 改 1.15 後由 1.83 變 1.5911；vLLM 10.1K＝Calib D201 3.0373）。"
-         "Gov_Map GM685 區間 1.83–3.04 → 1.59–3.04（K 1.83 → 1.59，L 3.04 不變）；原 2.36 與原區間保留於 Gov_Map M／N 欄與 Calib J156。"
-         "區間端點 RNG_* 依 v13.0 規則以 tools/gen_ranges.py 重產（高端情境 GB200 1.83 → 1.59）；Alloc N 節靜態情境表同步重產。"
-         "已知疑點（交 Project）：D201 為『相對 CAL_EtaD』的解（含 D67），D67＝1.15 時以 CAL_BatchEtaD 自身口徑為 3.0373 ÷ 1.15＝2.641，幾何平均應為 2.05；本版依工作單照 2.198 建置。",
+         "Calib D156：2.36（常數，＝√(1.83×3.04)）→ 公式 =SQRT(C254*D201/$D$67)＝2.050（兩個反推點：V20＝Calib C254 在 D67 改 1.15 後由 1.83 變 1.5911（已是相對採用 η_d 的批次倍數）；"
+         "vLLM 10.1K＝Calib D201 3.0373（相對 CAL_EtaD 的總倍數＝D67 × CAL_BatchEtaD），除以 D67 換成批次口徑 2.641）。方法（兩個反推值的幾何平均）是 Andy 已同意的，v15.3 r1 只是改正口徑。"
+         "Gov_Map GM685 區間 1.83–3.04 → 1.59–2.64（K 1.83 → 1.59、L 3.04 → 2.64＝D201 ÷ D67 取兩位）；原 2.36、原 3.04 與原區間保留於 Gov_Map M／N 欄與 Calib J156。無解（C254 或 D201 非數字）時退回 1（未校準，同 Hopper 欄慣例）。"
+         "區間端點 RNG_* 依 v13.0 規則以 tools/gen_ranges.py 重產（高端情境 GB200 1.83 → 1.59、低端 3.04 → 2.64）；Alloc N 節靜態情境表同步重產。"
+         "沿革：r0 依工作單寫成 =SQRT(C254*D201)＝2.198，chat 端 r1 判定該式混用口徑（D201 含 D67），改為本式；2.198 的版本未合併、未發布。",
          "Andy 2026-10-17 23:55「原文的问题按建议，然后继续做下去。」（C2）；chat 端建議，可撤回", "Calib D156；Gov_Map GM685；RNG_*；Alloc N／O／P 節；IF_Alloc*、IF_Train*、L1_*"),
         ("回本判讀改用恆等式讀法、三態顯示（D1）",
          "Cap_In 第 242 列：以 L1_LTotal（基準／低／高）對 L1_LReqFleet_Id（基準／低／高）比較。C 欄三態：L1_LTotal_Hi < L1_LReqFleet_Id_Lo＝未回本（L 區間全在所需 L 之下）；"
@@ -31960,10 +32020,17 @@ def _decisions():
          "Andy 2026-10-18 00:20「请继续」（E4 依預設）；chat 端建議，可撤回", "無（只記錄）；DB_Evidence E396"),
         ("Alloc N 節靜態情境表於 v15.2 重產 10 格（工程類；chat 端判定）",
          "v15.2 的 B3 使研發 GW 與 Q1 改變，Alloc N 節（v12.0 靜態情境表，10 格，與 RNG_IF_AllocRDGW／Q1_* 同源）依 v13.0 測試要求同步重產（v15.2 報告待判斷第 4 項）。chat 端判定：歸工程類，接受。"
-         "v15.3 因 C2（D156、區間高端 1.59）再次重產，並放寬 Decisions 檢查範圍（Gov_Map AA 欄 COUNTIF $A$5:$A$300 → $A$5:$A$1000）。",
+         "v15.3 因 C2（D156、區間 1.59–2.64）再次重產，並放寬 Decisions 檢查範圍（Gov_Map AA 欄 COUNTIF $A$5:$A$300 → $A$5:$A$1000）。",
          "chat 端判定（工程類；見工作單 v15.3 W5-4）；可撤回", "Alloc N 節；Gov_Map AA 欄"),
+        ("v15.3 r1：C2 同口徑更正、L1 P89 三態、過期標籤更新（chat 端判定）",
+         "chat 端 2026-10-18 判定（v15.3 r1，同分支同 PR，版號維持 v15.3）：（1）C2 改正口徑——Calib D156 =IF(AND(ISNUMBER(C254),ISNUMBER(D201)),SQRT(C254*D201/$D$67),1)（約 2.050；無解退回 1）；Gov_Map GM685 K 維持 1.59、L 3.04 → 2.64（D201 ÷ D67），M／N 附加說明，原 3.04 保留。"
+         "（2）L1 第 89 列 P 欄二態判讀比照 Cap_In C242 改為三態（L1_LTotal 區間對 L1_LReqFleet_Id 區間，恆等式讀法；區間非數字時退回點比較）。"
+         "（3）過期標籤改為現行標記與數字（工程類；原文依修訂九逐字保留於此）："
+         + _R1_ORIG + "。"
+         "（4）待判斷第 5–8 項（GM635／GM639 兄弟列改 Derived、D242／E242 措辭、E393–E397 歸類、工程副作用）chat 端已判定接受。",
+         "chat 端判定（v15.3 r1，2026-10-18）；可撤回", "Calib D156；Gov_Map GM685（K、L、M、N）、E 欄標籤；L1 P89、C86／C87／K86–K88／S87；Cap_In A226／A228／A230"),
     ]
-    return [[f"SL48-{i + 1:02d}", V, f"v15.3 L 證據 B 段＋修補：{t}", txt, DATE, who, "v15.3 已建", where, f"{WO} W5-{i + 1}", "否"]
+    return [[f"SL48-{i + 1:02d}", V, f"v15.3 L 證據 B 段＋修補：{t}", txt, DATE, who, "v15.3 已建", where, f"{WO} W5-{i + 1}" if i < 8 else "工作單 r1（2026-10-18 chat 端）", "否"]
             for i, (t, txt, who, where) in enumerate(D)]
 
 
@@ -32025,13 +32092,13 @@ def apply(wb, append_text):
 # ================================================================== README
 README_VERSION = (VERSION + "（次版：" + WO + "——L 證據 B 段＋v15.2 修補：E1 Cap_In C226:E226（g）−0.10／−0.25／+0.05 → −0.09／−0.20／+0.05；"
                   "E2 Cap_In D228（ρ 低端）公式乘低階模型每 GPU 吞吐倍數（GB200 欄，約 0.17）、E228 1.0 → 0.7；E1／E2 標記 Assumed → Derived（修訂九更正）；E3 T1 維持；"
-                  "D1 Cap_In 第 242 列改三態判讀（L 區間對所需 L 區間，恆等式讀法）、第 243 列改標對照；C2 Calib D156（CAL_BatchEtaD GB200）2.36 → =SQRT(C254*D201)（2.198），Gov_Map GM685 區間 1.59–3.04；"
-                  "Gov_Map AA 欄 Decisions 檢查範圍 300 → 1000；Decisions SL48-01…08；DB_Evidence E393…E397；區間端點、指紋、Alloc N 節靜態表重產。具名範圍、定義不變。）以下為 "
+                  "D1 Cap_In 第 242 列改三態判讀（L 區間對所需 L 區間，恆等式讀法）、第 243 列改標對照；C2 Calib D156（CAL_BatchEtaD GB200）2.36 → =SQRT(C254*D201/$D$67)（約 2.050），Gov_Map GM685 區間 1.59–2.64；"
+                  "Gov_Map AA 欄 Decisions 檢查範圍 300 → 1000；Decisions SL48-01…09（含 r1 同口徑更正、L1 P89 三態、過期標籤更新）；DB_Evidence E393…E397；區間端點、指紋、Alloc N 節靜態表重產。具名範圍、定義不變。）以下為 "
                   + v1520.README_VERSION.split("_Tokenomics_", 1)[1])
 _T = v1520.README_TITLE
 README_TITLE = V + _T[len(v1520.V):]
 README_ROW = ("v15.3 L 證據 B 段＋修補",
-              "g 基準 −0.09（區間 −0.20～+0.05）、ρ 低端乘吞吐倍數 0.17／高端 0.7（皆改 Derived）；回本判讀改三態（L 區間對所需 L 區間）；CAL_BatchEtaD GB200 改兩反推點幾何平均公式（2.198）。名稱與定義不變。細節見 Decisions SL48-01…08。")
+              "g 基準 −0.09（區間 −0.20～+0.05）、ρ 低端乘吞吐倍數 0.17／高端 0.7（皆改 Derived）；回本判讀改三態（L 區間對所需 L 區間）；CAL_BatchEtaD GB200 改兩反推點幾何平均公式（約 2.050）。名稱與定義不變。細節見 Decisions SL48-01…09（含 r1 同口徑更正、L1 P89 三態、過期標籤更新）。")
 ```
 
 ## gov_decisions.py
@@ -33178,6 +33245,9 @@ for _old, _new in v601.SNAP_MOVES:      # v6.1 D13: the Alloc_In pure-utilisatio
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 import v1520
 for _old, _new in v1520.SNAP_MOVES:      # v15.2 B2: Cap_In A280 label renamed (days-on-sale -> volume weighted); the Excel values follow it back to the builder's label
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
+import v1530
+for _old, _new in v1530.SNAP_MOVES:      # v15.3 r1: Cap_In A226/A228 marks relabelled (Assumed -> Derived); the Excel values follow the label back to the builder's key
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----

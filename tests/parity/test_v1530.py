@@ -2,8 +2,8 @@
 
 W1 E1 Cap_In C226:E226 g＝−0.09／−0.20／+0.05；E2 D228 公式乘吞吐倍數（GB200 欄，≈0.170）、E228＝0.7；E3 T1 不變；標記 Assumed → Derived（修訂九，原字樣保留）。
 W2 D1 Cap_In 第 242 列三態判讀（恆等式讀法）；第 243 列標籤改對照。
-W3 C2 Calib D156＝SQRT(C254*D201)（2.198）；Gov_Map GM685 區間 1.59–3.04；RNG_* 端點重產。
-W4 Gov_Map AA 欄 COUNTIF 範圍 1000。W5 Decisions SL48-01…08。W6 DB_Evidence E393…E397。
+W3 C2 Calib D156＝SQRT(C254*D201/$D$67)（2.050；r1 同口徑）；Gov_Map GM685 區間 1.59–2.64；RNG_* 端點重產。r1：L1 P89 三態、過期標籤更新、Decisions SL48-09。
+W4 Gov_Map AA 欄 COUNTIF 範圍 1000。W5 Decisions SL48-01…09。W6 DB_Evidence E393…E397。
 不得變：L1_MFleet、IF_AllocServeGW、L1_LReqFleet_Id、Calib D67、Cap_In C280。
 """
 import json
@@ -109,23 +109,24 @@ def test_v1530_d1_three_state(wbf, lo):
     assert neg.get("Cap_In", "C242") == "未回本（L 區間全在所需 L 之下）" and neg.get("Cap_In", "D242").endswith("（<）") and neg.get("Cap_In", "E242").endswith("（<）")
     pos = lo.view({"Cap_In!C226": 0.3, "Cap_In!D226": 0.3, "Cap_In!E226": 0.4, "Cap_In!C227": 6, "Cap_In!D227": 6, "Cap_In!E227": 6})
     assert pos.get("Cap_In", "C242") == "回本（L 區間全在所需 L 之上）" and pos.get("Cap_In", "D242").endswith("（≥）")
-    # L1 第 89 列的判讀（已是恆等式讀法的二態點比較）本版未改；與第 242 列三態並存的差異列入待 Project 判斷
-    assert v.get("L1", "P89").startswith("恆等式讀法：未回本")
+    # v15.3 r1：L1 第 89 列 P 欄比照第 242 列改為三態（恆等式讀法；區間非數字時退回點比較）
+    assert v.get("L1", "P89").startswith("恆等式讀法：未定（L_total 0.66 對所需 L 0.76）")
+    assert neg.get("L1", "P89").startswith("恆等式讀法：未回本") and pos.get("L1", "P89").startswith("恆等式讀法：回本")
 
 
 def test_v1530_c2_batch_multiple(wbf, lo):
     cal = wbf["Calib"]
-    assert cal["D156"].value == "=IF(AND(ISNUMBER(C254),ISNUMBER(D201)),SQRT(C254*D201),1)"
+    assert cal["D156"].value == "=IF(AND(ISNUMBER(C254),ISNUMBER(D201)),SQRT(C254*D201/$D$67),1)"
     v = lo.view({})
     c254, d201 = v.get("Calib", "C254"), v.get("Calib", "D201")
     assert abs(c254 - 1.59105729779618) < 1e-9 and abs(d201 - 3.03725962564159) < 1e-9
-    assert abs(v.get("Calib", "D156") - (c254 * d201) ** 0.5) < 1e-12 and abs(v.get("Calib", "D156") - 2.198284352) < 1e-8
+    assert abs(v.get("Calib", "D156") - (c254 * d201 / v.get("Calib", "D67")) ** 0.5) < 1e-12 and abs(v.get("Calib", "D156") - 2.049910728) < 1e-8
     assert _flat(v.get_name("CAL_BatchEtaD"))[0] == 1 and _flat(v.get_name("CAL_BatchEtaD"))[2:] == [1, 0.75, 1]
     gm = wbf["Gov_Map"]
     r = _gm(gm, "Calib", "D156")
-    assert gm[f"A{r}"].value == "GM685" and gm[f"K{r}"].value == 1.59 and gm[f"L{r}"].value == 3.04 and gm[f"F{r}"].value == "Derived"
+    assert gm[f"A{r}"].value == "GM685" and gm[f"K{r}"].value == 1.59 and gm[f"L{r}"].value == 2.64 and gm[f"F{r}"].value == "Derived"
     assert gm[f"M{r}"].value.startswith("1.83–3.04（兩個批次口徑反推點") and "v15.3 C2" in gm[f"M{r}"].value
-    assert "原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明" in gm[f"N{r}"].value and "3.0373÷1.15＝2.641" in gm[f"N{r}"].value
+    assert "原 2.36（＝√(1.83×3.04)）與原區間 1.83–3.04 保留於本說明" in gm[f"N{r}"].value and "v15.3 r1：上端改同口徑（D201 ÷ D67）；原 3.04 保留" in gm[f"N{r}"].value and "v15.3 r1：上端改同口徑（D201 ÷ D67）；原 3.04 保留" in gm[f"M{r}"].value and "退回 1" in gm[f"N{r}"].value
     assert "v15.3 C2" in cal["J156"].value and "v15.3 C2" in cal["H156"].value and "v12.0 H2：GB200 D156 由 3.04 改為 2.36" in cal["J156"].value
     # 區間端點：高端情境 1.59 與低端 3.04／3.74 之內含基準
     assert v.get_name("IF_AllocRDGW") >= v.get_name("RNG_IF_AllocRDGW_Lo") and v.get_name("IF_AllocRDGW") <= v.get_name("RNG_IF_AllocRDGW_Hi")
@@ -156,12 +157,15 @@ def test_v1530_only_expected_names_changed(lo):
 
 def test_v1530_decisions_evidence_readme(wbf):
     d = wbf["Decisions"]
-    for i in range(1, 9):
+    for i in range(1, 10):
         r = _row(d, f"SL48-0{i}")
         assert d.cell(r, 2).value == "v15.3" and d.cell(r, 7).value == "v15.3 已建" and d.cell(r, 10).value == "否" and "可撤回" in d.cell(r, 6).value
     assert "Assumed" in d.cell(_row(d, "SL48-04"), 4).value and "更正理由" in d.cell(_row(d, "SL48-04"), 4).value
     assert "Assumed" in d.cell(_row(d, "SL48-05"), 4).value and "更正理由" in d.cell(_row(d, "SL48-05"), 4).value
-    assert "2.641" in d.cell(_row(d, "SL48-02"), 4).value
+    assert "2.641" in d.cell(_row(d, "SL48-02"), 4).value and "$D$67" in d.cell(_row(d, "SL48-02"), 4).value
+    t9 = d.cell(_row(d, "SL48-09"), 4).value      # r1：原文逐字保留
+    for old in ("Assumed −0.10；−0.25～+0.05", "g：Assumed（chat 端迴歸；歷史牌價等級 3）", "三者皆 Assumed", "T1、ρ：Assumed（無直接觀測）", "低端以 Luna ÷ Sol 參考請求單價 0.05 為代理", "錨點 基準 L_price 0.7412、L_total 0.6426、L_demote 0.867", "中階 token 牌價年變化率 g（I-1；Assumed）"):
+        assert old in t9, old
     assert d.max_row > 300 and _row(d, "SL47-05") == 300      # W4：Decisions 已超過第 300 列，Gov_Map AA 範圍同步放寬
     gm = wbf["Gov_Map"]
     aa = [gm[f"AA{r}"].value for r in range(5, gm.max_row + 1) if isinstance(gm[f"AA{r}"].value, str) and "COUNTIF(Decisions!" in gm[f"AA{r}"].value]
@@ -202,3 +206,16 @@ def test_v1530_changed_cells_only_expected():
     assert len(diffs["Decisions"]) == 80 and len(diffs["DB_Evidence"]) == 90
     # Interface：只有 R–W 欄（契約追溯文字與公式，D156 公式使上游登錄輸入變多）
     assert {re.match("[A-Z]+", x).group() for x in diffs["Interface"]} <= {"R", "S", "T", "U", "V", "W"}
+
+
+def test_v1530_r1_labels_and_p89(wbf):
+    l1, ci, gm = wbf["L1"], wbf["Cap_In"], wbf["Gov_Map"]
+    assert "Derived −0.09；−0.20～+0.05" in l1["C86"].value and "Derived（兩種讀法）0.5；0.17–0.7" in l1["C87"].value
+    assert l1["K86"].value.startswith("g：Derived") and l1["K87"].value.startswith("T1：Assumed（E3 維持）；ρ：Derived") and l1["K88"].value == "g、ρ：Derived；T1：Assumed"
+    assert "0.05 × 低階模型每 GPU 吞吐倍數 3.41（GB200 欄）＝0.17 為代理" in l1["S87"].value
+    assert ci["A226"].value == "中階 token 牌價年變化率 g（I-1；Derived）" and ci["A228"].value.startswith("降級後價值比 ρ（I-3；Derived（兩種讀法）；")
+    assert "錨點 基準 L_price 0.7637、L_total 0.6595、L_demote 0.8636" in ci["A230"].value
+    for cell, lab in (("C226", ci["A226"].value), ("D226:E226", ci["A226"].value), ("C228", ci["A228"].value), ("E228", ci["A228"].value)):
+        assert gm[f"E{_gm(gm, 'Cap_In', cell)}"].value == lab, cell
+    assert gm[f"E{_gm(gm, 'Cap_In', 'C227')}"].value.endswith("Assumed）")      # T1 仍是 Assumed（E3 維持）
+    assert l1["P89"].value.count('IF(F88<E107,"未回本"') == 2

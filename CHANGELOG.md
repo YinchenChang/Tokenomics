@@ -2,6 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261017_Tokenomics_v14.0.xlsx（取代 v13.1；主版：新增 18 個契約名稱；4-3 B 段依 A 段建議執行瘦身，依工作單 `docs/workorders/20261017_4-3B.md`）
+
+- 分支 `claude/4-3b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_4-3B.md`；進度檔：`docs/reports/20261017_4-3B_進度.md`。底稿：master（v13.1，`ab7fca7`）。
+- Excel（CC 以 `builder/v1400.py` 自 v13.1 產生，經 LibreOffice 重算存檔）：
+  - Q1：刪除 73 列（A 段明細 72 列＋Har_In 第 44 列）共 514 個公式格，只清空數值格、不移動列欄；各列『用途』欄寫刪除註記；移除無人使用的名稱 `B5_TaskTok`、`B5_SelVendor`；Harness A157 刪去供應商專屬一句。公式格 51,610 → 51,439。
+  - Q2：新增 18 個契約名稱——Interface M 節 11 個（`IF_TaskTokMult`、`IF_TrainFLOP_`／`IF_TrainInferShare_`／`IF_GMDefault_` × Luna／Sol／Astra、`IF_AmortRevShare`）與 Cap_In 序列 7 個（`L1_MAPI_Ser`、`L1_MSub_Ser`、`L1_MSeat_Ser`、`L1_MImplied_Ser`、`L1_MFleet_Ser`、`L1_MFleet_P25Lo`、`L1_MFleet_P25Hi`）；`IF_GMDefault_*`、`IF_TrainInferShare_*` 補 12 個 `RNG_` 區間名稱。`L1_MFleetFloor` 不升級（Q3 只查明，定義待 Project 判斷）。
+  - Q4：Checks 新增 V23–V26（計入驗證項目數）；Checks D104、D140 改讀 Alloc_In C18、C33。`CHK_Verify` 總數／通過／失敗／警示 20／12／7／1 → 24／16／7／1。
+  - Q5：用途標記補齊（保留顯示用 155 列＋刪除後新增的死格），無標記死格 0；死格 3,604 → 2,798。
+  - 區間檔 `builder/v1300_ranges.json` 與指紋檔 `builder/v1310_fingerprint.json` 依 v14.0 重產（53 → 59 個區間名稱、579 → 591 個指紋格）。
+- 變動：既有 `IF_`／`IFW_`／`L1_`／`RNG_` 名稱數值 0 變動；`GOV_Errors`／`GOV_Warnings`／`GOV_Info` ＝ 0／280／184（不變）。
+- 測試：契約快照 `contract_snapshot_v13.1.json` → `contract_snapshot_v14.0.json`；新增 `tests/parity/test_v1400.py`（V23–V26、D104／D140 必須失敗測試；既有名稱不變；刪除與名稱檢查）；期望值依預期變動更新（公式格數、名稱數、驗證計數、區間名稱數與格數、指紋格數、`DEAD_BASELINE` 3604 → 2798）；沒有刪除或放寬任何測試。
+
 ## 20261017_Tokenomics_v13.1.xlsx（取代 v13.0；次版：無新增契約名稱；D15 來源補齊 B 段＋查核 #96 小項，依工作單 `docs/workorders/20261017_D15_B段.md`）
 
 - 分支 `claude/d15-b`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_D15_B段.md`；進度檔：`docs/reports/20261017_D15_B段_進度.md`。底稿：master（v13.0）。

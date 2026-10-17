@@ -1172,7 +1172,7 @@ def test_v1000_audit_fix2_5(model, lo):
     assert set(cnt) == kinds
     assert num(n("L1_GapUnexplained")) and abs(n("L1_GapUnexplained") - n("L1_ScaleServe2000") / n("L1_GapProduct")) < 1e-9
     # N3：驗證計數
-    assert n("CHK_VerifyTotal") == 20 and n("CHK_VerifyPass") == 12 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v12.0 H1/H7：22/14/7/1 → 20/12/7/1（V18 恆等式、V20 校準相關移出計數）； v11.0 G3/G4: 19/11/8 -> 22/14/7 + 警示 1 (V20-V22 added; V1 soft cap -> warn); v10.3 4-2a F3: 17/9/8 -> 19/11/8; v10.2 E3: 14/7/7 -> 17/9/8
+    assert n("CHK_VerifyTotal") == 24 and n("CHK_VerifyPass") == 16 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0 H1/H7：22/14/7/1 → 20/12/7/1（V18 恆等式、V20 校準相關移出計數）； v11.0 G3/G4: 19/11/8 -> 22/14/7 + 警示 1 (V20-V22 added; V1 soft cap -> warn); v10.3 4-2a F3: 17/9/8 -> 19/11/8; v10.2 E3: 14/7/7 -> 17/9/8
     assert n("CHK_VerifyPass") + n("CHK_VerifyFail") + n("CHK_VerifyWarn") == n("CHK_VerifyTotal")
     assert n("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
 
@@ -1196,7 +1196,7 @@ def test_v1020_eta_calibration(model, lo):
         assert n(nm) == old.get_name(nm), nm
     assert abs(n("IF_AllocServeGW") - 0.898096) < 5e-6 and abs(n("IF_AllocRDGW") - 0.202947) < 5e-6      # v12.0 H2: 0.197258 -> 0.202947 (GB200 CAL_BatchEtaD 3.04 -> 2.36); v11.0 G2: IF_AllocRDGW 0.240199 -> 0.197258 (GB200 CAL_BatchEtaD 1 -> 3.04)
     # E3
-    assert n("CHK_VerifyTotal") == 20 and n("CHK_VerifyPass") == 12 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v12.0：22/14/7/1 → 20/12/7/1（同上）； v11.0: 19/11/8 -> 22/14/7 + 警示 1
+    assert n("CHK_VerifyTotal") == 24 and n("CHK_VerifyPass") == 16 and n("CHK_VerifyFail") == 7 and n("CHK_VerifyWarn") == 1      # v14.0（4-3B Q4）：新增 V23–V26 → 24/16/7/1； v12.0：22/14/7/1 → 20/12/7/1（同上）； v11.0: 19/11/8 -> 22/14/7 + 警示 1
     assert n("GOV_Errors") == 0
     # 校準複本列：模型 ÷ 目標（Hopper 校準點無解、GB200 校準點 0.37）
     cal = [r for r in range(150, 260) if str(base.get("Calib", f"A{r}") or "").startswith("模型 ÷ 目標")]
@@ -1237,17 +1237,17 @@ def test_v1200_soft_cap_fail_threshold(lo):
     assert base.get_name("CHK_SoftCapFail") == 2
     r = _vrow(base, "V1")
     assert abs(base.get("Checks", f"E{r}") - 1.217676) < 5e-6 and base.get("Checks", f"F{r}") == "警示"
-    assert _vcounts(base) == (20, 12, 7, 1)
+    assert _vcounts(base) == (24, 16, 7, 1)      # v14.0（4-3B Q4）：新增 V23–V26（各通過）：20/12/7/1 → 24/16/7/1
     # 比值 2.5 > 2：失敗（不再只是警示）
     v = lo.view(_scen_inputs("softcap_v1_fail"))
     e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
     assert 2.4 < e < 2.6 and f == 0, (e, f)
-    assert _vcounts(v) == (20, 12, 8, 0) and v.get_name("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
+    assert _vcounts(v) == (24, 16, 8, 0) and v.get_name("GOV_Errors") == 0      # 驗證失敗不進 GOV_Errors
     # 比值 1.5：警示
     v = lo.view(_scen_inputs("softcap_v1_warn"))
     e, f = v.get("Checks", f"E{r}"), v.get("Checks", f"F{r}")
     assert 1.4 < e < 1.6 and f == "警示", (e, f)
-    assert _vcounts(v) == (20, 12, 7, 1)
+    assert _vcounts(v) == (24, 16, 7, 1)
     # 門檻本身可改：1.2177 > 1.1 失敗；< 1.3 警示
     assert lo.view({"CHK_SoftCapFail": 1.1}).get("Checks", f"F{r}") == 0
     assert lo.view({"CHK_SoftCapFail": 1.3}).get("Checks", f"F{r}") == "警示"
@@ -1270,7 +1270,7 @@ def test_v1200_gb200_geomean_and_v20_dependence(model, lo):
     r20 = _vrow(v, "V20")
     assert v.get("Checks", f"G{r20}") == "校準相關（非獨立）" and str(v.get("Checks", f"F{r20}")).startswith("校準相關（非獨立）")
     numeric = sum(1 for r in range(1, 400) if re.fullmatch(r"V\d+", str(v.get("Checks", f"A{r}") or "")) and isinstance(v.get("Checks", f"F{r}"), (int, float)))
-    assert numeric == 19 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # V18、V20 的 F 欄為文字，不計入
+    assert numeric == 23 and v.get_name("CHK_VerifyTotal") == numeric + v.get_name("CHK_VerifyWarn")      # V18、V20 的 F 欄為文字，不計入
     n = v.get_name
     for name, want in (("IF_AllocRDGW", 0.202947), ("IF_AllocQ1", 0.184322), ("IF_AllocQ2", 0.184983), ("L1_ScaleRD", 6.294125)):      # v11.0：0.197258／0.180086／0.180735／6.475644
         assert abs(n(name) - want) < 5e-6, (name, n(name), want)
@@ -1375,6 +1375,7 @@ def test_v1200_v19_detects_cleared_and_handfilled_T(model, tmp_path):
 # ── v13.0（4-2b-1 K1–K4）：區間完整化與時效保證 ──
 V120_PREV = HERE.parent.parent / "model" / "archive" / "20261016_Tokenomics_v12.0.xlsx"      # v12.0（LibreOffice 重算存檔）：v13.0 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_")
+Q4_VERIFY_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # v14.0（4-3B Q4）：新增 Checks V23–V26（20/12 → 24/16）；其餘既有契約名稱的值不得變
 PREWARM["test_v1300_stale_flag_fires"] = [{"RNG_Version": "20261016_Tokenomics_v12.0"}, {"RNG_IF_AllocQ1_Lo": 0.5}]
 
 
@@ -1395,7 +1396,7 @@ def test_v1300_ranges_equal_scenarios(model, lo):
     moved = {n for n in contract if any(not _same(x, y) for sv in (hi_v, lo_v) for x, y in zip(_flat(base.get_name(n)), _flat(sv.get_name(n))))}
     have = _rng_pairs(base.names)
     assert moved == have, ("缺區間", sorted(moved - have), "多餘區間", sorted(have - moved))
-    assert len(have) == 53 and sum(len(_flat(base.get_name(n))) for n in have) == 557
+    assert len(have) == 59 and sum(len(_flat(base.get_name(n))) for n in have) == 647      # v14.0（4-3B）：53 → 59 個名稱、557 → 647 格（新增 IF_GMDefault_／IF_TrainInferShare_ 各 3 個；既有 53 個端點逐值不變）
     bad, ncell = [], 0
     for n in sorted(have):
         b, a, c = (_flat(v.get_name(n)) for v in (base, hi_v, lo_v))
@@ -1413,7 +1414,7 @@ def test_v1300_ranges_equal_scenarios(model, lo):
                 x = _flat(cv.get_name(n))[i]
                 if not (lo_x[i] - tol <= x <= hi_x[i] + tol):
                     bad.append((n, i, f"角落 {s} 在區間外", x, lo_x[i], hi_x[i]))
-    assert ncell == 557
+    assert ncell == 647      # v14.0：557 → 647
     assert bad == [], (len(bad), bad[:8])
     for al, rn in (("AL_RngRDGW_Lo", "RNG_IF_AllocRDGW_Lo"), ("AL_RngRDGW_Hi", "RNG_IF_AllocRDGW_Hi"), ("AL_RngQ1_Lo", "RNG_IF_AllocQ1_Lo"), ("AL_RngQ1_Hi", "RNG_IF_AllocQ1_Hi")):
         assert abs(base.get_name(al) - base.get_name(rn)) < 5e-6, (al, rn)
@@ -1464,7 +1465,7 @@ def test_v1300_existing_contract_names_unchanged(model, lo):
     from openpyxl.utils import range_boundaries
     prev = openpyxl.load_workbook(V120_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX)]
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_VERIFY_CHANGED]      # v14.0（4-3B Q4）：CHK_VerifyTotal／Pass 因新增 V23–V26 而變（見檔尾斷言）；Fail／Warn 仍須相同
     assert len(keep) >= 500, len(keep)
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
@@ -1472,7 +1473,7 @@ def test_v1300_existing_contract_names_unchanged(model, lo):
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (20, 12, 7, 1)
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (24, 16, 7, 1)      # v14.0（4-3B Q4）：CHK_Verify* 只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）
 
 
 def test_v1300_c68_assumed_and_identity_label(lo):

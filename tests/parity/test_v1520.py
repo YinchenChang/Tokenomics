@@ -144,7 +144,7 @@ def test_v1520_decisions_and_evidence(wbf):
 
 def test_v1520_changed_cells_only_expected():
     """與 v15.1 逐格比對（公式文字或輸入值）：只有預期的頁與格不同；其餘頁 0。
-    Alloc 的 288 格＝Alloc O 節 RNG 靜態端點與 P 節指紋（重產）及版本字串；Load_Bearing 392 格＝少一列（GM342 離開承重清單）後上移；Checks B122＝K5 標籤文字。"""
+    Alloc 的 298 格＝Alloc N 節情境值 10 格（v12.0 靜態表，與 RNG_* 同源重產）＋ O 節 RNG 靜態端點與 P 節指紋（重產）及版本字串；Load_Bearing 392 格＝少一列（GM342 離開承重清單）後上移；Checks B122＝K5 標籤文字。"""
     a, b = openpyxl.load_workbook(PREV), openpyxl.load_workbook(model_path())
     diffs = {}
     for ws in a:
@@ -161,5 +161,5 @@ def test_v1520_changed_cells_only_expected():
     assert diffs["Checks"] == ["B122"] and sorted(diffs["README"]) == ["A1", "A59", "B5", "B59"]
     assert len(diffs["Decisions"]) == 50 and len(diffs["DB_Evidence"]) == 108
     import re
-    assert len(diffs["Alloc"]) == 288 and {re.match("[A-Z]+", x).group() for x in diffs["Alloc"]} == {"C", "D", "F", "G", "H"}
+    assert len(diffs["Alloc"]) == 298 and {re.match("[A-Z]+", x).group() for x in diffs["Alloc"]} == {"C", "D", "F", "G", "H"}
     assert len(diffs["Load_Bearing"]) == 392

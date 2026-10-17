@@ -183,14 +183,14 @@ def v_items(wb):
     """Items in the format of v1000.checks_v: (id, label, C, D, E, lower, upper, note). F = 1 if lower <= E <= upper."""
     E_NUM = '=IF(ISNUMBER(C{r}),C{r},"—")'
     return [
-        ("V23", "實際每用戶 decode 速度 ≥ SLO（Perf 與 Perf_Batch 第 89 列對第 41 列；可達欄中低於 SLO 的欄數＝0；全部層級，token 類型＝decode token）",
+        ("V23", "實際每用戶 decode 速度 ≥ SLO（Perf 與 Perf_Batch 第 89 列對第 41 列；可達欄中低於 SLO 的欄數＝0；全部層級，token 類型＝decode token）【恆等式（非驗證）；v14.1 R2】",
          "=IFERROR(SUMPRODUCT((Perf!$C$87:$Q$87>0)*(Perf!$C$89:$Q$89<Perf!$C$41:$Q$41*(1-0.000000001)))"
          "+SUMPRODUCT((Perf_Batch!$C$87:$S$87>0)*(Perf_Batch!$C$89:$S$89<Perf_Batch!$C$41:$S$41*(1-0.000000001))),1)",
          "=SUMPRODUCT(--(Perf!$C$87:$Q$87>0))+SUMPRODUCT(--(Perf_Batch!$C$87:$S$87>0))",
          '=IF(AND(ISNUMBER(C{r}),ISNUMBER(D{r})),IF(D{r}>0,C{r},1),"—")', 0, 0,
          "v14.0 4-3B Q4（A 段第 4 節）：模型值＝低於 SLO 的可達欄數（Perf 15 欄＋Perf_Batch 17 欄；B*＝0 的不可達欄不計）；對照值＝可達欄數（為 0 時本項判失敗，防止空轉）。"
          "結構性恆成立（B* ＝ MIN(SLO 限制批次, 記憶體限制批次)），程式或公式被改壞時才會失敗；專屬測試改寫 Perf!C87 公式（無法只靠改輸入使其失敗，見報告）"),
-        ("V24", "m_整體一致：Cap_In 第 147 列（Σ營收 ÷（Σtoken × 單價））＝ L1_MImplied（基準／_Lo／_Hi 三格的最大絕對差，容差 1e-9）；層級＝整體，token 類型＝付費 token（混合）",
+        ("V24", "m_整體一致：Cap_In 第 147 列（Σ營收 ÷（Σtoken × 單價））＝ L1_MImplied（基準／_Lo／_Hi 三格的最大絕對差，容差 1e-9）；層級＝整體，token 類型＝付費 token（混合）【恆等式（非驗證）；v14.1 R2】",
          "=IFERROR(MAX(ABS(Cap_In!$C$147-L1_MImplied),ABS(Cap_In!$D$147-L1_MImplied_Lo),ABS(Cap_In!$E$147-L1_MImplied_Hi)),1)", 0, E_NUM, 0, 0.000000001,
          "v14.0 4-3B Q4：兩條路徑各自算 m_整體（Cap_In 第 147 列用 H8 三分合計；L1_MImplied 取 Cap_In 第 94 列用合併 token）；差異＝0 才通過。"
          "目前兩者由同一組輸入恆等；公式被改寫（例如分子或分母漏項）時才會失敗；專屬測試改寫 Cap_In!C147 公式（見報告）"),

@@ -234,7 +234,7 @@ def checks_v(wb, CAL):
     section(ws, r, "V. 驗證計數（工作單 稽核修正2 6r1 N3，D5，v10.0）：只計能失敗的檢查；驗證失敗不進 GOV_Errors（不阻擋合併），報告必須列出", 10); r += 1
     put(ws, f"A{r}", "判準寫在 H（下限）與 I（上限）兩格（chat 端 J2 決定；黑字，不登錄 Gov_Map）。F 欄＝1 通過、0 失敗、警示（v11.0 G4：只用於 V1–V3）、—＝不適用（任一側非數字）。MLPerf interactive 為廠商最佳化後的可達上限（模型高於 MLPerf 才判失敗）；"
                    "MLPerf server（V1–V3）為軟上限（v11.0 G4；v12.0 H1 加失敗門檻）：比值 ≤ 1 通過；1 至 CHK_SoftCapFail（基準 2，Calib M 節）之間判『警示』，不計失敗；> CHK_SoftCapFail 判失敗（server 的 TPOT 80 ms 是 p99 口徑，模型取平均；超過 2 倍表示模型高估，不再只是口徑差；同條件 TensorRT-LLM H200 為 MLPerf v5.1 的 2.6 倍）；"
-                   "V18 為恆等式（非驗證，v12.0 H7）、V20 為校準相關（非獨立，v12.0 H2）：兩者的 F 欄為文字，不計入驗證項目數；"
+                   "V18 為恆等式（非驗證，v12.0 H7）、V23 與 V24 為恆等式（非驗證，v14.1 R2）、V20 為校準相關（非獨立，v12.0 H2）：這些項目的 F 欄為文字，不計入驗證項目數；"
                    "LMSYS 兩點口徑不嚴（無明確 SLO，模型 Sol 級≠DeepSeek-V3 規模），帶寬 0.5–2.0；RL 帶 0.1–0.3；harness 輪數倍數 ≥ 1（SWE Atlas 方向證據，只判方向）", F_NOTE); r += 1
     sum_rows = {}
     for key, lab in (("T", "驗證項目數（F 欄為數字或『警示』者）"), ("P", "通過"), ("F", "失敗"), ("W", "警示（MLPerf server 軟上限：模型高於 1 但未超過 CHK_SoftCapFail，不計失敗；v11.0 G4、v12.0 H1）")):
@@ -313,11 +313,13 @@ def checks_v(wb, CAL):
             put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(E{r}<H{r},0,IF(IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE),1,IF(E{r}>CHK_SoftCapFail,0,"警示"))),"—")', F_BOLD, fmt="0")
         elif vid == "V18":        # v12.0 H7: identity (not a verification): text result, not counted
             put(ws, f"F{r}", f'=IF(ISNUMBER(E{r}),IF(E{r}=0,"恆等式（非驗證）","恆等式不成立（K 被改寫）"),"—")', F_BOLD)
+        elif vid in ("V23", "V24"):        # v14.1 R2: structural identities (not verifications), like V18: text result, not counted; a broken formula shows "恆等式不成立"
+            put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),"恆等式（非驗證）","恆等式不成立"),"—")', F_BOLD)
         elif vid == "V20":        # v12.0 H2: calibration-related (not independent): text result, not counted
             put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),"校準相關（非獨立）："&IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),"帶內","帶外"),"—")', F_BOLD)
         else:
             put(ws, f"F{r}", f'=IF(AND(ISNUMBER(E{r}),ISNUMBER(H{r})),IF(AND(E{r}>=H{r},IF(ISNUMBER(I{r}),E{r}<=I{r},TRUE)),1,0),"—")', F_BOLD, fmt="0")
-        put(ws, f"G{r}", {"V18": "恆等式（非驗證）", "V20": "校準相關（非獨立）"}.get(vid, "驗證"), F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
+        put(ws, f"G{r}", {"V18": "恆等式（非驗證）", "V23": "恆等式（非驗證）", "V24": "恆等式（非驗證）", "V20": "校準相關（非獨立）"}.get(vid, "驗證"), F_NOTE); put(ws, f"H{r}", lo, F_CALC, fmt="0.00")
         if hi is not None: put(ws, f"I{r}", hi, F_CALC, fmt="0.00")
         put(ws, f"J{r}", note, F_NOTE, wrap=True); r += 1
     last = r - 1

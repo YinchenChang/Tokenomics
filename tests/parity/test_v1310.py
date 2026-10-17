@@ -13,7 +13,8 @@ REPO = Path(__file__).resolve().parents[2]
 V130_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v13.0.xlsx"      # v13.0（LibreOffice 重算存檔）：v13.1 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_")
 NEW_IN_V131 = {"RNG_Version", "RNG_Current"}      # 版本字串，隨版本改變
-Q4_VERIFY_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # v14.0（4-3B Q4）：新增 Checks V23–V26（20/12 → 24/16）；CHK_VerifyFail／Warn 仍須與 v13.0 相同
+Q4_VERIFY_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass", "L1_MFleet_Lo", "L1_PriceRealFleet_Lo", "L1_LReqFleet_Hi"}      # v14.1：加入 R1 受影響的三個名稱（L1_MFleet_Lo 同欄下限截斷及其依賴鏈；新值由 test_v1410.py 逐一斷言）；CHK_Verify* 另受 R2 影響（V23、V24 移出計數，24/16 → 22/14）
+#      # v14.0（4-3B Q4）：新增 Checks V23–V26（20/12 → 24/16）；CHK_VerifyFail／Warn 仍須與 v13.0 相同
 PREWARM = {}
 
 
@@ -97,4 +98,4 @@ def test_v1310_existing_contract_names_unchanged(lo):
             continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     assert v.get_name("RNG_Version") == model_path().name[: -len(".xlsx")]
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (24, 16, 7, 1)      # v14.0（4-3B Q4）：只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (22, 14, 7, 1)      # v14.0（4-3B Q4）：只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）

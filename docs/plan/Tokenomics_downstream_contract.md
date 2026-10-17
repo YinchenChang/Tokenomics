@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.11（2026-10-17；對應 Tokenomics v14.0）
+# Tokenomics 下游資料契約 v0.12（2026-10-17；對應 Tokenomics v14.1）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -91,4 +91,7 @@
 | `L1_MFleet_Ser` | Cap_In 第 223 列 | 倍 | 機隊口徑 | 付費 token（混合） | 同上四欄 |
 | `L1_MFleet_P25Lo`／`L1_MFleet_P25Hi` | Cap_In 第 285／286 列 | 倍 | 機隊，2025 年度單價低端／高端 | 付費 token（混合） | C 基準、D token 取高、E token 取低；顯示用區間，**不**乘入 `L1_MFleet` 的 `_Lo`／`_Hi` |
 
-  `IF_GMDefault_*` 與 `IF_TrainInferShare_*` 隨 `CAL_BatchEtaD` 變動，因此各補 `RNG_<名稱>_Lo`／`_Hi`（共 12 個 `RNG_` 名稱，規則同 v13.0 K1；既有 106 個端點逐值不變）。`L1_MFleetFloor` **不升級**：Cap_In 第 121 列（m 下限，上限讀法）與 `L1_MFleet_Lo` 的定義不一致（0.301 對 0.184），定義待 Project 判斷（見 `docs/reports/20261017_4-3B.md` Q3）。取用規則同第 2 條：混合口徑的值不得拆回單一 token 類型使用。
+  `IF_GMDefault_*` 與 `IF_TrainInferShare_*` 隨 `CAL_BatchEtaD` 變動，因此各補 `RNG_<名稱>_Lo`／`_Hi`（共 12 個 `RNG_` 名稱，規則同 v13.0 K1；既有 106 個端點逐值不變）。`L1_MFleetFloor` **不升級**（v14.1 已定義 Cap_In 第 121 列，仍不升級，見 v14.1 條）。取用規則同第 2 條：混合口徑的值不得拆回單一 token 類型使用。
+
+- v14.1（次版；v14.1 修補，工作單 `docs/workorders/20261017_v14.1修補.md` r1，分支 `claude/v14-1`）：**沒有新增契約名稱**。（1）**`L1_MFleet` 低端改用同欄下限（R1）**：Cap_In 第 119 列（機隊 m）各欄改為 `MAX(該欄點估計, 該欄第 121 列的物理下限)`；第 121 列每一欄用該欄自己的服務 GW 與利用率口徑。`L1_MFleet`／`_Lo`／`_Hi` 由 [0.184, 0.407, 1.179] 變 [**0.215**, 0.407, 1.179]（基準與高端不變）。數值變動的契約名稱只有三個：`L1_MFleet_Lo` 0.1839 → 0.2154、`L1_PriceRealFleet_Lo`（＝`L1_MFleet_Lo` × `AL_PriceFleet25`）0.3089 → 0.3619、`L1_LReqFleet_Hi`（所需 L，m 取低端）4.4546 → 3.8025；`RNG_*` 區間端點、`IF_AllocQ1`／`IF_AllocRDGW` 等全部不變。`L1_MFleetFloor` **不升級**：第 121 列是計算機制的一環，下游只讀截斷後的 `L1_MFleet` 區間。（2）**驗證計數**：`CHK_VerifyTotal`／`CHK_VerifyPass` 24／16 → **22／14**（Checks V23、V24 改標恆等式，移出計數；`CHK_VerifyFail`／`CHK_VerifyWarn` 仍 7／1）。（3）Har_In 第 20、32 列供應商旗標、v14.0 刪除列的 A／B 標籤、Cap_In 24 格清空（無人讀取）；用途標記與過時文字更正。其餘契約名稱逐格值與 v14.0 相同。
+

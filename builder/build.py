@@ -114,6 +114,8 @@ import v800
 v800.patch_specs()      # v8.0 L1／L4: the same rows read the 2025 fleet-basis price AL_PriceFleet25; Cap_In I-7 required L reads L1_FleetBreakeven2025 (patched after v603, before they are written)
 import v810
 v810.patch_specs()      # v9.0 M6: demand-route m (H5／H8) on the 2025 price CAP_Price25Mix; Cap_In I-7 required L (m = L1_MAPI) on L1_FleetBreakeven2025 (patched after v800, before they are written)
+import v1410
+v1410.patch_specs()      # v14.1 R1: Cap_In row 119 (m_fleet) = MAX(point estimate, same-column floor row 121) (patched after v810, before H7 is written)
 V532_CAP = v532.cap_in_h(wb)      # v5.32 B2: Cap_In H section「m 追蹤」(after G; no defined name, nothing moves)
 import v533
 V533_CAP = v533.cap_in_h7(wb, V532_CAP)      # v5.33 B3: Cap_In H7「機隊口徑」(before the H reading row, which is rewritten after it; no defined name moves)
@@ -328,6 +330,8 @@ V1310 = v1310.apply(wb, v518._append_text)       # v13.1 (D15 B): P1 notes／DB_
 print("v1310 D15 B:", V1310)
 V1400 = v1400.apply(wb, v518._append_text)       # v14.0 (4-3B): Q1 deletion, D104／D140, 用途 marks, Decisions SL43-*
 print("v1400 4-3B:", V1400)
+V1410 = v1410.apply(wb, v518._append_text)       # v14.1: R1 texts, R3 Har_In flags, R4 labels, R5 Cap_In cells, R6 small items, Decisions SL44-*
+print("v1410 v14.1:", {k: (v if not isinstance(v, dict) else {kk: vv for kk, vv in v.items() if kk not in ("list", "orig", "anchor_orig")}) for k, v in V1410.items()})
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

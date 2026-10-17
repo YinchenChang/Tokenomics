@@ -1,0 +1,40 @@
+=== v6.1 summary.csv：deepseek 列（加速器名含 H100/H200/Rubin/VR/GB300/GB200）
+Azure closed available NVIDIA GB200 deepseek-r1 Offline 288 2091190.0 7261.1 Tokens/s
+Azure closed available NVIDIA GB200 deepseek-r1 Server 288 1598510.0 5550.4 Tokens/s
+Azure closed available NVIDIA GB200 deepseek-r1 Offline 72 542075.0 7528.8 Tokens/s
+Azure closed available NVIDIA GB200 deepseek-r1 Server 72 426796.0 5927.7 Tokens/s
+Azure closed available NVIDIA GB300 deepseek-r1 Interactive 72 260098.0 3612.5 Tokens/s
+Azure closed available NVIDIA GB300 deepseek-r1 Offline 72 661143.0 9182.5 Tokens/s
+Azure closed available NVIDIA GB300 deepseek-r1 Server 72 589391.0 8186.0 Tokens/s
+CoreWeave closed available NVIDIA GB200 deepseek-r1 Offline 72 529991.0 7361.0 Tokens/s
+CoreWeave closed available NVIDIA GB200 deepseek-r1 Server 72 419778.0 5830.2 Tokens/s
+Google closed available NVIDIA GB200 deepseek-r1 Interactive 72 232160.0 3224.4 Tokens/s
+Google closed available NVIDIA GB200 deepseek-r1 Offline 72 510781.0 7094.2 Tokens/s
+Google closed available NVIDIA GB200 deepseek-r1 Server 72 388590.0 5397.1 Tokens/s
+NVIDIA closed available NVIDIA GB200 deepseek-r1 Interactive 72 240274.0 3337.1 Tokens/s
+NVIDIA closed available NVIDIA GB200 deepseek-r1 Offline 72 523790.0 7274.9 Tokens/s
+NVIDIA closed available NVIDIA GB200 deepseek-r1 Server 72 395940.0 5499.2 Tokens/s
+NVIDIA closed available NVIDIA GB300 deepseek-r1 Offline 288 2705130.0 9392.8 Tokens/s
+NVIDIA closed available NVIDIA GB300 deepseek-r1 Server 288 2028030.0 7041.8 Tokens/s
+NVIDIA closed available NVIDIA GB300 deepseek-r1 Interactive 72 253506.0 3520.9 Tokens/s
+NVIDIA closed available NVIDIA GB300 deepseek-r1 Offline 72 679740.0 9440.8 Tokens/s
+NVIDIA closed available NVIDIA GB300 deepseek-r1 Server 72 596944.0 8290.9 Tokens/s
+NVIDIA closed available NVIDIA GB300 deepseek-r1 Offline 8 75918.2 9489.8 Tokens/s
+NVIDIA closed available NVIDIA GB300 deepseek-r1 Server 8 67578.3 8447.3 Tokens/s
+NVIDIA closed preview NVIDIA Vera Rubin deepseek-r1 Interactive 72 652750.1447708113 9066.0 Tokens/s
+NVIDIA closed preview NVIDIA Vera Rubin deepseek-r1 Offline 72 1183326.8540322022 16435.1 Tokens/s
+NVIDIA closed preview NVIDIA Vera Rubin deepseek-r1 Server 72 1175890.2208168241 16331.8 Tokens/s
+Nebius closed available NVIDIA GB300 deepseek-r1 Offline 72 689961.0 9582.8 Tokens/s
+Nebius closed available NVIDIA GB300 deepseek-r1 Server 72 603023.0 8375.3 Tokens/s
+Nebius closed preview NVIDIA VR200 deepseek-r1 Offline 36 558802.8293934778 15522.3 Tokens/s
+Nebius closed preview NVIDIA VR200 deepseek-r1 Server 36 591368.312764167 16426.9 Tokens/s
+Oracle closed available NVIDIA GB300 deepseek-r1 Interactive 72 235807.0 3275.1 Tokens/s
+Oracle closed available NVIDIA GB300 deepseek-r1 Offline 72 666613.0 9258.5 Tokens/s
+Oracle closed available NVIDIA GB300 deepseek-r1 Server 72 586852.0 8150.7 Tokens/s
+Oracle closed available NVIDIA GB300 deepseek-r1 Offline 8 77031.7 9629.0 Tokens/s
+Oracle closed available NVIDIA GB300 deepseek-r1 Server 8 68138.0 8517.2 Tokens/s
+HPE open available NVIDIA GB200 deepseek-r1 Offline 16 126223.0 7888.9 Tokens/s
+HPE open available NVIDIA GB200 deepseek-r1 Offline 32 245352.0 7667.2 Tokens/s
+HPE open available NVIDIA GB200 deepseek-r1 Offline 56 336125.0 6002.2 Tokens/s
+=== v6.0 summary_results.json：deepseek 列（系統名含 H100/H200/Rubin/VR）
+=== 結束

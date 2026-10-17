@@ -123,7 +123,7 @@ def test_v1400_existing_contract_names_unchanged(lo):
         got = _flat(v.get_name(n))
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     assert (v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (7, 1)
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass")) == (22, 14)      # v14.1 R2：V23、V24 移出計數（24／16 → 22／14；v13.1 為 20／12）
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass")) == (21, 13)      # v15.0 O9：V16 移出計數（22／14 → 21／13）； v14.1 R2：V23、V24 移出計數（24／16 → 22／14；v13.1 為 20／12）
     assert v.get_name("RNG_Version") == model_path().name[: -len(".xlsx")] == v.get_name("RNG_Current")
 
 

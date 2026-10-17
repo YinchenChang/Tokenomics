@@ -2,6 +2,21 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261017_Tokenomics_v15.0.xlsx（取代 v14.2；**主版：契約改變，新增 32 個名稱**；稽核結案，依工作單 `docs/workorders/20261017_v14.3_稽核結案.md` r1）
+
+- 分支 `claude/v14-3`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v14.3_稽核結案.md`；進度檔：`docs/reports/20261017_v14.3_進度.md`。底稿：master（v14.2，`0e8f3c5`）。版號判定：O13 與 T3-2 新增 `RNG_*`、B11 新增 `IF_FrontSuccVRQual`，依 CLAUDE.md 第 4 節為契約改變 → 主版 v15.0（工作單以 v14.3 暫稱）。
+- Excel（CC 以 `builder/v1500.py` 自 v14.2 產生，經 LibreOffice 重算存檔）：
+  - O13：`SRC_DEM_004_Lo`／`_Hi` 以公式接進支出路線（Alloc Q 節）：新增 `RNG_Dem004_IF_AllocServeGW／IF_AllocQ1／IF_AllocQ2` 的 `_Lo`／`_Hi` 與 `RNG_Dem004_OutCount`（7 個名稱）；Checks RG4。基準值不變。
+  - T3-2（O4）：VR200 批次倍數區間 0.70–1.0；只經 VR200 欄的 12 個名稱各補 `RNG_<名稱>_Lo`／`_Hi`（24 個名稱）；既有 59 個名稱的端點逐值不變；指紋 591 → 604 葉。
+  - B11：`IF_FrontSuccVRQual`（Interface 第 193 列）。
+  - O14：L1 第 31、59–65 列外部對照換算成模型單位（D 欄基準不變）；新增 `SRC_PRC_047`；第 35 列只加註。
+  - O9：V16 標恆等式（非驗證）：`CHK_VerifyTotal`／`Pass` 22／14 → 21／13。
+  - O15：B20 口徑標註、Y9 敏感度端點（Sens_Train 第 13 列 0.18／0.35；Sens_Rev 折扣連結 Cap_In）、F16 註記；其餘小項刻意保留（Decisions SL46-07）。
+  - O20：Alloc_In κ 推導區塊（顯示用，`AL_Kappa` 不變）＋Checks KP1／KP2；O6：SRC_Index 哨兵列 B 欄改公式；O8／O12 標籤；T3-1（O5）：SRC_PERF_060 來源登錄更正（修訂九，值 556 與 V1 判定不變）。
+  - Decisions 新增 SL46-01…24。
+- 測試：契約快照 `contract_snapshot_v14.2.json` → `contract_snapshot_v15.0.json`（789 → 822 個名稱）；新增 `tests/parity/test_v1500.py`（O13、B11、T3-2、O5、O9、O14、O20、Decisions）與情境 `batch_vr200_lo`／`batch_vr200_hi`；`test_v1300_ranges_equal_scenarios` 加入 VR200 區間名單與端點核對（原 59 個名稱／647 格的斷言不變）；期望值隨預期變動更新（公式格數、名稱數、驗證計數 21／13／7／1、GOV_Info 182），逐項見報告。
+- `docs/plan/Tokenomics_downstream_contract.md` v0.13 → v0.14（v15.0 條目；v13.0 條目附更正，原字樣保留）。`docs/builder/Tokenomics_builder_v5.md` 已重產。
+
 ## 20261017_Tokenomics_v14.2.xlsx（取代 v14.1；次版：無新增契約名稱；v14.2 修補，依工作單 `docs/workorders/20261017_v14.2修補.md` r0）
 
 - 分支 `claude/v14-2`（合併 SHA 見報告與 PR）。報告：`docs/reports/20261017_v14.2修補.md`；進度檔：`docs/reports/20261017_v14.2修補_進度.md`。底稿：master（v14.1，`32dfce0`）。

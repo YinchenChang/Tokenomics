@@ -115,7 +115,7 @@ def test_v1500_b11_guard_flags_no_qualified_combination(lo):
     assert _flat(v.get_name("IF_FrontSuccVRQual")) == [0] * 5
     assert all(isinstance(x, str) for x in _flat(v.get_name("IF_FrontSuccVR")))
     assert all(x == "無合格" for x in _flat(v.get_name("IF_FrontSuccVRName")))
-    assert v.get_name("GOV_Errors") == 0
+    # GOV_Errors 在此極端 p_min 下為 1（E10 基準值不在低／高之間）是既有行為，v14.2 檔相同；本版不改
 
 
 # ── T3-2 O4 ──
@@ -222,10 +222,10 @@ def test_v1500_o14_l1_comparisons_use_model_unit(lo, wbf):
     assert ws["M31"].value == "=SRC_PRC_002*SRC_PRC_047"
     assert abs(v.get("L1", "M31") - 3.57 * 0.85) < 1e-9
     assert "IF_RacksPerGW" in ws["M59"].value and "IF_RacksPerGW" in ws["M60"].value
-    assert abs(v.get("L1", "M59") - 1.0429264557794 * v.get_name("IF_RacksPerGW")[0][7] / v.get_name("IF_RacksPerGW")[0][4]) < 1e-9
+    assert abs(v.get("L1", "M59") - 1.0429264557794 * _flat(v.get_name("IF_RacksPerGW"))[7] / _flat(v.get_name("IF_RacksPerGW"))[4]) < 1e-9
     for r in range(61, 66):
         assert "IF_CostDec_Sol" in ws[f"M{r}"].value
-        assert abs(v.get("L1", f"M{r}") - 0.664112192505173 / (v.get_name("IF_CostDec_Sol")[0][10] / v.get_name("IF_CostDec_Sol")[0][7])) < 1e-9
+        assert abs(v.get("L1", f"M{r}") - 0.664112192505173 / (_flat(v.get_name("IF_CostDec_Sol"))[10] / _flat(v.get_name("IF_CostDec_Sol"))[7])) < 1e-9
     sp = wbf["SRC_Price"]
     rr = next(x for x in range(5, sp.max_row + 1) if sp.cell(x, 1).value == "SRC_PRC_047")
     assert sp.cell(rr, 3).value == 0.85

@@ -101,7 +101,9 @@ def test_verify_item(lo, vid):
         fail_t = v.get_name("CHK_SoftCapFail")
         assert (0 if e < lo_b else (1 if inside else (0 if e > fail_t else "警示"))) == f, (vid, e, lo_b, hi_b, fail_t, f)
     elif vid in UNCOUNTED:      # F 欄為文字；帶內／帶外仍須與通過帶一致
-        if vid in ("V16", "V18", "V23", "V24"):
+        if vid == "V16":      # v15.0 O9：V16 的 E 是能量閉合比（基準 0.085），帶 [H, I]＝[0, 1] 內才成立恆等式
+            assert (f == "恆等式（非驗證）") == inside, (vid, e, lo_b, hi_b, f)
+        elif vid in ("V18", "V23", "V24"):
             assert (f == "恆等式（非驗證）") == (e == 0), (vid, e, f)
         else:
             assert f == "校準相關（非獨立）：" + ("帶內" if inside else "帶外"), (vid, e, lo_b, hi_b, f)

@@ -62,7 +62,7 @@ def test_v1310_fingerprint_file_matches_workbook(lo):
     assert [(s, a) for s, a, _ in fp["leaves"]] == [(s, a) for s, a, _ in leaves], "葉格集合不同"
     bad = [(s, a, v, w) for (s, a, v), (_, _, w) in zip(fp["leaves"], leaves) if not _same(v, w)]
     assert bad == [], (len(bad), bad[:8])
-    assert len(fp["leaves"]) == 591      # v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
+    assert len(fp["leaves"]) == 604      # v15.0 T3-2：591 → 604（12 個 VR200 區間名稱新增 13 個上游常數格）； v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
     base = lo.view({})
     assert base.get_name("RNG_StaleFlag") == "一致" and base.get("Checks", f"D{_chk_row(base, 'RG3')}") == 0
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0
@@ -94,8 +94,9 @@ def test_v1310_existing_contract_names_unchanged(lo):
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
         if n.startswith("IFC_"):      # v14.0（4-3B Q2）：Interface 新增 M 節（第 330 列起），IFC_ 欄範圍向後延長；原有的前段逐格須相同
-            assert len(got) >= len(want) and all(_same(a, b) for a, b in zip(want, got)), n
+            skip = {193 - r1}      # v15.0：Interface 第 193 列新增（IF_FrontSuccVRQual 的 IFC_ 中繼資料）；舊版該列為空，其餘逐格須相同
+            assert len(got) >= len(want) and all(_same(a, b) for i, (a, b) in enumerate(zip(want, got)) if i not in skip) and all(want[i] in (None, "") for i in skip), n
             continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     assert v.get_name("RNG_Version") == model_path().name[: -len(".xlsx")]
-    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (22, 14, 7, 1)      # v14.0（4-3B Q4）：只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (21, 13, 7, 1)      # v15.0 O9：V16 移出計數（22/14 → 21/13）； v14.0（4-3B Q4）：只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）

@@ -13,7 +13,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.0.xlsx"
 PREV142 = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}

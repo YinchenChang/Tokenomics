@@ -12,7 +12,7 @@ from conftest import model_path
 from parity_lib import lo_recalc, read_defined_names_xml, set_inputs
 
 HERE = Path(__file__).parent
-V152_CHANGED = set(__import__("json").load(open(HERE / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
+V152_CHANGED = set(__import__("json").load(open(HERE / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(HERE / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
 CFG = yaml.safe_load((HERE / "scenarios.yaml").read_text(encoding="utf-8"))
 SCENARIOS = CFG["scenarios"]
 EXPECT = CFG["workbook_expectations"]

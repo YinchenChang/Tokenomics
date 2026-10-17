@@ -16,7 +16,7 @@ import pytest
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"])      # v15.2 預期變動名單（B2／B3；test_v1520 逐名稱釘住，不多不少）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 RANGES = json.loads((REPO / "builder" / "v1300_ranges.json").read_text(encoding="utf-8"))
 VR_NAMES = sorted(n for n, d in RANGES["names"].items() if d.get("source") == "vr200")

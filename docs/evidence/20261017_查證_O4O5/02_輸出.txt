@@ -1,0 +1,10 @@
+== 複製檢查（v6.0 原目標；應等於 Calib C254 1.8297、D254 1.5964）
+{'gen': 'GB200', 'target': 6752, 'current_mult': 2.36, 'model_out': 8475.6, 'model_over_target': 1.2553, 'B': 1473.5, 'EP': 32, 'need_mult': 1.8297, 't_cmp_ms': 0.10392, 'floor_ms': 0.01719} Calib C254 = 1.8297158924656
+{'gen': 'GB300', 'target': 8987.2, 'current_mult': 1, 'model_out': 5802.0, 'model_over_target': 0.6456, 'B': 2427.1, 'EP': 32, 'need_mult': 1.5964, 't_cmp_ms': 0.16351, 'floor_ms': 0.01719} Calib D254 = 1.59641085936607
+== v6.1 offline 目標
+NVIDIA Vera Rubin 72 GPU，closed，preview {'gen': 'VR200', 'target': 16435.1, 'current_mult': 0.75, 'model_out': 10055.0, 'model_over_target': 0.6118, 'B': 2427.1, 'EP': 32, 'need_mult': 1.2782, 't_cmp_ms': 0.09343, 'floor_ms': 0.00807}
+Nebius VR200 36 GPU，closed，preview {'gen': 'VR200', 'target': 15522.3, 'current_mult': 0.75, 'model_out': 10055.0, 'model_over_target': 0.6478, 'B': 2427.1, 'EP': 32, 'need_mult': 1.1999, 't_cmp_ms': 0.09343, 'floor_ms': 0.00807}
+NVIDIA GB300 72 GPU，closed，available {'gen': 'GB300', 'target': 9440.8, 'current_mult': 1, 'model_out': 5802.0, 'model_over_target': 0.6146, 'B': 2427.1, 'EP': 32, 'need_mult': 1.6843, 't_cmp_ms': 0.16351, 'floor_ms': 0.01719}
+Nebius GB300 72 GPU，closed，available {'gen': 'GB300', 'target': 9582.8, 'current_mult': 1, 'model_out': 5802.0, 'model_over_target': 0.6055, 'B': 2427.1, 'EP': 32, 'need_mult': 1.712, 't_cmp_ms': 0.16351, 'floor_ms': 0.01719}
+NVIDIA GB200 72 GPU，closed，available {'gen': 'GB200', 'target': 7274.9, 'current_mult': 2.36, 'model_out': 8475.6, 'model_over_target': 1.165, 'B': 1473.5, 'EP': 32, 'need_mult': 1.9876, 't_cmp_ms': 0.10392, 'floor_ms': 0.01719}
+Azure GB200 72 GPU，closed，available {'gen': 'GB200', 'target': 7528.8, 'current_mult': 2.36, 'model_out': 8475.6, 'model_over_target': 1.1258, 'B': 1473.5, 'EP': 32, 'need_mult': 2.0651, 't_cmp_ms': 0.10392, 'floor_ms': 0.01719}

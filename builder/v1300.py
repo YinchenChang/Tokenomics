@@ -35,7 +35,7 @@ def load_ranges():
 RNG = load_ranges()
 
 SEC_TITLE = ("O. 批次口徑倍數區間端點（v13.0 K1／K2）：凡隨 CAL_BatchEtaD 的 GB200（Calib D156）或 Hopper（Calib C156）倍數變動的契約名稱 X，各有 RNG_X_Lo／RNG_X_Hi（形狀同 X）。"
-             "端點＝情境重算（高端：GB200 1.83；低端：GB200 3.04、Hopper 3.74）兩者每格的較小／較大者，不是情境的『低端／高端』；以黑字數值寫入（不是公式，改輸入後不會自動更新）。"
+             "端點＝情境重算（高端：GB200 1.59（v15.3 起；v13.0–v15.2 為 1.83）；低端：GB200 3.04、Hopper 3.74）兩者每格的較小／較大者，不是情境的『低端／高端』；以黑字數值寫入（不是公式，改輸入後不會自動更新）。"
              "時效：RNG_Version 必須等於現行版本，且基準落在區間內，否則 RNG_StaleFlag 顯示『區間過期』（Checks RG1／RG2，WARN）；tests/parity 以情境重算逐格比對全部端點（容差 1e-9）。重新產生：python3 tools/gen_ranges.py")
 HDR = ["名稱 X", "列", "（以下每格＝X 的同一格；15 格名稱依序為 5 個世代 × 低成本／基準／高成本）"]
 WIDTH_COLS = 15

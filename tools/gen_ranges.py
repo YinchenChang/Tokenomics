@@ -5,10 +5,10 @@
     python3 tools/gen_ranges.py <xlsx> --check                                                      重新推導並與現有端點檔逐值比對（容差 1e-9）
 
 做法（與 scenarios.yaml 的 batch_gb200_lo、batch_range_lo 相同的兩個端點情境）：
-  高端情境：CAL_BatchEtaD[2]（GB200）＝1.83；低端情境：GB200＝3.04 且 Hopper（CAL_BatchEtaD[1]）＝3.74。
+  高端情境：CAL_BatchEtaD[2]（GB200）＝1.59（v15.3 起；v13.0–v15.2 為 1.83）；低端情境：GB200＝3.04 且 Hopper（CAL_BatchEtaD[1]）＝3.74。
   凡契約前綴（IF_／IFW_／IFC_／L1_／CHK_／CAP_）的具名範圍，只要在任一端點情境下與基準不同，就納入；
   RNG_<名稱>_Lo／_Hi 的每一格＝兩個端點情境該格值的較小／較大者（不是情境的「低端／高端」：有些名稱隨倍數增加而上升）。
-  另外重算兩個交叉角落（GB200 1.83 × Hopper 3.74、GB200 3.04 × Hopper 1）與 Hopper 單獨 3.74，確認它們都落在端點之內；
+  另外重算兩個交叉角落（GB200 1.59 × Hopper 3.74、GB200 3.04 × Hopper 1）與 Hopper 單獨 3.74，確認它們都落在端點之內；
   v15.0 T3-2：另以 VR200 倍數的兩個端點情境（CAL_BatchEtaD[4]＝0.70、1.0；基準 0.75）重算；凡在上述兩個批次端點情境不動、但隨 VR200 倍數變動的契約名稱，
   也建 RNG_<名稱>_Lo／_Hi（端點＝vr200_lo／vr200_hi 兩情境每格較小／較大者，JSON 中標 "source": "vr200"）。既有 59 個名稱的端點與其 VR200 欄（點值）不變。
 區間端點是情境重算結果，只能以數值寫入 Excel；每次改版（或改動任何上游輸入）後必須重跑本工具，並在同一個 PR 更新 builder/v1300_ranges.json。"""
@@ -30,10 +30,10 @@ from parity_lib import lo_recalc, parse_ref, set_inputs  # noqa: E402
 import deadcells_lib  # noqa: E402
 
 PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_")
-END_HI = {"CAL_BatchEtaD[2]": 1.83}                          # 研發 GW 區間的高端（IF_AllocRDGW 最高）
+END_HI = {"CAL_BatchEtaD[2]": 1.59}                          # 研發 GW 區間的高端（IF_AllocRDGW 最高）；v15.3 C2：1.83 → 1.59（Calib C254 在 D67＝1.15 後的 V20 反推點；Gov_Map GM685 K）
 END_LO = {"CAL_BatchEtaD[2]": 3.04, "CAL_BatchEtaD[1]": 3.74}      # 低端
 CHECK = {
-    "corner_gb200_lo_hopper_hi": {"CAL_BatchEtaD[2]": 1.83, "CAL_BatchEtaD[1]": 3.74},
+    "corner_gb200_lo_hopper_hi": {"CAL_BatchEtaD[2]": 1.59, "CAL_BatchEtaD[1]": 3.74},
     "corner_gb200_hi_hopper_1": {"CAL_BatchEtaD[2]": 3.04},
     "hopper_hi_only": {"CAL_BatchEtaD[1]": 3.74},
 }

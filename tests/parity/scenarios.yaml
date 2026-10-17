@@ -164,13 +164,13 @@ scenarios:
     inputs: {"SRC_PERF_066": 120, "SRC_PERF_067": 120, "SRC_PERF_068": 65, "SRC_PERF_069": 65, "SRC_PERF_070": 55, "SRC_PERF_071": 55}
   # ── v12.0（v11.1 修補 H1–H5）：GB200／Hopper 批次口徑倍數的區間端點、C68 試算、軟上限失敗門檻。區間表（Alloc N 節）的情境值由 test_v1200_range_table 對這些情境逐列比對 ──
   - id: batch_gb200_lo
-    description: H2 區間低端 GB200 批次口徑倍數＝1.83（MLPerf v6.0 offline 反推值；Gov_Map 區間下限）；Hopper 維持 1。這是研發 GW 區間的高端（IF_AllocRDGW 最高）
-    inputs: {"CAL_BatchEtaD[2]": 1.83}
+    description: H2 區間低端 GB200 批次口徑倍數＝1.59（v15.3 C2：MLPerf v6.0 offline 反推值，D67 改 1.15 後由 1.83 變 1.5911；Gov_Map 區間下限）；Hopper 維持 1。這是研發 GW 區間的高端（IF_AllocRDGW 最高）
+    inputs: {"CAL_BatchEtaD[2]": 1.59}
   - id: batch_gb200_hi
     description: H2 區間高端 GB200 批次口徑倍數＝3.04（vLLM 10.1K 反推值；v11.0 的基準）；Hopper 維持 1
     inputs: {"CAL_BatchEtaD[2]": 3.04}
   - id: batch_hopper_hi
-    description: H3 Hopper 批次口徑倍數＝3.74（Gov_Map 區間上限；C68＝1.5 下產出飽和處）；在 C68＝1.5 下不會讓 Hopper 達標（上限 0.941），只呈現研發 GW 的下限方向；GB200 維持 2.36
+    description: H3 Hopper 批次口徑倍數＝3.74（Gov_Map 區間上限；C68＝1.5 下產出飽和處）；在 C68＝1.5 下不會讓 Hopper 達標（上限 0.941），只呈現研發 GW 的下限方向；GB200 維持基準（v15.3 起為公式 √(C254×D201)＝2.198；v12.0–v15.2 為 2.36）
     inputs: {"CAL_BatchEtaD[1]": 3.74}
   - id: batch_range_lo
     description: H5 研發 GW 區間的低端組合：GB200 3.04、Hopper 3.74（IF_AllocRDGW、IF_AllocQ1 最低）
@@ -186,8 +186,8 @@ scenarios:
     inputs: {"SRC_PERF_060": 451.35}
   # ── v13.0（4-2b-1 K1／K2）：區間端點的第四個角落（GB200 1.83 × Hopper 3.74）；其他三個角落已有 batch_gb200_hi、batch_hopper_hi、batch_range_lo。test_v1300_ranges_equal_scenarios 要求基準與全部角落都落在 RNG_*_Lo／_Hi 之內 ──
   - id: batch_corner_x
-    description: K1 區間角落檢查：GB200 1.83（高端）× Hopper 3.74（低端）；與 batch_gb200_lo／batch_range_lo 一起構成 2×2 角落，所有契約名稱的值都必須落在 RNG_*_Lo／_Hi 之內
-    inputs: {"CAL_BatchEtaD[2]": 1.83, "CAL_BatchEtaD[1]": 3.74}
+    description: K1 區間角落檢查：GB200 1.59（高端；v15.3 起，原 1.83）× Hopper 3.74（低端）；與 batch_gb200_lo／batch_range_lo 一起構成 2×2 角落，所有契約名稱的值都必須落在 RNG_*_Lo／_Hi 之內
+    inputs: {"CAL_BatchEtaD[2]": 1.59, "CAL_BatchEtaD[1]": 3.74}
   # ── v15.0（T3-2 O4）：VR200 批次口徑倍數區間的兩個端點（基準 0.75；Gov_Map GM595 區間 0.70–1.0）。只經 VR200 欄的 12 個名稱 RNG_*_Lo／_Hi 的端點由這兩個情境重算而來（tools/gen_ranges.py） ──
   - id: batch_vr200_lo
     description: T3-2 VR200 批次口徑倍數＝0.70（區間下端；MLPerf v6.1 offline Nebius 反推 0.70）；基準 0.75；GB200／Hopper 維持基準

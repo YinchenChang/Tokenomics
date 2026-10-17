@@ -76,6 +76,11 @@ def read_defined_names_xml(path: Path) -> dict[str, str]:
     return out
 
 
+# v15.3 C2：Calib D156（CAL_BatchEtaD GB200）由常數改為公式 =SQRT(C254*D201)（兩個批次口徑反推點的幾何平均）。
+# 區間端點情境（batch_gb200_lo／hi、batch_range_lo 等）要把它整格改成指定倍數，所以只此一格允許以值覆寫公式；其他公式格仍一律拒絕。
+OVERRIDABLE_FORMULA = {("Calib", "D156")}
+
+
 def set_inputs(src: Path, dst: Path, inputs: dict[str, object]) -> None:
     """複製活頁簿並改寫輸入格。openpyxl 存檔不帶快取值，LibreOffice 載入時必須重算。"""
     wb = openpyxl.load_workbook(src)
@@ -83,7 +88,7 @@ def set_inputs(src: Path, dst: Path, inputs: dict[str, object]) -> None:
     for key, v in inputs.items():          # 鍵：'Sheet!A1'、'NAME' 或 'NAME[k]'（具名範圍優先）
         sheet, coord = resolve_key(names, key)
         cell = wb[sheet][coord]
-        if isinstance(cell.value, str) and cell.value.startswith("="):
+        if isinstance(cell.value, str) and cell.value.startswith("=") and (sheet, coord) not in OVERRIDABLE_FORMULA:
             raise ValueError(f"{key} 是公式格，不是輸入格")
         cell.value = v
     wb.save(dst)

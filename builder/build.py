@@ -194,6 +194,8 @@ V518_LOG += v603.decisions_update(wb)       # v6.3: AF2-D1c r1 note
 V518_LOG += v1030.inputs_update(wb)       # v10.3 F1: Spec_Rack G11／G13 read SR_RU_PxMultLo／Hi (old-formula guards), G14 note
 V518_LOG += v1100.inputs_update(wb)       # v11.0 G2: Calib D156 (CAL_BatchEtaD GB200) 1 -> 3.04 (old-value guard)
 V518_LOG += v1200.inputs_update(wb)       # v12.0 H2: Calib D156 3.04 -> 2.36 (old-value guard)
+import v1530
+V518_LOG += v1530.inputs_update(wb, v518._append_text)       # v15.3: E1／E2 Cap_In C226:E228 (inputs, D228 formula, marks), D1 rows 242／243, C2 Calib D156 = SQRT(C254*D201) (before gov_all so the contract tracing sees the final formulas)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -347,6 +349,8 @@ print("v1510 v15.1:", V1510)
 import v1520
 V1520 = v1520.apply(wb, v518._append_text)       # v15.2: B2 Cap_In C280:E280, B3 Calib D67, B4／J2 labels, notes, Decisions SL47-*, DB_Evidence E387…E392 (Gov_Map edits run in gov.py)
 print("v1520 v15.2:", V1520)
+V1530 = v1530.apply(wb, v518._append_text)       # v15.3: L1 H86–H88 labels, Decisions SL48-*, DB_Evidence E393…E397 (Gov_Map edits run in gov.py)
+print("v1530 v15.3:", V1530)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

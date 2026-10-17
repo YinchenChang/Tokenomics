@@ -1,6 +1,6 @@
 {
-"version": "20261017_Tokenomics_v13.1",
-"roots": 53,
+"version": "20261017_Tokenomics_v14.0",
+"roots": 59,
 "leaves": [
 [
 "Inputs",
@@ -1994,8 +1994,23 @@
 ],
 [
 "Cap_In",
+"C12",
+0.2
+],
+[
+"Cap_In",
 "C13",
 0.55
+],
+[
+"Cap_In",
+"C14",
+0
+],
+[
+"Cap_In",
+"C15",
+1
 ],
 [
 "Cap_In",
@@ -2871,6 +2886,51 @@
 "SRC_Perf",
 "C75",
 32
+],
+[
+"SRC_Price",
+"C7",
+0.1
+],
+[
+"SRC_Price",
+"C8",
+0.01
+],
+[
+"SRC_Price",
+"C9",
+0.5
+],
+[
+"SRC_Price",
+"C10",
+2
+],
+[
+"SRC_Price",
+"C11",
+0.2
+],
+[
+"SRC_Price",
+"C12",
+10
+],
+[
+"SRC_Price",
+"C13",
+10
+],
+[
+"SRC_Price",
+"C14",
+1
+],
+[
+"SRC_Price",
+"C15",
+50
 ],
 [
 "SRC_Demand",

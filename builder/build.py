@@ -267,6 +267,9 @@ I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuatio
 IFK = v800.interface_k(wb)            # v8.0 L5: Interface K section (IF_AllocServeGW_Tok; appended last, before the contract columns are built)
 import v1000
 IFL = v1000.interface_l(wb)            # v10.0 N1: Interface L section (IFW_*_LifeSelf; appended last, before the contract columns are built; nothing reads these names)
+import v1400
+IFM = v1400.interface_m(wb)            # v14.0 (4-3B Q2): Interface M section (11 IF_ names) before the contract columns are built
+SER14 = v1400.series_names(wb)         # v14.0 (4-3B Q2): L1_*_Ser／L1_MFleet_P25Lo／Hi series names on Cap_In
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
@@ -323,6 +326,8 @@ print("v1300 4-2b-1:", {k: v for k, v in V1300.items() if k != "table"})
 import v1310
 V1310 = v1310.apply(wb, v518._append_text)       # v13.1 (D15 B): P1 notes／DB_Evidence R／Decisions D15-*, P2 fingerprint block (Alloc P), Checks RG3
 print("v1310 D15 B:", V1310)
+V1400 = v1400.apply(wb, v518._append_text)       # v14.0 (4-3B): Q1 deletion, D104／D140, 用途 marks, Decisions SL43-*
+print("v1400 4-3B:", V1400)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

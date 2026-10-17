@@ -10,7 +10,7 @@ REPO = Path(__file__).resolve().parent.parent
 MD = REPO / "docs" / "builder" / "Tokenomics_builder_v5.md"
 AFTER = {"block6.py": "block5.py", "gov_seed3.py": "gov_seed2.py", "gov_seed4.py": "gov_seed3.py", "v518.py": "gov_seed4.py", "v519.py": "v518.py", "v520.py": "v519.py", "v521.py": "v520.py", "v522.py": "v521.py", "v523.py": "v522.py", "v524.py": "v523.py", "v525.py": "v524.py", "v526.py": "v525.py", "v527.py": "v526.py", "v529.py": "v527.py", "deps.py": "v529.py", "v530.py": "deps.py", "v531.py": "v530.py", "v532.py": "v531.py", "v533.py": "v532.py", "v534.py": "v533.py", "v535.py": "v534.py", "v536.py": "v535.py", "v600.py": "v536.py", "v601.py": "v600.py", "v602.py": "v601.py", "v603.py": "v602.py", "v700.py": "v603.py", "v800.py": "v700.py",
          "v810.py": "v800.py", "v1000.py": "v810.py", "v1010.py": "v1000.py", "v1010_gov.py": "v1010.py", "v1010_marks.py": "v1010_gov.py", "v1010_text.py": "v1010_marks.py",
-         "v1020.py": "v1010_text.py", "v1030.py": "v1020.py", "v1100.py": "v1030.py", "v1200.py": "v1100.py", "v1300.py": "v1200.py", "v1310.py": "v1300.py"}      # 新檔放在哪個檔之後（v12.0：補上 v810 起漏列的 9 檔與 v1200）
+         "v1020.py": "v1010_text.py", "v1030.py": "v1020.py", "v1100.py": "v1030.py", "v1200.py": "v1100.py", "v1300.py": "v1200.py", "v1310.py": "v1300.py", "v1400.py": "v1310.py"}      # 新檔放在哪個檔之後（v12.0：補上 v810 起漏列的 9 檔與 v1200）
 
 
 def parse(text):

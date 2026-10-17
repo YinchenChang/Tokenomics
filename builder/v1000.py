@@ -302,6 +302,8 @@ def checks_v(wb, CAL):
          "v11.0 G3：SRC_PERF_081（1,436；NVIDIA TensorRT-LLM 0.21.0rc1 文件，單一來源）；模型值＝Calib L 節 E 欄（H200 規格 141 GB／4.8 TB/s、EP8、固定批次 128、無 MTP、η_d × CAL_BatchEtaD、含 prefill 分攤）；"
          "Hopper 的 CAL_BatchEtaD 在 C68＝1.5 下無解而未寫入（＝1），此項的結果隨之偏低；不用於校準")
     ]
+    import v1400                                      # v14.0 (4-3B Q4): V23–V26
+    items += v1400.v_items(wb)
     for vid, lab, c, d, e, lo, hi, note in items:
         put(ws, f"A{r}", vid); put(ws, f"B{r}", lab, wrap=True)
         put(ws, f"C{r}", c, fmt="#,##0.000"); put(ws, f"D{r}", d, fmt="#,##0.000")

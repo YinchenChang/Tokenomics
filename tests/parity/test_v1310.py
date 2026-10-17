@@ -13,6 +13,7 @@ REPO = Path(__file__).resolve().parents[2]
 V130_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v13.0.xlsx"      # v13.0（LibreOffice 重算存檔）：v13.1 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_")
 NEW_IN_V131 = {"RNG_Version", "RNG_Current"}      # 版本字串，隨版本改變
+Q4_VERIFY_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # v14.0（4-3B Q4）：新增 Checks V23–V26（20/12 → 24/16）；CHK_VerifyFail／Warn 仍須與 v13.0 相同
 PREWARM = {}
 
 
@@ -60,7 +61,7 @@ def test_v1310_fingerprint_file_matches_workbook(lo):
     assert [(s, a) for s, a, _ in fp["leaves"]] == [(s, a) for s, a, _ in leaves], "葉格集合不同"
     bad = [(s, a, v, w) for (s, a, v), (_, _, w) in zip(fp["leaves"], leaves) if not _same(v, w)]
     assert bad == [], (len(bad), bad[:8])
-    assert len(fp["leaves"]) == 579
+    assert len(fp["leaves"]) == 591      # v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
     base = lo.view({})
     assert base.get_name("RNG_StaleFlag") == "一致" and base.get("Checks", f"D{_chk_row(base, 'RG3')}") == 0
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0
@@ -84,12 +85,16 @@ def test_v1310_existing_contract_names_unchanged(lo):
     只有 RNG_Version／RNG_Current 兩個版本字串可以不同（隨版本更新）。"""
     prev = openpyxl.load_workbook(V130_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131]
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED]
     assert len(keep) >= 600, len(keep)
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
+        if n.startswith("IFC_"):      # v14.0（4-3B Q2）：Interface 新增 M 節（第 330 列起），IFC_ 欄範圍向後延長；原有的前段逐格須相同
+            assert len(got) >= len(want) and all(_same(a, b) for a, b in zip(want, got)), n
+            continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     assert v.get_name("RNG_Version") == model_path().name[: -len(".xlsx")]
+    assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (24, 16, 7, 1)      # v14.0（4-3B Q4）：只因新增 V23–V26 而變（20/12/7/1 → 24/16/7/1）

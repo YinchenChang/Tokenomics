@@ -162,7 +162,7 @@ def test_v1500_t32_vr200_names_move_only_with_vr200_multiplier(lo):
 
 def test_v1500_t32_existing_range_endpoints_unchanged(wbf):
     """既有 59 個名稱的 _Lo／_Hi 端點與 v14.2 的快照逐格相同（工作單：不得變動既有 RNG_* 端點）。"""
-    old = json.loads((FIXTURES / "contract_snapshot_v15.0.json").read_text(encoding="utf-8"))
+    old = json.loads((FIXTURES / "contract_snapshot_v15.1.json").read_text(encoding="utf-8"))
     assert len([n for n in old["names"] if n.startswith("RNG_")]) >= 122 + 24
     ws_vals = openpyxl.load_workbook(model_path(), data_only=True)
     n_checked = 0

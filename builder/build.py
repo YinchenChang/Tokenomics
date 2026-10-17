@@ -338,6 +338,9 @@ print("v1420 v14.2:", V1420)
 import v1500
 V1500 = v1500.apply(wb, v518._append_text)       # v15.0: audit close-out O13/O14/O15/O9/O6/O20, T3 O5/O4 notes, Decisions SL46-*
 print("v1500 v15.0:", V1500)
+import v1510
+V1510 = v1510.apply(wb, v518._append_text)       # v15.1: U1/U2 text corrections after the v15.0 independent check, Sens_Rev A17 label formula, Decisions SL46-25…31
+print("v1510 v15.1:", V1510)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

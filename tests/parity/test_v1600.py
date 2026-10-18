@@ -140,7 +140,7 @@ def test_v1600_three_state_row242(wbf, lo):
     v = lo.view({})
     assert v.get("Cap_In", "C242") == "未定（區間重疊；基準 L 0.716 對所需 L 0.756）"
     assert v.get("Cap_In", "D242").startswith("對照：低端欄 L ") and v.get("Cap_In", "E242").startswith("對照：高端欄 L ")
-    neg = lo.view({"Cap_In!C226": -0.6, "Cap_In!D226": -0.6, "Cap_In!E226": -0.55})
+    neg = lo.view({"Cap_In!C226": -0.9, "Cap_In!D226": -0.9, "Cap_In!E226": -0.85})      # 世代起點 L 較 v15.3 口徑低，需 g 更低才使 L 上端 0.315 < 所需 L 下端 0.357
     assert neg.get("Cap_In", "C242") == "未回本（L 區間全在所需 L 之下）"
     pos = lo.view({"Cap_In!C226": 0.3, "Cap_In!D226": 0.3, "Cap_In!E226": 0.4, "Cap_In!C227": 6, "Cap_In!D227": 6, "Cap_In!E227": 6})
     assert pos.get("Cap_In", "C242") == "回本（L 區間全在所需 L 之上）"
@@ -158,7 +158,7 @@ def test_v1600_comparison_rows(wbf, lo):
     assert v.get("Cap_In", f"C{ra}") == "未定（區間重疊；基準 L（2025＝第 0 年） 0.660 對所需 L 0.756）"
     assert v.get("Cap_In", f"C{rb}") == "未定（區間重疊；基準 世代起點 L 0.716 對所需 L 0.756）"
     assert v.get("Cap_In", f"C{rc}") == "未定（區間重疊；基準 折現版 L 0.699 對所需 L 0.756）"
-    neg = lo.view({"Cap_In!C226": -0.6, "Cap_In!D226": -0.6, "Cap_In!E226": -0.55})
+    neg = lo.view({"Cap_In!C226": -0.9, "Cap_In!D226": -0.9, "Cap_In!E226": -0.85})      # 世代起點 L 較 v15.3 口徑低，需 g 更低才使 L 上端 0.315 < 所需 L 下端 0.357
     assert neg.get("Cap_In", f"C{rb}").startswith(("未回本", "未定")) and neg.get("Cap_In", f"C{rc}").startswith(("未回本", "未定"))
 
 

@@ -16,6 +16,7 @@ from conftest import model_path
 REPO = Path(__file__).resolve().parents[2]
 FIXTURES = REPO / "tests" / "parity" / "fixtures"
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.1.xlsx"
+V152 = REPO / "model" / "archive" / "20261017_Tokenomics_v15.2.xlsx"      # v15.3：v15.1→v15.2 的差異改對封存的 v15.2 釘住（現行版已是 v15.3；v15.2→v15.3 由 test_v1530 釘住）
 CHANGED = set(json.loads((FIXTURES / "v152_changed_names.json").read_text(encoding="utf-8"))["names"])
 
 
@@ -76,6 +77,7 @@ def test_v1520_m_values_and_decomposition(lo):
 def test_v1520_only_expected_names_changed(lo):
     """與 v15.1 逐名稱比較：值不同的具名範圍恰好等於 fixtures/v152_changed_names.json（不多不少）。"""
     pw = openpyxl.load_workbook(PREV, data_only=True)
+    v152 = openpyxl.load_workbook(V152, data_only=True)      # v15.3：以封存的 v15.2（LibreOffice 重算存檔）取值
     v = lo.view({})
     changed = set()
     for n, d in pw.defined_names.items():
@@ -84,7 +86,9 @@ def test_v1520_only_expected_names_changed(lo):
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [pw[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
-        got = _flat(v.get_name(n))
+        sh2, rg2 = v152.defined_names[n].attr_text.rsplit("!", 1)
+        c1b, r1b, c2b, r2b = range_boundaries(rg2.replace("$", ""))
+        got = [v152[sh2.strip("'")].cell(r, c).value for r in range(r1b, r2b + 1) for c in range(c1b, c2b + 1)]
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
     assert changed == CHANGED, (sorted(changed - CHANGED)[:20], sorted(CHANGED - changed)[:20])
@@ -133,10 +137,9 @@ def test_v1520_decisions_and_evidence(wbf):
         assert d.cell(r, 2).value == "v15.2" and d.cell(r, 7).value == "v15.2 已建" and d.cell(r, 10).value == "否"
         assert "可撤回" in d.cell(r, 6).value and "Andy 2026-10-17" in d.cell(r, 6).value
     assert "Analogy" in d.cell(_row(d, "SL47-05"), 4).value and "更正理由" in d.cell(_row(d, "SL47-05"), 4).value
-    assert d.max_row <= 300
     e = wbf["DB_Evidence"]
     ids = [e.cell(r, 1).value for r in range(5, e.max_row + 1)]
-    assert ids[-6:] == ["E387", "E388", "E389", "E390", "E391", "E392"]
+    assert ids[ids.index("E387"):ids.index("E387") + 6] == ["E387", "E388", "E389", "E390", "E391", "E392"]      # v15.3：其後另有 E393…E397
     r = _row(e, "E392")
     assert e.cell(r, 9).value == "待查" and e.cell(r, 12).value == "待判定"
     assert "可撤回" in e.cell(_row(e, "E389"), 11).value and e.cell(_row(e, "E389"), 9).value == "採用（B3）"
@@ -145,7 +148,7 @@ def test_v1520_decisions_and_evidence(wbf):
 def test_v1520_changed_cells_only_expected():
     """與 v15.1 逐格比對（公式文字或輸入值）：只有預期的頁與格不同；其餘頁 0。
     Alloc 的 298 格＝Alloc N 節情境值 10 格（v12.0 靜態表，與 RNG_* 同源重產）＋ O 節 RNG 靜態端點與 P 節指紋（重產）及版本字串；Load_Bearing 392 格＝少一列（GM342 離開承重清單）後上移；Checks B122＝K5 標籤文字。"""
-    a, b = openpyxl.load_workbook(PREV), openpyxl.load_workbook(model_path())
+    a, b = openpyxl.load_workbook(PREV), openpyxl.load_workbook(V152)      # v15.3：對封存的 v15.2
     diffs = {}
     for ws in a:
         wn = b[ws.title]

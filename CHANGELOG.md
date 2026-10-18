@@ -2,6 +2,20 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261018_Tokenomics_v15.3.xlsx（取代 v15.2；**次版：輸入值與公式改變，名稱與定義不變**；L 證據 B 段＋v15.2 修補，依工作單 `docs/workorders/20261018_v15.3_L證據與修補.md` r0＋r1（chat 端 2026-10-18 判定，同分支同 PR，版號維持 v15.3））
+
+- 分支 `claude/v15-3`（PR 與 SHA 見報告）。報告：`docs/reports/20261018_v15.3_L證據與修補.md`；進度檔：`docs/reports/20261018_v15.3_進度.md`；契約名稱新舊值明細：`docs/reports/20261018_v15.3_契約名稱新舊值.md`。**待合併（需 Andy 回覆「合併」）**。
+- Excel（CC 以 `builder/v1530.py` 自 v15.2 產生，經 LibreOffice 重算存檔）：
+  - W1 E1：Cap_In C226／D226／E226（g）−0.10／−0.25／+0.05 → −0.09／−0.20／+0.05，標記 Assumed → Derived（修訂九更正：原字樣保留於 Cap_In G226、Gov_Map GM634／GM635 的 AL 欄）。E2：Cap_In D228（ρ 低端）公式乘 `INDEX(IF_TokGW_Luna,1,4)/INDEX(IF_TokGW_Sol,1,4)`（GB200 欄，0.050 → 0.170）；E228 1.0 → 0.7；基準 0.5 不變；標記 Assumed → Derived（兩種讀法；原字樣保留於 G228、GM638／GM639 的 AL 欄）。E3：T1 維持 4（3–5），GM636 N 欄加註。`L1_LTotal` 0.6426 → 0.6595（`_Lo` 0.3420 → 0.3963、`_Hi` 1.1618 → 1.0964）。
+  - W2 D1：Cap_In 第 242 列改三態判讀（`L1_LTotal` 區間對 `L1_LReqFleet_Id` 區間；基準下顯示『未定』）；第 243 列標籤改『對照（字面讀法…）』，公式保留。
+  - W3 C2：Calib D156（`CAL_BatchEtaD` GB200）2.36 → 公式 `=IF(AND(ISNUMBER(C254),ISNUMBER(D201)),SQRT(C254*D201/$D$67),1)`＝2.050（r1 同口徑：D201 為相對 CAL_EtaD 的總倍數＝D67 × CAL_BatchEtaD，故除以 D67；r0 曾為 `SQRT(C254*D201)`＝2.198，未合併；無解退回 1）；Gov_Map GM685 區間 1.83–3.04 → 1.59–2.64（K 1.83 → 1.59、L 3.04 → 2.64＝D201 ÷ D67，原值保留於 M／N 欄）；`tools/gen_ranges.py` 高端情境 1.83 → 1.59、低端情境 GB200 3.04 → 2.64，`builder/v1300_ranges.json`、`builder/v1310_fingerprint.json`、Alloc N 節靜態表重產；`tests/parity/parity_lib.py` 允許以值覆寫 Calib D156 這一格公式（情境端點用）。
+  - W4：Gov_Map AA 欄 `COUNTIF(Decisions!$A$5:$A$300, …)` → `$A$5:$A$1000`（`builder/gov.py`）；`builder/v1310.py` 的列數守衛放寬為 1000；L1 H86–H88 標籤文字。
+  - r1（chat 端判定）：L1 第 89 列 P 欄二態判讀改三態（恆等式讀法，同 Cap_In C242）；過期標籤改為現行標記與數字（L1 C86／C87／K86–K88／S87、Cap_In A226／A228／A230、Gov_Map E 欄；原文逐字保留於 Decisions SL48-09）；`builder/build.py` 加 `v1530.SNAP_MOVES`（Cap_In A226／A228 改標後，Excel 值隨標籤回到 builder 的鍵，restore unmatched 維持 0）。
+  - W5：Decisions SL48-01…09；W6：DB_Evidence E393…E397。
+  - 具名範圍增減 0；GOV 0／280／182 不變；`LB_Rows` 56 不變；Alloc P 節指紋 604 → 629 列，`RNG_Dem004_*` 的儲存格位置下移 25 列（名稱與值不變）。
+  - 不得變：`L1_MFleet`、`IF_AllocServeGW`、`L1_LReqFleet_Id`、Calib D67、Cap_In C280 全部逐值不變。
+- 測試：契約快照 `contract_snapshot_v15.3.json`（827 個名稱、6,241 格）；新增 `fixtures/v153_changed_names.json` 與 `tests/parity/test_v1530.py`；`scenarios.yaml` formula_cells 52,214 → 52,265、批次端點情境 1.83 → 1.59、3.04 → 2.64；其餘期望值隨預期變動更新，逐項見報告。
+
 ## 20261017_Tokenomics_v15.2.xlsx（取代 v15.1；**次版：輸入值改變，名稱與定義不變**；m 證據 B 段，依工作單 `docs/workorders/20261017_v15.2_m證據B段.md` r1）
 
 - 分支 `claude/v15-2`（PR 與 SHA 見報告）。報告：`docs/reports/20261017_v15.2_m證據B段.md`；進度檔：`docs/reports/20261017_v15.2_進度.md`；契約名稱新舊值明細：`docs/reports/20261017_v15.2_契約名稱新舊值.md`。

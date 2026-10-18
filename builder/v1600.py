@@ -368,8 +368,18 @@ def purpose_marks(wb):
     return len(PURPOSE_MARKS)
 
 
+def clear_l1_ratio(wb):
+    """L1 column O (推算 ÷ 外部) has no external value on the four new rows: cleared like the other external-less rows (v10.1 L1_O_ROWS), so they are not dead formula cells."""
+    ws = wb["L1"]; n = 0
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value in ("L1_LTotalFleetV", "L1_LTotalV", "L1_LTotalDisc", "L1_LReqFleet_IdNoK") and ws[f"O{r}"].value is not None:
+            ws[f"O{r}"].value = None; n += 1
+    return n
+
+
 def apply(wb, append_text):
     log = {}
+    log["l1_o_cleared"] = clear_l1_ratio(wb)
     log["purpose"] = purpose_marks(wb)
     log["p89"] = l1_p89(wb)
     log["evidence"] = evidence_append(wb)

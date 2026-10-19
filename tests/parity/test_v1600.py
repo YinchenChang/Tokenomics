@@ -17,6 +17,7 @@ from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
 V153 = REPO / "model" / "archive" / "20261018_Tokenomics_v15.3.xlsx"
+V160 = REPO / "model" / "archive" / "20261018_Tokenomics_v16.0.xlsx"      # v17.0：現行版已是 v17.0；v16.0 專屬的文字與逐格比較改對封存的 v16.0 釘住（v16.0→v17.0 由 test_v1700 釘住）
 NEW_NAMES = {"L1_LTotalFleetV", "L1_LTotalFleetV_Lo", "L1_LTotalFleetV_Hi", "L1_LTotalV", "L1_LTotalDisc", "L1_LTotalDisc_Lo", "L1_LTotalDisc_Hi",
              "L1_LReqFleet_IdNoK", "L1_LReqFleet_IdNoK_Lo", "L1_LReqFleet_IdNoK_Hi"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current", "IDX_SrcID"}      # 版本字串；Gov_Map 新增 6 列使 SRC_Index 哨兵由空字串變 '—'
@@ -137,18 +138,15 @@ def test_v1600_ltotalv_is_four_cell_range(wbf, lo):
 
 
 def test_v1600_three_state_row242(wbf, lo):
+    """v17.0：第 242 列與 L1 第 89 列改讀折現版與不含 κ 所需 L（test_v1700 釘住）；本測試改對封存的 v16.0 檔釘住 v16.0 當時的文字與三態規則。"""
+    pv = openpyxl.load_workbook(V160, data_only=True)
+    pf = openpyxl.load_workbook(V160)
+    assert pv["Cap_In"]["C242"].value == "未定（區間重疊；基準 L 0.716 對所需 L 0.756）"
+    assert pv["Cap_In"]["D242"].value.startswith("對照：低端欄 L ") and pv["Cap_In"]["E242"].value.startswith("對照：高端欄 L ")
+    assert pf["Cap_In"]["C242"].value.count("L1_LTotalFleetV_Hi<L1_LReqFleet_Id_Lo") == 1      # v16.0 三態規則（L1_LTotalFleetV 區間對 L1_LReqFleet_Id 區間）
+    assert pv["L1"]["P89"].value.startswith("恆等式讀法：未定（世代起點 L 0.72 對所需 L 0.76；v15.3 口徑 2025＝第 0 年：L 0.660）")
     v = lo.view({})
-    assert v.get("Cap_In", "C242") == "未定（區間重疊；基準 L 0.716 對所需 L 0.756）"
     assert v.get("Cap_In", "D242").startswith("對照：低端欄 L ") and v.get("Cap_In", "E242").startswith("對照：高端欄 L ")
-    neg = lo.view({"Cap_In!C226": -0.9, "Cap_In!D226": -0.9, "Cap_In!E226": -0.85})      # 世代起點 L 較 v15.3 口徑低，需 g 更低才使 L 上端 0.315 < 所需 L 下端 0.357
-    assert neg.get("Cap_In", "C242") == "未回本（L 區間全在所需 L 之下）"
-    pos = lo.view({"Cap_In!C226": 0.3, "Cap_In!D226": 0.3, "Cap_In!E226": 0.4, "Cap_In!C227": 6, "Cap_In!D227": 6, "Cap_In!E227": 6})
-    assert pos.get("Cap_In", "C242") == "回本（L 區間全在所需 L 之上）"
-    # L1 P89 同步（恆等式讀法）
-    p89 = v.get("L1", "P89")
-    assert p89.startswith("恆等式讀法：未定（世代起點 L 0.72 對所需 L 0.76；v15.3 口徑 2025＝第 0 年：L 0.660）")
-    assert neg.get("L1", "P89").startswith("恆等式讀法：未回本") and pos.get("L1", "P89").startswith("恆等式讀法：回本")
-    assert "v15.3 口徑 2025＝第 0 年：L " in neg.get("L1", "P89") and "v15.3 口徑 2025＝第 0 年：L " in pos.get("L1", "P89")
 
 
 def test_v1600_comparison_rows(wbf, lo):
@@ -206,7 +204,9 @@ def test_v1600_decisions_evidence_readme(wbf):
     assert ids[-1] == "E398" and ids[-6:-1] == ["E393", "E394", "E395", "E396", "E397"]
     assert "不新增外部來源" in e.cell(_row(e, "E398"), 4).value and "可撤回" in e.cell(_row(e, "E398"), 11).value
     rd = wbf["README"]
-    assert str(rd["B5"].value).startswith("20261018_Tokenomics_v16.0（主版：") and str(rd["A1"].value).startswith("Tokenomics v16.0")
+    assert any(rd.cell(r, 1).value == "v16.0 L 世代起點" for r in range(4, rd.max_row + 1))      # v17.0：README B5／A1 的版本字串已是 v17.0（test_v1700）；v16.0 列保留
+    rdp = openpyxl.load_workbook(V160, data_only=True)["README"]      # v17.0：封存的 v16.0
+    assert str(rdp["B5"].value).startswith("20261018_Tokenomics_v16.0（主版：") and str(rdp["A1"].value).startswith("Tokenomics v16.0")
     assert any(rd.cell(r, 1).value == "v16.0 L 世代起點" for r in range(4, rd.max_row + 1))
 
 
@@ -214,9 +214,9 @@ def test_v1600_only_new_names_and_nothing_else_changed(lo):
     """與封存的 v15.3 逐名稱比較：新增名稱恰為 10 個；既有名稱值全部相同，唯一例外是版本字串與 Gov_Map 哨兵。"""
     pw = openpyxl.load_workbook(V153, data_only=True)
     pf = openpyxl.load_workbook(V153)
-    v = lo.view({})
-    assert set(v.names) - set(pf.defined_names) == NEW_NAMES
-    assert set(pf.defined_names) - set(v.names) == set()
+    nw = openpyxl.load_workbook(V160, data_only=True)      # v17.0：以封存的 v16.0（LibreOffice 重算存檔）取值
+    assert set(nw.defined_names) - set(pf.defined_names) == NEW_NAMES
+    assert set(pf.defined_names) - set(nw.defined_names) == set()
     changed = set()
     for n, d in pw.defined_names.items():
         if "!" not in d.attr_text or "," in d.attr_text:
@@ -224,11 +224,13 @@ def test_v1600_only_new_names_and_nothing_else_changed(lo):
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [pw[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
-        got = _flat(v.get_name(n))
+        sh2, rg2 = nw.defined_names[n].attr_text.rsplit("!", 1)
+        d1, e1, d2, e2 = range_boundaries(rg2.replace("$", ""))
+        got = [nw[sh2.strip("'")].cell(r, c).value for r in range(e1, e2 + 1) for c in range(d1, d2 + 1)]
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
-    # 重點名稱逐值
+    v = lo.view({})      # 重點名稱逐值（現行版：這些既有名稱在 v17.0 仍不變）
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LTotal_Lo", 0.396282624140417), ("L1_LTotal_Hi", 1.09636652745877), ("L1_LReqFleet_Id", 0.756109635897205),
                     ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
@@ -238,7 +240,7 @@ def test_v1600_only_new_names_and_nothing_else_changed(lo):
 
 def test_v1600_changed_cells_only_expected():
     """與封存的 v15.3 逐格比對（公式文字或輸入值）：只有預期的頁與格不同。"""
-    a, b = openpyxl.load_workbook(V153), openpyxl.load_workbook(model_path())
+    a, b = openpyxl.load_workbook(V153), openpyxl.load_workbook(V160)      # v17.0：對封存的 v16.0
     diffs = {}
     for ws in a:
         wn = b[ws.title]

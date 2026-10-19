@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261020_Tokenomics_v17.0.xlsx（取代 v16.0；**主版：新增 3 個契約名稱，既有名稱的值不變**；回本判讀主口徑改為『世代起點＋折現的機隊 L』對『不含 κ 的所需 L』（F1、F2 依預設），依工作單 `docs/workorders/20261020_v17.0_F1F2主口徑.md` r0）
+
+- 分支 `claude/v17-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261020_v17.0_F1F2主口徑.md`；進度檔：`docs/reports/20261020_v17.0_進度.md`。**待合併（需 Andy 回覆「合併」）**
+- Excel（CC 以 `builder/v1700.py` 自 v16.0 產生，經 LibreOffice 重算存檔）：
+  - W1 Cap_In 新節 O「L 世代起點折現」（第 320–326 列，接在第 318 列之後，既有格不動）：各世代折現 L_rel（基準／低端組合／高端組合；折現到該世代起點）、機隊折現 L、v16.0 口徑對照列。新名稱：`L1_LTotalFleetVDisc`（＋`_Lo`／`_Hi`；L1 第 116 列）0.75860／0.47298／1.13827（與事前計算相符，差 < 1e-5）。
+  - W2 Cap_In 第 242 列 L 側改讀 `L1_LTotalFleetVDisc`、所需 L 側改讀 `L1_LReqFleet_IdNoK`（基準『未定（區間重疊；基準 L 0.759 對所需 L 0.756）』，比值 1.003 寫在 G242）；L1 第 89 列 P 欄改讀新主口徑並附『（v16.0 口徑：L 0.716 對 0.756）』；`L1_LReqFleet_Id` 名稱與值不變，L1 標籤加註『v17.0 起非主口徑（F1）』。
+  - W3 Decisions SL50-01…03（F1、F2 依預設執行，可撤回）；README 版本列與 v17.0 列；契約文件 v0.19。
+  - 具名範圍 1,564 → 1,567（新增 3）；既有名稱值不變，唯一例外是版本字串（`RNG_Version`、`RNG_Current`）。GOV 0／280／182 不變。`builder/v1300_ranges.json`、`builder/v1310_fingerprint.json` 只更新版本字串。
+  - 工程：`tools/gen_builder_md.py`、`tools/make_test_fixtures.py` 接上 v17.0。
+- 測試：契約快照 `contract_snapshot_v17.0.json`（843 個名稱、7,751 格）；新增 `tests/parity/test_v1700.py`；v16.0 專屬測試（`test_v1600`）改對封存的 v16.0 釘住。
+
 ## 20261018_Tokenomics_v16.0.xlsx（取代 v15.3；**主版：新增 10 個契約名稱，既有名稱的值不變**；L 按世代起點計算，依工作單 `docs/workorders/20261018_v16.0_L世代起點.md` r0）
 
 - 分支 `claude/v16-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261018_v16.0_L世代起點.md`；進度檔：`docs/reports/20261018_v16.0_進度.md`。**待合併（需 Andy 回覆「合併」）**

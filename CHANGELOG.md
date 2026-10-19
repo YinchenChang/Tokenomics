@@ -2,6 +2,17 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261018_Tokenomics_v16.0.xlsx（取代 v15.3；**主版：新增 10 個契約名稱，既有名稱的值不變**；L 按世代起點計算，依工作單 `docs/workorders/20261018_v16.0_L世代起點.md` r0）
+
+- 分支 `claude/v16-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261018_v16.0_L世代起點.md`；進度檔：`docs/reports/20261018_v16.0_進度.md`。**待合併（需 Andy 回覆「合併」）**
+- Excel（CC 以 `builder/v1600.py` 自 v15.3 產生，經 LibreOffice 重算存檔）：
+  - W1 Cap_In 新節 N「L 世代起點」（第 298–318 列，接在第 296 列之後，既有格不動）：世代服務起點 s_v（基準／低／高）、校準錨點年 A＝2025.5、錨點前牌價年變化率 g_pre、t0、L_rel、2025 營收權重、機隊 L、各世代 L、折現版 L、不含 κ 所需 L、三列三態對照。新名稱：`L1_LTotalFleetV`（＋`_Lo`／`_Hi`）0.7159／0.4265／1.1190；`L1_LTotalV`（Cap_In 四格）；`L1_LTotalDisc`（＋`_Lo`／`_Hi`）0.6988／0.4401／1.0941；`L1_LReqFleet_IdNoK`（＋`_Lo`／`_Hi`）0.7561／0.4905／0.9223。
+  - W2 Cap_In 第 242 列 L 側改讀 `L1_LTotalFleetV`（基準仍為『未定（區間重疊；基準 L 0.716 對所需 L 0.756）』）；L1 第 89 列 P 欄恆等式讀法改讀 `L1_LTotalFleetV`，附『v15.3 口徑 2025＝第 0 年：L 0.660』；L1 頁新增 112–115 列。
+  - W3 Decisions SL49-01…04；DB_Evidence E398（引用 Cap_In 第 272–274 列，不新增外部來源）；Gov_Map 新增 6 列（s_v、A、g_pre）；README 版本列與 v16.0 列。
+  - 具名範圍 1,554 → 1,564（新增 10）；既有名稱值不變，唯一例外是版本字串與 Gov_Map 哨兵（`RNG_Version`、`RNG_Current`、`IDX_SrcID`）。GOV 0／280／182 不變。`builder/v1300_ranges.json`、`builder/v1310_fingerprint.json` 只更新版本字串（端點與指紋格不變；新名稱在批次端點情境下不動，不建 `RNG_*`）。
+  - 工程：`builder/v1530.py` 的結尾守衛放寬（第 242 列由 v1600 改寫）；`tools/gen_builder_md.py`、`tools/make_test_fixtures.py` 接上 v16.0。
+- 測試：契約快照 `contract_snapshot_v16.0.json`（837 個名稱、6,254 格）；新增 `tests/parity/test_v1600.py`；v15.3 專屬測試改對封存的 v15.3 釘住。
+
 ## 20261018_Tokenomics_v15.3.xlsx（取代 v15.2；**次版：輸入值與公式改變，名稱與定義不變**；L 證據 B 段＋v15.2 修補，依工作單 `docs/workorders/20261018_v15.3_L證據與修補.md` r0＋r1（chat 端 2026-10-18 判定，同分支同 PR，版號維持 v15.3））
 
 - 分支 `claude/v15-3`（PR 與 SHA 見報告）。報告：`docs/reports/20261018_v15.3_L證據與修補.md`；進度檔：`docs/reports/20261018_v15.3_進度.md`；契約名稱新舊值明細：`docs/reports/20261018_v15.3_契約名稱新舊值.md`。**待合併（需 Andy 回覆「合併」）**。

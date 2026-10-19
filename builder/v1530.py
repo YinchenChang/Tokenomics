@@ -364,7 +364,8 @@ def apply(wb, append_text):
         log["decisions"] = v1410.decisions_append(wb, _decisions())
     # final guard: the early cell edits must have survived every later builder step
     ci = wb["Cap_In"]
-    assert ci["C242"].value == C242_NEW and ci["D228"].value == RHO_D_NEW and wb["Calib"]["D156"].value == D156_NEW, "v15.3 cell edits were overwritten by a later builder step"
+    # v16.0: Cap_In row 242 is rewritten afterwards by v1600.inputs_update (L side reads L1_LTotalFleetV), so only its head is checked here
+    assert str(ci["C242"].value).startswith("=IF(AND(ISNUMBER(L1_LTotal") and ci["D228"].value == RHO_D_NEW and wb["Calib"]["D156"].value == D156_NEW, "v15.3 cell edits were overwritten by a later builder step"
     return log
 
 

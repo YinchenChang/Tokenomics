@@ -34,6 +34,7 @@ import v1300                      # v13.0: 4-2b-1 (RNG_ ranges, range freshness,
 import v1500                      # v15.0: SRC_PRC_047 record (O14)
 import v1520                      # v15.2: Gov_Map GM342 (B3 range, Analogy -> Derived), GM457 M, GM644 N
 import v1530                      # v15.3: Gov_Map GM634／635／638／639 (E1／E2 Derived), GM636 N (E3), GM685 K／M／N (C2)
+import v1600                      # v16.0: Gov_Map rows for Cap_In N (s_v, A, g_pre), L1 rows LTotalFleetV／LTotalV／LTotalDisc／LReqFleet_IdNoK
 import v1310                      # v13.1: D15 B (Gov_Map J／H completion, Decisions D15-*, new SRC records, DB_Evidence column R, range fingerprint)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
@@ -371,7 +372,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb) + v1200.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb) + v1200.gov_map_rows(wb) + v1600.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -552,7 +553,7 @@ def _rows_l1(wb):
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     R = v527.l1_rows(R)             # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
-    return v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new()   # v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
+    return v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new() + v1600.l1_rows_new()   # v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
 
 def l1_sheet(wb):
     global _REV_ROW

@@ -194,7 +194,7 @@ def test_exposed_parameters_are_inputs_and_registered(lo):
     assert sr["G11"].value == "=F12*SR_RU_PxMultLo" and sr["G13"].value == "=F12*SR_RU_PxMultHi"
     l1 = wb["L1"]
     n = sum(1 for r in range(5, 140) if isinstance(l1[f"P{r}"].value, str) and "L1_JudgeTol" in l1[f"P{r}"].value)
-    assert n == 96, n
+    assert n == 100, n      # v16.0：L1 新增 4 列（112–115）的 P 欄也讀 L1_JudgeTol（96 → 100）
     assert not any(isinstance(l1[f"P{r}"].value, str) and "<=0.2," in l1[f"P{r}"].value for r in range(5, 140))
     gm = wb["Gov_Map"]
     rows = {tuple(r[:2]): r for r in gm.iter_rows(min_row=5, max_col=7, values_only=True) if r[0]}

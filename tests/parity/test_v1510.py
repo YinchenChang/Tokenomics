@@ -16,7 +16,7 @@ REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.0.xlsx"
 PREV142 = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
-VERSION_NAMES = {"RNG_Version", "RNG_Current"}
+VERSION_NAMES = {"RNG_Version", "RNG_Current", "IDX_SrcID"}      # v16.0：IDX_SrcID 為 Gov_Map 哨兵，v16.0 新增 6 列登記故值改變
 SC_EPS = {"CST_Eps": 0.6}
 PREWARM = {"test_v1510_a17_label_follows_cst_eps": [SC_EPS]}
 O12_ROWS = {"Amortize": (10, 19, 29, 40), "Interface": (55, 60, 64, 69, 73, 78, 148), "Theory_Rev": (18, 20, 36, 38, 54, 56)}
@@ -65,7 +65,7 @@ def test_v1510_every_name_value_equals_v150(lo):
     assert n_ok >= 1000, n_ok      # v15.2：B2／B3 預期變動的 455 個名稱（V152_CHANGED）不比，其餘仍逐值相同
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v15.3") and str(v.get_name("RNG_Current")).endswith("v15.3")      # v15.3：版本字串隨版本
+    assert str(v.get_name("RNG_Version")).endswith("v16.0") and str(v.get_name("RNG_Current")).endswith("v16.0")      # v16.0：版本字串隨版本
 
 
 def test_v1510_decisions_recorded(wbf):

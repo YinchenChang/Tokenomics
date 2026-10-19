@@ -19,6 +19,7 @@ from conftest import model_path
 REPO = Path(__file__).resolve().parents[2]
 FIXTURES = REPO / "tests" / "parity" / "fixtures"
 V152 = REPO / "model" / "archive" / "20261017_Tokenomics_v15.2.xlsx"
+V153 = REPO / "model" / "archive" / "20261018_Tokenomics_v15.3.xlsx"      # v16.0：v15.2→v15.3 的差異改對封存的 v15.3 釘住（現行版已是 v16.0；v15.3→v16.0 由 test_v1600 釘住）
 CHANGED = set(json.loads((FIXTURES / "v153_changed_names.json").read_text(encoding="utf-8"))["names"])
 RHO_D = "=IF_PriceRef_Luna/IF_PriceRef_Sol*INDEX(IF_TokGW_Luna,1,4)/INDEX(IF_TokGW_Sol,1,4)"
 
@@ -99,19 +100,18 @@ def test_v1530_marks_corrected_original_kept(wbf):
 
 
 def test_v1530_d1_three_state(wbf, lo):
+    """v16.0：第 242 列與 L1 第 89 列的 L 側改讀 L1_LTotalFleetV（test_v1600 釘住）；本測試改對封存的 v15.3 檔釘住 v15.3 當時的文字與三態規則。"""
     ci = wbf["Cap_In"]
     assert ci["A243"].value.startswith("對照（字面讀法，口徑不一致，不作判讀；見 L1 第 89 列說明）")
     assert ci["C243"].value.startswith("=IF(ISNUMBER(C241),IF(C233>=C241,")        # 公式保留
+    pv = openpyxl.load_workbook(V153, data_only=True)
+    assert pv["Cap_In"]["C242"].value == "未定（區間重疊；基準 L 0.660 對所需 L 0.756）"
+    assert pv["Cap_In"]["D242"].value.startswith("對照：") and pv["Cap_In"]["E242"].value.startswith("對照：")
+    assert pv["L1"]["P89"].value.startswith("恆等式讀法：未定（L_total 0.66 對所需 L 0.76）")
     v = lo.view({})
-    assert v.get("Cap_In", "C242") == "未定（區間重疊；基準 L 0.660 對所需 L 0.756）"
     assert v.get("Cap_In", "D242").startswith("對照：") and v.get("Cap_In", "E242").startswith("對照：")
-    neg = lo.view({"Cap_In!C226": -0.6, "Cap_In!D226": -0.6, "Cap_In!E226": -0.55})
-    assert neg.get("Cap_In", "C242") == "未回本（L 區間全在所需 L 之下）" and neg.get("Cap_In", "D242").endswith("（<）") and neg.get("Cap_In", "E242").endswith("（<）")
-    pos = lo.view({"Cap_In!C226": 0.3, "Cap_In!D226": 0.3, "Cap_In!E226": 0.4, "Cap_In!C227": 6, "Cap_In!D227": 6, "Cap_In!E227": 6})
-    assert pos.get("Cap_In", "C242") == "回本（L 區間全在所需 L 之上）" and pos.get("Cap_In", "D242").endswith("（≥）")
-    # v15.3 r1：L1 第 89 列 P 欄比照第 242 列改為三態（恆等式讀法；區間非數字時退回點比較）
-    assert v.get("L1", "P89").startswith("恆等式讀法：未定（L_total 0.66 對所需 L 0.76）")
-    assert neg.get("L1", "P89").startswith("恆等式讀法：未回本") and pos.get("L1", "P89").startswith("恆等式讀法：回本")
+    pf = openpyxl.load_workbook(V153)
+    assert pf["Cap_In"]["C242"].value.count("L1_LTotal_Hi<L1_LReqFleet_Id_Lo") == 1      # v15.3 三態規則（L1_LTotal 區間對 L1_LReqFleet_Id 區間）
 
 
 def test_v1530_c2_batch_multiple(wbf, lo):
@@ -138,9 +138,9 @@ def test_v1530_c2_batch_multiple(wbf, lo):
 
 
 def test_v1530_only_expected_names_changed(lo):
-    """與封存的 v15.2 逐名稱比較：值不同的具名範圍恰好等於 fixtures/v153_changed_names.json（不多不少）。"""
+    """與封存的 v15.2 逐名稱比較（現行版對封存的 v15.3 取值）：值不同的具名範圍恰好等於 fixtures/v153_changed_names.json（不多不少）。"""
     pw = openpyxl.load_workbook(V152, data_only=True)
-    v = lo.view({})
+    nw = openpyxl.load_workbook(V153, data_only=True)      # v16.0：以封存的 v15.3（LibreOffice 重算存檔）取值
     changed = set()
     for n, d in pw.defined_names.items():
         if "!" not in d.attr_text or "," in d.attr_text:
@@ -148,11 +148,13 @@ def test_v1530_only_expected_names_changed(lo):
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [pw[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
-        got = _flat(v.get_name(n))
+        sh2, rg2 = nw.defined_names[n].attr_text.rsplit("!", 1)
+        d1, e1, d2, e2 = range_boundaries(rg2.replace("$", ""))
+        got = [nw[sh2.strip("'")].cell(r, c).value for r in range(e1, e2 + 1) for c in range(d1, d2 + 1)]
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
     assert changed == CHANGED, (sorted(changed - CHANGED)[:20], sorted(CHANGED - changed)[:20])
-    assert set(pw.defined_names) == set(lo.view({}).names)      # 具名範圍增減 0
+    assert set(pw.defined_names) == set(nw.defined_names)      # 具名範圍增減 0
 
 
 def test_v1530_decisions_evidence_readme(wbf):
@@ -172,10 +174,10 @@ def test_v1530_decisions_evidence_readme(wbf):
     assert len(aa) >= 680 and all("Decisions!$A$5:$A$1000" in x for x in aa)
     e = wbf["DB_Evidence"]
     ids = [e.cell(r, 1).value for r in range(5, e.max_row + 1)]
-    assert ids[-5:] == ["E393", "E394", "E395", "E396", "E397"]
+    assert ids[ids.index("E393"):ids.index("E393") + 5] == ["E393", "E394", "E395", "E396", "E397"]      # v16.0：其後另有 E398
     assert e.cell(_row(e, "E393"), 9).value == "採用（E1）" and e.cell(_row(e, "E396"), 9).value == "部分採用（E4，只記錄）"
     assert all("可撤回" in e.cell(_row(e, f"E{n}"), 11).value for n in range(393, 398))
-    rd = wbf["README"]
+    rd = openpyxl.load_workbook(V153, data_only=True)["README"]      # v16.0：封存的 v15.3
     assert str(rd["B5"].value).startswith("20261018_Tokenomics_v15.3（次版：") and "v15.3" in str(rd["A1"].value)
 
 
@@ -187,7 +189,7 @@ def test_v1530_l1_labels(wbf):
 
 def test_v1530_changed_cells_only_expected():
     """與封存的 v15.2 逐格比對（公式文字或輸入值）：只有預期的頁與格不同。"""
-    a, b = openpyxl.load_workbook(V152), openpyxl.load_workbook(model_path())
+    a, b = openpyxl.load_workbook(V152), openpyxl.load_workbook(V153)      # v16.0：對封存的 v15.3
     diffs = {}
     for ws in a:
         wn = b[ws.title]
@@ -218,4 +220,4 @@ def test_v1530_r1_labels_and_p89(wbf):
     for cell, lab in (("C226", ci["A226"].value), ("D226:E226", ci["A226"].value), ("C228", ci["A228"].value), ("E228", ci["A228"].value)):
         assert gm[f"E{_gm(gm, 'Cap_In', cell)}"].value == lab, cell
     assert gm[f"E{_gm(gm, 'Cap_In', 'C227')}"].value.endswith("Assumed）")      # T1 仍是 Assumed（E3 維持）
-    assert l1["P89"].value.count('IF(F88<E107,"未回本"') == 2
+    assert openpyxl.load_workbook(V153)["L1"]["P89"].value.count('IF(F88<E107,"未回本"') == 2      # v16.0：P89 改讀 L1_LTotalFleetV（test_v1600）；v15.3 的寫法在封存檔

@@ -135,6 +135,8 @@ import v700
 V700_L = v700.cap_in_l(wb, V603_K)      # v7.0 B-1: Cap_In L section (CAP_GenGap_*; below K, nothing above moves)
 V1030_CAP = v1030.cap_in_patch(wb)      # v10.3 D09: Cap_In H10 2025 column C reads the H-section cells (patched after every Cap_In section is built, before contract tracing)
 V800_M = v800.cap_in_m(wb, V700_L)      # v8.0 L1／L4／D14: Cap_In M section (2025 annual tier prices, m／required-L comparisons, Astra Epoch implied tokens; below L, nothing above moves)
+import v1600
+V1600_N = v1600.cap_in_n(wb, V800_M)      # v16.0 W1: Cap_In N section (L from each generation's own start; below M, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -199,6 +201,7 @@ V518_LOG += v1100.inputs_update(wb)       # v11.0 G2: Calib D156 (CAL_BatchEtaD 
 V518_LOG += v1200.inputs_update(wb)       # v12.0 H2: Calib D156 3.04 -> 2.36 (old-value guard)
 import v1530
 V518_LOG += v1530.inputs_update(wb, v518._append_text)       # v15.3: E1／E2 Cap_In C226:E228 (inputs, D228 formula, marks), D1 rows 242／243, C2 Calib D156 = SQRT(C254*D201) (before gov_all so the contract tracing sees the final formulas)
+V518_LOG += v1600.inputs_update(wb, v518._append_text)       # v16.0 W2: Cap_In row 242 reads L1_LTotalFleetV (after v1530 wrote the v15.3 text; before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -251,6 +254,7 @@ nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
 # ---- v5.11: Stage 1 slice one (Source layer, Evidence upgrade, Decisions, Gov_Map, L1, governance Checks, F14); v5.13: slice two ----
 from gov import gov_all
 GOV = gov_all(wb)
+v1600.late_names(wb)      # v16.0: L1_LTotalV is the four-cell Cap_In row; drop the stray _Lo／_Hi names of that L1 row
 checks_h(wb)        # v5.15: Checks H section (after the G section; counted in GOV_Errors)
 V532_L1P = v532.l1_judge(wb)      # v5.32 B3: L1_MImplied／_Ext judgement column (inside／outside the CTL_Monetize Gov_Map range)
 V533_L1P = v533.l1_judge(wb)      # v5.33 B4: L1_MFleet (range) and L1_TokCeiling (demand ÷ ceiling) judgement columns
@@ -354,6 +358,8 @@ V1520 = v1520.apply(wb, v518._append_text)       # v15.2: B2 Cap_In C280:E280, B
 print("v1520 v15.2:", V1520)
 V1530 = v1530.apply(wb, v518._append_text)       # v15.3: L1 H86–H88 labels, Decisions SL48-*, DB_Evidence E393…E397 (Gov_Map edits run in gov.py)
 print("v1530 v15.3:", V1530)
+V1600 = v1600.apply(wb, v518._append_text)       # v16.0: L1 P89 (reads L1_LTotalFleetV), Decisions SL49-*, DB_Evidence E398 (Gov_Map rows are appended in gov.py)
+print("v1600 v16.0:", V1600)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

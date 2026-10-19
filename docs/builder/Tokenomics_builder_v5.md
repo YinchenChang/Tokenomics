@@ -45,6 +45,7 @@
 - v5.32（2026-10-11）：新增 v532.py（判斷類，工作單 docs/workorders/20261011_v5.32.md r1：Cap_In H 節「m 追蹤」〔Cap_In 第 66–108 列，接在 G 節之後，不新增具名範圍〕；SRC_Demand SRC_DEM_019–048 與 SRC_DEM_018 備註；L1_MImplied／L1_MImplied_Ext〔L1 第 76–77 列〕與判讀欄；Checks M1（WARN）；Gov_Map GM594 理由欄與新登錄 4 列；DB_Evidence E279–E301；Decisions X21–X26；README）；gov.py、build.py、finish.py 接上。以 v5.31 為底稿建置、LibreOffice 重算錯誤 0；以 v5.32 重建冪等 0 不符；既有 IF_／L1_ 數值差 0。
 - v5.33（2026-10-13）：新增 v533.py（判斷類，工作單 docs/workorders/20261012_v5.33.md r1：Alloc_In C9／C11／C12／E15 藍字（J8 世代組合 Hopper 60／GB200 40、J9 每則 token 高端 11,000；只在仍為舊值時才寫）；Cap_In H7「機隊口徑」〔第 108–130 列，接在 H6 之後，讀法列改寫移到第 130 列，不新增具名範圍〕；L1_MFleet／L1_TokCeiling〔L1 第 78–79 列〕與判讀欄；Checks M2／M3（WARN）；SRC_Demand SRC_DEM_049–068 與 SRC_DEM_007／009／045 備註；Gov_Map GM590／GM586／GM587／GM594 理由欄與新登錄 2 列（GM612／GM613）；DB_Evidence E302–E324 與 E301 判定；Decisions X27–X34 與 X22／X26 備註；README）。公式 46,471 格、零錯誤；具名範圍 1,140 個；restore matched 983、unmatched 0、Excel kept over code 9（冪等重建 986／0／12，多出的 3 格＝C9、C11、C12）；冪等重建不符 0。
 - v5.34（2026-10-14）：新增 v534.py（Cap_In H8 m 分拆、H9 token 帳三路線、H10 m 季度序列；L1 六列；Checks M4；SRC_DEM_069–071、DB_Evidence E325–E337、Decisions X35–X41；Cap_In E12 0.3 → 0.4）；gov.py、build.py、finish.py 接上。
+v16.0: builder/v1600.py (L from each generation's own start)
 - v7.0（2026-10-16）：新增 v700.py（判斷類，工作單 docs/workorders/20261016_稽核修正2.md 第 3 節＝2-2 段：世代價格 B 段 Cap_In L 節 CAP_GenGap_*、L1_GenPxThr_Rev／Pay_*、L1_FleetProdRatio；L1_FleetMargin／Checks K4 讀重解值；L1_GapUtil 乘生產折減；Alloc 全 GB200／全 VR200 純世代〔block6.py〕；Serving C18 說明、Calib C68 倒推標記；Decisions AF2c-*）；build.py、gov.py、finish.py 接線
 v6.1（稽核修正第 3B 批）：新增 v601.py
 - v6.0（2026-10-15）：新增 v600.py（判斷類，工作單 docs/workorders/20261015_稽核修正1.md：D7 _Prod／_Life 統一〔Theory_Rev_Prod 恆等式、Alloc H 節付費產能比、IF_*_Life 別名、Checks Z1〕、D8「SLO 不可達」改輸出文字〔perf／outputs／training／block4／block6 守衛〕、D11 回本溢價分母＝付費 token；Decisions AF1-D7／D8／D11）；v530、v533、finish、gov、build 接上。
@@ -1530,6 +1531,7 @@ import v1500
 import v1510
 import v1520
 import v1530
+import v1600
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1636,7 +1638,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v1530.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v1600.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1692,11 +1694,12 @@ def readme(wb):
       v1510.README_ROW,       # v15.1: close-out clean-up (appended; no README row moves)
       v1520.README_ROW,       # v15.2: m evidence B stage (appended; no README row moves)
       v1530.README_ROW,       # v15.3: L evidence B stage + repairs (appended; no README row moves)
+      v1600.README_ROW,       # v16.0: L from each generation's own start (appended; no README row moves)
     ]
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v1530.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v1600.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -32085,7 +32088,8 @@ def apply(wb, append_text):
         log["decisions"] = v1410.decisions_append(wb, _decisions())
     # final guard: the early cell edits must have survived every later builder step
     ci = wb["Cap_In"]
-    assert ci["C242"].value == C242_NEW and ci["D228"].value == RHO_D_NEW and wb["Calib"]["D156"].value == D156_NEW, "v15.3 cell edits were overwritten by a later builder step"
+    # v16.0: Cap_In row 242 is rewritten afterwards by v1600.inputs_update (L side reads L1_LTotalFleetV), so only its head is checked here
+    assert str(ci["C242"].value).startswith("=IF(AND(ISNUMBER(L1_LTotal") and ci["D228"].value == RHO_D_NEW and wb["Calib"]["D156"].value == D156_NEW, "v15.3 cell edits were overwritten by a later builder step"
     return log
 
 
@@ -32099,6 +32103,412 @@ _T = v1520.README_TITLE
 README_TITLE = V + _T[len(v1520.V):]
 README_ROW = ("v15.3 L 證據 B 段＋修補",
               "g 基準 −0.09（區間 −0.20～+0.05）、ρ 低端乘吞吐倍數 0.17／高端 0.7（皆改 Derived）；回本判讀改三態（L 區間對所需 L 區間）；CAL_BatchEtaD GB200 改兩反推點幾何平均公式（約 2.050）。名稱與定義不變。細節見 Decisions SL48-01…09（含 r1 同口徑更正、L1 P89 三態、過期標籤更新）。")
+```
+
+## v1600.py
+
+```python
+# v16.0 (work order docs/workorders/20261018_v16.0_L世代起點.md r0, branch claude/v16-0): L measured from each generation's own start (major version: new contract names).
+#   W1  Cap_In section N "L 世代起點（v16.0）" below the M section (nothing above moves): generation service start s_v (base/low/high), calibration anchor A, pre-anchor price change g_pre,
+#       t0 = MAX(0, A - s_v), L_rel (relative to the anchor), revenue weights, fleet L -> L1_LTotalFleetV (+_Lo/_Hi), per-generation L -> L1_LTotalV (4 cells),
+#       discounted L -> L1_LTotalDisc (+_Lo/_Hi), required L without kappa -> L1_LReqFleet_IdNoK (+_Lo/_Hi).
+#   W2  Cap_In row 242 reads L1_LTotalFleetV (three-state); three comparison rows (2025 = year 0 / fleet L vs no-kappa required L / discounted L vs no-kappa required L);
+#       L1 row 89 P reads L1_LTotalFleetV; four L1 rows appended after the last row.
+#   W3  Decisions SL49-01..04, DB_Evidence E398, README, contract document (outside the workbook).
+# Every write to an Excel-owned cell is guarded (old text); no existing input value changes. Cap_In 242 is rewritten from the v15.3 text (v1530 writes it first on every build), so the edit is deterministic.
+from openpyxl.utils import get_column_letter as L
+from openpyxl.workbook.defined_name import DefinedName
+
+from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY
+import v1000
+import v1020
+import v1400
+import v1410
+import v1530
+
+VERSION = "20261018_Tokenomics_v16.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-18"
+V = "v16.0"
+WO = "工作單 docs/workorders/20261018_v16.0_L世代起點.md（r0）"
+DASH = "—"
+DEC_BY = ("Andy 2026-10-18 10:20「L 应该就是衡量在这个硬体的生命周期里，token 的价格的下跌趋势…本来就是 L 本来就是应该用自己每个世代来算的。我们用二零二五，其实是只是一个锚点，因为二零二五已经过去了，"
+          "而且有比较多的一个数据，所以我们是当做一个锚点了。…不然你不可能未来几年，我们都还是用二零二五年来算，毕竟我们这东西算出来之后是要去预期或预估未来的一个状况嘛。」；10:24「合併」"
+          "（同意 chat 端 10:21 提出的 v15.4 方向，合併後開工）；數值為 chat 端建議，可撤回")
+DEF_TXT = ("L＝某一世代硬體在其壽命期 T 內，token 單價相對該世代『起點』單價的平均（跌價＋降級）。每個世代從自己的起點算。2025 年是校準錨點（觀察營收與支出的年度），不是 L 的起點。"
+           "現行 L1_LTotal 的公式就是『新世代、起點＝第 0 年』的 L，保留不改。")
+
+GENS = ("Hopper", "GB200", "GB300", "VR200")
+SV_BASE = (2023.5, 2025.0, 2025.5, 2026.75)
+SV_LO = (2023.0, 2025.0, 2025.5, 2026.75)      # earlier
+SV_HI = (2024.0, 2025.5, 2025.6, 2027.0)       # later
+ANCHOR = 2025.5
+GPRE = (-0.09, -0.30, -0.09)                    # C base, D low, E high
+
+ROWS = {}      # key -> Cap_In row (filled by cap_in_n)
+PURPOSE_MARKS = {}      # Cap_In row -> 用途 text for the dead display cells (written in apply)
+SEC_TITLE = "N. L 世代起點（v16.0；" + WO + "）：" + DEF_TXT
+
+# ---------------------------------------------------------------- formulas
+def _ln(x): return f"LN(1+{x})"
+
+
+def lrel_formula(col, t0cell, c, gp):
+    """L_rel of generation column `col`: t0cell = that generation's t0 (Cap_In cell), c = scenario column (C base / D low / E high) of the g, T1, rho, T rows, gp = g_pre cell."""
+    g, t1, rho, T = f"${c}$226", f"${c}$227", f"${c}$228", f"${c}$229"
+    t0 = t0cell
+    past = f"IF({t0}>0,IF(ABS({_ln(gp)})<0.000000000001,{t0},(1-(1+{gp})^(-{t0}))/{_ln(gp)}),0)"
+    a, b = f"({t1}-{t0})", f"({T}-{t0})"
+    fut = (f"IF(ABS({_ln(g)})<0.000000000001,{a}+{rho}*({b}-{a}),(((1+{g})^{a}-1)+{rho}*((1+{g})^{b}-(1+{g})^{a}))/{_ln(g)})")
+    return f'=IF({t0}>{t1},"t0 > T1（已降級，未支援）",({past}+{fut})/{T})'
+
+
+def fleet_formula(lrow, wrow):
+    w, l = f"$C${wrow}:$F${wrow}", f"$C${lrow}:$F${lrow}"
+    return (f'=IF(COUNT({w})<4,AL_UnavailTxt,IF(SUM({w})<=0,AL_UnavailTxt,IF(SUMPRODUCT(ISTEXT({l})*({w}>0))>0,'
+            f'"含 t0 > T1 的世代（已降級，未支援）",SUMPRODUCT({w},{l})/SUM({w}))))')
+
+
+def disc_formula(c, wacc):
+    g, t1, rho, T = f"{c}$226", f"{c}$227", f"{c}$228", f"{c}$229"
+    a = f"({_ln(g)}-LN(1+{wacc}))"
+    d = f"(-LN(1+{wacc}))"
+    num = f"IF(ABS({a})<0.000000000001,{t1}+{rho}*({T}-{t1}),((EXP({a}*{t1})-1)+{rho}*(EXP({a}*{T})-EXP({a}*{t1})))/{a})"
+    den = f"IF(ABS({d})<0.000000000001,{T},(EXP({d}*{T})-1)/{d})"
+    return f"={num}/{den}"
+
+
+def idnok_formula(num, den_basis):
+    return (f'=IF(AND(ISNUMBER({num}),ISNUMBER({den_basis}),ISNUMBER(SRC_DEM_007)),IF({den_basis}*SRC_DEM_007>0,{num}/({den_basis}*SRC_DEM_007),AL_UnavailTxt),AL_UnavailTxt)')
+
+
+def tri(lb, llo, lhi, rb, rlo, rhi, lname="L"):
+    num = ",".join(f"ISNUMBER({x})" for x in (lb, llo, lhi, rb, rlo, rhi))
+    return (f'=IF(AND({num}),IF({lhi}<{rlo},"未回本（L 區間全在所需 L 之下）",IF({llo}>{rhi},"回本（L 區間全在所需 L 之上）",'
+            f'"未定（區間重疊；基準 {lname} "&TEXT({lb},"0.000")&" 對所需 L "&TEXT({rb},"0.000")&"）")),"所需 L 或 L 非數字（本情境）")')
+
+
+# ---------------------------------------------------------------- Cap_In N section
+LAB = dict(
+    sv="世代服務起點 s_v（年，小數；基準；N-1）　Hopper／GB200／GB300／VR200",
+    sv_lo="世代服務起點 s_v 低（較早）",
+    sv_hi="世代服務起點 s_v 高（較晚）",
+    anchor="校準錨點年 A（年；2025 營收與支出的年中；N-1）",
+    gpre="錨點前中階牌價年變化率 g_pre（C 基準／D 低／E 高；N-1）",
+    t0="錨點時已服務年數 t0＝MAX(0, A − s_v)（基準；N-2）",
+    t0_lo="t0（低端組合：s_v 取高＝較晚，t0 小）",
+    t0_hi="t0（高端組合：s_v 取低＝較早，t0 大）",
+    lrel="L_rel（相對錨點；基準；各世代，N-3）",
+    lrel_lo="L_rel（低端組合：g、T1、ρ 取 D 欄，g_pre 取 E 欄 −0.09，t0 取低端組合）",
+    lrel_hi="L_rel（高端組合：g、T1、ρ 取 E 欄，g_pre 取 D 欄 −0.30，t0 取高端組合）",
+    w="2025 營收權重 w_v＝AL_ShareGen_v × 該世代每 GW 付費營收（2025 單價，AL_RevGW25）",
+    fleet="機隊 L（世代起點，錨點 2025）＝Σ w_v × L_rel_v ÷ Σ w_v　→ L1_LTotalFleetV（D 欄＝低端組合、E 欄＝高端組合）",
+    lv="各世代 L（相對自身起點）＝L1_LTotal　→ L1_LTotalV（4 格：Hopper／GB200／GB300／VR200）",
+    disc="折現版 L（F2 對照；WACC＝Inputs E28／D28／F28）　→ L1_LTotalDisc",
+    idnok="所需 L 不含 κ（F1 對照）＝SRC_DEM_004 ÷（AL_SpendBasis × SRC_DEM_007）　→ L1_LReqFleet_IdNoK",
+    j_a="對照：2025＝第 0 年（v15.3 口徑）：L1_LTotal 區間 對 所需 L（L1_LReqFleet_Id）區間；三態",
+    j_b="對照：世代起點 L 對 不含 κ 所需 L：L1_LTotalFleetV 區間 對 L1_LReqFleet_IdNoK 區間；三態",
+    j_c="對照：折現版 L 對 不含 κ 所需 L：L1_LTotalDisc 區間 對 L1_LReqFleet_IdNoK 區間；三態",
+)
+NOTE = dict(
+    sv=("依據 Cap_In 第 272–274 列已登錄的雲端供應日期（H100 2023-03-21；GB200 2025-02-04；GB300 2025-07-03；VR200 2026-09-30），OpenAI 機隊放量取其後；Hopper 機隊多在 2023 年中至 2024 年建成。"
+        "基準 2023.5／2025.0／2025.5／2026.75。標記 Assumed；DB_Evidence E398；Decisions SL49-04"),
+    sv_lo="較早：2023.0／2025.0／2025.5／2026.75（高端組合用，t0 大）",
+    sv_hi="較晚：2024.0／2025.5／2025.6／2027.0（低端組合用，t0 小）",
+    anchor="Decision：2025 營收與支出的年中（校準錨點，不是 L 的起點）。Decisions SL49-01",
+    gpre=("基準 −0.09（同 g）；D 欄 −0.30 反映 2023–24 一次性重估（年化約 −55% 的一部分），當時量小，證據最弱；E 欄 −0.09。低端組合取 E 欄、高端組合取 D 欄（錨點前跌得越多，錨點時越便宜，之後相對錨點價格的 L 越大）。"
+          "只在 t0 > 0 的世代進入 L_rel 的『已服務段』"),
+    t0="t0 ＝ 錨點年 − 該世代服務起點（不小於 0）。t0 = 0 的世代（GB200 的低端組合、GB300 的基準與低端組合、VR200）L_rel 等於 L1_LTotal",
+    t0_lo="低端組合用 s_v 高（較晚）：t0 較小",
+    t0_hi="高端組合用 s_v 低（較早）：t0 較大",
+    lrel_lo="低端組合：g、T1、ρ 取第 226／227／228／229 列的 D 欄（−0.20／3／D228／6）、g_pre 取 E 欄（−0.09）、t0 取低端組合；其餘公式同基準列",
+    lrel_hi="高端組合：g、T1、ρ 取 E 欄（+0.05／5／0.7／6）、g_pre 取 D 欄（−0.30）、t0 取高端組合；其餘公式同基準列",
+    lrel=("L_rel＝（past ＋ fut）÷ T；past＝IF(t0>0,(1−(1+g_pre)^(−t0))÷LN(1+g_pre),0)；fut＝(((1+g)^(T1−t0)−1)＋ρ×((1+g)^(T−t0)−(1+g)^(T1−t0)))÷LN(1+g)；"
+          "g、T1、ρ、T 取第 226／227／228／229 列的 C 欄。若 t0 > T1 輸出文字『t0 > T1（已降級，未支援）』（目前沒有）"),
+    w="只含占比 > 0 的世代；占比 AL_ShareGen 與每 GW 付費營收（Alloc 第 153 列）皆為既有名稱，不在此新增輸入",
+    fleet=("C 基準；D 低端組合（g −0.20、T1 3、ρ D228、s_v 高、g_pre −0.09）；E 高端組合（g +0.05、T1 5、ρ 0.7、s_v 低、g_pre −0.30）。chat 端事前計算 0.7159／0.4265／1.1190。"
+           "定義的主口徑：判讀（第 242 列、L1 第 89 列）改讀本列"),
+    lv="目前四世代 g／T1／ρ 輸入相同，故四格同值；日後 g／T1／ρ 分世代輸入時才會不同。D／E 欄＝四世代的低端與高端同為 L1_LTotal_Lo／_Hi",
+    disc="a＝LN(1+g)−LN(1+WACC)，d＝−LN(1+WACC)；L＝(((EXP(a·T1)−1)＋ρ(EXP(a·T)−EXP(a·T1)))÷a)÷((EXP(d·T)−1)÷d)。WACC：C 欄 Inputs E28、D 欄 D28、E 欄 F28。只作對照，不進判讀。事前計算 0.6988／0.4401／1.0941",
+    idnok="C＝SRC_DEM_004 ÷（AL_SpendBasis × SRC_DEM_007）；D（低）＝SRC_DEM_004_Lo ÷（AL_SpendBasis_Hi × SRC_DEM_007）；E（高）＝SRC_DEM_004_Hi ÷（AL_SpendBasis_Lo × SRC_DEM_007）。只作對照，不進判讀。事前計算 0.7561／0.4905／0.9223",
+    j_a="原 v15.3 第 242 列邏輯（L 側讀 L1_LTotal）；文字三態；只作對照",
+    j_b="文字三態；只作對照（F1：是否改以不含 κ 的所需 L 為主，待 Andy）",
+    j_c="文字三態；只作對照（F2：是否改以折現版 L 為主，待 Andy）",
+)
+
+
+def cap_in_n(wb, m_sec):
+    ws = wb["Cap_In"]
+    r0 = m_sec["end"] + 2
+    assert ws.max_row == m_sec["end"], (ws.max_row, m_sec["end"])
+    put(ws, f"A{r0}", SEC_TITLE, F_BOLD, wrap=True)
+    r = r0 + 1
+    put(ws, f"A{r}", "欄位：世代列 C Hopper／D GB200／E GB300／F VR200（與 Alloc 第 16–18 列世代順序一致）；情境列 C 基準／D 低端／E 高端；G 標記、H 說明、O 用途", F_NOTE, wrap=True)
+    for col, g in zip("CDEF", GENS):
+        put(ws, f"{col}{r}", g, F_BOLD)
+    r += 1
+    order = ["sv", "sv_lo", "sv_hi", "anchor", "gpre", "t0", "t0_lo", "t0_hi", "lrel", "lrel_lo", "lrel_hi", "w", "fleet", "lv", "disc", "idnok", "j_a", "j_b", "j_c"]
+    for k in order:
+        ROWS[k] = r; r += 1
+    R = ROWS
+
+    def row(k, unit, vals, tag, fmt, blue=False, key=False, purpose=None):
+        rr = R[k]
+        put(ws, f"A{rr}", LAB[k], wrap=True); put(ws, f"B{rr}", unit)
+        for col, v in zip("CDEF", vals):
+            if v is None:
+                continue
+            isf = isinstance(v, str) and v.startswith("=")
+            put(ws, f"{col}{rr}", v, (F_IN if blue else (F_LINK if isf and "!" in v else F_CALC)), fmt=fmt, fill=FILL_KEY if (key and col == "C") else None)
+        put(ws, f"G{rr}", tag, F_NOTE); put(ws, f"H{rr}", NOTE[k], F_NOTE, wrap=True)
+        if purpose:
+            PURPOSE_MARKS[rr] = purpose      # written by apply() into the 用途 column (created by v1010／v1400 later in the build)
+
+    row("sv", "年", SV_BASE, "Assumed", "0.00", blue=True, key=True)
+    row("sv_lo", "年", SV_LO, "Assumed", "0.00", blue=True)
+    row("sv_hi", "年", SV_HI, "Assumed", "0.00", blue=True)
+    row("anchor", "年", (ANCHOR,), "Decision", "0.00", blue=True)
+    row("gpre", "%", GPRE, "Assumed", "0.0%", blue=True)
+    A = f"$C${R['anchor']}"
+    row("t0", "年", [f"=MAX(0,{A}-{c}{R['sv']})" for c in "CDEF"], "Derived", "0.00")
+    row("t0_lo", "年", [f"=MAX(0,{A}-{c}{R['sv_hi']})" for c in "CDEF"], "Derived", "0.00")
+    row("t0_hi", "年", [f"=MAX(0,{A}-{c}{R['sv_lo']})" for c in "CDEF"], "Derived", "0.00")
+    gp = lambda c: f"${c}${R['gpre']}"
+    row("lrel", "x", [lrel_formula(c, f"{c}{R['t0']}", "C", gp("C")) for c in "CDEF"], "Derived", "0.0000")
+    row("lrel_lo", "x", [lrel_formula(c, f"{c}{R['t0_lo']}", "D", gp("E")) for c in "CDEF"], "Derived", "0.0000")
+    row("lrel_hi", "x", [lrel_formula(c, f"{c}{R['t0_hi']}", "E", gp("D")) for c in "CDEF"], "Derived", "0.0000")
+    row("w", "$B/GW/年", [f'=IF(AND(ISNUMBER(INDEX(AL_ShareGen,1,{i})),ISNUMBER(INDEX(AL_RevGW25,1,{i}))),INDEX(AL_ShareGen,1,{i})*INDEX(AL_RevGW25,1,{i}),IF(AND(ISNUMBER(INDEX(AL_ShareGen,1,{i})),INDEX(AL_ShareGen,1,{i})=0),0,AL_UnavailTxt))'
+                           for i in (1, 2, 3, 4)], "Derived", "0.000")
+    row("fleet", "x", [fleet_formula(R["lrel"], R["w"]), fleet_formula(R["lrel_lo"], R["w"]), fleet_formula(R["lrel_hi"], R["w"])], "Derived", "0.0000", key=True)
+    row("lv", "x", ["=L1_LTotal"] * 4, "Derived", "0.0000")
+    row("disc", "x", [disc_formula("C", "Inputs!$E$28"), disc_formula("D", "Inputs!$D$28"), disc_formula("E", "Inputs!$F$28")], "Derived", "0.0000")
+    row("idnok", "x", [idnok_formula("SRC_DEM_004", "AL_SpendBasis"), idnok_formula("SRC_DEM_004_Lo", "AL_SpendBasis_Hi"), idnok_formula("SRC_DEM_004_Hi", "AL_SpendBasis_Lo")], "Derived", "0.0000")
+    row("j_a", "x", [tri("L1_LTotal", "L1_LTotal_Lo", "L1_LTotal_Hi", "L1_LReqFleet_Id", "L1_LReqFleet_Id_Lo", "L1_LReqFleet_Id_Hi", "L（2025＝第 0 年）")], "Derived", None,
+        purpose="顯示用：C%d（對照列：2025＝第 0 年，v15.3 口徑）" % R["j_a"])
+    row("j_b", "x", [tri("L1_LTotalFleetV", "L1_LTotalFleetV_Lo", "L1_LTotalFleetV_Hi", "L1_LReqFleet_IdNoK", "L1_LReqFleet_IdNoK_Lo", "L1_LReqFleet_IdNoK_Hi", "世代起點 L")], "Derived", None,
+        purpose="顯示用：C%d（對照列：世代起點 L 對不含 κ 所需 L）" % R["j_b"])
+    row("j_c", "x", [tri("L1_LTotalDisc", "L1_LTotalDisc_Lo", "L1_LTotalDisc_Hi", "L1_LReqFleet_IdNoK", "L1_LReqFleet_IdNoK_Lo", "L1_LReqFleet_IdNoK_Hi", "折現版 L")], "Derived", None,
+        purpose="顯示用：C%d（對照列：折現版 L 對不含 κ 所需 L）" % R["j_c"])
+    for col in "CDEF":
+        pass
+    return dict(start=r0, end=r - 1, rows=dict(R))
+
+
+# ---------------------------------------------------------------- Gov_Map rows (blue inputs)
+def gov_map_rows(wb):
+    if not ROWS:
+        return []
+    ws = wb["Cap_In"]
+    R = ROWS
+    out = []
+    sc = "切片三（v16.0 L 世代起點）"
+    basis = ("v16.0 W1（" + WO + "；Decisions SL49-04）：世代服務起點依 Cap_In 第 272–274 列已登錄的雲端供應日期（H100 2023-03-21；GB200 2025-02-04；GB300 2025-07-03；VR200 2026-09-30），"
+             "OpenAI 機隊放量取其後；Hopper 機隊多在 2023 年中至 2024 年建成。只進 Cap_In N 節與 L1_LTotalFleetV／LTotalV；DB_Evidence E398")
+
+    def ent(k, cell, role, cls, dec, lo, hi, rtext, reason, seg="無"):
+        lab = ws[f"A{R[k]}"].value
+        out.append({'scope': sc, 'sheet': 'Cap_In', 'cell': cell.format(r=R[k]), 'label': lab, 'check': lab, 'cls': cls, 'role': role, 'src': '', 'rel': '', 'dec': dec,
+                    'lo': (lo.format(r=R[k]) if isinstance(lo, str) else lo), 'hi': (hi.format(r=R[k]) if isinstance(hi, str) else hi), 'rtext': rtext, 'reason': reason, 'retag': '', 'seg': seg})
+
+    ent("sv", "C{r}:F{r}", "單值", "Assumed", "SL49-04", None, None, "基準 2023.5／2025.0／2025.5／2026.75（區間見 s_v 低／高兩列）", basis)
+    ent("sv_lo", "C{r}:F{r}", "低", "Assumed", "SL49-04", None, None, "較早端 2023.0／2025.0／2025.5／2026.75（s_v 基準的低端）", basis, seg="—")
+    ent("sv_hi", "C{r}:F{r}", "高", "Assumed", "SL49-04", None, None, "較晚端 2024.0／2025.5／2025.6／2027.0（s_v 基準的高端）", basis, seg="—")
+    ent("anchor", "C{r}", "單值", "Decision", "SL49-01", None, None, "單值 2025.5（Decision）",
+        "v16.0 W1（SL49-01）：校準錨點年 A＝2025 營收與支出的年中；2025 是校準錨點（觀察營收與支出的年度），不是 L 的起點；Andy 2026-10-18 10:20 語音。只進 Cap_In N 節 t0")
+    reason_gp = ("v16.0 W1（Decisions SL49-04）：錨點前中階牌價年變化率 g_pre，基準 −0.09（同 g）、低 −0.30（2023–24 一次性重估，年化約 −55% 的一部分；當時量小，證據最弱）、高 −0.09；"
+                 "低端組合取 −0.09、高端組合取 −0.30；只在 t0 > 0 的世代進入 L_rel；只進 Cap_In N 節與 L1_LTotalFleetV")
+    ent("gpre", "C{r}", "基準", "Assumed", "SL49-04", "=Cap_In!D{r}", "=Cap_In!E{r}", "−0.30～−0.09（D 欄＝低 −0.30、E 欄 −0.09）", reason_gp)
+    ent("gpre", "D{r}:E{r}", "低／高", "Assumed", "SL49-04", None, None, "C{r} 的低（−0.30）、高（−0.09）端點".replace("{r}", str(R["gpre"])), reason_gp, seg="—")
+    return out
+
+
+# ---------------------------------------------------------------- Cap_In row 242 / A242 / G242 (before gov_all)
+A242_OLD = v1530.A242_NEW
+A242_NEW = "判讀：世代起點 L 區間 對 所需 L 區間（恆等式讀法 L1_LReqFleet_Id；三態：未回本／未定／回本；v16.0 起 L 側讀 L1_LTotalFleetV）"
+G242_ADD = ("｜v16.0 W2：本列 L 側改讀 L1_LTotalFleetV（世代起點 L，區間 [L1_LTotalFleetV_Lo, L1_LTotalFleetV_Hi]）；所需 L 側不變（L1_LReqFleet_Id）；三態規則同 v15.3 D1。"
+            "v15.3 口徑（2025＝第 0 年，L 側讀 L1_LTotal）保留為 Cap_In N 節對照列；Andy 2026-10-18 10:20 定義見 Decisions SL49-01／02")
+
+
+def inputs_update(wb, append_text):
+    log = []
+    ws = wb["Cap_In"]
+    assert ws["A242"].value in (v1530.A242_NEW, A242_NEW), ws["A242"].value
+    n = 0
+    for c in "CDE":
+        cur = ws[f"{c}242"].value
+        assert isinstance(cur, str) and cur.startswith("=IF(AND(ISNUMBER(L1_LTotal"), cur[:60]
+        if "L1_LTotalFleetV" not in cur:
+            ws[f"{c}242"].value = cur.replace("L1_LTotal", "L1_LTotalFleetV"); n += 1
+    ws["A242"].value = A242_NEW
+    n += int(append_text(ws["G242"], G242_ADD))
+    log.append(f"Cap_In row 242 reads L1_LTotalFleetV ({n} edits)")
+    return log
+
+
+# ---------------------------------------------------------------- L1 rows (appended after the last existing row)
+READ_FV = ("L 的新定義（Andy 2026-10-18）：L＝某世代硬體在其壽命期 T 內，token 單價相對該世代起點單價的平均（跌價＋降級）；每個世代從自己的起點算，2025 年只是校準錨點。"
+           "機隊 L 把每個世代在 2025 年錨點時已服務 t0 年（Cap_In N 節）折成相對錨點的 L_rel，再以 2025 營收（占比 × 每 GW 付費營收）加權。判讀（Cap_In 第 242 列、L1 第 89 列）改讀本列。")
+NONE_EXT = ("無外部對照", DASH, DASH)
+
+
+def l1_rows_new():
+    R = ROWS
+    def cap(col, key): return f"=Cap_In!${col}${R[key]}"
+    return [
+        ("LTotalFleetV", "壽命期價格係數 L — 機隊 L（世代起點；錨點 2025）", "各世代從自己的服務起點 s_v 算 L；錨點年 A＝2025.5；以 2025 營收（AL_ShareGen × AL_RevGW25）加權；v16.0",
+         cap("C", "fleet"), cap("D", "fleet"), cap("E", "fleet"), "x",
+         "低＝低端組合（g −0.20、T1 3、ρ 0.17、s_v 較晚、g_pre −0.09）；高＝高端組合（g +0.05、T1 5、ρ 0.7、s_v 較早、g_pre −0.30）", READ_FV,
+         "g、T1、ρ、s_v、g_pre、2025 營收權重", "s_v、g_pre：Assumed；g、ρ：Derived；T1：Assumed", *NONE_EXT, "AL_ShareGen；AL_RevGW25；IF_DeprLifeIT", f"Cap_In 第 {R['fleet']} 列",
+         "各世代服務起點無一手資料（以雲端供應日期推定）；Hopper 的錨點前跌價證據最弱"),
+        ("LTotalV", "各世代 L（相對自身起點；D 欄＝VR200 欄、E／F 欄＝四世代最小／最大）", "＝L1_LTotal（新世代、起點＝第 0 年）；目前四世代 g／T1／ρ 輸入相同故同值；L1_LTotalV 具名範圍為 Cap_In 四格（Hopper／GB200／GB300／VR200）；v16.0",
+         f"=INDEX(Cap_In!$C${R['lv']}:$F${R['lv']},1,4)", f"=MIN(Cap_In!$C${R['lv']}:$F${R['lv']})", f"=MAX(Cap_In!$C${R['lv']}:$F${R['lv']})", "x",
+         "E／F＝四世代的最小／最大值（目前相同）；具名範圍 L1_LTotalV 是四格橫列，不是本列 D 欄", READ_FV,
+         "g、T1、ρ、IT 折舊年限", "同 L1_LTotal", *NONE_EXT, "L1_LTotal", f"Cap_In 第 {R['lv']} 列",
+         "日後 g／T1／ρ 分世代輸入時四格才會不同"),
+        ("LTotalDisc", "壽命期價格係數 L — 折現版（F2 對照；WACC 折現）", "＝(((EXP(a·T1)−1)＋ρ(EXP(a·T)−EXP(a·T1)))÷a)÷((EXP(d·T)−1)÷d)，a＝LN(1+g)−LN(1+WACC)，d＝−LN(1+WACC)；新世代、起點＝第 0 年；v16.0",
+         cap("C", "disc"), cap("D", "disc"), cap("E", "disc"), "x", "低＝g −0.20、T1 3、ρ 0.17、WACC 8%；高＝g +0.05、T1 5、ρ 0.7、WACC 13%", READ_FV + " 本列為折現口徑對照，不進判讀。",
+         "g、T1、ρ、WACC", "WACC：Assumed（Inputs E28）", *NONE_EXT, "Inputs E28／D28／F28", f"Cap_In 第 {R['disc']} 列", "只作對照；主口徑是否改折現版待 Andy（F2）"),
+        ("LReqFleet_IdNoK", "回本所需 L — 恆等式讀法、不含 κ（F1 對照）", "＝SRC_DEM_004 ÷（AL_SpendBasis × SRC_DEM_007）；低＝SRC_DEM_004_Lo ÷（AL_SpendBasis_Hi × SRC_DEM_007）；高＝SRC_DEM_004_Hi ÷（AL_SpendBasis_Lo × SRC_DEM_007）；v16.0",
+         cap("C", "idnok"), cap("D", "idnok"), cap("E", "idnok"), "x", "低＝推論支出取低端、支出口徑取高端；高＝推論支出取高端、支出口徑取低端",
+         "回本所需 L 的恆等式讀法（持有成本 ÷ 實收營收）去掉請求形狀修正 κ；只作對照，不進判讀（F1：是否改以不含 κ 為主，待 Andy）。",
+         "SRC_DEM_004、AL_SpendBasis、SRC_DEM_007", "SRC_DEM_004：3 級來源（利害關係方）；AL_SpendBasis：Assumed", *NONE_EXT, "SRC_DEM_004；AL_SpendBasis；SRC_DEM_007", f"Cap_In 第 {R['idnok']} 列",
+         "只作對照；κ 為 1.0 時基準值與 L1_LReqFleet_Id 相同"),
+    ]
+
+
+v1000._n(v1000.E_, "壽命期價格係數 L 的世代起點定義（v16.0）：機隊 L 與各世代 L（價格迴歸與降級假設；起點、前期跌價為 Assumed）", "LTotalFleetV", "LTotalV")
+v1000._n(v1000.E_, "折現版 L：L 的折現口徑對照（WACC 折現；不進判讀）", "LTotalDisc")
+v1000._n(v1000.I_, "機隊持有成本 ÷ 實收營收（去掉 κ）：恆等式讀法的對照，不進判讀", "LReqFleet_IdNoK")
+
+
+def late_names(wb):
+    """After l1_sheet: L1_LTotalV is the 4-cell Cap_In row (not the L1 D cell); the auto-created _Lo／_Hi names of that row are dropped (work order names L1_LTotalV only)."""
+    r = ROWS["lv"]
+    wb.defined_names["L1_LTotalV"] = DefinedName("L1_LTotalV", attr_text=f"Cap_In!$C${r}:$F${r}")
+    for n in ("L1_LTotalV_Lo", "L1_LTotalV_Hi"):
+        if n in wb.defined_names:
+            del wb.defined_names[n]
+
+
+# ---------------------------------------------------------------- L1 P89 (late: needs the final L1 row number of L1_LTotalFleetV)
+def l1_p89(wb):
+    ws = wb["L1"]
+    fv = int(wb.defined_names["L1_LTotalFleetV"].attr_text.split("$")[-1])
+    assert ws[f"A{fv}"].value == "L1_LTotalFleetV", (fv, ws[f"A{fv}"].value)
+    assert ws["A89"].value == "L1_LReqFleet", ws["A89"].value
+    cur = ws["P89"].value
+    if f"D{fv}" in cur:
+        return 0
+    reps = [
+        ("ISNUMBER(D89),ISNUMBER(D107),ISNUMBER(M89)", f"ISNUMBER(D89),ISNUMBER(D107),ISNUMBER(D{fv})", 1),
+        ("AND(ISNUMBER(E88),ISNUMBER(F88),ISNUMBER(E107),ISNUMBER(F107))", f"AND(ISNUMBER(E{fv}),ISNUMBER(F{fv}),ISNUMBER(E107),ISNUMBER(F107))", 2),
+        ('IF(F88<E107,"未回本",IF(E88>F107,"回本","未定"))', f'IF(F{fv}<E107,"未回本",IF(E{fv}>F107,"回本","未定"))', 2),
+        ('IF(M89>=D107,"回本","未回本")', f'IF(D{fv}>=D107,"回本","未回本")', 2),
+        ("AND(ISNUMBER(D107),ISNUMBER(M89))", f"AND(ISNUMBER(D107),ISNUMBER(D{fv}))", 1),
+        ('&"）；字面讀法 "&TEXT(D89,"0.00")', '&"；v15.3 口徑 2025＝第 0 年：L "&TEXT(L1_LTotal,"0.000")&"）；字面讀法 "&TEXT(D89,"0.00")', 1),
+        ('"（L_total "&TEXT(M89,"0.00")&" 對所需 L "&TEXT(D107,"0.00")', f'"（世代起點 L "&TEXT(D{fv},"0.00")&" 對所需 L "&TEXT(D107,"0.00")', 1),
+        ('"（恆等式讀法：L_total "&TEXT(M89,"0.00")&" 對所需 L "&TEXT(D107,"0.00")&"；字面讀法非數字）"',
+         f'"（恆等式讀法：世代起點 L "&TEXT(D{fv},"0.00")&" 對所需 L "&TEXT(D107,"0.00")&"；v15.3 口徑 2025＝第 0 年：L "&TEXT(L1_LTotal,"0.000")&"；字面讀法非數字）"', 1),
+    ]
+    for old, new, cnt in reps:
+        assert cur.count(old) == cnt, (old, cur.count(old))
+        cur = cur.replace(old, new)
+    assert "M89" not in cur and "E88" not in cur
+    ws["P89"].value = cur
+    return 1
+
+
+# ================================================================== Decisions SL49-01..04, DB_Evidence E398
+def _decisions():
+    D = [
+        ("L 的定義：按各世代自己的起點計算；2025 只是校準錨點（Andy 原話）",
+         "L＝某一世代硬體在其壽命期 T 內，token 單價相對該世代起點單價的平均（跌價＋降級）。每個世代從自己的起點算。2025 年是校準錨點（觀察營收與支出的年度），不是 L 的起點。"
+         "現行 L1_LTotal 的公式就是『新世代、起點＝第 0 年』的 L，保留不改。新增 Cap_In N 節『L 世代起點』與 L1_LTotalFleetV／LTotalV。"
+         "Andy 2026-10-18 10:20 原話（語音轉寫，未改字）：" + "L 应该就是衡量在这个硬体的生命周期里，token 的价格的下跌趋势…本来就是 L 本来就是应该用自己每个世代来算的。我们用二零二五，其实是只是一个锚点，因为二零二五已经过去了，"
+         "而且有比较多的一个数据，所以我们是当做一个锚点了。…不然你不可能未来几年，我们都还是用二零二五年来算，毕竟我们这东西算出来之后是要去预期或预估未来的一个状况嘛。」。"
+         "（Decisions SL48-01 已於 v15.3 補登 C1，本版確認、不重複。）",
+         DEC_BY, "Cap_In N 節（第 %d–%d 列）；L1_LTotalFleetV、L1_LTotalV；README" % (ROWS["sv"], ROWS["j_c"])),
+        ("回本判讀主口徑改 L1_LTotalFleetV（Cap_In 第 242 列、L1 第 89 列）",
+         "Cap_In 第 242 列三態判讀的 L 側由 L1_LTotal 改讀 L1_LTotalFleetV（所需 L 側不變，仍為 L1_LReqFleet_Id）；L1 第 89 列 P 欄的恆等式讀法同步改讀 L1_LTotalFleetV，並附『v15.3 口徑 2025＝第 0 年：L 0.660』。"
+         "基準下仍為『未定』（基準 L 0.716 對所需 L 0.756）。v15.3 口徑（L1_LTotal）保留為 Cap_In N 節對照列。",
+         DEC_BY, "Cap_In 第 242 列（A、C、D、E、G）、N 節對照列；L1 P89"),
+        ("F1、F2 只列對照；主口徑是否改待 Andy",
+         "F1：恆等式讀法的所需 L 是否改為不含 κ（L1_LReqFleet_IdNoK）；F2：L 是否改為折現版（L1_LTotalDisc）。兩者本版只列對照（Cap_In N 節三列對照、L1 新增列），不進判讀。"
+         "建議預設：F1 改不含 κ、F2 以折現版為主；Andy 未回應前不改主口徑（判讀仍讀 L1_LTotalFleetV 對 L1_LReqFleet_Id）。",
+         "chat 端建議（工作單 W3），Andy 尚未回應；可撤回", "Cap_In N 節；L1_LTotalDisc、L1_LReqFleet_IdNoK"),
+        ("新輸入登錄：s_v（世代服務起點）、錨點年 A、g_pre（錨點前牌價年變化率）",
+         "s_v 基準 2023.5／2025.0／2025.5／2026.75，低（較早）2023.0／2025.0／2025.5／2026.75，高（較晚）2024.0／2025.5／2025.6／2027.0（Assumed）；依據 Cap_In 第 272–274 列已登錄的雲端供應日期，不新增外部來源（DB_Evidence E398）。"
+         "錨點年 A 2025.5（Decision）。g_pre 基準／低／高 −0.09／−0.30／−0.09（Assumed；低端反映 2023–24 一次性重估，當時量小，證據最弱）。數值為工作單 W1 所列。",
+         DEC_BY, "Cap_In N 節輸入列；Gov_Map 新列；DB_Evidence E398"),
+    ]
+    return [[f"SL49-{i + 1:02d}", V, f"v16.0 L 世代起點：{t}", txt, DATE, who, "v16.0 已建", where, f"{WO} W3-{i + 1}", "否"]
+            for i, (t, txt, who, where) in enumerate(D)]
+
+
+EV_COMMON = "讀取者：chat 端（" + WO + "）｜Andy 2026-10-18 10:20／10:24（見 Decisions SL49-01）；數值為 chat 端建議，可撤回"
+EVIDENCE = [
+    ("E398", "世代服務起點 s_v 的依據：雲端供應日期 H100 2023-03-21、GB200 2025-02-04、GB300 2025-07-03、VR200 2026-09-30（Cap_In 第 272–274 列已登錄）；OpenAI 機隊放量取其後；Hopper 機隊多在 2023 年中至 2024 年建成",
+     "Cap_In 第 272–274 列（v7.0 世代價格 A 段已登錄；docs/reports/20261015_世代價格A_查證.md 第 5 節）；不新增外部來源", "Analogy（單一樣本）／Assumed（s_v 推定）",
+     "Cap_In N 節 s_v（基準／低／高）、錨點年 A、g_pre", "—", "s_v 基準 2023.5／2025.0／2025.5／2026.75；低 2023.0／2025.0／2025.5／2026.75；高 2024.0／2025.5／2025.6／2027.0；A 2025.5；g_pre −0.09／−0.30／−0.09",
+     "採用（W1；不新增來源）", "s_v 為推定值，非一手資料；OpenAI 各世代放量時間無公開資料；Hopper 錨點前跌價證據最弱（2023–24 一次性重估，當時量小）", "L1_LTotalFleetV*；L1_LTotalV（Cap_In N 節）；不改任何既有 IF_／L1_ 值", "—"),
+]
+
+
+def evidence_append(wb):
+    ws = wb["DB_Evidence"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    r = max(rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")) + 1
+    n = 0
+    for (eid, claim, src, mark, param, cur, new, verdict, note, affected, stance) in EVIDENCE:
+        if eid in have:
+            continue
+        vals = [eid, DATE, claim, src, mark, param, cur, new, verdict, V, note + "｜" + EV_COMMON, "已處理", "—", "—", affected, "—", stance,
+                f"{verdict}｜v16.0 新增列（非 106 列積壓）"]
+        for i, v in enumerate(vals):
+            put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 4, 5, 6, 7, 8, 10, 14, 17))
+        r += 1; n += 1
+    return n
+
+
+def purpose_marks(wb):
+    ws = wb["Cap_In"]
+    pc = v1400._purpose_col(ws, create=False)
+    assert pc is not None, "用途 column of Cap_In not found"
+    for rr, txt in PURPOSE_MARKS.items():
+        put(ws, f"{L(pc)}{rr}", txt, F_NOTE)
+    return len(PURPOSE_MARKS)
+
+
+def clear_l1_ratio(wb):
+    """L1 column O (推算 ÷ 外部) has no external value on the four new rows: cleared like the other external-less rows (v10.1 L1_O_ROWS), so they are not dead formula cells."""
+    ws = wb["L1"]; n = 0
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value in ("L1_LTotalFleetV", "L1_LTotalV", "L1_LTotalDisc", "L1_LReqFleet_IdNoK") and ws[f"O{r}"].value is not None:
+            ws[f"O{r}"].value = None; n += 1
+    return n
+
+
+def apply(wb, append_text):
+    log = {}
+    log["l1_o_cleared"] = clear_l1_ratio(wb)
+    log["purpose"] = purpose_marks(wb)
+    log["p89"] = l1_p89(wb)
+    log["evidence"] = evidence_append(wb)
+    ws = wb["Decisions"]
+    if not any(ws.cell(r, 1).value == "SL49-01" for r in range(5, ws.max_row + 1)):
+        log["decisions"] = v1410.decisions_append(wb, _decisions())
+    return log
+
+
+# ================================================================== README
+README_VERSION = (VERSION + "（主版：" + WO + "——L 按世代起點計算：新增 Cap_In N 節『L 世代起點』（世代服務起點 s_v、錨點年 A＝2025.5、錨點前牌價年變化率 g_pre）與契約名稱 "
+                  "L1_LTotalFleetV／_Lo／_Hi（機隊 L，世代起點）、L1_LTotalV（各世代 L，4 格）、L1_LTotalDisc／_Lo／_Hi（折現版對照）、L1_LReqFleet_IdNoK／_Lo／_Hi（不含 κ 所需 L 對照）；"
+                  "回本判讀（Cap_In 第 242 列、L1 第 89 列）改讀 L1_LTotalFleetV，v15.3 口徑保留為對照；Decisions SL49-01…04；DB_Evidence E398。既有名稱的值全部不變。）以下為 "
+                  + v1530.README_VERSION.split("_Tokenomics_", 1)[1])
+_T = v1530.README_TITLE
+README_TITLE = V + _T[len(v1530.V):]
+README_ROW = ("v16.0 L 世代起點",
+              "L＝某世代硬體在壽命期 T 內，token 單價相對該世代起點單價的平均（跌價＋降級）；每個世代從自己的起點算，2025 年只是校準錨點（Andy 2026-10-18）。新增 Cap_In N 節與 L1_LTotalFleetV／LTotalV／LTotalDisc／LReqFleet_IdNoK；"
+              "回本判讀改讀 L1_LTotalFleetV（基準仍為『未定』）。現行 L1_LTotal（新世代、起點＝第 0 年）保留不改。細節見 Decisions SL49-01…04。")
 ```
 
 ## gov_decisions.py
@@ -32464,6 +32874,7 @@ import v1300                      # v13.0: 4-2b-1 (RNG_ ranges, range freshness,
 import v1500                      # v15.0: SRC_PRC_047 record (O14)
 import v1520                      # v15.2: Gov_Map GM342 (B3 range, Analogy -> Derived), GM457 M, GM644 N
 import v1530                      # v15.3: Gov_Map GM634／635／638／639 (E1／E2 Derived), GM636 N (E3), GM685 K／M／N (C2)
+import v1600                      # v16.0: Gov_Map rows for Cap_In N (s_v, A, g_pre), L1 rows LTotalFleetV／LTotalV／LTotalDisc／LReqFleet_IdNoK
 import v1310                      # v13.1: D15 B (Gov_Map J／H completion, Decisions D15-*, new SRC records, DB_Evidence column R, range fingerprint)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
 import v603                       # v6.3: audit fix 2-1b (K1 fleet price, K2 whole-generation flag, K3 TTFT cost rows, J1 r1)
@@ -32801,7 +33212,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb) + v1200.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb) + v1200.gov_map_rows(wb) + v1600.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -32982,7 +33393,7 @@ def _rows_l1(wb):
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     R = v527.l1_rows(R)             # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
-    return v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new()   # v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
+    return v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new() + v1600.l1_rows_new()   # v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
 
 def l1_sheet(wb):
     global _REV_ROW
@@ -33333,6 +33744,8 @@ import v700
 V700_L = v700.cap_in_l(wb, V603_K)      # v7.0 B-1: Cap_In L section (CAP_GenGap_*; below K, nothing above moves)
 V1030_CAP = v1030.cap_in_patch(wb)      # v10.3 D09: Cap_In H10 2025 column C reads the H-section cells (patched after every Cap_In section is built, before contract tracing)
 V800_M = v800.cap_in_m(wb, V700_L)      # v8.0 L1／L4／D14: Cap_In M section (2025 annual tier prices, m／required-L comparisons, Astra Epoch implied tokens; below L, nothing above moves)
+import v1600
+V1600_N = v1600.cap_in_n(wb, V800_M)      # v16.0 W1: Cap_In N section (L from each generation's own start; below M, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -33397,6 +33810,7 @@ V518_LOG += v1100.inputs_update(wb)       # v11.0 G2: Calib D156 (CAL_BatchEtaD 
 V518_LOG += v1200.inputs_update(wb)       # v12.0 H2: Calib D156 3.04 -> 2.36 (old-value guard)
 import v1530
 V518_LOG += v1530.inputs_update(wb, v518._append_text)       # v15.3: E1／E2 Cap_In C226:E228 (inputs, D228 formula, marks), D1 rows 242／243, C2 Calib D156 = SQRT(C254*D201) (before gov_all so the contract tracing sees the final formulas)
+V518_LOG += v1600.inputs_update(wb, v518._append_text)       # v16.0 W2: Cap_In row 242 reads L1_LTotalFleetV (after v1530 wrote the v15.3 text; before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -33449,6 +33863,7 @@ nm("TR_HookVal", f"Tech_Registry!$E${h0}:$E${h1}")
 # ---- v5.11: Stage 1 slice one (Source layer, Evidence upgrade, Decisions, Gov_Map, L1, governance Checks, F14); v5.13: slice two ----
 from gov import gov_all
 GOV = gov_all(wb)
+v1600.late_names(wb)      # v16.0: L1_LTotalV is the four-cell Cap_In row; drop the stray _Lo／_Hi names of that L1 row
 checks_h(wb)        # v5.15: Checks H section (after the G section; counted in GOV_Errors)
 V532_L1P = v532.l1_judge(wb)      # v5.32 B3: L1_MImplied／_Ext judgement column (inside／outside the CTL_Monetize Gov_Map range)
 V533_L1P = v533.l1_judge(wb)      # v5.33 B4: L1_MFleet (range) and L1_TokCeiling (demand ÷ ceiling) judgement columns
@@ -33552,6 +33967,8 @@ V1520 = v1520.apply(wb, v518._append_text)       # v15.2: B2 Cap_In C280:E280, B
 print("v1520 v15.2:", V1520)
 V1530 = v1530.apply(wb, v518._append_text)       # v15.3: L1 H86–H88 labels, Decisions SL48-*, DB_Evidence E393…E397 (Gov_Map edits run in gov.py)
 print("v1530 v15.3:", V1530)
+V1600 = v1600.apply(wb, v518._append_text)       # v16.0: L1 P89 (reads L1_LTotalFleetV), Decisions SL49-*, DB_Evidence E398 (Gov_Map rows are appended in gov.py)
+print("v1600 v16.0:", V1600)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

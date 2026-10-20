@@ -234,7 +234,7 @@ def test_v1600_only_new_names_and_nothing_else_changed(lo):
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LTotal_Lo", 0.396282624140417), ("L1_LTotal_Hi", 1.09636652745877), ("L1_LReqFleet_Id", 0.756109635897205),
                     ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
 
 

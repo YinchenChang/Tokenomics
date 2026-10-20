@@ -2,6 +2,18 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261020_Tokenomics_v17.2.xlsx（取代 v17.1；**修補版：只新增 SRC 紀錄與改來源／標記欄，模型格數值不變**；依工作單 `docs/workorders/20261020_W1第二來源_B1.md`）
+
+- 分支 `claude/w1-b1`（PR 與 SHA 見報告）。報告：`docs/reports/20261020_v17.2_W1第二來源B1.md`；進度檔：`docs/reports/20261020_v17.2_進度.md`。**待合併（本次不自行合併，需 Andy 明確說「合併」）**
+- Excel（CC 以 `builder/v1720.py`＋`builder/v1720_data.json` 自 v17.1 產生，經 LibreOffice 重算存檔；冪等）：
+  - A 類 86 筆：各新增一筆 Alt 第二來源紀錄（SRC_DEM_074–087、SRC_MOD_063–105、SRC_PERF_084／085、SRC_HW_071–095、SRC_PRC_048、SRC_DC_020），原紀錄 R 欄填新 SRC_ID、S 欄 2026-10-20。
+  - C1 類 53 筆：R 欄填「免（C1 官方牌價／規格表；Andy 2026-10-20 17:17）」。Q11：ARC Prize 自測 8 筆立場改中立。
+  - Q1／Q3–Q13：來源、標記、備註更正（原值逐字保留在 W 欄，修訂九）；新增 Alt SRC_PRC_049／050、SRC_HW_096／097、SRC_DC_021／022。Decisions SL51-01／02。
+  - Checks W1 278 → 131；GOV 0／133／182（Warnings 280 → 133）；E7、E8、E12、E13 皆 0。
+  - 連帶顯示：S 欄審查日改為 2026-10-20 使 Interface U／V（`IFC_Updated`）196 列、Gov_Map AI／AJ 17 列的「審查日」變成 2026-10-20；SRC_Index 變長（`IDX_Src*` 範圍、Gov_Map AF 列位置）。其他模型格數值不變。
+- 測試：新增 `tests/parity/test_v1720.py`；GOV_Warnings 期望值 280 → 133（281 → 134）；`test_v1710` 改對封存的 v17.1 釘住；契約快照以 `tools/make_test_fixtures.py` 重產（差異列在報告）。
+- 工程：`tools/gen_v1720_data.py`（由 A 段證據產生 `builder/v1720_data.json`）、`tools/gen_builder_md.py` 接上 v1720。
+
 ## 20261020_Tokenomics_v17.1.xlsx（取代 v17.0；**工程類修補版：只改標籤與說明文字，數值、公式、藍字輸入、具名範圍不變**；依工作單 `docs/workorders/20261020_v17.1_文字修補.md`）
 
 - 分支 `claude/v17-1-text`（PR 與 SHA 見報告）。報告：`docs/reports/20261020_v17.1_文字修補.md`；進度檔：`docs/reports/20261020_v17.1_進度.md`。**待合併（本工作單指定不自行合併，需 Andy 明確指示）**

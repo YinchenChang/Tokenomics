@@ -173,7 +173,7 @@ def test_v1700_decisions_readme(wbf):
     assert "L1_LReqFleet_IdNoK" in d.cell(_row(d, "SL50-01"), 4).value and "L1_LTotalFleetVDisc" in d.cell(_row(d, "SL50-02"), 4).value
     assert d.max_row < 1000      # Gov_Map AA 的 COUNTIF 範圍上限（$A$5:$A$1000）
     rd = wbf["README"]
-    assert str(rd["B5"].value).startswith("20261020_Tokenomics_v17.1（修補版，工程類：") and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v17.1")      # v17.1：版本字串隨版本，v17.0 說明保留在後
+    assert str(rd["B5"].value).startswith("20261020_Tokenomics_v17.2（修補版：") and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v17.2")      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
     rows = [r for r in range(4, rd.max_row + 1) if rd.cell(r, 1).value == "v17.0 回本判讀主口徑"]
     assert len(rows) == 1 and "世代起點、折現的機隊 L" in rd.cell(rows[0], 2).value and "不含 κ" in rd.cell(rows[0], 2).value
 
@@ -183,7 +183,8 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     pw = openpyxl.load_workbook(V160, data_only=True)
     pf = openpyxl.load_workbook(V160)
     v = lo.view({})
-    assert set(v.names) - set(pf.defined_names) == NEW_NAMES
+    V172 = __import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))      # v17.2：W1 第二來源 B1 的預期變動（新增 SRC_ 名稱；GOV 計數、IFC_Updated、IDX_ 範圍），test_v1720 看守
+    assert set(v.names) - set(pf.defined_names) - set(V172["new"]) == NEW_NAMES
     assert set(pf.defined_names) - set(v.names) == set()
     changed = set()
     for n, d in pw.defined_names.items():
@@ -195,11 +196,12 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
         got = _flat(v.get_name(n))
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
+    changed -= set(V172["changed"]) - VERSION_NAMES      # v17.2：同上
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.756109635897205), ("L1_LTotalFleetV", 0.715893335392232),
                     ("L1_LReqFleet_IdNoK", 0.756109635897205), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
 
 

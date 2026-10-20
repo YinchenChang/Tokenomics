@@ -15,7 +15,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
 sys.path.insert(0, str(REPO / "builder"))
 V141_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v14.1.xlsx"      # v14.1（LibreOffice 重算存檔）
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_", "GOV_")
@@ -161,7 +161,7 @@ def test_v1420_names_off_the_chain_unchanged(lo):
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     allnames = set(keep) | V152_CHANGED      # v15.2：RNG_*、IF_Alloc*、IF_TokGW_* 都在 B2／B3 預期變動名單內（test_v1520 逐名稱釘住），不再屬『不變』比較集
     assert any(n.startswith("RNG_") for n in allnames) and any(n.startswith("IF_AllocQ1") for n in allnames) and any(n.startswith("IF_TokGW_") for n in allnames)
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)      # v15.0：Info 184 → 182（O14）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v15.0：Info 184 → 182（O14）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (21, 13, 7, 1)      # v15.0 O9：V16 移出計數
     assert v.get_name("RNG_StaleFlag") == "一致"      # 區間檔與指紋檔的版本字串已隨 v14.2 更新，端點與指紋格逐值不變
 

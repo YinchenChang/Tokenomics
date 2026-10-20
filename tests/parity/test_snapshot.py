@@ -125,4 +125,4 @@ def test_verify_totals_and_list_complete(lo):
 def test_gov_counts_new_baseline(lo):
     """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 182（v13.0：181 → 182，Calib C68 類別更正為 Assumed 進 Load_Bearing；v12.0：179 → 181，Gov_Map 『標記變更』欄 +1＝C68 更正註記；Load_Bearing 高段 Assumed 列 +1＝新增 Hopper C156 列）。"""
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)      # v15.0：Info 184 → 182（L1 外部對照換算後，第 31、60、63 列轉為 ±20% 內、第 65 列轉為差距 >20%，淨減 2）； v13.1 D15 B 段：Warnings 282 → 280（SRC_HW_067／068 有第二來源）、Info 182 → 184（DB_Evidence 新增 2 筆待判定）； v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v15.0：Info 184 → 182（L1 外部對照換算後，第 31、60、63 列轉為 ±20% 內、第 65 列轉為差距 >20%，淨減 2）； v13.1 D15 B 段：Warnings 282 → 280（SRC_HW_067／068 有第二來源）、Info 182 → 184（DB_Evidence 新增 2 筆待判定）； v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）

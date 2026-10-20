@@ -13,7 +13,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.0.xlsx"
 PREV142 = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current", "IDX_SrcID"}      # v16.0：IDX_SrcID 為 Gov_Map 哨兵，v16.0 新增 6 列登記故值改變
@@ -63,9 +63,9 @@ def test_v1510_every_name_value_equals_v150(lo):
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
         n_ok += 1
     assert n_ok >= 1000, n_ok      # v15.2：B2／B3 預期變動的 455 個名稱（V152_CHANGED）不比，其餘仍逐值相同
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v17.1") and str(v.get_name("RNG_Current")).endswith("v17.1")      # v17.1：版本字串隨版本（v17.0 同）
+    assert str(v.get_name("RNG_Version")).endswith("v17.2") and str(v.get_name("RNG_Current")).endswith("v17.2")      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
 
 
 def test_v1510_decisions_recorded(wbf):

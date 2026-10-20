@@ -10,7 +10,7 @@ from conftest import model_path
 import deadcells_lib
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
 V130_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v13.0.xlsx"      # v13.0（LibreOffice 重算存檔）：v13.1 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_")
 NEW_IN_V131 = {"RNG_Version", "RNG_Current"}      # 版本字串，隨版本改變
@@ -67,7 +67,7 @@ def test_v1310_fingerprint_file_matches_workbook(lo):
     base = lo.view({})
     assert base.get_name("RNG_StaleFlag") == "一致" and base.get("Checks", f"D{_chk_row(base, 'RG3')}") == 0
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0
-    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 280)
+    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 133)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
 
 
 def test_v1310_fingerprint_flag_fires(lo):

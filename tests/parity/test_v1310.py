@@ -67,7 +67,7 @@ def test_v1310_fingerprint_file_matches_workbook(lo):
     base = lo.view({})
     assert base.get_name("RNG_StaleFlag") == "一致" and base.get("Checks", f"D{_chk_row(base, 'RG3')}") == 0
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0
-    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 280)
+    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 133)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
 
 
 def test_v1310_fingerprint_flag_fires(lo):

@@ -92,7 +92,7 @@ def test_v1520_only_expected_names_changed(lo):
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
     assert changed == CHANGED, (sorted(changed - CHANGED)[:20], sorted(CHANGED - changed)[:20])
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
     assert v.get_name("LB_LiveCount") == 56 and len(_flat(v.get_name("LB_Rows"))) == 56
 

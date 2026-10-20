@@ -133,7 +133,7 @@ def test_v1410_names_off_the_chain_unchanged(lo):
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     for n in ("IF_AllocQ1", "IF_AllocRDGW", "IF_AllocServeGW", "IF_AllocQ2"):      # 工作單點名的名稱
         assert n not in R1_CHANGED
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 280, 182)      # v15.0：Info 184 → 182（O14 L1 外部對照換算，P 欄旗標淨減 2）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v15.0：Info 184 → 182（O14 L1 外部對照換算，P 欄旗標淨減 2）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
 
 
 # ── R3 ──

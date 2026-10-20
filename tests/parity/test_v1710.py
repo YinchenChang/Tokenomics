@@ -7,6 +7,7 @@ from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
 V170 = REPO / "model" / "archive" / "20261020_Tokenomics_v17.0.xlsx"
+V171 = REPO / "model" / "archive" / "20261020_Tokenomics_v17.1.xlsx"      # v17.2：現行版已是 v17.2；v17.0→v17.1 的逐格比較改對封存的 v17.1 釘住（v17.1→v17.2 由 test_v1720 檢查）
 
 W_CELLS = {("L1", "B114"), ("L1", "B115"), ("Cap_In", "A314"), ("Cap_In", "A315"), ("Cap_In", "G242"), ("Cap_In", "G243"),
            ("Cap_In", "G232"), ("Cap_In", "G233"), ("Cap_In", "G226"), ("Gov_Map", "M673"),
@@ -15,7 +16,7 @@ VERSION_CELLS = {("README", "A1"), ("README", "B5"), ("README", "A63"), ("README
 
 
 def _diffs(data_only):
-    a, b = openpyxl.load_workbook(V170, data_only=data_only), openpyxl.load_workbook(model_path(), data_only=data_only)
+    a, b = openpyxl.load_workbook(V170, data_only=data_only), openpyxl.load_workbook(V171, data_only=data_only)
     assert a.sheetnames == b.sheetnames
     out = set()
     for ws in a:

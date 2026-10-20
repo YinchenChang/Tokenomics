@@ -35,6 +35,7 @@ import v1500                      # v15.0: SRC_PRC_047 record (O14)
 import v1520                      # v15.2: Gov_Map GM342 (B3 range, Analogy -> Derived), GM457 M, GM644 N
 import v1530                      # v15.3: Gov_Map GM634／635／638／639 (E1／E2 Derived), GM636 N (E3), GM685 K／M／N (C2)
 import v1700                      # v17.0: L1 row LTotalFleetVDisc
+import v1720                      # v17.2: W1 second sources B1 (Alt SRC records)
 import v1600                      # v16.0: Gov_Map rows for Cap_In N (s_v, A, g_pre), L1 rows LTotalFleetV／LTotalV／LTotalDisc／LReqFleet_IdNoK
 import v1310                      # v13.1: D15 B (Gov_Map J／H completion, Decisions D15-*, new SRC records, DB_Evidence column R, range fingerprint)
 import v810                       # v9.0: audit fix 2-4 (D9 cache in capacity, token-basis free share, kappa on price, amortisation denominator; 2-3 follow-ups)
@@ -117,7 +118,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records():
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb):      # v17.2: W1 second sources (Alt)
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue

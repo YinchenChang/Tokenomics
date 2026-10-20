@@ -12,7 +12,8 @@
   - W6：Cap_In G226 開頭改指向 C226:E226 現值，原始設定保留。
   - W7：Gov_Map M673（Cap_In C280）範圍文字改為 3.3–5.9 $/M，舊區間保留。
   - 附帶（版本字串，非工作單格）：README A1、B5、新增 A63／B63 列、Alloc C177／C178（`RNG_Version`、`RNG_Current`）；`builder/v1300_ranges.json`、`builder/v1310_fingerprint.json` 只更新版本字串。
-  - 與 v17.0 逐格比較：數值差異 0；具名範圍 1,567 不變；LibreOffice 重算錯誤 0 格。
+  - **r1（chat 端審查 PR #135 後，同分支同檔名重建）**：W1 改為 L1_LTotalDisc 非主口徑（主口徑為 L1_LTotalFleetVDisc，L1 第 116 列／Cap_In 第 325 列）；W8 L1 B89、W9 L1 H89、W10 L1 I107、W11 Cap_In O241、W12 Cap_In G237、W13 Gov_Map E673、W14 Cap_In G242 分隔句。
+  - 與 v17.0 逐格比較（r1）：數值差異 0，文字差異 22 格（16 個工作單格＋6 個版本字串格）；具名範圍 1,567 不變；LibreOffice 重算錯誤 0 格。
 
 ## 20261020_Tokenomics_v17.0.xlsx（取代 v16.0；**主版：新增 3 個契約名稱，既有名稱的值不變**；回本判讀主口徑改為『世代起點＋折現的機隊 L』對『不含 κ 的所需 L』（F1、F2 依預設），依工作單 `docs/workorders/20261020_v17.0_F1F2主口徑.md` r0）
 

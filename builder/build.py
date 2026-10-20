@@ -371,6 +371,9 @@ print("v1710 v17.1:", V1710)
 import v1720
 V1720 = v1720.apply(wb, v518._append_text)       # v17.2: W1 second sources B1 (SRC R／S fills, C1 exemptions, Q11 stance, Q-item text fixes; guarded), Decisions SL51-*
 print("v1720 v17.2:", V1720)
+import v1730
+V1730 = v1730.apply(wb, v518._append_text)       # v17.3: W1 second sources B2 (SRC_MOD_018 -> V4-Pro, R fills, G17 label, E399, Decisions SL52-01; guarded)
+print("v1730 v17.3:", V1730)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

@@ -183,7 +183,8 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     pw = openpyxl.load_workbook(V160, data_only=True)
     pf = openpyxl.load_workbook(V160)
     v = lo.view({})
-    assert set(v.names) - set(pf.defined_names) == NEW_NAMES
+    V172 = __import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))      # v17.2：W1 第二來源 B1 的預期變動（新增 SRC_ 名稱；GOV 計數、IFC_Updated、IDX_ 範圍），test_v1720 看守
+    assert set(v.names) - set(pf.defined_names) - set(V172["new"]) == NEW_NAMES
     assert set(pf.defined_names) - set(v.names) == set()
     changed = set()
     for n, d in pw.defined_names.items():
@@ -195,6 +196,7 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
         got = _flat(v.get_name(n))
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
+    changed -= set(V172["changed"]) - VERSION_NAMES      # v17.2：同上
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.756109635897205), ("L1_LTotalFleetV", 0.715893335392232),
                     ("L1_LReqFleet_IdNoK", 0.756109635897205), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):

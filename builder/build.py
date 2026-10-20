@@ -365,6 +365,9 @@ V1600 = v1600.apply(wb, v518._append_text)       # v16.0: L1 P89 (reads L1_LTota
 print("v1600 v16.0:", V1600)
 V1700 = v1700.apply(wb, v518._append_text)       # v17.0: L1 P89 (reads the new main basis), L1 B107 label, Decisions SL50-*
 print("v1700 v17.0:", V1700)
+import v1710
+V1710 = v1710.apply(wb)       # v17.1: W1–W7 text repairs (guarded replacements; labels and explanation text only)
+print("v1710 v17.1:", V1710)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

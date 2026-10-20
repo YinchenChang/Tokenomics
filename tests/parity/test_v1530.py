@@ -82,7 +82,7 @@ def test_v1530_unchanged_guards(wbf, lo):
 def test_v1530_marks_corrected_original_kept(wbf):
     ci, gm = wbf["Cap_In"], wbf["Gov_Map"]
     assert ci["F226"].value == "Derived" and ci["F228"].value == "Derived（兩種讀法）"
-    assert "標記由「Assumed」更正為「Derived」" in ci["G226"].value and ci["G226"].value.startswith("藍字三格（登錄 Gov_Map）：基準 −0.10、低 −0.25、高 +0.05。")
+    assert "標記由「Assumed」更正為「Derived」" in ci["G226"].value and ci["G226"].value.startswith("藍字三格（登錄 Gov_Map）；現值以 C226:E226 為準（v17.0：基準 −0.09、低 −0.20、高 +0.05）｜原始設定：基準 −0.10、低 −0.25、高 +0.05。")      # v17.1 W6：開頭改指向現值，原始設定保留
     assert "標記由「Assumed（C、E）／Derived（D）」更正為「Derived（兩種讀法）」" in ci["G228"].value and "v15.3 E2" in ci["G228"].value and "0.17" in ci["G228"].value
     assert "v15.3 E1：2024-05～2026-10 中階牌價" in ci["G226"].value and "分廠商 OpenAI −4.4%、Anthropic −19.4%、Google −2.6%" in ci["G226"].value
     for cell, f_new in (("C226", "Derived"), ("D226:E226", "Derived"), ("C228", "Derived（兩種讀法）"), ("E228", "Derived（兩種讀法）")):

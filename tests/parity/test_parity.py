@@ -830,7 +830,7 @@ def test_v535_l_split(model, lo):
         rr = int(re.sub(r"[A-Z]+", "", eng.names[n].rsplit("!", 1)[1].replace("$", "")))
         assert eng.get("L1", f"E{rr}") <= eng.get("L1", f"D{rr}") <= eng.get("L1", f"F{rr}"), n
         if n == "L1_LTotal": assert eng.get("L1", f"M{rr}") == 1 and eng.get("L1", f"P{rr}") == "落在 0.3–1.0 區間內"
-        elif n == "L1_LReqFleet": assert abs(eng.get("L1", f"M{rr}") - eng.get_name("L1_LTotal")) < 1e-12 and eng.get("L1", f"P{rr}").startswith("恆等式讀法：未定（世代起點折現 L 0.76 對不含 κ 所需 L 0.76；v15.3 口徑 2025＝第 0 年：L 0.660）（v16.0 口徑：L 0.716 對 0.756）")      # v17.0：P89 改讀 L1_LTotalFleetVDisc 與 L1_LReqFleet_IdNoK 並附 v16.0 口徑；v16.0：P89 改讀 L1_LTotalFleetV 並附 v15.3 口徑；v15.3 r1：L1 P89 改三態，基準下區間重疊＝未定（點比較為未回本）；      # v6.3 K1：所需 L 0.66 → 0.53，判讀由「未回本」回到「回本」（L_total 0.6426 ≥ 0.5304）；v6.2：0.55 → 0.66，由「回本」變「未回本」
+        elif n == "L1_LReqFleet": assert abs(eng.get("L1", f"M{rr}") - eng.get_name("L1_LTotal")) < 1e-12 and eng.get("L1", f"P{rr}").startswith("恆等式讀法：未定（世代起點折現 L 0.75 對不含 κ 所需 L 0.76；v15.3 口徑 2025＝第 0 年：L 0.660）（v16.0 口徑：L 0.711 對 0.756）")      # v17.0：P89 改讀 L1_LTotalFleetVDisc 與 L1_LReqFleet_IdNoK 並附 v16.0 口徑；v16.0：P89 改讀 L1_LTotalFleetV 並附 v15.3 口徑；v15.3 r1：L1 P89 改三態，基準下區間重疊＝未定（點比較為未回本）；      # v6.3 K1：所需 L 0.66 → 0.53，判讀由「未回本」回到「回本」（L_total 0.6426 ≥ 0.5304）；v6.2：0.55 → 0.66，由「回本」變「未回本」
         else: assert eng.get("L1", f"P{rr}") == "無外部對照"
     # 既有 L1（v5.34 六個）與 IF_ 不變
     for n, v in (("L1_MAPI", 0.813024), ("L1_MSub", 6.146459), ("L1_MSeat", 2.634197), ("L1_MixFactorAPI", 0.813024), ("L1_MImplied", 2.513547), ("L1_MFleet", 0.61609), ("IF_PriceRef_Sol", 1.607111)):  # v15.2 B2／B3 預期變動：期望值依重算結果更新

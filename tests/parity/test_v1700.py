@@ -17,6 +17,7 @@ from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
 V160 = REPO / "model" / "archive" / "20261018_Tokenomics_v16.0.xlsx"
+V170 = REPO / "model" / "archive" / "20261020_Tokenomics_v17.0.xlsx"      # v17.1：現行版已是 v17.1；v16.0→v17.0 的逐格比較改對封存的 v17.0 釘住（v17.0→v17.1 由 test_v1710 釘住）
 NEW_NAMES = {"L1_LTotalFleetVDisc", "L1_LTotalFleetVDisc_Lo", "L1_LTotalFleetVDisc_Hi"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 PRE = {"L1_LTotalFleetVDisc": 0.75860, "L1_LTotalFleetVDisc_Lo": 0.47298, "L1_LTotalFleetVDisc_Hi": 1.13827}      # 工作單 W1 的 chat 端事前計算（5 位）
@@ -160,7 +161,7 @@ def test_v1700_l1_row_label_and_names(wbf):
     assert l1[f"D{r}"].value == f"=Cap_In!$C${_lab(wbf['Cap_In'], '機隊折現 L（世代起點＋折現')}"
     assert wbf.defined_names["L1_LTotalFleetVDisc"].attr_text == f"L1!$D${r}" and wbf.defined_names["L1_LTotalFleetVDisc_Lo"].attr_text == f"L1!$E${r}" and wbf.defined_names["L1_LTotalFleetVDisc_Hi"].attr_text == f"L1!$F${r}"
     assert l1[f"B{_row(l1, 'L1_LReqFleet_Id')}"].value.endswith("｜v17.0 起非主口徑（F1）")
-    assert "v17.0" not in str(l1[f"B{_row(l1, 'L1_LReqFleet_IdNoK')}"].value)      # 其他既有標籤不動
+    assert "非主口徑" not in str(l1[f"B{_row(l1, 'L1_LReqFleet_IdNoK')}"].value)      # 其他既有標籤不動（v17.1：IdNoK 標籤改為『v17.0 起主口徑』，仍不含『非主口徑』）
 
 
 def test_v1700_decisions_readme(wbf):
@@ -172,7 +173,7 @@ def test_v1700_decisions_readme(wbf):
     assert "L1_LReqFleet_IdNoK" in d.cell(_row(d, "SL50-01"), 4).value and "L1_LTotalFleetVDisc" in d.cell(_row(d, "SL50-02"), 4).value
     assert d.max_row < 1000      # Gov_Map AA 的 COUNTIF 範圍上限（$A$5:$A$1000）
     rd = wbf["README"]
-    assert str(rd["B5"].value).startswith("20261020_Tokenomics_v17.0（主版：") and str(rd["A1"].value).startswith("Tokenomics v17.0")
+    assert str(rd["B5"].value).startswith("20261020_Tokenomics_v17.1（修補版，工程類：") and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v17.1")      # v17.1：版本字串隨版本，v17.0 說明保留在後
     rows = [r for r in range(4, rd.max_row + 1) if rd.cell(r, 1).value == "v17.0 回本判讀主口徑"]
     assert len(rows) == 1 and "世代起點、折現的機隊 L" in rd.cell(rows[0], 2).value and "不含 κ" in rd.cell(rows[0], 2).value
 
@@ -204,7 +205,7 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
 
 def test_v1700_changed_cells_only_expected():
     """與封存的 v16.0 逐格比對（公式文字或輸入值）：只有預期的頁與格不同。"""
-    a, b = openpyxl.load_workbook(V160), openpyxl.load_workbook(model_path())
+    a, b = openpyxl.load_workbook(V160), openpyxl.load_workbook(V170)      # v17.1：右側改為封存的 v17.0
     diffs = {}
     for ws in a:
         wn = b[ws.title]

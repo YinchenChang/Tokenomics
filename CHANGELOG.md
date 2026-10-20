@@ -2,6 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261020_Tokenomics_v17.1.xlsx（取代 v17.0；**工程類修補版：只改標籤與說明文字，數值、公式、藍字輸入、具名範圍不變**；依工作單 `docs/workorders/20261020_v17.1_文字修補.md`）
+
+- 分支 `claude/v17-1-text`（PR 與 SHA 見報告）。報告：`docs/reports/20261020_v17.1_文字修補.md`；進度檔：`docs/reports/20261020_v17.1_進度.md`。**待合併（本工作單指定不自行合併，需 Andy 明確指示）**
+- Excel（CC 以 `builder/v1710.py` 自 v17.0 產生，經 LibreOffice 重算存檔；W1–W7 皆為受保護的文字取代，建置最後一步執行，冪等）：
+  - W1／W2：L1 B114／B115、Cap_In A314／A315 由「F2／F1 對照」改為「v17.0 起主口徑：F2／F1 已採用，未回應依預設，可撤回」。
+  - W3／W4：Cap_In G242 開頭改指向 C 欄現行判讀並把 v5.35 句標為「已不適用」；G243 加「【v5.35 原說明，已不適用】」。
+  - W5：Cap_In G232／G233 寫死的舊值改為「數值以 C–E 欄為準（v17.0：…）」。
+  - W6：Cap_In G226 開頭改指向 C226:E226 現值，原始設定保留。
+  - W7：Gov_Map M673（Cap_In C280）範圍文字改為 3.3–5.9 $/M，舊區間保留。
+  - 附帶（版本字串，非工作單格）：README A1、B5、新增 A63／B63 列、Alloc C177／C178（`RNG_Version`、`RNG_Current`）；`builder/v1300_ranges.json`、`builder/v1310_fingerprint.json` 只更新版本字串。
+  - **r1（chat 端審查 PR #135 後，同分支同檔名重建）**：W1 改為 L1_LTotalDisc 非主口徑（主口徑為 L1_LTotalFleetVDisc，L1 第 116 列／Cap_In 第 325 列）；W8 L1 B89、W9 L1 H89、W10 L1 I107、W11 Cap_In O241、W12 Cap_In G237、W13 Gov_Map E673、W14 Cap_In G242 分隔句。
+  - 與 v17.0 逐格比較（r1）：數值差異 0，文字差異 22 格（16 個工作單格＋6 個版本字串格）；具名範圍 1,567 不變；LibreOffice 重算錯誤 0 格。
+
 ## 20261020_Tokenomics_v17.0.xlsx（取代 v16.0；**主版：新增 3 個契約名稱，既有名稱的值不變**；回本判讀主口徑改為『世代起點＋折現的機隊 L』對『不含 κ 的所需 L』（F1、F2 依預設），依工作單 `docs/workorders/20261020_v17.0_F1F2主口徑.md` r0）
 
 - 分支 `claude/v17-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261020_v17.0_F1F2主口徑.md`；進度檔：`docs/reports/20261020_v17.0_進度.md`。**待合併（需 Andy 回覆「合併」）**

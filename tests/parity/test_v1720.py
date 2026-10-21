@@ -11,6 +11,7 @@ from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
 V171 = REPO / "model" / "archive" / "20261020_Tokenomics_v17.1.xlsx"
+V172 = REPO / "model" / "archive" / "20261020_Tokenomics_v17.2.xlsx"      # v18.0：現行版已是 v18.0；v17.1→v17.2 的逐格比較改對封存的 v17.2 釘住（v17.2→v18.0 由 test_v1800 檢查）
 DATA = json.loads((REPO / "builder" / "v1720_data.json").read_text(encoding="utf-8"))
 SRC = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]
 Q_NEW = {"SRC_PRC_049", "SRC_PRC_050", "SRC_HW_096", "SRC_HW_097", "SRC_DC_021", "SRC_DC_022"}
@@ -39,7 +40,7 @@ def _allowed(sh, coord):
 
 
 def _diffs(data_only):
-    a, b = openpyxl.load_workbook(V171, data_only=data_only), openpyxl.load_workbook(model_path(), data_only=data_only)
+    a, b = openpyxl.load_workbook(V171, data_only=data_only), openpyxl.load_workbook(V172, data_only=data_only)
     assert a.sheetnames == b.sheetnames
     out = []
     for ws in a:

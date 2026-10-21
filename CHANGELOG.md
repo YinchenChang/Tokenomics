@@ -2,6 +2,19 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261021_Tokenomics_v18.0.xlsx（取代 v17.2；**主版：新增 51 個契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261021_v18.0_m收入面化.md`）
+
+- 分支 `claude/v18-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261021_v18.0_m收入面化.md`；進度檔：`docs/reports/20261021_v18.0_進度.md`。**待合併（合併由 Andy 指示）**；全套 parity 由 chat 端執行。
+- Excel（CC 以 `builder/v1800.py` 自 v17.2 產生，經 LibreOffice 重算存檔；冪等）：
+  - W1：L1 第 117–126 列收入面 m 與單價：`L1_M_2025`／`_2026Q1`／`_2026Q2`／`_FY2026`、`L1_M`（主口徑＝2026 Q2，1.3432）、`L1_M_API`／`_Sub`／`_Seat`、`L1_PxEff_2026`、`L1_PxList_2026`（各含 `_Lo`／`_Hi`）。
+  - W2：L1 第 127–131 列 VR200 每 GW 營收 P × Q：`L1_TokGW_PaidCap_VR200`、`L1_TokGW_PaidPQ_VR200`（Q）、`L1_RevGW_PQ_VR200`（48.79／35.70／77.35 $B/GW/年）、`_FY`、`_Life`。
+  - W3：L1 第 132–133 列 `L1_TokLedger`（5.464）、`L1_TokLedger_2026Q2`（6.258）；舊 m（`L1_MFleet` 等）改標 token 帳診斷（L1 B76／B78／B80–82／B102、Cap_In A119／A209／A223，只改文字）。
+  - W4：DB_Evidence E399（OpenAI API 每分鐘 token 2026 Q2／Q3 當期值：已搜尋，未找到）、Cap_In H196 尾註。
+  - W5：Decisions SL52-01…06（J1–J4 與追加，可撤回）、README 新列、下游契約 v0.20 條目與快照 `contract_snapshot_v18.0.json`；m 閱讀版退役（移到 `docs/plan/_待刪除/`），`check_reading.py` 改只核對 L 閱讀版（v18.0 對 L 閱讀版 v17.0 通過）。
+  - 連帶：Load_Bearing J 欄（受影響名稱清單）自動追蹤多出新 L1 名稱，共 25 格，只增文字。GOV 0／133／182 不變。
+- 測試：新增 `tests/parity/test_v1800.py`（9 項）與情境 `v1800_disc30`；`workbook_expectations` 公式格 53,187 → 53,255、具名範圍 1,663 → 1,714、L1 名稱 342 → 393；`test_v1720` 改對封存的 v17.2 釘住；`test_v1700`／`test_v1510` 版本字串。
+- 工程：`tools/gen_builder_md.py` 接上 v1800；`tools/make_test_fixtures.py` 與 `test_snapshot.py` 改用 `contract_snapshot_v18.0.json`。
+
 ## 20261020_Tokenomics_v17.2.xlsx（取代 v17.1；**修補版：只新增 SRC 紀錄與改來源／標記欄，模型格數值不變**；依工作單 `docs/workorders/20261020_W1第二來源_B1.md`）
 
 - 分支 `claude/w1-b1`（PR 與 SHA 見報告）。報告：`docs/reports/20261020_v17.2_W1第二來源B1.md`；進度檔：`docs/reports/20261020_v17.2_進度.md`。**待合併（本次不自行合併，需 Andy 明確說「合併」）**

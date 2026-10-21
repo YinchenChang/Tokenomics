@@ -60,12 +60,14 @@ def test_v1510_every_name_value_equals_v150(lo):
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
         got = _flat(v.get_name(n))
+        if n.startswith("IFC_"):      # v19.0：Interface 契約欄範圍隨 N 節新列延伸；既有列的值不變（test_v1900 看守）
+            got = got[:len(want)]
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
         n_ok += 1
     assert n_ok >= 1000, n_ok      # v15.2：B2／B3 預期變動的 455 個名稱（V152_CHANGED）不比，其餘仍逐值相同
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v18.0") and str(v.get_name("RNG_Current")).endswith("v18.0")      # v18.0：版本字串隨版本      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
+    assert str(v.get_name("RNG_Version")).endswith("v19.0") and str(v.get_name("RNG_Current")).endswith("v19.0")      # v19.0：版本字串隨版本；v18.0：      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
 
 
 def test_v1510_decisions_recorded(wbf):

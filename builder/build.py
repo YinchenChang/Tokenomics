@@ -286,6 +286,8 @@ import v1000
 IFL = v1000.interface_l(wb)            # v10.0 N1: Interface L section (IFW_*_LifeSelf; appended last, before the contract columns are built; nothing reads these names)
 import v1400
 IFM = v1400.interface_m(wb)            # v14.0 (4-3B Q2): Interface M section (11 IF_ names) before the contract columns are built
+import v1900
+IFN = v1900.interface_n(wb)            # v19.0: Interface N section (P x Q 取數 names; appended last, before the contract columns are built)
 SER14 = v1400.series_names(wb)         # v14.0 (4-3B Q2): L1_*_Ser／L1_MFleet_P25Lo／Hi series names on Cap_In
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
@@ -374,6 +376,9 @@ print("v1720 v17.2:", V1720)
 import v1800
 V1800 = v1800.apply(wb, v518._append_text)       # v18.0: revenue-side m label tails (L1／Cap_In), DB_Evidence E399, Decisions SL52-*
 print("v1800 v18.0:", V1800)
+import v1900
+V1900 = v1900.apply(wb)       # v19.0: Decisions SL53-*
+print("v1900 v19.0:", V1900)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

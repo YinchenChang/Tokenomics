@@ -33216,11 +33216,11 @@ def l1_rows_new():
          "低＝低端 Q × 低端 L；高＝高端 Q × 高端 L（兩端同向組合，範圍很寬）", I_PQ, "第一年營收、L（L1_LTotalDisc）", "L：Assumed／Derived（價格迴歸與降級）；m 不變：Assumed", *NONE_EXT,
          "L1_RevGW_PQ_VR200；L1_LTotalDisc", "L1 本頁", "m 的未來變化未建模"),
         ("TokLedger", "token 帳診斷 — 2025：模型付費 token ÷ 需求面付費 token（＝L1_M_2025 ÷ L1_MFleet）",
-         "＝L1_M_2025 ÷ L1_MFleet；同價格基準時成立（2025 兩邊單價同為 CAP_Price25Mix／AL_PriceFleet25＝1.359）", "=L1_M_2025/L1_MFleet", _t(NR_LEDGER), _t(NR_LEDGER), "x",
+         "＝L1_M_2025 ÷ L1_MFleet；同價格基準時成立（2025 兩邊單價同為 CAP_Price25Mix／AL_PriceFleet25＝1.359）", "=IF(AND(ISNUMBER(L1_M_2025),ISNUMBER(L1_MFleet)),L1_M_2025/L1_MFleet,AL_UnavailTxt)", _t(NR_LEDGER), _t(NR_LEDGER), "x",
          NR_LEDGER, "v18.0：模型付費 token（機隊，成本鏈推出）÷ 需求面付費 token。＞1 表示模型產能推算的 token 多於需求面觀測；舊 L1_MFleet＝m ÷ 本列。不是 m。",
          "L1_MImplied、L1_MFleet", "兩者分母皆為模型推算 token（Assumed）", *NONE_EXT, "L1_M_2025；L1_MFleet", "L1 本頁", "兩路線差距未分解"),
         ("TokLedger_2026Q2", "token 帳診斷 — 2026 Q2：模型付費 token ÷ 需求面付費 token（＝Cap_In E209 ÷ E223）",
-         "＝Cap_In!$E$209 ÷ Cap_In!$E$223；同價格基準時成立（2026 兩邊單價同為 1.961）", "=Cap_In!$E$209/Cap_In!$E$223", _t(NR_LEDGER), _t(NR_LEDGER), "x",
+         "＝Cap_In!$E$209 ÷ Cap_In!$E$223；同價格基準時成立（2026 兩邊單價同為 1.961）", "=IF(AND(ISNUMBER(Cap_In!$E$209),ISNUMBER(Cap_In!$E$223)),Cap_In!$E$209/Cap_In!$E$223,AL_UnavailTxt)", _t(NR_LEDGER), _t(NR_LEDGER), "x",
          NR_LEDGER, "v18.0：同 L1_TokLedger，2026 Q2。L1_RevGW_PQ_VR200 的 Q 為模型產能，若誤差全在模型產能側，實際營收約為該列 ÷ 本列。",
          "Cap_In 第 209／223 列", "兩者分母皆為模型推算 token（Assumed）", *NONE_EXT, "Cap_In 第 209／223 列", "Cap_In 第 209 列、第 223 列（E 欄）", "兩路線差距未分解"),
     ]

@@ -168,7 +168,7 @@ def test_v1800_l1_rows_formulas_and_tails(wbf):
     for k, rr in (("M_API", 206), ("M_Sub", 207), ("M_Seat", 208)):
         assert l1[f"D{_row(l1, 'L1_' + k)}"].value == f"=Cap_In!$E${rr}"
     assert l1[f"D{_row(l1, 'L1_PxEff_2026')}"].value == "=Cap_In!$E$205" and l1[f"D{_row(l1, 'L1_PxList_2026')}"].value == "=L1_PxEff_2026/(1-B4_Disc)"
-    assert l1[f"D{_row(l1, 'L1_TokLedger')}"].value == "=L1_M_2025/L1_MFleet" and l1[f"D{_row(l1, 'L1_TokLedger_2026Q2')}"].value == "=Cap_In!$E$209/Cap_In!$E$223"
+    assert l1[f"D{_row(l1, 'L1_TokLedger')}"].value == "=IF(AND(ISNUMBER(L1_M_2025),ISNUMBER(L1_MFleet)),L1_M_2025/L1_MFleet,AL_UnavailTxt)" and l1[f"D{_row(l1, 'L1_TokLedger_2026Q2')}"].value == "=IF(AND(ISNUMBER(Cap_In!$E$209),ISNUMBER(Cap_In!$E$223)),Cap_In!$E$209/Cap_In!$E$223,AL_UnavailTxt)"
     assert l1[f"E{_row(l1, 'L1_TokGW_PaidPQ_VR200')}"].value.count("AL_UtilActual_Lo") == 1 and l1[f"F{_row(l1, 'L1_TokGW_PaidPQ_VR200')}"].value.count("AL_UtilActual_Hi") == 1
     life = _row(l1, "L1_RevGW_PQ_VR200_Life")
     assert l1[f"E{life}"].value == "=L1_RevGW_PQ_VR200_Lo*L1_LTotalDisc_Lo" and l1[f"F{life}"].value == "=L1_RevGW_PQ_VR200_Hi*L1_LTotalDisc_Hi"

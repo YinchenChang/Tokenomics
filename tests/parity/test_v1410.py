@@ -128,6 +128,7 @@ def test_v1410_names_off_the_chain_unchanged(lo):
         got = _flat(v.get_name(n))
         if n.startswith("IFC_"):      # v15.0：Interface 第 193 列新增（IF_FrontSuccVRQual 的 IFC_ 中繼資料）；舊版該列為空，其餘逐格須相同
             skip = {193 - r1}
+            got = got[:len(want)]      # v19.0：Interface 契約欄範圍隨 N 節新列延伸（新列在最後 17 格）；既有列的值須相同（test_v1900 看守新列）
             assert len(want) == len(got) and all(_same(a, b) for i, (a, b) in enumerate(zip(want, got)) if i not in skip) and all(want[i] in (None, "") for i in skip), n
             continue
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n

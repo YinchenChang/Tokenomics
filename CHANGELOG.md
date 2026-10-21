@@ -2,6 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261022_Tokenomics_v19.0.xlsx（取代 v18.0；**主版：新增 25 個 `IF_` 契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261022_v19.0_Interface取數.md`）
+
+- 分支 `claude/v19-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261022_v19.0_Interface取數.md`；進度檔：`docs/reports/20261022_v19.0_進度.md`。**待合併（合併由 Andy 指示）**；全套 parity 由 chat 端執行。
+- Excel（CC 以 `builder/v1900.py` 自 v18.0 產生，經 LibreOffice 重算存檔；冪等）：
+  - W1：Interface 新增 N 節「P×Q 取數」（第 346–361 列；工作單稱 K，但 K／L／M 已被 v8.0／v10.0／v14.0 使用）：`IF_Disc`／`_Lo`／`_Hi`、`IF_MixPaid_Luna`／`_Sol`／`_Astra`、`IF_MixFree_Luna`／`_Sol`／`_Astra`、`IF_UtilActual`／`_Lo`／`_Hi`、`IF_ProdDerate`、`IF_FleetProdRatio_VR200`、`IF_PxEffMix`、`IF_PxEffMix25`／`_Lo`／`_Hi`、`IF_LTotalDisc`／`_Lo`／`_Hi`、`IF_LTotalFleetVDisc`／`_Lo`／`_Hi`、`IF_TokGWPaidMix`（15 欄；任一分母非數字或非正回傳 `AL_UnavailTxt`）。全部是既有格的引用或組合。
+  - W2：Decisions SL53-01、README 新列（第 66 列）與 B5／A1、`README.md` 補句、下游契約 v0.21 條目與快照 `contract_snapshot_v19.0.json`。
+  - 連帶：`IFC_Conf`／`_Use`／`_Layer`／`_Updated` 四個範圍由 `$344` 延伸到 `$361`（既有列的值不變）；Checks D118／D119／E118 的範圍文字隨之延伸；RNG 版本字串（`v1300_ranges.json`、`v1310_fingerprint.json`）改 v19.0（否則 Checks RG1 會使 GOV_Warnings 133 → 134）。GOV 0／133／182 不變。
+- 測試：新增 `tests/parity/test_v1900.py`；`workbook_expectations` 公式格 53,255 → 53,369、具名範圍 1,714 → 1,739、下游名稱 208 → 233（`test_parity` 內的 133 → 158）；`test_v1800` 改對封存的 v18.0 釘住；`test_v1700`／`test_v1510`／`test_v1410`／`test_v1420` 版本字串與 IFC_ 範圍延伸。死格基準 n_dead 2,742 → 2,642（新 IF_ 名稱成為根，其上游變成活格；未標用途者 0）。
+- 工程：`tools/gen_builder_md.py` 接上 v1900；`tools/make_test_fixtures.py` 與 `test_snapshot.py` 改用 `contract_snapshot_v19.0.json`。
+
 ## 20261021_Tokenomics_v18.0.xlsx（取代 v17.2；**主版：新增 51 個契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261021_v18.0_m收入面化.md`）
 
 - 分支 `claude/v18-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261021_v18.0_m收入面化.md`；進度檔：`docs/reports/20261021_v18.0_進度.md`。**待合併（合併由 Andy 指示）**；全套 parity 由 chat 端執行。

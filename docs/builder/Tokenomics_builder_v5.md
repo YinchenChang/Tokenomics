@@ -33159,8 +33159,8 @@ def l1_rows_new():
                 NR + "（2026 欄的輸入為 Assumed 單值，區間待補）" + extra_h, I_M, SHARED_DRV_M, SHARED_WEAK_M, *NONE_EXT,
                 "Cap_In 第 209 列；B4_Disc", f"Cap_In 第 209 列（{col} 欄）",
                 "2026 欄無區間；Q2 API token 為 2026-03 時點值；m 的未來變化未建模")
-    def sub_row(key, lab, rownum, name25):
-        h = f'="{NR}；2025 值＝{name25} "&TEXT({name25},"0.000")'
+    def sub_row(key, lab, rownum, name25, v25):
+        h = f"{NR}（2026 欄的輸入為 Assumed 單值，區間待補）；2025 值：{name25} {v25}（v18.0 建置時；現值見該列）"      # static text: a formula here would be an unread (dead) cell
         return (key, lab, f"Cap_In!$E${rownum}（2026 Q2）；分子＝該路線營收（m 分子營收 × 份額），分母＝該路線 token × 當年有效單價（Cap_In 第 205 列）",
                 f"={C}!$E${rownum}", _t(NR), _t(NR), "x", h, I_M, SHARED_DRV_M, SHARED_WEAK_M, *NONE_EXT,
                 "Cap_In 第 188–193／196–202 列；B4_Disc", f"Cap_In 第 {rownum} 列（E 欄）", "營收份額與消費訂閱 token 份額為 Assumed 單值，區間待補")
@@ -33176,9 +33176,9 @@ def l1_rows_new():
          "＝L1_M_2026Q2；" + B_M_BASIS, "=L1_M_2026Q2", _t(NR), _t(NR), "x",
          NR + "（2026 欄的輸入為 Assumed 單值，區間待補）", I_M, SHARED_DRV_M, SHARED_WEAK_M, *NONE_EXT,
          "Cap_In 第 209 列 E 欄；B4_Disc", "L1 本頁（＝L1_M_2026Q2）", "2026 欄無區間；Q2 API token 為 2026-03 時點值"),
-        sub_row("M_API", "收入面 m — API 路線（2026 Q2）", 206, "L1_MAPI"),
-        sub_row("M_Sub", "收入面 m — 消費訂閱路線（2026 Q2）", 207, "L1_MSub"),
-        sub_row("M_Seat", "收入面 m — 商用席次路線（2026 Q2）", 208, "L1_MSeat"),
+        sub_row("M_API", "收入面 m — API 路線（2026 Q2）", 206, "L1_MAPI", "0.813"),
+        sub_row("M_Sub", "收入面 m — 消費訂閱路線（2026 Q2）", 207, "L1_MSub", "6.146"),
+        sub_row("M_Seat", "收入面 m — 商用席次路線（2026 Q2）", 208, "L1_MSeat", "2.634"),
         ("PxEff_2026", "2026 快照付費 token 混合有效單價（層級組合 Luna／Sol／Astra × 有效牌價；= 表列牌價 ×（1 − d））",
          "Cap_In!$E$205；2026 快照（B4_MixPaid 加權的 IF_PriceRef）", f"={C}!$E$205", _t(NR), _t(NR), "$/M", NR, "v18.0：L1_M 的分母單價；2026 年用 2026 快照（1.961），2025 年用 CAP_Price25Mix（1.359）",
          "層級組合 B4_MixPaid、IF_PriceRef_*、B4_Disc、AL_Kappa", "牌價：C1 官方牌價；組合：Assumed", *NONE_EXT, "Cap_In 第 205 列、第 90 列", "Cap_In 第 205 列（E 欄）", "顯示用"),

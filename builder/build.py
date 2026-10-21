@@ -371,6 +371,9 @@ print("v1710 v17.1:", V1710)
 import v1720
 V1720 = v1720.apply(wb, v518._append_text)       # v17.2: W1 second sources B1 (SRC R／S fills, C1 exemptions, Q11 stance, Q-item text fixes; guarded), Decisions SL51-*
 print("v1720 v17.2:", V1720)
+import v1800
+V1800 = v1800.apply(wb, v518._append_text)       # v18.0: revenue-side m label tails (L1／Cap_In), DB_Evidence E399, Decisions SL52-*
+print("v1800 v18.0:", V1800)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

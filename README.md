@@ -29,6 +29,12 @@ Excel 的具名範圍分為兩類（見 Excel README 頁）：
 - **`IF_Hdr*`（`IF_HdrGen`、`IF_HdrCost`、`IF_HdrTask`）、`DRV_*`、`CAL_*`、`TRN_*`、`TR_*`、`B4_*`、`B5_*`、`CTL_*`**：僅供本網站顯示（表頭、推導鏈、Calib 驗證表、Tech_Registry 唯讀表）、內部用或輸入控制，下游不得連結。
   `B4_*`（41 個；v5.34 加 `B4_Disc_Lo`／`B4_Disc_Hi`）與 `B5_*`（24 個；v5.9 新增、v5.10 加 `B5_PFloor`）是 Block 4、Block 5 的顯示或內部用名稱（Cap_In／Har_In 輸入、市場候選表、有效單價列、選定 harness 檔案等），**下游一律不得連結**，應改連 `IF_` 的 Block 4、5 輸出（Interface D、E 節）。
 
+## 變現率 m 的定義（Andy 2026-10-21，權威）
+
+- m ＝ 付費服務 token 的有效牌價變現率 ＝ 實收 ÷（付費服務 token × 有效牌價）；有效牌價 ＝ 表列牌價 ×（1 − 折扣 B4_Disc，基準 20%）。分母只含付費服務 token；免費 token 沒有營收，只透過占用服務 GW 影響付費 token 數。
+- 用語：$1.359／M（`CAP_Price25Mix`、`AL_PriceFleet25`）是「有效牌價」，不是表列牌價；以表列牌價為分母時 m 要再乘 (1 − B4_Disc)。
+- 一致性要求：凡把 m 乘回 token 產能（例如 VR200 每 GW 營收），付費／免費服務的切分口徑必須與校準 m 時相同（m 用 token 口徑 r；`Fleet_1GW` 用 B4_Free 支出口徑 0.46，兩者混用會低估營收約 37%；2026-10-21 檢測發現，待修）。
+
 ## 執行
 
 網站暫停（CLAUDE.md 修訂八）；`python tokenomics.py` 與 `run_local.bat` 只印出暫停訊息。恢復網站時，安裝 `requirements-legacy.txt`，並先由 Project 端決定是否恢復引擎。

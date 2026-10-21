@@ -21,6 +21,7 @@ V170 = REPO / "model" / "archive" / "20261020_Tokenomics_v17.0.xlsx"      # v17.
 NEW_NAMES = {"L1_LTotalFleetVDisc", "L1_LTotalFleetVDisc_Lo", "L1_LTotalFleetVDisc_Hi"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 V180_NEW = {f"L1_{k}{s}" for k in ["M_2025", "M_2026Q1", "M_2026Q2", "M_FY2026", "M", "M_API", "M_Sub", "M_Seat", "PxEff_2026", "PxList_2026", "TokGW_PaidCap_VR200", "TokGW_PaidPQ_VR200", "RevGW_PQ_VR200", "RevGW_PQ_VR200_FY", "RevGW_PQ_VR200_Life", "TokLedger", "TokLedger_2026Q2"] for s in ("", "_Lo", "_Hi")}      # v18.0：L1 新增 17 列 × 3 名稱（test_v1800 看守）
+from test_v1900 import NEW as V190_NEW      # v19.0：Interface N 節新增 25 個 IF_ 名稱（test_v1900 看守）
 PRE = {"L1_LTotalFleetVDisc": 0.75860, "L1_LTotalFleetVDisc_Lo": 0.47298, "L1_LTotalFleetVDisc_Hi": 1.13827}      # 工作單 W1 的 chat 端事前計算（5 位）
 
 
@@ -174,7 +175,7 @@ def test_v1700_decisions_readme(wbf):
     assert "L1_LReqFleet_IdNoK" in d.cell(_row(d, "SL50-01"), 4).value and "L1_LTotalFleetVDisc" in d.cell(_row(d, "SL50-02"), 4).value
     assert d.max_row < 1000      # Gov_Map AA 的 COUNTIF 範圍上限（$A$5:$A$1000）
     rd = wbf["README"]
-    assert str(rd["B5"].value).startswith("20261021_Tokenomics_v18.0（主版：") and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v18.0")      # v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
+    assert str(rd["B5"].value).startswith("20261022_Tokenomics_v19.0（主版：") and "v18.0（主版：" in str(rd["B5"].value) and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v19.0")      # v19.0：版本字串隨版本；v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
     rows = [r for r in range(4, rd.max_row + 1) if rd.cell(r, 1).value == "v17.0 回本判讀主口徑"]
     assert len(rows) == 1 and "世代起點、折現的機隊 L" in rd.cell(rows[0], 2).value and "不含 κ" in rd.cell(rows[0], 2).value
 
@@ -185,7 +186,7 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     pf = openpyxl.load_workbook(V160)
     v = lo.view({})
     V172 = __import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))      # v17.2：W1 第二來源 B1 的預期變動（新增 SRC_ 名稱；GOV 計數、IFC_Updated、IDX_ 範圍），test_v1720 看守
-    assert set(v.names) - set(pf.defined_names) - set(V172["new"]) - V180_NEW == NEW_NAMES
+    assert set(v.names) - set(pf.defined_names) - set(V172["new"]) - V180_NEW - V190_NEW == NEW_NAMES
     assert set(pf.defined_names) - set(v.names) == set()
     changed = set()
     for n, d in pw.defined_names.items():
@@ -198,6 +199,7 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
     changed -= set(V172["changed"]) - VERSION_NAMES      # v17.2：同上
+    changed -= {"IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"}      # v19.0：Interface 契約欄範圍隨 N 節新列延伸（既有列的值不變，由 test_v1900 看守）
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.756109635897205), ("L1_LTotalFleetV", 0.715893335392232),
                     ("L1_LReqFleet_IdNoK", 0.756109635897205), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):

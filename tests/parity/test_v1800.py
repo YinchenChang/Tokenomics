@@ -15,11 +15,13 @@ from pathlib import Path
 import openpyxl
 import pytest
 import yaml
+from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
 V172 = REPO / "model" / "archive" / "20261020_Tokenomics_v17.2.xlsx"
+V180 = REPO / "model" / "archive" / "20261021_Tokenomics_v18.0.xlsx"      # v19.0：現行版已是 v19.0；v17.2→v18.0 的靜態檢查改對封存的 v18.0 釘住（v18.0→v19.0 由 test_v1900 檢查）
 SC = yaml.safe_load((Path(__file__).resolve().parent / "scenarios.yaml").read_text(encoding="utf-8"))["scenarios"]
 DISC30 = next(s["inputs"] for s in SC if s["id"] == "v1800_disc30")
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
@@ -143,7 +145,7 @@ def test_v1800_token_ledger(lo):
 # ---------------------------------------------------------------- static (formula mode / archive comparison)
 @pytest.fixture(scope="module")
 def wbf():
-    return openpyxl.load_workbook(model_path())
+    return openpyxl.load_workbook(V180)
 
 
 def _row(ws, rid, col=1):
@@ -215,7 +217,7 @@ def test_v1800_evidence_decisions_readme(wbf):
 
 
 def _diffs(data_only):
-    a, b = openpyxl.load_workbook(V172, data_only=data_only), openpyxl.load_workbook(model_path(), data_only=data_only)
+    a, b = openpyxl.load_workbook(V172, data_only=data_only), openpyxl.load_workbook(V180, data_only=data_only)
     assert a.sheetnames == b.sheetnames
     out = []
     for ws in a:
@@ -264,24 +266,27 @@ def test_v1800_diffs_only_expected_vs_v172():
     assert all(t[0] == "L1" and int(re.sub(r"[A-Z]+", "", t[1])) >= 117 for t in num), [t for t in num if not (t[0] == "L1")][:5]
 
 
-def test_v1800_existing_names_unchanged(lo):
-    """與封存的 v17.2 逐名稱比較：既有名稱的值全部不變，唯一例外是版本字串（RNG_Version／RNG_Current）。"""
+def test_v1800_existing_names_unchanged():
+    """與封存的 v17.2 逐名稱比較（對封存的 v18.0 重算值）：既有名稱的值全部不變，唯一例外是版本字串（RNG_Version／RNG_Current）。"""
     pw, pf = openpyxl.load_workbook(V172, data_only=True), openpyxl.load_workbook(V172)
-    v = lo.view({})
-    assert set(v.names) - set(pf.defined_names) == NEW_NAMES and not (set(pf.defined_names) - set(v.names))
+    cw, cf = openpyxl.load_workbook(V180, data_only=True), openpyxl.load_workbook(V180)
+
+    def val(wbk, n):
+        sh, rg = wbk.defined_names[n].attr_text.rsplit("!", 1)
+        sh = sh.strip("'")
+        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+        v = [wbk[sh].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
+        return v
+    assert set(cf.defined_names) - set(pf.defined_names) == NEW_NAMES and not (set(pf.defined_names) - set(cf.defined_names))
     changed = set()
     for n, d in pw.defined_names.items():
         if "!" not in d.attr_text or "," in d.attr_text:
             continue
-        sh, rg = d.attr_text.rsplit("!", 1)
-        from openpyxl.utils import range_boundaries
-        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
-        want = [pw[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
-        got = _flat(v.get_name(n))
+        want, got = val(pw, n), val(cw, n)
         same = len(want) == len(got) and all((a == b) or (isinstance(a, (int, float)) and isinstance(b, (int, float)) and abs(a - b) <= 1e-9 * max(abs(a), abs(b), 1e-300) + 1e-12)
                                              or (a in (None, "") and b in (None, "")) for a, b in zip(want, got))
         if not same:
             changed.add(n)
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2 同；本版不增減任何治理計數
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
+    assert tuple(val(cw, n)[0] for n in ("GOV_Errors", "GOV_Warnings", "GOV_Info")) == (0, 133, 182)      # v17.2 同；v18.0 不增減任何治理計數
+    assert val(cw, "RNG_StaleFlag")[0] == "一致" and val(cw, "RNG_OutCount")[0] == 0 and val(cw, "CHK_L1Order")[0] == 0

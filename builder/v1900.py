@@ -41,7 +41,7 @@ SCALARS = [
 ]
 
 PAID_MIX = "IF_TokGWPaidMix"
-PAID_MIX_LAB = ("付費層級組合下每 GW 年產能（100% 利用、全部付費；層級占比調和平均；實際＝× 服務占比 ×（1 − 免費占比）× 實際利用率 × 生產折減；"
+PAID_MIX_LAB = ("付費層級組合下每 GW 年產能（100% 利用、全部付費；層級占比調和平均；實際＝× 服務占比 IF_ServeShare ×（1 − 免費占比 IF_FreeShare）× 實際利用率 × 生產折減；"
                 "欄 C–Q＝5 世代 × 3 成本情境，同 IF_TokGW_*；token 類型＝付費 token 混合：新鮮輸入＋快取輸入＋輸出）")
 
 

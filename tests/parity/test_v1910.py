@@ -31,6 +31,9 @@ SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點（隨 Luna 值重算）、SR
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 
 
+V20_CHANGED = {"CHK_L1Order", "L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"}      # v20.0：H3 計數與 L1_M 的 2026 區間（test_v2000 看守）
+
+
 def _flat(v):
     if isinstance(v, (list, tuple)):
         return [x for r in v for x in _flat(r)]
@@ -81,7 +84,7 @@ def test_v1910_changes_only_downstream_of_c17(lo):
     assert v.get("Arch", "C17") == 4224
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in V20_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -153,12 +156,12 @@ def test_v1910_records(wbf):
     assert "17:29" in d.cell(rd[0], 6).value and "SRC_MOD_106" in d.cell(rd[0], 4).value and "修訂九" in d.cell(rd[0], 4).value
     assert d.max_row < 1000
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261022_Tokenomics_v19.1（次版，底版 v19.0：") and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v19.1")
+    assert str(rm["B5"].value).startswith("20261022_Tokenomics_v20.0（主版：") and "v19.1（次版，底版 v19.0：" in str(rm["B5"].value) and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v20.0")
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v19.1 W1 第二來源 B2"]) == 1
 
 
 def test_v1910_diffs_only_expected_vs_v190():
-    a, b = openpyxl.load_workbook(V190), openpyxl.load_workbook(model_path())
+    a, b = openpyxl.load_workbook(V190), openpyxl.load_workbook(V190.parent.parent / 'archive' / '20261022_Tokenomics_v19.1.xlsx')      # v20.0：現行檔已是 v20.0，本檢驗改比封存的 v19.1
     assert a.sheetnames == b.sheetnames
     d = {}
     for ws in a:

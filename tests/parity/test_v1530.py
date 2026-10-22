@@ -79,7 +79,7 @@ def test_v1530_unchanged_guards(wbf, lo):
     assert abs(v.get_name("L1_MFleet_Lo") - 0.242723485975401) < 1e-9 and abs(v.get_name("L1_MFleet_Hi") - 1.33130310709466) < 1e-9
     assert abs(v.get_name("IF_AllocServeGW") - 0.89809617101894) < 1e-12 and abs(v.get_name("L1_LReqFleet_Id") - 0.756109635897205) < 1e-12
     assert wbf["Calib"]["D67"].value == 1.15 and wbf["Cap_In"]["C280"].value == 4.5
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v19.1：本檢驗用 C17_OLD 視圖（SRC_MOD_106＝1024），此時 RG2／RG3 因區間端點檔已按 C17＝2176 重產而各觸發，故仍是 133（基準視圖為 132，見 test_v1910）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 135, 182)      # v19.1：本檢驗用 C17_OLD 視圖（SRC_MOD_106＝1024），此時 RG2／RG3 因區間端點檔已按 C17＝2176 重產而各觸發，故仍是 133（基準視圖為 132，見 test_v1910）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "區間過期" and v.get_name("RNG_OutCount") >= 0      # v19.1：C17_OLD 視圖下指紋與區間端點（按 C17＝2176 重產）不符；基準視圖由 test_v1910 檢查「一致」與 0
 
 

@@ -56,11 +56,11 @@ def test_v1710_w_texts():
     assert "（v17.0 起主口徑：F1 已採用，未回應依預設，可撤回）" in ci["A315"].value and "F1 對照" not in ci["A315"].value
     assert l1["B114"].value == "壽命期價格係數 L — 折現版（2025＝第 0 年；F2 已採用＝v17.0 起 L 用折現版，未回應依預設，可撤回。回本判讀主口徑是世代起點＋折現 L1_LTotalFleetVDisc，本列為其分項對照；WACC 折現）"
     assert l1["A116"].value == "L1_LTotalFleetVDisc" and ci["A325"].value.startswith("機隊折現 L")      # A314 內的列號
-    assert l1["B115"].value == "回本所需 L — 恆等式讀法、不含 κ（v17.0 起主口徑：F1 已採用，未回應依預設，可撤回）"
-    assert ci["G242"].value.startswith("文字；現行判讀見 C 欄（v17.0：未定，L 0.759 對所需 L 0.756）｜【以下為歷次修訂紀錄，現行判讀以本格開頭與 C 欄為準】｜【v5.35 原說明，已不適用】基準 0.6426 ≥ 0.3645 → 回本（L_total 口徑）｜v15.3 D1：")
+    assert l1["B115"].value.split("｜v20.0")[0] == "回本所需 L — 恆等式讀法、不含 κ（v17.0 起主口徑：F1 已採用，未回應依預設，可撤回）"
+    assert ci["G242"].value.startswith("文字；現行判讀見 C 欄（v20.0：未定，L 0.759 對所需 L 0.807，比值 0.940；v17.0：未定，L 0.759 對所需 L 0.756）｜【以下為歷次修訂紀錄，現行判讀以本格開頭與 C 欄為準】｜【v5.35 原說明，已不適用】基準 0.6426 ≥ 0.3645 → 回本（L_total 口徑）｜v15.3 D1：")
     assert ci["G243"].value.startswith("文字；【v5.35 原說明，已不適用】基準 0.6426 ≥ 0.5237 → 回本（L_total 口徑）｜v15.3 D1：")
-    assert ci["G232"].value == "壽命期內牌價相對第 0 年的連續平均；數值以 C–E 欄為準（v17.0：基準 0.7637、D 0.5511、E 1.1618）"
-    assert ci["G233"].value == "前 T1 年中階牌價、之後 ρ × 中階牌價的連續平均；數值以 C–E 欄為準（v17.0：基準 0.6595、D 0.3963、E 1.0964）"
+    assert ci["G232"].value == "壽命期內牌價相對第 0 年的連續平均；數值以 C–E 欄為準（v20.0 建置時：基準 0.7637、D 0.5511、E 1.1618）"
+    assert ci["G233"].value == "前 T1 年中階牌價、之後 ρ × 中階牌價的連續平均；數值以 C–E 欄為準（v20.0 建置時：基準 0.6595、D 0.4019、E 1.0964）"
     assert ci["G226"].value.startswith("藍字三格（登錄 Gov_Map）；現值以 C226:E226 為準（v17.0：基準 −0.09、低 −0.20、高 +0.05）｜原始設定：基準 −0.10、低 −0.25、高 +0.05。依據：")
     assert gm["M673"].value == "3.3–5.9 $/M（v15.2 B2 用量加權；舊區間 2.089–16.33 為在售天數加權，保留於 Cap_In G280）（低、高端的層級對應見註）"
     assert gm["D673"].value == "C280"
@@ -78,7 +78,7 @@ def test_v1710_r1_texts():
     wb = openpyxl.load_workbook(model_path())
     ci, l1, gm = wb["Cap_In"], wb["L1"], wb["Gov_Map"]
     assert l1["B89"].value.endswith("判讀只用恆等式讀法；v17.0 起主口徑為不含 κ 的 L1_LReqFleet_IdNoK（F1），含 κ 的 L1_LReqFleet_Id 為對照")
-    h = l1["H89"].value
+    h = l1["H89"].value.split("｜v20.0")[0]
     assert "與 L_total 並列判讀（舊讀法；v17.0 起 Cap_In 第 242 列改為 L1_LTotalFleetVDisc 對 L1_LReqFleet_IdNoK）" in h and h.endswith("恆等式讀法見 L1_LReqFleet_IdNoK（主口徑）與 L1_LReqFleet_Id（含 κ，對照）")
     assert l1["I107"].value.startswith("（字面讀法的對照說明；現行判讀見 Cap_In 第 242 列）與 L1_LReqFleet（字面口徑）並列")
     assert "契約已定恆等式讀法（v17.0 起主口徑 L1_LReqFleet_IdNoK；含 κ 的 L1_LReqFleet_Id 為對照），第三種讀法留作對照" in ci["O241"].value

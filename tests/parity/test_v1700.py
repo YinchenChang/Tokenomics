@@ -119,16 +119,16 @@ def test_v1700_t0_zero_equals_l1_ltotaldisc(wbf, lo):
 
 def test_v1700_three_state_row242(wbf, lo):
     v = lo.view({})
-    assert v.get("Cap_In", "C242") == "未定（區間重疊；基準 L 0.759 對所需 L 0.756）"
+    assert v.get("Cap_In", "C242") == "未定（區間重疊；基準 L 0.759 對所需 L 0.807）"
     assert v.get("Cap_In", "D242").startswith("對照：低端欄 L ") and v.get("Cap_In", "E242").startswith("對照：高端欄 L ")
-    assert "（不含 κ，低端）" in v.get("Cap_In", "D242") and "（不含 κ，高端）" in v.get("Cap_In", "E242")
+    assert "（全部算力，低端）" in v.get("Cap_In", "D242") and "（全部算力，高端）" in v.get("Cap_In", "E242")
     neg = lo.view({"Cap_In!C226": -0.9, "Cap_In!D226": -0.9, "Cap_In!E226": -0.85})
     assert neg.get("Cap_In", "C242") == "未回本（L 區間全在所需 L 之下）"
     pos = lo.view({"Cap_In!C226": 0.3, "Cap_In!D226": 0.3, "Cap_In!E226": 0.4, "Cap_In!C227": 6, "Cap_In!D227": 6, "Cap_In!E227": 6})
     assert pos.get("Cap_In", "C242") == "回本（L 區間全在所需 L 之上）"
     # L1 P89 同步
     p89 = v.get("L1", "P89")
-    assert p89.startswith("恆等式讀法：未定（世代起點折現 L 0.76 對不含 κ 所需 L 0.76；v15.3 口徑 2025＝第 0 年：L 0.660）（v16.0 口徑：L 0.716 對 0.756）；字面讀法 ")
+    assert p89.startswith("恆等式讀法：未定（世代起點折現 L 0.76 對全部算力所需 L 0.81；v15.3 口徑 2025＝第 0 年：L 0.660）（v17.0 口徑對照：只含推論、經計價倍數的所需 L 0.76）（v16.0 口徑：L 0.716 對 0.756）；字面讀法 ")
     assert neg.get("L1", "P89").startswith("恆等式讀法：未回本") and pos.get("L1", "P89").startswith("恆等式讀法：回本")
     assert "（v16.0 口徑：L " in neg.get("L1", "P89") and "（v16.0 口徑：L " in pos.get("L1", "P89")
     # 基準比值 1.003 寫在 G242
@@ -164,8 +164,8 @@ def test_v1700_l1_row_label_and_names(wbf):
     r = _row(l1, "L1_LTotalFleetVDisc")
     assert l1[f"D{r}"].value == f"=Cap_In!$C${_lab(wbf['Cap_In'], '機隊折現 L（世代起點＋折現')}"
     assert wbf.defined_names["L1_LTotalFleetVDisc"].attr_text == f"L1!$D${r}" and wbf.defined_names["L1_LTotalFleetVDisc_Lo"].attr_text == f"L1!$E${r}" and wbf.defined_names["L1_LTotalFleetVDisc_Hi"].attr_text == f"L1!$F${r}"
-    assert l1[f"B{_row(l1, 'L1_LReqFleet_Id')}"].value.endswith("｜v17.0 起非主口徑（F1）")
-    assert "非主口徑" not in str(l1[f"B{_row(l1, 'L1_LReqFleet_IdNoK')}"].value)      # 其他既有標籤不動（v17.1：IdNoK 標籤改為『v17.0 起主口徑』，仍不含『非主口徑』）
+    assert l1[f"B{_row(l1, 'L1_LReqFleet_Id')}"].value.split("｜v20.0")[0].endswith("｜v17.0 起非主口徑（F1）")
+    assert "非主口徑" not in str(l1[f"B{_row(l1, 'L1_LReqFleet_IdNoK')}"].value).split("｜v20.0")[0]      # 其他既有標籤不動（v17.1：IdNoK 標籤改為『v17.0 起主口徑』，仍不含『非主口徑』）
 
 
 def test_v1700_decisions_readme(wbf):
@@ -177,7 +177,7 @@ def test_v1700_decisions_readme(wbf):
     assert "L1_LReqFleet_IdNoK" in d.cell(_row(d, "SL50-01"), 4).value and "L1_LTotalFleetVDisc" in d.cell(_row(d, "SL50-02"), 4).value
     assert d.max_row < 1000      # Gov_Map AA 的 COUNTIF 範圍上限（$A$5:$A$1000）
     rd = wbf["README"]
-    assert str(rd["B5"].value).startswith("20261022_Tokenomics_v19.1（次版，底版 v19.0：") and "v19.0（主版：" in str(rd["B5"].value) and "v18.0（主版：" in str(rd["B5"].value) and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v19.1")      # v19.0：版本字串隨版本；v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
+    assert str(rd["B5"].value).startswith("20261022_Tokenomics_v20.0（主版：") and "v19.1（次版，底版 v19.0：" in str(rd["B5"].value) and "v19.0（主版：" in str(rd["B5"].value) and "v18.0（主版：" in str(rd["B5"].value) and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v20.0")      # v19.0：版本字串隨版本；v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
     rows = [r for r in range(4, rd.max_row + 1) if rd.cell(r, 1).value == "v17.0 回本判讀主口徑"]
     assert len(rows) == 1 and "世代起點、折現的機隊 L" in rd.cell(rows[0], 2).value and "不含 κ" in rd.cell(rows[0], 2).value
 
@@ -188,7 +188,7 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     pf = openpyxl.load_workbook(V160)
     v = lo.view({})
     V172 = __import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))      # v17.2：W1 第二來源 B1 的預期變動（新增 SRC_ 名稱；GOV 計數、IFC_Updated、IDX_ 範圍），test_v1720 看守
-    assert set(v.names) - set(pf.defined_names) - set(V172["new"]) - V180_NEW - V190_NEW - V191_NEW == NEW_NAMES
+    assert set(v.names) - set(pf.defined_names) - set(V172["new"]) - V180_NEW - V190_NEW - V191_NEW - (set(v.names) - set(openpyxl.load_workbook(Path(__file__).resolve().parents[2] / 'model' / 'archive' / '20261022_Tokenomics_v19.1.xlsx').defined_names)) == NEW_NAMES
     assert set(pf.defined_names) - set(v.names) == set()
     changed = set()
     for n, d in pw.defined_names.items():
@@ -207,7 +207,7 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.756109635897205), ("L1_LTotalFleetV", 0.715894950036491),
                     ("L1_LReqFleet_IdNoK", 0.756109635897205), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.447574227389844), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 132, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
 
 

@@ -2,7 +2,7 @@
 讀 LibreOffice 重算後的值（`lo.view({})`，即新 SLO 基準；其他測試的 `_vo` 會改回舊 SLO，所以 GOV 計數在新基準下需要在這裡斷言）。
 
 快照更新規則：之後每個版本若有預期變動，必須在同一個 PR 以 `python3 tools/make_test_fixtures.py <重算後的 xlsx>` 更新
-tests/parity/fixtures/contract_snapshot_v19.1.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
+tests/parity/fixtures/contract_snapshot_v20.0.json，並在報告列出差異（名稱、舊值、新值、理由）。不得為了讓測試通過而更新快照。"""
 import json
 import re
 from pathlib import Path
@@ -11,7 +11,7 @@ import pytest
 from openpyxl.utils import get_column_letter as L, range_boundaries
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-SNAP = json.loads((FIXTURES / "contract_snapshot_v19.1.json").read_text(encoding="utf-8"))
+SNAP = json.loads((FIXTURES / "contract_snapshot_v20.0.json").read_text(encoding="utf-8"))
 ROOT_PREFIX = ("IF_", "L1_", "GOV_", "IFW_", "IFC_", "CHK_", "CAP_", "RNG_", "AL_Rng")      # v13.0 K2：RNG_*（批次口徑區間端點）與 AL_Rng*（v12.0 區間表）全部納入快照
 
 
@@ -126,4 +126,4 @@ def test_verify_totals_and_list_complete(lo):
 def test_gov_counts_new_baseline(lo):
     """GOV 三項計數在新基準（Serving 第 21 列為兩家量測商幾何平均）下：Errors 0、Warnings 282（v11.0：+3，新增 SRC 紀錄缺第二來源 W1）、Info 182（v13.0：181 → 182，Calib C68 類別更正為 Assumed 進 Load_Bearing；v12.0：179 → 181，Gov_Map 『標記變更』欄 +1＝C68 更正註記；Load_Bearing 高段 Assumed 列 +1＝新增 Hopper C156 列）。"""
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 132, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v15.0：Info 184 → 182（L1 外部對照換算後，第 31、60、63 列轉為 ±20% 內、第 65 列轉為差距 >20%，淨減 2）； v13.1 D15 B 段：Warnings 282 → 280（SRC_HW_067／068 有第二來源）、Info 182 → 184（DB_Evidence 新增 2 筆待判定）； v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v20.0：132 → 134（SRC_DEM_088 缺第二來源 W1 +1；L1_DPaid_Scen 的 D／E／F 為三個情境使 H3 +1；待 Project 判斷）； v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v15.0：Info 184 → 182（L1 外部對照換算後，第 31、60、63 列轉為 ±20% 內、第 65 列轉為差距 >20%，淨減 2）； v13.1 D15 B 段：Warnings 282 → 280（SRC_HW_067／068 有第二來源）、Info 182 → 184（DB_Evidence 新增 2 筆待判定）； v13.0 K3：Info 181 → 182（C68 進 Load_Bearing）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）

@@ -1,5 +1,5 @@
 {
-"note": "v19.0→v19.1（W1 第二來源 B2）預期變動名稱：Arch!C17 的下游（Luna 跨度上限 4224 → 2176）、其區間端點 RNG_*、治理計數與 SRC_Index 範圍。由 tests/parity/test_v1910.py 看守（SRC_MOD_106 設回 1024 時全部復原）。",
+"note": "v19.0→v19.1（W1 第二來源 B2）預期變動名稱：Arch!C17 的下游（Luna 跨度上限 4224 → 2176）、其區間端點 RNG_*、治理計數與 SRC_Index 範圍。由 tests/parity/test_v1910.py 看守（SRC_MOD_106 設回 1024 時全部復原）。 v20.0 併入：CHK_L1Order（H3，L1_DPaid_Scen 三情境 E＞D）與 L1_M／L1_M_2026Q2 的 _Lo／_Hi（文字→數字，W3）。",
 "changed": [
 "AL_BlendFree",
 "AL_BlendPaid",
@@ -35,6 +35,7 @@
 "AL_ServeGWFree",
 "AL_ServeGWPaid",
 "AL_ServeGen",
+"CHK_L1Order",
 "DRV_Batch",
 "DRV_Close",
 "DRV_DecTokGPU",
@@ -216,6 +217,10 @@
 "L1_MFleet_Px2026_Hi",
 "L1_MFleet_Px2026_Lo",
 "L1_MFleet_Ser",
+"L1_M_2026Q2_Hi",
+"L1_M_2026Q2_Lo",
+"L1_M_Hi",
+"L1_M_Lo",
 "L1_PriceRealFleet",
 "L1_PriceRealFleet_Hi",
 "L1_PriceRealFleet_Lo",

@@ -77,6 +77,9 @@ def test_v1800_new_values_match_precomputed(lo):
         for suf, want in zip(("", "_Lo", "_Hi"), trio):
             got = v.get_name(n + suf)
             if isinstance(want, str):
+                if n in ("L1_M_2026Q2", "L1_M") and suf:      # v20.0：2026 Q2 的低／高由「無區間」改為數字區間（W3；test_v2000 看守）
+                    assert isinstance(got, (int, float)), (n + suf, got)
+                    continue
                 assert got == want, (n + suf, got, want)
             else:
                 assert _close(got, want, _tol(want, n)), (n + suf, got, want)

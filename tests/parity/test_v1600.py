@@ -205,7 +205,7 @@ def test_v1600_decisions_evidence_readme(wbf):
     assert "F1" in t3 and "F2" in t3 and "未回應前不改主口徑" in t3
     e = wbf["DB_Evidence"]
     ids = [e.cell(r, 1).value for r in range(5, e.max_row + 1)]
-    assert ids[-3] == "E398" and ids[-8:-3] == ["E393", "E394", "E395", "E396", "E397"] and ids[-2] == "E399" and ids[-1] == "E400"      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
+    assert ids[-4] == "E398" and ids[-9:-4] == ["E393", "E394", "E395", "E396", "E397"] and ids[-3] == "E399" and ids[-2] == "E400" and ids[-1] == "E401"      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
     assert "不新增外部來源" in e.cell(_row(e, "E398"), 4).value and "可撤回" in e.cell(_row(e, "E398"), 11).value
     rd = wbf["README"]
     assert any(rd.cell(r, 1).value == "v16.0 L 世代起點" for r in range(4, rd.max_row + 1))      # v17.0：README B5／A1 的版本字串已是 v17.0（test_v1700）；v16.0 列保留
@@ -238,7 +238,7 @@ def test_v1600_only_new_names_and_nothing_else_changed(lo):
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LTotal_Lo", 0.396282624140417), ("L1_LTotal_Hi", 1.09636652745877), ("L1_LReqFleet_Id", 0.756109635897205),
                     ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v19.1：本檢驗用 C17_OLD 視圖（SRC_MOD_106＝1024），此時 RG2／RG3 因區間端點檔已按 C17＝2176 重產而各觸發，故仍是 133（基準視圖為 132，見 test_v1910）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v19.1：本檢驗用 C17_OLD 視圖（SRC_MOD_106＝1024），此時 RG2／RG3 因區間端點檔已按 C17＝2176 重產而各觸發，故仍是 133（基準視圖為 132，見 test_v1910）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "區間過期" and v.get_name("RNG_OutCount") >= 0      # v19.1：C17_OLD 視圖下指紋與區間端點（按 C17＝2176 重產）不符；基準視圖由 test_v1910 檢查「一致」與 0
 
 

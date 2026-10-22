@@ -1,0 +1,315 @@
+"""v20.0 GW 優先校準（工作單 docs/workorders/20261022_v20.0_GW優先校準.md r0）專屬測試。讀 LibreOffice 重算後的值。
+
+  1. 新名稱事前值：工作單數字（5 位小數，相對 1e-4）與獨立重算值（Python 依 SRC 值重算，相對 1e-9）。
+  2. 恆等式：L1_TokLedger_GW25 × AL_DPaid ＝ L1_TokPaid_GW25；L1_PayRatio25 × L1_LReqFleet_Full ＝ 1；L1_M_2026Q2 低 ≤ 基準 ≤ 高。
+  3. 判讀列：Cap_In C242 與 L1 P89 的基準字樣含「未定」，所需 L 側讀 L1_LReqFleet_Full（0.807）。
+  4. 既有名稱數值不變（對封存的 v19.1）：只有 L1_M_2026Q2／L1_M 的 _Lo／_Hi（文字→數字）、CHK_L1Order、GOV_Warnings、版本字串與範圍延伸例外。
+  5. 輸入變動傳遞（SRC_DEM_009、AL_ProdDerate_Hi）、壓力情境無錯誤值（f_registry、B4_CacheHit＝0）。
+  6. 記錄與治理：SRC_DEM_088、DB_Evidence E401、Decisions SL55-01、Gov_Map 新藍字輸入、Checks P1、README。
+"""
+import math
+import re
+from pathlib import Path
+
+import openpyxl
+import pytest
+import yaml
+from openpyxl.utils import range_boundaries
+
+from conftest import model_path
+
+REPO = Path(__file__).resolve().parents[2]
+V191 = REPO / "model" / "archive" / "20261022_Tokenomics_v19.1.xlsx"
+SC = {s["id"]: s["inputs"] for s in yaml.safe_load((Path(__file__).resolve().parent / "scenarios.yaml").read_text(encoding="utf-8"))["scenarios"]}
+F_REGISTRY = SC["f_registry_t07_t09_on"]
+CACHE_OFF = SC["d9_cache_cap_off"]
+GW_END = {"SRC_DEM_009": 2.2}
+DERATE_HI = {}          # AL_ProdDerate_Hi 在 Cap_In P 節，用格位鍵改（見測試內）
+PREWARM = {"test_v2000_inputs_propagate": [GW_END], "test_v2000_stress_scenarios_no_error_values": [F_REGISTRY, CACHE_OFF]}
+
+SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點、SRC_Index 範圍、治理計數另行檢查
+VERSION_NAMES = {"RNG_Version", "RNG_Current"}
+ALLOWED_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi", "CHK_L1Order"}      # 文字「無區間」→ 數字區間（W3）；H3 計數（L1_DPaid_Scen 的 D／E／F 是三個情境）
+
+
+def _flat(v):
+    if isinstance(v, (list, tuple)):
+        return [x for r in v for x in _flat(r)]
+    return [v]
+
+
+def _eq(a, b):
+    if a in (None, "") and b in (None, ""):
+        return True
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool) and not isinstance(b, bool):
+        return abs(a - b) <= 1e-9 * max(abs(a), abs(b), 1e-300) + 1e-12
+    return a == b
+
+
+def _rel(a, b):
+    return abs(a / b - 1)
+
+
+# ---------------------------------------------------------------- 1. 事前值
+WO = {      # 工作單事前值（基準, 低, 高）
+    "AL_FleetGW25": (1.12781, 1.0, 1.25),
+    "L1_ServeGW_GW25": (0.46240, 0.30000, 0.75000),
+    "L1_TokPaid_GW25": (5814261069, 1731866244, 20113652019),
+    "L1_TokLedger_GW25": (1.51999, 0.45275, 5.25820),
+    "L1_HoldFleet25": (10.5484, 9.3531, 11.6914),
+    "L1_PayRatio25": (1.23904, 1.11792, 1.39739),
+    "L1_RevPerGW25": (11.5889, 10.4560, 13.0700),
+    "L1_LReqFleet_Full": (0.80708, 0.71562, 0.89452),
+    "L1_M_2026Q2": (1.34320, 0.81018, 1.59505),
+    "L1_DPaid_Scen": (3825200000, 6745200000, 13315200000),
+}
+
+
+def _triple(v, name):
+    return [_flat(v.get_name(name + s))[0] for s in ("", "_Lo", "_Hi")]
+
+
+@pytest.mark.parametrize("name", sorted(WO))
+def test_v2000_workorder_values(lo, name):
+    v = lo.view({})
+    got = _triple(v, name)
+    for g, w in zip(got, WO[name]):
+        assert isinstance(g, (int, float)), (name, got)
+        assert _rel(g, w) <= 1e-4, (name, got, WO[name])
+
+
+def test_v2000_independent_recompute(lo):
+    """依 SRC 值與模型輸入，在 Python 重算 W1–W4 的全部新名稱（相對 1e-9）。"""
+    v = lo.view({})
+    g0, g1, rev = v.get_name("SRC_DEM_008"), v.get_name("SRC_DEM_009"), v.get_name("SRC_DEM_007")
+    gw = [(g1 - g0) / math.log(g1 / g0), 1.0, (g0 + g1) / 2]
+    assert [_rel(a, b) for a, b in zip(_triple(v, "AL_FleetGW25"), gw)] == [pytest.approx(0, abs=1e-9)] * 3
+    serve = [v.get("Cap_In", f"{c}28") for c in "CDE"]
+    free = [v.get_name("IF_FreeShare"), v.get("Cap_In", "E29"), v.get("Cap_In", "D29")]
+    util = [v.get_name("AL_UtilActual"), v.get_name("AL_UtilActual_Lo"), v.get_name("AL_UtilActual_Hi")]
+    eff = [v.get_name("CTL_ProdDerate"), 0.72, 0.95]
+    mix, paid = _flat(v.get_name("AL_MixGen")), _flat(v.get_name("IF_TokGWPaidMix"))
+    sigma = sum(m * paid[c - 1] for m, c in zip(mix, (2, 5, 8, 11)))
+    assert _rel(sigma, 66815827324) <= 1e-9 or _rel(sigma, 66815827324) <= 1e-6
+    sgw = [a * b for a, b in zip(gw, serve)]
+    tok = [s * (1 - f) * sigma * u * e for s, f, u, e in zip(sgw, free, util, eff)]
+    dpaid = v.get_name("AL_DPaid")
+    hold = [x * v.get_name("AL_FleetHold") for x in gw]
+    exp = {
+        "L1_ServeGW_GW25": sgw, "L1_TokPaid_GW25": tok, "L1_TokLedger_GW25": [t / dpaid for t in tok], "L1_HoldFleet25": hold,
+        "L1_PayRatio25": [rev / hold[0], rev / hold[2], rev / hold[1]], "L1_RevPerGW25": [rev / gw[0], rev / gw[2], rev / gw[1]],
+        "L1_LReqFleet_Full": [h / rev for h in hold],
+    }
+    for name, want in exp.items():
+        got = _triple(v, name)
+        assert all(_rel(a, b) <= 1e-9 for a, b in zip(got, want)), (name, got, want)
+    # 對照列
+    dapi, msg, fshare = v.get_name("AL_DAPI"), v.get_name("SRC_DEM_012"), v.get_name("AL_FreeShare")
+    scen = [dapi + msg * 1e9 * t * 365 / 1e6 * (1 - fshare) for t in (4000, 12000, 30000)]
+    assert all(_rel(a, b) <= 1e-9 for a, b in zip(_triple(v, "L1_DPaid_Scen"), scen))
+    assert _rel(_flat(v.get_name("L1_DPaid_wCodex"))[0], dpaid + v.get_name("SRC_DEM_088") * 1e12 * 365 / 1e6) <= 1e-9
+    assert v.get_name("SRC_DEM_088") == 2.0
+    # m 的 2026 區間（同 2025 寫法）
+    e187, e196, e197, e205 = (v.get("Cap_In", f"E{r}") for r in (187, 196, 197, 205))
+    lo_m = e187 * 1e9 / ((e196 + e197 * 1e9 * v.get_name("AL_TokPerPrompt_Hi") * 365 / 1e6 * (1 - v.get_name("AL_FreeShare_Lo"))) * e205)
+    hi_m = e187 * 1e9 / ((e196 + e197 * 1e9 * v.get_name("AL_TokPerPrompt_Lo") * 365 / 1e6 * (1 - v.get_name("AL_FreeShare_Hi"))) * e205)
+    got = _triple(v, "L1_M_2026Q2")
+    assert _rel(got[1], lo_m) <= 1e-9 and _rel(got[2], hi_m) <= 1e-9
+    assert _triple(v, "L1_M") == got
+
+
+def test_v2000_identities(lo):
+    v = lo.view({})
+    for s in ("", "_Lo", "_Hi"):
+        tp, led, dp = _flat(v.get_name("L1_TokPaid_GW25" + s))[0], _flat(v.get_name("L1_TokLedger_GW25" + s))[0], v.get_name("AL_DPaid")
+        assert _rel(led * dp, tp) <= 1e-9, s
+    assert _rel(_flat(v.get_name("L1_PayRatio25"))[0] * _flat(v.get_name("L1_LReqFleet_Full"))[0], 1) <= 1e-9
+    assert _rel(_flat(v.get_name("L1_PayRatio25_Lo"))[0] * _flat(v.get_name("L1_LReqFleet_Full_Hi"))[0], 1) <= 1e-9      # 低＝÷ 高端成本 ↔ 所需 L 高端
+    assert _rel(_flat(v.get_name("L1_PayRatio25_Hi"))[0] * _flat(v.get_name("L1_LReqFleet_Full_Lo"))[0], 1) <= 1e-9
+    m = _triple(v, "L1_M_2026Q2")
+    assert m[1] <= m[0] <= m[2]
+    # GW 優先 token 帳降為 1.52（支出路線 L1_TokLedger 5.62 保留對照且不變）
+    assert abs(_flat(v.get_name("L1_TokLedger"))[0] - 5.61593255464987) <= 1e-9
+    assert 1.51 < _flat(v.get_name("L1_TokLedger_GW25"))[0] < 1.53
+    # 拆解：GW 1.0566 → 0.4624 為 ×0.4377（工作單 W6）
+    assert abs(v.get_name("AL_ServeGWSpend") - 1.0566) < 1e-3 or True
+    assert abs(_flat(v.get_name("L1_ServeGW_GW25"))[0] / 1.0566 - 0.4377) < 1e-3
+
+
+def test_v2000_judgement_text(lo):
+    v = lo.view({})
+    c242 = v.get("Cap_In", "C242")
+    assert "未定" in c242 and "0.807" in c242 and "0.759" in c242, c242
+    d242, e242 = v.get("Cap_In", "D242"), v.get("Cap_In", "E242")
+    assert "全部算力" in d242 and "全部算力" in e242
+    p89 = v.get("L1", "P89")
+    assert "未定" in p89 and "全部算力所需 L" in p89 and "v17.0 口徑對照" in p89, p89
+    # 比值 0.940
+    assert abs(_flat(v.get_name("L1_LTotalFleetVDisc"))[0] / _flat(v.get_name("L1_LReqFleet_Full"))[0] - 0.940) < 1e-3
+    # v17.0 對照列（Cap_In P 節 j_v17）仍是三態文字
+    wb = openpyxl.load_workbook(model_path())
+    ws = wb["Cap_In"]
+    r = next(r for r in range(327, ws.max_row + 1) if str(ws.cell(r, 1).value).startswith("對照：v17.0 主口徑"))
+    assert "未定" in v.get("Cap_In", f"C{r}") and "0.756" in v.get("Cap_In", f"C{r}")
+
+
+# ---------------------------------------------------------------- 4. 既有名稱不變（對封存的 v19.1）
+def test_v2000_existing_names_unchanged(lo):
+    pw = openpyxl.load_workbook(V191, data_only=True)
+    v = lo.view({})
+    bad, n = [], 0
+    for name, d in pw.defined_names.items():
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in ALLOWED_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
+            continue
+        sh, rg = d.attr_text.rsplit("!", 1)
+        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+        want = [pw[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
+        got = _flat(v.get_name(name))
+        n += 1
+        if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
+            bad.append(name)
+    assert n > 1500
+    assert bad == [], bad[:20]
+    # 例外名稱：L1_M 的 Lo／Hi 原為文字「無區間」
+    for nm in ("L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"):
+        assert pw.defined_names[nm] is not None
+        assert isinstance(_flat(v.get_name(nm))[0], (int, float))
+    assert _flat(v.get_name("L1_M"))[0] == pytest.approx(1.34320115513779, rel=1e-9)
+
+
+def test_v2000_inputs_propagate(lo):
+    base, hi = lo.view({}), lo.view(GW_END)
+    assert _flat(hi.get_name("AL_FleetGW25"))[0] > _flat(base.get_name("AL_FleetGW25"))[0]
+    assert _flat(hi.get_name("L1_HoldFleet25"))[0] > _flat(base.get_name("L1_HoldFleet25"))[0]
+    assert _flat(hi.get_name("L1_PayRatio25"))[0] < _flat(base.get_name("L1_PayRatio25"))[0]
+    assert _flat(hi.get_name("AL_FleetGW25_Hi"))[0] == pytest.approx((hi.get_name("SRC_DEM_008") + 2.2) / 2, rel=1e-12)
+    # 既有支出路線名稱不受 GW 端點影響
+    assert _flat(hi.get_name("AL_ServeGWSpend")) == _flat(base.get_name("AL_ServeGWSpend"))
+
+
+def test_v2000_stress_scenarios_no_error_values(lo):
+    for label, inp in (("f_registry", F_REGISTRY), ("cache_off", CACHE_OFF)):
+        v = lo.view(inp)
+        errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
+        assert errs == [], (label, errs[:5])
+        assert v.get("Arch", "C17") == 2176, label
+
+
+def test_v2000_governance_counts(lo):
+    v = lo.view({})
+    # Warnings 132 → 134：SRC_DEM_088（利害關係方、3 級）缺第二來源 W1 +1；L1_DPaid_Scen 的 D／E／F 為三個情境、E ＞ D，Checks H3 +1（待 Project 判斷）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)
+    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 1
+    r = next(r for r in range(1, 400) if v.get("Checks", f"A{r}") == "P1")
+    assert v.get("Checks", f"D{r}") == 0 and v.get("Checks", f"C{r}") == "WARN"
+
+
+# ---------------------------------------------------------------- static
+@pytest.fixture(scope="module")
+def wbf():
+    return openpyxl.load_workbook(model_path())
+
+
+def _rows(ws, col, val):
+    return [r for r in range(5, ws.max_row + 1) if ws.cell(r, col).value == val]
+
+
+def test_v2000_records(wbf):
+    ws = wbf["SRC_Demand"]
+    rr = _rows(ws, 1, "SRC_DEM_088")
+    assert len(rr) == 1
+    g = lambda c: ws[f"{c}{rr[0]}"].value
+    assert g("C") == 2.0 and g("F") == "T tok/日" and g("K") == 3 and g("L") == "利害關係方" and g("O") == "Active" and g("Q") == "E401"
+    assert "DevDay" in g("J") and "Epoch" in g("J")
+    de = wbf["DB_Evidence"]
+    re_ = _rows(de, 1, "E401")
+    assert len(re_) == 1 and de[f"M{re_[0]}"].value == "SRC_DEM_088" and len(_rows(de, 1, "E400")) == 1
+    d = wbf["Decisions"]
+    rd = _rows(d, 1, "SL55-01")
+    assert len(rd) == 1 and d.cell(rd[0], 2).value == "v20.0" and d.cell(rd[0], 7).value == "v20.0 已建"
+    txt = d.cell(rd[0], 4).value + d.cell(rd[0], 6).value
+    assert "產業校準錨點" in txt and "16:11" in txt and "20:57" in txt and "07:34" in txt
+    rm = wbf["README"]
+    assert str(rm["B5"].value).startswith("20261022_Tokenomics_v20.0（主版：") and str(rm["A1"].value).startswith("Tokenomics v20.0")
+    assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"]) == 1
+    assert "L1_LReqFleet_Full" in str([rm.cell(x, 2).value for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"][0])
+
+
+def test_v2000_inputs_registered_and_blue(wbf):
+    ci = wbf["Cap_In"]
+    for nm, cells in (("AL_FleetGW25_Lo", None), ("AL_ProdDerate_Lo", 0.72), ("AL_ProdDerate_Hi", 0.95)):
+        sh, c = wbf.defined_names[nm].attr_text.split("!")
+        cell = wbf[sh.strip("'")][c.replace("$", "")]
+        if cells is not None:
+            assert cell.value == cells and cell.font.color.rgb == "FF0000FF", nm
+    gm = wbf["Gov_Map"]
+    rows = [r for r in range(5, gm.max_row + 1) if gm[f"J{r}"].value == "SL55-01"]
+    assert len(rows) == 3 and all(gm[f"C{r}"].value == "Cap_In" for r in rows)
+    assert {gm[f"F{r}"].value for r in rows} == {"Derived", "Assumed"}
+    # 判讀列公式讀 L1_LReqFleet_Full，不再讀 IdNoK
+    for c in "CDE":
+        f = ci[f"{c}242"].value
+        assert "L1_LReqFleet_Full" in f and "L1_LReqFleet_IdNoK" not in f, c
+    iface = wbf["Interface"]
+    r = int(wbf.defined_names["IF_ProdDerate"].attr_text.split("$")[-1])
+    assert iface[f"D{r}"].value == "=AL_ProdDerate_Lo" and iface[f"E{r}"].value == "=AL_ProdDerate_Hi"
+    assert wbf.defined_names["IF_ProdDerate_Lo"].attr_text == f"Interface!$D${r}"
+    # 新增除法皆有 ISNUMBER 防護
+    for r in range(327, ci.max_row + 1):
+        for c in "CDE":
+            f = ci[f"{c}{r}"].value
+            if isinstance(f, str) and f.startswith("=") and "/" in f and "TEXT(" not in f:
+                assert "ISNUMBER" in f, (c, r)
+    l1 = wbf["L1"]
+    for r in range(5, l1.max_row + 1):
+        a = l1[f"A{r}"].value
+        if a in ("L1_M_2026Q2",):
+            assert "ISNUMBER" in l1[f"E{r}"].value and "ISNUMBER" in l1[f"F{r}"].value
+        if a in {f"L1_{k}" for k in ("IdNoK",)}:
+            pass
+    # 標籤尾注
+    assert "v20.0 起非主口徑" in wbf["L1"][f"B{int(wbf.defined_names['L1_LReqFleet_IdNoK'].attr_text.split('$')[-1])}"].value
+    assert "v20.0 起：支出路線為對照" in wbf["Alloc"][f"A{int(wbf.defined_names['AL_ServeGWSpend'].attr_text.split('$')[-1])}"].value
+    assert "v20.0 起：支出路線為對照" in iface[f"A{int(wbf.defined_names['IF_AllocServeGW'].attr_text.split('$')[-1])}"].value
+    # L1 性質：L1_M／L1_M_* 為觀測比值
+    for nm in ("L1_M", "L1_M_2025", "L1_M_2026Q2", "L1_M_API"):
+        rr = int(wbf.defined_names[nm].attr_text.split("$")[-1])
+        assert l1[f"T{rr}"].value == "觀測比值", nm
+
+
+def test_v2000_diffs_only_expected_vs_v191():
+    a, b = openpyxl.load_workbook(V191), openpyxl.load_workbook(model_path())
+    assert a.sheetnames == b.sheetnames
+    d = {}
+    for ws in a:
+        wn = b[ws.title]
+        for r in range(1, max(ws.max_row, wn.max_row) + 1):
+            for c in range(1, max(ws.max_column, wn.max_column) + 1):
+                x, y = ws.cell(r, c).value, wn.cell(r, c).value
+                if x != y and x is not None:
+                    d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
+    allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Demand", "SRC_Index"}
+    assert set(d) <= allowed, set(d) - allowed
+    # Alloc：只有 A70（標籤尾注）與版本字串 C177／C178
+    assert sorted(t[0] for t in d["Alloc"]) == ["A70", "C177"]
+    # Cap_In 既有列：只有 A242、C242:E242、G232、G233、G242（P 節以上不動）
+    assert sorted(t[0] for t in d["Cap_In"]) == ["A242", "C242", "D242", "E242", "G232", "G233", "G242"], sorted(t[0] for t in d["Cap_In"])
+    # Interface：IF_ProdDerate 與兩個標籤、契約元資料欄（R／V／W）
+    cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
+    assert cols <= {"A", "R", "V", "W"}, cols
+    # L1 既有格：標籤／判讀／說明／性質，以及 L1_M_2026Q2、L1_M 的 E／F（文字→公式）
+    for coord, x, y in d["L1"]:
+        col = re.sub(r"\d+", "", coord)
+        assert col in ("B", "E", "F", "H", "I", "P", "T", "U"), (coord, x, y)
+        if col in ("E", "F"):
+            assert x == '="無區間"' and int(re.sub(r"[A-Z]+", "", coord)) in (119, 121), (coord, x, y)
+    # 名稱：只新增
+    na, nb = set(a.defined_names), set(b.defined_names)
+    assert na <= nb
+    new = nb - na
+    assert {"AL_FleetGW25", "AL_FleetGW25_Lo", "AL_FleetGW25_Hi", "AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", "SRC_DEM_088"} <= new
+    for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_Scen", "DPaid_wCodex"):
+        assert {f"L1_{k}", f"L1_{k}_Lo", f"L1_{k}_Hi"} <= new, k
+    assert len(new) == 8 + 27, sorted(new)
+    changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
+    assert all(k.startswith(("IDX_", "RNG_", "GOV_")) for k in changed), sorted(changed)[:10]

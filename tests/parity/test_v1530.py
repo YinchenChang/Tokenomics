@@ -75,7 +75,7 @@ def test_v1530_unchanged_guards(wbf, lo):
     assert abs(v.get_name("L1_MFleet_Lo") - 0.242723485975401) < 1e-9 and abs(v.get_name("L1_MFleet_Hi") - 1.33130310709466) < 1e-9
     assert abs(v.get_name("IF_AllocServeGW") - 0.89809617101894) < 1e-12 and abs(v.get_name("L1_LReqFleet_Id") - 0.756109635897205) < 1e-12
     assert wbf["Calib"]["D67"].value == 1.15 and wbf["Cap_In"]["C280"].value == 4.5
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 132, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
 
 

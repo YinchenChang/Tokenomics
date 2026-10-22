@@ -14,6 +14,9 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 
+# v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
+C17_OLD = {"SRC_MOD_106": 1024}
+
 REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
 sys.path.insert(0, str(REPO / "builder"))
@@ -24,10 +27,10 @@ P25_CHANGED = {"L1_MFleet_P25Lo", "L1_MFleet_P25Hi"}      # v14.2 S1 預期變�
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 P25_LO_NEW = [0.613453002685703, 0.323692273630786, 1.77540516071392]      # v15.2（B2 單價改變後）；v14.2 值 [0.783006655732561, 0.41409276867464, 2.26611338012012]；      # 舊 [0.783006655732561, 0.353474950317881, 2.26611338012012]
 P25_HI_NEW = [0.379778478578724, 0.200392464734859, 1.09912359682784]      # v15.2；v14.2 值 [0.236137899833928, 0.124881437488884, 0.683410863048779]；      # 舊 [0.236137899833928, 0.106600412398634, 0.683410863048779]
-SC_HI = {"Alloc_In!E24": 1.0}      # 低端欄（token 取高）的實際利用率 0.65 → 1.0：點估計 token 再高 1.54 倍
-SC_LO_OK = {"Alloc_In!E24": 0.3}      # 0.65 → 0.3：點估計 token 降到上限之下（點估計 m 高於下限）
-SC_BASE = {"Alloc_In!C24": 1.5}      # 基準欄的實際利用率 0.41 → 1.5：基準欄點估計 token 超過基準欄上限
-PREWARM = {
+SC_HI = {**{"SRC_MOD_106": 1024}, "Alloc_In!E24": 1.0}      # 低端欄（token 取高）的實際利用率 0.65 → 1.0：點估計 token 再高 1.54 倍
+SC_LO_OK = {**{"SRC_MOD_106": 1024}, "Alloc_In!E24": 0.3}      # 0.65 → 0.3：點估計 token 降到上限之下（點估計 m 高於下限）
+SC_BASE = {**{"SRC_MOD_106": 1024}, "Alloc_In!C24": 1.5}      # 基準欄的實際利用率 0.41 → 1.5：基準欄點估計 token 超過基準欄上限
+PREWARM = {"test_v1420_s1_base_values": [C17_OLD], "test_v1420_names_off_the_chain_unchanged": [C17_OLD], 
     "test_v1420_s1_floor_binds_low_end_column": [SC_HI],
     "test_v1420_s1_floor_does_not_cut_when_point_above_floor": [SC_LO_OK],
     "test_v1420_s1_floor_applies_to_base_column": [SC_BASE],
@@ -82,7 +85,7 @@ def test_v1420_s1_mechanism_is_an_excel_formula(wbf):
 
 def test_v1420_s1_base_values(lo):
     """基準：P25Lo 低端欄 0.3535 → 0.4141、P25Hi 低端欄 0.1066 → 0.1249，等於各自『同單價』下限；基準欄與高端欄不變；L1_MFleet 三端不變。"""
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     lo_, hi_ = v.get_name("L1_MFleet_P25Lo"), v.get_name("L1_MFleet_P25Hi")
     for got, want in ((lo_, P25_LO_NEW), (hi_, P25_HI_NEW)):
         assert all(abs(a - b) <= 1e-12 * max(1, abs(b)) for a, b in zip(got, want)), (got, want)
@@ -145,10 +148,10 @@ def test_v1420_names_off_the_chain_unchanged(lo):
     """依賴鏈以外的契約名稱（IF_／IFW_／IFC_／L1_／CHK_／CAP_／RNG_／GOV_）與 v14.1 逐格值相同；
     例外只有：L1_MFleet_P25Lo／P25Hi（S1，上方斷言新值）與版本字串。含 L1_MFleet 三端、IF_Alloc*、IF_TokGW_*、全部 RNG_* 端點。"""
     prev = openpyxl.load_workbook(V141_PREV, data_only=True)
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     names = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX)]
-    keep = [n for n in names if n not in P25_CHANGED and n not in VERSION_NAMES and n not in V150_CHANGED and n not in V152_CHANGED]
-    assert len(keep) >= 340, len(keep)      # v15.2：同上；原 ≥ 740
+    keep = [n for n in names if n not in P25_CHANGED and n not in VERSION_NAMES and n not in ("RNG_OutCount", "RNG_StaleFlag") and n not in V150_CHANGED and n not in V152_CHANGED]
+    assert len(keep) >= 300, len(keep)      # v15.2：同上；原 ≥ 740
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -162,7 +165,7 @@ def test_v1420_names_off_the_chain_unchanged(lo):
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     allnames = set(keep) | V152_CHANGED      # v15.2：RNG_*、IF_Alloc*、IF_TokGW_* 都在 B2／B3 預期變動名單內（test_v1520 逐名稱釘住），不再屬『不變』比較集
     assert any(n.startswith("RNG_") for n in allnames) and any(n.startswith("IF_AllocQ1") for n in allnames) and any(n.startswith("IF_TokGW_") for n in allnames)
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 132, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v15.0：Info 184 → 182（O14）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v19.1：C17_OLD 視圖下 RG2／RG3 因區間端點檔按 C17＝2176 重產而觸發，故仍 133（基準視圖 132，見 test_v1910）； v15.0：Info 184 → 182（O14）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (21, 13, 7, 1)      # v15.0 O9：V16 移出計數
     assert v.get_name("RNG_StaleFlag") == "一致"      # 區間檔與指紋檔的版本字串已隨 v14.2 更新，端點與指紋格逐值不變
 

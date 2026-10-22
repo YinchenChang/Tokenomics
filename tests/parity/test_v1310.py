@@ -63,11 +63,11 @@ def test_v1310_fingerprint_file_matches_workbook(lo):
     assert [(s, a) for s, a, _ in fp["leaves"]] == [(s, a) for s, a, _ in leaves], "葉格集合不同"
     bad = [(s, a, v, w) for (s, a, v), (_, _, w) in zip(fp["leaves"], leaves) if not _same(v, w)]
     assert bad == [], (len(bad), bad[:8])
-    assert len(fp["leaves"]) == 629      # v15.3：604 → 629（Alloc P 節新增 25 列：D156 變公式後區間情境多 25 格上游常數）； v15.0 T3-2：591 → 604（12 個 VR200 區間名稱新增 13 個上游常數格）； v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
+    assert len(fp["leaves"]) == 833      # v19.1：629 → 833（指紋根名稱 + CHK_VerifyFail／CHK_VerifyPass，且 Arch!C17 改連 SRC_MOD_106 後上游常數格增加；tools/gen_fingerprint.py 重產）； v15.3：604 → 629（Alloc P 節新增 25 列：D156 變公式後區間情境多 25 格上游常數）； v15.0 T3-2：591 → 604（12 個 VR200 區間名稱新增 13 個上游常數格）； v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
     base = lo.view({})
     assert base.get_name("RNG_StaleFlag") == "一致" and base.get("Checks", f"D{_chk_row(base, 'RG3')}") == 0
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0
-    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 133)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 132)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
 
 
 def test_v1310_fingerprint_flag_fires(lo):
@@ -88,7 +88,7 @@ def test_v1310_existing_contract_names_unchanged(lo):
     prev = openpyxl.load_workbook(V130_PREV, data_only=True)
     v = lo.view({})
     keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED]
-    assert len(keep) >= 340, len(keep)      # v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
+    assert len(keep) >= 300, len(keep)      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300； v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

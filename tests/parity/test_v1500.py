@@ -101,7 +101,7 @@ def test_v1500_o13_out_of_range_fires_rg4(lo):
     assert out.get_name("RNG_Dem004_OutCount") >= 1
     assert out.get("Checks", f"D{_chk_row(out, 'RG4')}") == 1
     assert out.get_name("GOV_Warnings") == base.get_name("GOV_Warnings") + 1 + (out.get("Checks", f"D{_chk_row(out, 'RG1')}") + out.get("Checks", f"D{_chk_row(out, 'RG2')}") + out.get("Checks", f"D{_chk_row(out, 'RG3')}") - base.get("Checks", f"D{_chk_row(base, 'RG1')}") - base.get("Checks", f"D{_chk_row(base, 'RG2')}") - base.get("Checks", f"D{_chk_row(base, 'RG3')}")) + 1      # v16.0：L1_LReqFleet_IdNoK（第 115 列）的基準隨 SRC_DEM_004 離開其 _Lo／_Hi（兩端固定取 SRC_DEM_004_Lo／_Hi）→ Checks H3 ＋1（與 RG4 同源）；K7／M3 為既有
-    assert out.get("Checks", f"D{_chk_row(out, 'H3')}") == 1 and base.get("Checks", f"D{_chk_row(base, 'H3')}") == 0
+    assert out.get("Checks", f"D{_chk_row(out, 'H3')}") == 2 and base.get("Checks", f"D{_chk_row(base, 'H3')}") == 1
     assert out.get_name("GOV_Errors") == 0
 
 

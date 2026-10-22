@@ -19,6 +19,7 @@ from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
 V180 = REPO / "model" / "archive" / "20261021_Tokenomics_v18.0.xlsx"
+V190 = REPO / "model" / "archive" / "20261022_Tokenomics_v19.0.xlsx"      # v19.1：現行版已是 v19.1；v18.0→v19.0 的靜態檢查改對封存的 v19.0 釘住（v19.0→v19.1 由 test_v1910 檢查）
 SC = {s["id"]: s["inputs"] for s in yaml.safe_load((Path(__file__).resolve().parent / "scenarios.yaml").read_text(encoding="utf-8"))["scenarios"]}
 DISC30 = SC["v1800_disc30"]
 F_REGISTRY = SC["f_registry_t07_t09_on"]
@@ -66,20 +67,7 @@ def _tol(want):
     return max(1e-6, 0.5 * 10 ** (-_decimals(want)) / abs(want))
 
 
-def test_v1900_new_values_match_precomputed(lo):
-    v = lo.view({})
-    for n, want in PRE.items():
-        got = v.get_name(n)
-        assert isinstance(got, (int, float)) and not isinstance(got, bool), (n, got)
-        assert abs(got - want) <= _tol(want) * abs(want) + 1e-15, (n, got, want)
-    pm = _flat(v.get_name("IF_TokGWPaidMix"))
-    assert len(pm) == 15
-    for gen, want in enumerate(PRE_PAID_MIX):
-        for cost in range(3):
-            got = pm[3 * gen + cost]
-            assert isinstance(got, (int, float)) and abs(got / want - 1) <= 1e-9 * 100, (gen, cost, got, want)     # 工作單印到個位，相對 ≤ 1e-7
-    for gen, want in enumerate(PRE_PAID_MIX):      # 基準欄（成本情境的第 1 欄）：與工作單印出的整數差 ≤ 1（四捨五入）
-        assert abs(pm[3 * gen] - want) <= 1.0, (gen, pm[3 * gen], want)
+# v19.1：test_v1900_new_values_match_precomputed（v19.0 事前值）已停用——Arch!C17 改值後 Luna 相關值變動，v19.1 的新值由 test_v1910 釘住；v19.0 的值留在封存檔 model/archive/20261022_Tokenomics_v19.0.xlsx。
 
 
 def test_v1900_new_names_equal_existing_cells(lo):
@@ -167,7 +155,7 @@ def test_v1900_paid_mix_guard_returns_unavail_text(lo):
 # ---------------------------------------------------------------- static (formula mode / archive comparison)
 @pytest.fixture(scope="module")
 def wbf():
-    return openpyxl.load_workbook(model_path())
+    return openpyxl.load_workbook(V190)
 
 
 def _row(ws, rid, col=1):
@@ -225,7 +213,7 @@ def test_v1900_decisions_readme(wbf):
 
 
 def _diffs(data_only):
-    a, b = openpyxl.load_workbook(V180, data_only=data_only), openpyxl.load_workbook(model_path(), data_only=data_only)
+    a, b = openpyxl.load_workbook(V180, data_only=data_only), openpyxl.load_workbook(V190, data_only=data_only)
     assert a.sheetnames == b.sheetnames
     out = []
     for ws in a:
@@ -272,30 +260,4 @@ def test_v1900_diffs_only_expected_vs_v180():
     assert all(t[0] == "Interface" for t in num), [t for t in num if t[0] != "Interface"][:5]
 
 
-def test_v1900_existing_names_unchanged(lo):
-    """與封存的 v18.0 逐名稱比較：既有名稱的值全部不變；例外只有版本字串（RNG_Version／RNG_Current）與四個 IFC_* 範圍（隨新列延伸，既有列的值相同）。"""
-    pw, pf = openpyxl.load_workbook(V180, data_only=True), openpyxl.load_workbook(V180)
-    v = lo.view({})
-    assert set(v.names) - set(pf.defined_names) == NEW and not (set(pf.defined_names) - set(v.names))
-    changed = set()
-    for n, d in pw.defined_names.items():
-        if "!" not in d.attr_text or "," in d.attr_text:
-            continue
-        sh, rg = d.attr_text.rsplit("!", 1)
-        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
-        want = [pw[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
-        got = _flat(v.get_name(n))
-        same = len(want) == len(got) and all((a == b) or (isinstance(a, (int, float)) and isinstance(b, (int, float)) and abs(a - b) <= 1e-9 * max(abs(a), abs(b), 1e-300) + 1e-12)
-                                             or (a in (None, "") and b in (None, "")) for a, b in zip(want, got))
-        if not same:
-            changed.add(n)
-    assert changed == VERSION_NAMES | IFC_NAMES, sorted(changed ^ (VERSION_NAMES | IFC_NAMES))
-    # IFC_*：既有列（前 339 列）的值逐格相同
-    for n in IFC_NAMES:
-        sh, rg = pw.defined_names[n].attr_text.rsplit("!", 1)
-        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
-        old = [pw[sh].cell(r, c1).value for r in range(r1, r2 + 1)]
-        new = _flat(v.get_name(n))
-        assert len(new) == len(old) + 17 and all((a == b) or (a in (None, "") and b in (None, "")) for a, b in zip(old, new)), n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v18.0 同；本版不增減任何治理計數
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
+# v19.1：test_v1900_existing_names_unchanged（對 v18.0 逐名稱比較現行版）已停用；v18.0→v19.0 的名稱檢查由 test_v1900_diffs_only_expected_vs_v180（靜態，對封存 v19.0）承擔。

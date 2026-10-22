@@ -2,6 +2,13 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261022_Tokenomics_v19.1.xlsx（取代 v19.0；**次版：Arch!C17 Luna（DeepSeek V4-Flash）CSA top-k 1024 → 512，4224 → 2176**；依工作單 `docs/workorders/20261020_W1第二來源_B2.md` r1）
+
+- 分支 `claude/w1-b2-v19`（PR 與 SHA 見報告）。報告：`docs/reports/20261022_v19.1_W1第二來源B2.md`；進度檔：`docs/reports/20261022_v19.1_進度.md`；數值變動名稱清單：`docs/reports/20261022_v19.1_變動名稱.csv`。**待合併（合併由 Andy 指示）。**
+- Excel（CC 以 `builder/v1910.py` 自 v19.0 產生，經 LibreOffice 重算存檔；冪等）：新增 SRC_MOD_106（V4-Flash top-k 512，Active，C1 免除）；SRC_MOD_018 適用對象改 V4-Pro（原值留 W 欄，修訂九）；Arch!C17 改連 SRC_MOD_106；Gov_Map GM201、DB_Evidence E400、Decisions SL54-01。
+- 連帶：區間端點檔 `builder/v1300_ranges.json` 與指紋檔 `builder/v1310_fingerprint.json` 重產；契約快照 `contract_snapshot_v19.1.json`；Luna 相關契約名稱數值變動（見報告）。
+- 測試：新增 `tests/parity/test_v1910.py`（15 項）；舊測試的 Luna 相關事前值改在 C17 回 4224 的視圖（SRC_MOD_106＝1024）檢驗；`v191_changed_names.json`。
+
 ## 20261022_Tokenomics_v19.0.xlsx（取代 v18.0；**主版：新增 25 個 `IF_` 契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261022_v19.0_Interface取數.md`）
 
 - 分支 `claude/v19-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261022_v19.0_Interface取數.md`；進度檔：`docs/reports/20261022_v19.0_進度.md`。**待合併（合併由 Andy 指示）**；全套 parity 由 chat 端執行。

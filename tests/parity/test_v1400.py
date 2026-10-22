@@ -14,8 +14,11 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 from parity_lib import lo_recalc
 
+# v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
+C17_OLD = {"SRC_MOD_106": 1024}
+
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v19.1：併入 Arch!C17 下游的預期變動名稱； v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
 V131_PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v13.1.xlsx"      # v13.1（LibreOffice 重算存檔）：v14.0 的「既有名稱不得變」對照
 CONTRACT_PREFIX = ("IF_", "IFW_", "IFC_", "L1_", "CHK_", "CAP_", "RNG_")
 Q4_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}      # 因新增 V23–V26 而變（v14.1 R2：V23、V24 移出計數後仍與 v13.1 不同，見下方斷言）
@@ -26,7 +29,7 @@ NEW_IF = ["IF_TaskTokMult", "IF_AmortRevShare"] + [f"IF_{p}_{t}" for p in ("Trai
 NEW_L1 = {"L1_MAPI_Ser": ("Cap_In!$C$206:$F$206", 4), "L1_MSub_Ser": ("Cap_In!$C$207:$F$207", 4), "L1_MSeat_Ser": ("Cap_In!$C$208:$F$208", 4),
           "L1_MImplied_Ser": ("Cap_In!$C$209:$F$209", 4), "L1_MFleet_Ser": ("Cap_In!$C$223:$F$223", 4),
           "L1_MFleet_P25Lo": ("Cap_In!$C$285:$E$285", 3), "L1_MFleet_P25Hi": ("Cap_In!$C$286:$E$286", 3)}
-PREWARM = {
+PREWARM = {"test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor": [C17_OLD], 
     "test_v1400_v25_fails_when_demand_exceeds_ceiling": [{"Alloc_In!C15": 100000}],
     "test_v1400_v26_fails_when_2026_mix_not_100": [{"Cap_In!D214": 0.10}],
     "test_v1400_d104_d140_fail_when_mix_not_100": [{"Alloc_In!C12": 0.2}, {"Alloc_In!C32": 0.2}],
@@ -116,7 +119,7 @@ def test_v1400_existing_contract_names_unchanged(lo):
     prev = openpyxl.load_workbook(V131_PREV, data_only=True)
     v = lo.view({})
     keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED | V152_CHANGED]
-    assert len(keep) >= 340, len(keep)      # v15.2：同上；原 ≥ 700
+    assert len(keep) >= 300, len(keep)      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300（原 ≥ 340）； v15.2：同上；原 ≥ 700
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -160,7 +163,7 @@ def test_v1400_new_checks_pass_on_base(lo):
         assert v.get("Checks", f"G{r}") == "驗證" and v.get("Checks", f"F{r}") == 1, (code, v.get("Checks", f"F{r}"))
     r = _chk(v, "V23")
     assert v.get("Checks", f"D{r}") == 32 and v.get("Checks", f"C{r}") == 0      # 可達欄 32（Perf 15＋Perf_Batch 17）、低於 SLO 的欄數 0
-    assert abs(v.get("Checks", f"E{_chk(v, 'V25')}") - 0.223686973168842) < 1e-9
+    assert abs(v.get("Checks", f"E{_chk(v, 'V25')}") - 0.217680639842559) < 1e-9      # v19.1：V25 0.2237 → 0.2177（Arch!C17 改值）
     assert v.get("Checks", f"E{_chk(v, 'V24')}") == 0 and v.get("Checks", f"E{_chk(v, 'V26')}") == 0
 
 
@@ -225,7 +228,7 @@ def test_v1400_d104_d140_read_alloc_in_and_fail_when_mix_not_100(model, lo):
 # ── Q3：只查明，不改數值 ──
 def test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor(lo):
     """Q3→v14.1 R1：Cap_In 第 121 列（m 同欄下限）數值不變（0.301／0.215／0.637）；L1_MFleet 區間由 [0.184, 0.407, 1.179] 改為 [0.215, 0.407, 1.179]（低端下限截斷，基準與高端不變）。"""
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     want = {"C": 0.339147884513574, "D": 0.242723485975401, "E": 0.718195520146393}      # v15.2：隨 B2（Astra 單價 7.174 → 4.5）與 B3 改變；舊值 0.301／0.215／0.637
     for c, w in want.items():
         assert abs(v.get("Cap_In", f"{c}121") - w) < 1e-12, c

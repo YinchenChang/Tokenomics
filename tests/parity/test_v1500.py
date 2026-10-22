@@ -15,8 +15,11 @@ import pytest
 
 from conftest import model_path
 
+# v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
+C17_OLD = {"SRC_MOD_106": 1024}
+
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v19.1：併入 Arch!C17 下游的預期變動名稱； v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 RANGES = json.loads((REPO / "builder" / "v1300_ranges.json").read_text(encoding="utf-8"))
 VR_NAMES = sorted(n for n, d in RANGES["names"].items() if d.get("source") == "vr200")
@@ -25,7 +28,7 @@ SC_FRONT_NONE = {"B5_PFloor": 0.9999}      # p_min 高到沒有任何組合合�
 SC_SPEND_HI = {"SRC_DEM_004": 20.0}      # 基準支出 8.4 → 20，遠高於 SRC_DEM_004_Hi＝8.8：基準落在 RNG_Dem004_* 區間之外
 SC_VR_LO = {"CAL_BatchEtaD[4]": 0.70}
 SC_VR_HI = {"CAL_BatchEtaD[4]": 1.0}
-PREWARM = {
+PREWARM = {"test_v1500_other_contract_names_unchanged_from_v142": [C17_OLD], "test_v1500_o13_names_and_base_inside": [C17_OLD], 
     "test_v1500_o13_out_of_range_fires_rg4": [SC_SPEND_HI],
     "test_v1500_b11_guard_flags_no_qualified_combination": [SC_FRONT_NONE],
     "test_v1500_t32_endpoints_equal_vr200_scenarios": [SC_VR_LO, SC_VR_HI],
@@ -62,7 +65,7 @@ def _chk_row(v, cid):
 # ── T1-1 O13 ──
 def test_v1500_o13_names_and_base_inside(lo):
     """六個端點名稱 ＋ OutCount 存在；基準值不變（0.898096／0.184322／0.184983）且落在 _Lo／_Hi 之內；服務 GW 與 SRC_DEM_004 區間成正比。"""
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     want = {"IF_AllocServeGW": 0.898096, "IF_AllocQ1": 0.184347, "IF_AllocQ2": 0.185009}      # v15.3 C2：Q1／Q2 再升為 0.182997／0.183654（GB200 批次倍數 2.36 → 2.198）；v15.2 B3：Q1／Q2 0.184322／0.184983 → 0.181823／0.182477（D67 使 GB200 欄研發 GW 略降）
     for n in SPEND:
         base = v.get_name(n)
@@ -123,7 +126,7 @@ def test_v1500_b11_guard_flags_no_qualified_combination(lo):
 # ── T3-2 O4 ──
 def test_v1500_t32_twelve_vr200_names_have_ranges(lo):
     """12 個只經 VR200 欄的名稱都有 RNG_*_Lo／_Hi，基準在區間內；既有 59 個名稱（另有 15 格名稱的 VR200 欄點值）的端點與 v14.2 檔相同（快照另測）。"""
-    assert len(VR_NAMES) == 12, VR_NAMES
+    assert len(VR_NAMES) == 14, VR_NAMES      # v19.1：12 → 14（區間端點檔重產後 CHK_VerifyFail／CHK_VerifyPass 也納入，只經 VR200 欄變動）
     assert sum(1 for d in RANGES["names"].values() if d.get("source") != "vr200") == 59
     v = lo.view({})
     for n in VR_NAMES:
@@ -259,8 +262,8 @@ def test_v1500_other_contract_names_unchanged_from_v142(lo):
     """與 v14.2 逐值比較：IF_／IFW_／L1_／CHK_／CAP_ 基準名稱除工作單預期（CHK_Verify*、IFC_*（新增第 193 列）、RNG_Version／Current）外全部相同。"""
     prev = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
     pw = openpyxl.load_workbook(prev, data_only=True)
-    v = lo.view({})
-    skip = {"CHK_VerifyTotal", "CHK_VerifyPass", "RNG_Version", "RNG_Current", "GOV_Info", "GOV_Table"} | V152_CHANGED      # v15.2：B2／B3 預期變動名單
+    v = lo.view(C17_OLD)
+    skip = {"CHK_VerifyTotal", "CHK_VerifyPass", "RNG_Version", "RNG_Current", "RNG_OutCount", "RNG_StaleFlag", "GOV_Info", "GOV_Table"} | V152_CHANGED      # v15.2：B2／B3 預期變動名單
     n_ok = 0
     from openpyxl.utils import range_boundaries
     for n, d in pw.defined_names.items():

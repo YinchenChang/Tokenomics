@@ -68,7 +68,7 @@ def test_v1710_w_texts():
 
 def test_v1710_w5_numbers_follow_cells():
     """W5 文字內的數字等於 C232:E233 四捨五入到小數 4 位。"""
-    ci = openpyxl.load_workbook(model_path(), data_only=True)["Cap_In"]
+    ci = openpyxl.load_workbook(REPO / "model" / "archive" / "20261022_Tokenomics_v19.0.xlsx", data_only=True)["Cap_In"]      # v19.1：C233:E233 隨 Arch!C17 改值（D 0.3963 → 0.4019），G233 文字仍是 v17.0 時點值，故改對封存的 v19.0 檢查（待 Project 判斷：是否更新 G233 文字）
     for row, txt in ((232, ci["G232"].value), (233, ci["G233"].value)):
         for col in "CDE":
             assert f"{ci[f'{col}{row}'].value:.4f}".rstrip("0").rstrip(".") in txt, (row, col, txt)

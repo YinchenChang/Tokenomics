@@ -379,6 +379,9 @@ print("v1800 v18.0:", V1800)
 import v1900
 V1900 = v1900.apply(wb)       # v19.0: Decisions SL53-*
 print("v1900 v19.0:", V1900)
+import v1910
+V1910 = v1910.apply(wb, v518._append_text)       # v19.1: W1 second sources B2 (SRC_MOD_018 -> V4-Pro, R fills, G17 label, E400, Decisions SL54-01; guarded)
+print("v1910 v19.1:", V1910)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

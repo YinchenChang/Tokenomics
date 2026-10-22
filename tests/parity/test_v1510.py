@@ -13,7 +13,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.0.xlsx"
 PREV142 = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current", "IDX_SrcID"}      # v16.0：IDX_SrcID 為 Gov_Map 哨兵，v16.0 新增 6 列登記故值改變
@@ -65,9 +65,9 @@ def test_v1510_every_name_value_equals_v150(lo):
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
         n_ok += 1
     assert n_ok >= 1000, n_ok      # v15.2：B2／B3 預期變動的 455 個名稱（V152_CHANGED）不比，其餘仍逐值相同
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 132, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v19.0") and str(v.get_name("RNG_Current")).endswith("v19.0")      # v19.0：版本字串隨版本；v18.0：      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
+    assert str(v.get_name("RNG_Version")).endswith("v19.1") and str(v.get_name("RNG_Current")).endswith("v19.1")      # v19.0：版本字串隨版本；v18.0：      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
 
 
 def test_v1510_decisions_recorded(wbf):
@@ -91,7 +91,7 @@ def test_v1510_alloc_row398_original_restored_verbatim(wbf):
     old = openpyxl.load_workbook(PREV142)["Alloc"]["A362"].value
     assert old.startswith("（a）只經 VR200 欄") and "12 個" in old and "L1_Ans5_FullMargin" in old
     ws = wbf["Alloc"]
-    t = ws["A398"].value
+    t = next(ws.cell(r, 1).value for r in range(300, ws.max_row + 1) if "v15.0 更正（修訂九，T3-2）" in str(ws.cell(r, 1).value or ""))      # v19.1：RNG 區間新增 2 個 CHK_ 名稱，Alloc 該列下移 6 列（原 398），改以文字定位
     assert old in t and "v15.0 更正（修訂九，T3-2）" in t and "v15.1 補回原文（修訂九" in t
 
 
@@ -169,7 +169,7 @@ def test_v1510_changed_cells_only_expected(wbf):
         if d:
             diffs[ws.title] = sorted(d)
     assert set(diffs) <= allowed, set(diffs) - allowed
-    assert sorted(diffs["Alloc"]) == ["A398"], diffs["Alloc"]      # v15.2：C177（版本字串）屬 v15.1→v15.2 差異，被遮掉
+    assert sorted(diffs.get("Alloc", [])) in ([], ["A398"]), diffs.get("Alloc")      # v19.1：該列下移 6 列後，A398 位置已是另一格（內容由上一項以文字定位檢查）      # v15.2：C177（版本字串）屬 v15.1→v15.2 差異，被遮掉
     assert diffs["Sens_Rev"] == ["A17", "G18"] or sorted(diffs["Sens_Rev"]) == ["A17", "G18"], diffs["Sens_Rev"]
     assert sorted(diffs["Alloc_In"]) == ["G15", "G16"] and "Calib" not in diffs      # v15.2：J67 另被 v15.2 附加，遮掉
     assert sorted(diffs["Amortize"]) == ["A10", "A19", "A29", "A40"]

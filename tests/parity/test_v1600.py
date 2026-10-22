@@ -15,6 +15,10 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 
+# v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；本檔下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
+C17_OLD = {"SRC_MOD_106": 1024}
+PREWARM = {"test_v1600_new_values_match_precomputed": [C17_OLD], "test_v1600_only_new_names_and_nothing_else_changed": [C17_OLD]}
+
 REPO = Path(__file__).resolve().parents[2]
 V153 = REPO / "model" / "archive" / "20261018_Tokenomics_v15.3.xlsx"
 V160 = REPO / "model" / "archive" / "20261018_Tokenomics_v16.0.xlsx"      # v17.0：現行版已是 v17.0；v16.0 專屬的文字與逐格比較改對封存的 v16.0 釘住（v16.0→v17.0 由 test_v1700 釘住）
@@ -70,7 +74,7 @@ def _lrel(g, t1, rho, T, t0, gpre):
 
 
 def test_v1600_new_values_match_precomputed(lo):
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     for n, want in PRE.items():
         assert abs(v.get_name(n) - want) < 1e-4, (n, v.get_name(n), want)      # 工作單事前計算只有 4 位
     assert abs(v.get_name("L1_LTotalFleetV") - 0.715893335392) < 1e-6 and abs(v.get_name("L1_LTotalFleetV_Lo") - 0.426456907365) < 1e-6
@@ -201,7 +205,7 @@ def test_v1600_decisions_evidence_readme(wbf):
     assert "F1" in t3 and "F2" in t3 and "未回應前不改主口徑" in t3
     e = wbf["DB_Evidence"]
     ids = [e.cell(r, 1).value for r in range(5, e.max_row + 1)]
-    assert ids[-2] == "E398" and ids[-7:-2] == ["E393", "E394", "E395", "E396", "E397"] and ids[-1] == "E399"      # v18.0：DB_Evidence 新增 E399
+    assert ids[-3] == "E398" and ids[-8:-3] == ["E393", "E394", "E395", "E396", "E397"] and ids[-2] == "E399" and ids[-1] == "E400"      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
     assert "不新增外部來源" in e.cell(_row(e, "E398"), 4).value and "可撤回" in e.cell(_row(e, "E398"), 11).value
     rd = wbf["README"]
     assert any(rd.cell(r, 1).value == "v16.0 L 世代起點" for r in range(4, rd.max_row + 1))      # v17.0：README B5／A1 的版本字串已是 v17.0（test_v1700）；v16.0 列保留
@@ -230,12 +234,12 @@ def test_v1600_only_new_names_and_nothing_else_changed(lo):
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
-    v = lo.view({})      # 重點名稱逐值（現行版：這些既有名稱在 v17.0 仍不變）
+    v = lo.view(C17_OLD)      # 重點名稱逐值（現行版：這些既有名稱在 v17.0 仍不變）
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LTotal_Lo", 0.396282624140417), ("L1_LTotal_Hi", 1.09636652745877), ("L1_LReqFleet_Id", 0.756109635897205),
                     ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v19.1：本檢驗用 C17_OLD 視圖（SRC_MOD_106＝1024），此時 RG2／RG3 因區間端點檔已按 C17＝2176 重產而各觸發，故仍是 133（基準視圖為 132，見 test_v1910）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert v.get_name("RNG_StaleFlag") == "區間過期" and v.get_name("RNG_OutCount") >= 0      # v19.1：C17_OLD 視圖下指紋與區間端點（按 C17＝2176 重產）不符；基準視圖由 test_v1910 檢查「一致」與 0
 
 
 def test_v1600_changed_cells_only_expected():

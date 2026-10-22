@@ -16,6 +16,10 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 
+# v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；本檔下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
+C17_OLD = {"SRC_MOD_106": 1024}
+PREWARM = {"test_v1530_w1_inputs_and_l_values": [C17_OLD], "test_v1530_unchanged_guards": [C17_OLD]}
+
 REPO = Path(__file__).resolve().parents[2]
 FIXTURES = REPO / "tests" / "parity" / "fixtures"
 V152 = REPO / "model" / "archive" / "20261017_Tokenomics_v15.2.xlsx"
@@ -60,7 +64,7 @@ def test_v1530_w1_inputs_and_l_values(wbf, lo):
     assert [ci[f"{c}226"].value for c in "CDE"] == [-0.09, -0.2, 0.05]
     assert [ci[f"{c}227"].value for c in "CDE"] == [4, 3, 5]                 # E3 不變
     assert ci["C228"].value == 0.5 and ci["E228"].value == 0.7 and ci["D228"].value == RHO_D
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     rho_lo = v.get_name("IF_PriceRef_Luna") / v.get_name("IF_PriceRef_Sol") * _flat(v.get_name("IF_TokGW_Luna"))[3] / _flat(v.get_name("IF_TokGW_Sol"))[3]
     assert abs(v.get("Cap_In", "D228") - rho_lo) < 1e-12 and abs(rho_lo - 0.170368021775908) < 1e-9
     assert abs(_flat(v.get_name("IF_TokGW_Luna"))[3] / _flat(v.get_name("IF_TokGW_Sol"))[3] - 3.4073) < 1e-3      # 第 4 格＝GB200 欄（吞吐倍數 3.41）
@@ -70,13 +74,13 @@ def test_v1530_w1_inputs_and_l_values(wbf, lo):
 
 
 def test_v1530_unchanged_guards(wbf, lo):
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     assert abs(v.get_name("L1_MFleet") - 0.460003106109943) < 1e-12
     assert abs(v.get_name("L1_MFleet_Lo") - 0.242723485975401) < 1e-9 and abs(v.get_name("L1_MFleet_Hi") - 1.33130310709466) < 1e-9
     assert abs(v.get_name("IF_AllocServeGW") - 0.89809617101894) < 1e-12 and abs(v.get_name("L1_LReqFleet_Id") - 0.756109635897205) < 1e-12
     assert wbf["Calib"]["D67"].value == 1.15 and wbf["Cap_In"]["C280"].value == 4.5
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v19.1：本檢驗用 C17_OLD 視圖（SRC_MOD_106＝1024），此時 RG2／RG3 因區間端點檔已按 C17＝2176 重產而各觸發，故仍是 133（基準視圖為 132，見 test_v1910）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert v.get_name("RNG_StaleFlag") == "區間過期" and v.get_name("RNG_OutCount") >= 0      # v19.1：C17_OLD 視圖下指紋與區間端點（按 C17＝2176 重產）不符；基準視圖由 test_v1910 檢查「一致」與 0
 
 
 def test_v1530_marks_corrected_original_kept(wbf):

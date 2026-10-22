@@ -1,0 +1,66 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "8e954dffd0deddad7bf62bd50405c6306ffd34aa",
+ "github_sha": "3133c7463983268c5c9f5b7b420ec0bad300693a",
+ "ref": "refs/pull/146/merge",
+ "event": "pull_request",
+ "run_id": 39810016846,
+ "run_number": 561,
+ "run_attempt": 1,
+ "overall": "failure",
+ "jobs": [
+  {
+   "id": 119933440055,
+   "name": "parity",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-22T15:59:47Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.11.17"
+  },
+  {
+   "id": 119933440474,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-22T15:59:46Z",
+   "completed_at": "2026-10-22T16:00:39Z",
+   "seconds": 53,
+   "python": "3.11.17"
+  },
+  {
+   "id": 119955140503,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "queued",
+   "started_at": "2026-10-22T16:42:15Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.14.4"
+  }
+ ],
+ "failures": [
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_interface_d_e_shapes",
+   "kind": "failure",
+   "message": "AssertionError: assert (10 == 10 and ((((((235 - 41) - 10) - 7) - 4) - 10) - 3) == 158)\n +  where 10 = len({'IF_CostAttVR_Astra', 'IF_CostAttVR_Luna', 'IF_CostAttVR_Sol', 'IF_FrontSuccVR', 'IF_FrontSuccVRName', 'IF_FrontSuccVRP', ...})\n +  and   41 = len({'IF_AmortDefault_Astra', 'IF_AmortDefault_Luna', 'IF_AmortDefault_Sol', 'IF_AmortRev_Astra', 'IF_AmortRev_Luna', 'IF_AmortRev_Sol', ...})\n +  and   10 = len({'IF_CostAttVR_Astra', 'IF_CostAttVR_Luna', 'IF_CostAttVR_Sol', 'IF_FrontSuccVR', 'IF_FrontSuccVRName', 'IF_FrontSuccVRP', ...})\n +  and   7 = len({'IF_FullCost_Astra_Prod', 'IF_FullCost_Luna_Prod', 'IF_FullCost_Sol_Prod', 'IF_RevGWFleet_Prod', 'IF_RevGW_Astra_Prod', 'IF_RevGW_Luna_Prod', ...})\n +  and   4 = len({'IF_RevGWFleet_Life', 'IF_RevGW_Astra_Life', 'IF_RevGW_Luna_Life', 'IF_RevGW_Sol_Life'})\n +  and   10 = len({'IF_AvgDraw', 'IF_DeprFac', 'IF_DeprIT', 'IF_DeprLifeIT', 'IF_MaintFac', 'IF_MaintIT', ...})\n +  and   3 = len({'IF_MaintITPost', 'IF_MaintITWarr', 'IF_WarrantyYrs'})\ntests/parity/test_parity.py:244: in test_interface_d_e_shapes\n    assert len(v510_new) == 10 and EXPECT[\"downstream_names\"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) - len(v531_new) == 158  # v19.0：133 → 158（downstream_names 208 → 233，新增 Interface N 節 25 個 IF_ 名稱）； v15.0：132 → 133（downstream_names 207 → 208，新增 IF_FrontSuccVRQual）； v5.31 新增 3 個； v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert (10 == 10 and ((((((235 - 41) - 10) - 7) - 4) - 10) - 3) == 158)\nE    +  where 10 = len({'IF_CostAttVR_Astra', 'IF_CostAttVR_Luna', 'IF_CostAttVR_Sol', 'IF_FrontSuccVR', 'IF_FrontSuccVRName', 'IF_FrontSuccVRP', ...})\nE    +  and   41 = len({'IF_AmortDefault_Astra', 'IF_AmortDefault_Luna', 'IF_AmortDefault_Sol', 'IF_AmortRev_Astra', 'IF_AmortRev_Luna', 'IF_AmortRev_Sol', ...})\nE    +  and   10 = len({'IF_CostAttVR_Astra', 'IF_CostAttVR_Luna', 'IF_CostAttVR_Sol', 'IF_FrontSuccVR', 'IF_FrontSuccVRName', 'IF_FrontSuccVRP', ...})\nE    +  and   7 = len({'IF_FullCost_Astra_Prod', 'IF_FullCost_Luna_Prod', 'IF_FullCost_Sol_Prod', 'IF_RevGWFleet_Prod', 'IF_RevGW_Astra_Prod', 'IF_RevGW_Luna_Prod', ...})\nE    +  and   4 = len({'IF_RevGWFleet_Life', 'IF_RevGW_Astra_Life', 'IF_RevGW_Luna_Life', 'IF_RevGW_Sol_Life'})\nE    +  and   10 = len({'IF_AvgDraw', 'IF_DeprFac', 'IF_DeprIT', 'IF_DeprLifeIT', 'IF_MaintFac', 'IF_MaintIT', ...})\nE    +  and   3 = len({'IF_MaintITPost', 'IF_MaintITWarr', 'IF_WarrantyYrs'})"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_named_ranges_vs_libreoffice",
+   "kind": "failure",
+   "message": "assert {'AL_APIratio...loc!C34', ...} == {'AL_APIratio...loc!C34', ...}\n  \n  Omitting 1368 identical items, use -vv to show\n  Differing items:\n  {'L1_LReqFleet_VR200': \"'L1'!D106\"} != {'L1_LReqFleet_VR200': 'L1!D106'}\n  {'L1_GenPxThr_Rev_GB200': \"'L1'!D96\"} != {'L1_GenPxThr_Rev_GB200': 'L1!D96'}\n  {'L1_LReqFleet': \"'L1'!D89\"} != {'L1_LReqFleet': 'L1!D89'}\n  {'L1_Ans5_GM': \"'L1'!D49\"} != {'L1_Ans5_GM': 'L1!D49'}\n  {'L1_HarVsGen_SingleAgent_Hi': \"'L1'!F63\"} != {'L1_HarVsGen_SingleAgent_Hi': 'L1!F63'}\n  {'L1_GPUhr_GB300': \"'L1'!D17\"} != {'L1_GPUhr_GB300': 'L1!D17'}\n  {'L1_AstraExtTok_180B_Lo': \"'L1'!E108\"} != {'L1_AstraExtTok_180B_Lo': 'L1!E108'}\n  {'L1_Price25Mix_Hi': \"'L1'!F103\"} != {'L1_Price25Mix_Hi': 'L1!F103'}\n  {'L1_M_FY2026': \"'L1'!D120\"} != {'L1_M_FY2026': 'L1!D120'}\n  {'L1_MSub_Lo': \"'L1'!E81\"} != {'L1_MSub_Lo': 'L1!E81'}\n  {'L1_ExtFreeShare_Hi': \"'L1'!F47\"} != {'L1_ExtFreeShare_Hi': 'L1!F47'}\n  {'L1_Ans2_Hi': \"'L1'!F38\"} != {'L1_Ans2_Hi': 'L1!F38'}\n  {'L1_TokPerPromptClose_Hi': \"'L1'!F84\"} != {'L1_TokPerPromptClose_Hi': 'L1!F84'}\n  {'L1_FleetBreakeven': \"'L1'!D52\"} != {'L1_FleetBreakeven': 'L1!D52'}\n  {'L1_MSeat_Lo': \"'L1'!E82\"} != {'L1_MSeat_Lo': 'L1!E82'}\n  {'L1_TokCeiling_Hi': \"'L1'!F79\"} != {'L1_TokCeiling_Hi': 'L1!F79'}"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_slim::test_exposed_parameters_are_inputs_and_registered",
+   "kind": "failure",
+   "message": "AssertionError: 124\nassert 124 == 118\ntests/parity/test_slim.py:197: in test_exposed_parameters_are_inputs_and_registered\n    assert n == 118, n      # v16.0：L1 新增 4 列（112–115）的 P 欄也讀 L1_JudgeTol（96 → 100）；v17.0：L1 新增第 116 列（100 → 101）\n    ^^^^^^^^^^^^^^^^^^\nE   AssertionError: 124\nE   assert 124 == 118"
+  }
+ ],
+ "log_excerpts": {},
+ "recalc_seconds": null,
+ "pr_number": 146,
+ "generated_at": "2026-10-22T16:42:28Z",
+ "errors": []
+}

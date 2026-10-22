@@ -389,6 +389,13 @@ def text_fixes(wb):
             cur = "（v20.0 建置時：基準 {:.4f}、D {:.4f}、E {:.4f}）"
             vals = {232: (0.7637, 0.5511, 1.1618), 233: (0.6595, 0.4019, 1.0964)}[r]      # LibreOffice values of C232:E233 in v19.1 (rounded); the cells C–E stay authoritative
             ws[f"G{r}"].value = g.replace(m.group(0), cur.format(*vals)); n += 1
+    OLD3 = "(3) 2026 欄無區間：輸入（每日則數、消費份額 0.65）為 Assumed 單值，區間待補。"
+    NEW3 = "(3) 區間（v20.0 已補）：2026 Q2 與 L1_M 的低／高只隨每則提示 token（AL_TokPerPrompt_Hi／_Lo）與免費占比（AL_FreeShare_Lo／_Hi）變動；每日則數、消費份額 0.65 仍為 Assumed 單值，2026 Q1 與 FY2026 欄仍無區間。"
+    for nm in ("L1_M_2026Q2", "L1_M"):
+        rr = int(wb.defined_names[nm].attr_text.split("$")[-1])
+        cur = wb["L1"][f"I{rr}"].value
+        if isinstance(cur, str) and OLD3 in cur:
+            wb["L1"][f"I{rr}"].value = cur.replace(OLD3, NEW3); n += 1
     t4 = wb["L1"]["T4"].value
     if t4 and "觀測比值" not in t4:
         wb["L1"]["T4"].value = t4.replace("未解釋）", "未解釋／觀測比值）") if "未解釋）" in t4 else t4 + "（v20.0 增觀測比值）"; n += 1

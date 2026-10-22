@@ -200,11 +200,12 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
         got = _flat(v.get_name(n))
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
+    changed -= set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"]) - VERSION_NAMES      # v19.1：Arch!C17 下游的預期變動名稱
     changed -= set(V172["changed"]) - VERSION_NAMES      # v17.2：同上
     changed -= {"IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"}      # v19.0：Interface 契約欄範圍隨 N 節新列延伸（既有列的值不變，由 test_v1900 看守）
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
-    for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.756109635897205), ("L1_LTotalFleetV", 0.715893335392232),
-                    ("L1_LReqFleet_IdNoK", 0.756109635897205), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):
+    for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.756109635897205), ("L1_LTotalFleetV", 0.715894950036491),
+                    ("L1_LReqFleet_IdNoK", 0.756109635897205), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.447574227389844), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 132, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0

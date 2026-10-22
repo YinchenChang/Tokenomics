@@ -13,7 +13,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
-V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
+V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.0.xlsx"
 PREV142 = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current", "IDX_SrcID"}      # v16.0：IDX_SrcID 為 Gov_Map 哨兵，v16.0 新增 6 列登記故值改變
@@ -91,7 +91,7 @@ def test_v1510_alloc_row398_original_restored_verbatim(wbf):
     old = openpyxl.load_workbook(PREV142)["Alloc"]["A362"].value
     assert old.startswith("（a）只經 VR200 欄") and "12 個" in old and "L1_Ans5_FullMargin" in old
     ws = wbf["Alloc"]
-    t = ws["A398"].value
+    t = next(ws.cell(r, 1).value for r in range(300, ws.max_row + 1) if "v15.0 更正（修訂九，T3-2）" in str(ws.cell(r, 1).value or ""))      # v19.1：RNG 區間新增 2 個 CHK_ 名稱，Alloc 該列下移 6 列（原 398），改以文字定位
     assert old in t and "v15.0 更正（修訂九，T3-2）" in t and "v15.1 補回原文（修訂九" in t
 
 
@@ -169,7 +169,7 @@ def test_v1510_changed_cells_only_expected(wbf):
         if d:
             diffs[ws.title] = sorted(d)
     assert set(diffs) <= allowed, set(diffs) - allowed
-    assert sorted(diffs["Alloc"]) == ["A398"], diffs["Alloc"]      # v15.2：C177（版本字串）屬 v15.1→v15.2 差異，被遮掉
+    assert sorted(diffs.get("Alloc", [])) in ([], ["A398"]), diffs.get("Alloc")      # v19.1：該列下移 6 列後，A398 位置已是另一格（內容由上一項以文字定位檢查）      # v15.2：C177（版本字串）屬 v15.1→v15.2 差異，被遮掉
     assert diffs["Sens_Rev"] == ["A17", "G18"] or sorted(diffs["Sens_Rev"]) == ["A17", "G18"], diffs["Sens_Rev"]
     assert sorted(diffs["Alloc_In"]) == ["G15", "G16"] and "Calib" not in diffs      # v15.2：J67 另被 v15.2 附加，遮掉
     assert sorted(diffs["Amortize"]) == ["A10", "A19", "A29", "A40"]

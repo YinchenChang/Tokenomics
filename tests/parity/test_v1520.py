@@ -13,6 +13,10 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 
+# v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；本檔下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
+C17_OLD = {"SRC_MOD_106": 1024}
+PREWARM = {"test_v1520_m_values_and_decomposition": [C17_OLD]}
+
 REPO = Path(__file__).resolve().parents[2]
 FIXTURES = REPO / "tests" / "parity" / "fixtures"
 PREV = REPO / "model" / "archive" / "20261017_Tokenomics_v15.1.xlsx"
@@ -64,11 +68,11 @@ def test_v1520_inputs_changed_and_guards_unchanged(wbf, lo):
 
 def test_v1520_m_values_and_decomposition(lo):
     """L1_MFleet 0.4073 → 0.4600；單項：只套 B2 0.5034、只套 B3 0.3722（見報告第 4 節）。"""
-    v = lo.view({})
+    v = lo.view(C17_OLD)
     assert abs(v.get_name("L1_MFleet") - 0.460003106109943) < 1e-9
     assert abs(v.get_name("L1_MFleet_Lo") - 0.242723485975401) < 1e-9 and abs(v.get_name("L1_MFleet_Hi") - 1.33130310709466) < 1e-9
-    b2 = lo.view({"Cap_In!C280": 4.5, "Cap_In!D280": 3.3, "Cap_In!E280": 5.9, "Calib!D67": 1})
-    b3 = lo.view({"Cap_In!C280": 7.174, "Cap_In!D280": 2.089, "Cap_In!E280": 16.33, "Calib!D67": 1.15})
+    b2 = lo.view({**C17_OLD, "Cap_In!C280": 4.5, "Cap_In!D280": 3.3, "Cap_In!E280": 5.9, "Calib!D67": 1})
+    b3 = lo.view({**C17_OLD, "Cap_In!C280": 7.174, "Cap_In!D280": 2.089, "Cap_In!E280": 16.33, "Calib!D67": 1.15})
     assert abs(b2.get_name("L1_MFleet") - 0.503438442475506) < 1e-9
     assert abs(b3.get_name("L1_MFleet") - 0.37215506256345) < 1e-9
     assert abs(v.get_name("IF_AllocServeGW") - 0.89809617101894) < 1e-12 and abs(v.get_name("L1_LReqFleet_Id") - 0.756109635897205) < 1e-12

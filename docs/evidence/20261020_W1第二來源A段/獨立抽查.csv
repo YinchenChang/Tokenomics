@@ -1,0 +1,34 @@
+SRC_ID,原分類,網址可讀(是/否),頁面上找到該值(是/否/部分),查核結論(確認/不確認/無法判定),說明
+SRC_DEM_060,B,是,是,確認,頁載8M為Codex＋ChatGPT Work合併；與原Codex單獨口徑不同，差異描述正確
+SRC_MOD_018,B,是,部分,確認,vLLM載c4a預設512但未指明Flash；Lockwood載Pro top 1024；512≠1024屬實
+SRC_PERF_040,B,是,是,確認,摘要載up to 2.77x vs同步系統、同GPU數；與原值2差異屬實（為上限值）
+SRC_HW_010,B,是,部分,確認,頁載Loop Capital 3.7–4.0M/架；6–6.5M推論配置未具名來源，非Tom's Hardware
+SRC_HW_012,B,是,是,確認,頁面載Vera Rubin NVL72 MaxP 227 kW/rack，與原值230差-1.3%屬實
+SRC_HW_064,A,是,部分,不確認,227為Schneider參考設計VR NVL72 MaxP機架功率；頁未提Supermicro/DLC-2，對象不同
+SRC_HW_011,A,是,是,確認,頁面載Vera Rubin NVL72 MaxQ 188 kW/rack，與原值一致
+SRC_MOD_011,A,是,是,確認,Lockwood頁載384 total routed experts（Pro），與原值一致
+SRC_PRC_007,B,是,部分,不確認,官方頁無GPT-6 Sol；0.10為gpt-6.1-sol短上下文(長為0.20)，-50%係跨版本比較
+SRC_DC_010,B,是,是,確認,頁載Bernstein約35B/GW及Nvidia財報50–60B(未點名黃仁勳)；差異-30~-42%正確
+SRC_DC_008,B,是,是,確認,頁載Nebius伺服器網通設備5年，註自2026-01由4年延長；差異為政策前後
+SRC_MOD_060,A,是,是,確認,"ApX規格表載Kimi K3 hidden size 7,168，與原值一致"
+SRC_HW_043,A,是,部分,確認,"頁載GB200 FP8 dense 5,000 TFLOPS/GPU、360PF；GB300/B300無FP8數據未驗"
+SRC_MOD_026,A,是,是,確認,gonzoml載V3「1 shared expert and 256 routed」，與原值1一致
+SRC_PERF_072,A,是,部分,確認,Step-3表8載DSv3-profile 4096/128 GPU/2324；文為H800，但批次128頁面未載
+SRC_DEM_036,A,是,是,確認,TradingKey引Reuters：約2.16B經Amazon與Google市集，占2025營收47%
+SRC_PERF_026,A,是,是,確認,"Nebius表GB300 NVL72 8 GPU DeepSeek-R1 server 64,510；÷8≈8064"
+SRC_DEM_040,A,是,是,確認,Neowin載ChatGPT今年預期2.7B、全年約3.7B；年份由上下文推為2024
+SRC_MOD_002,A,是,是,確認,HF部落格載1.6T total with 49B active；Lockwood亦載49B
+SRC_DEM_026,A,是,是,確認,DealStreetAsia載7月約35M用戶(約5%)付費Plus或Pro
+SRC_MOD_016,A,是,是,確認,HF部落格載HCA compresses KV entries by 128x；vLLM載c128a約1/128
+SRC_MOD_054,A,是,是,確認,vLLM載30 c4a+31 c128a(61層)；HF層序推得同；原值單位標%有誤，應為比值
+SRC_MOD_027,A,是,是,確認,Modular DeepseekV3Config載vocab_size: int = 129280，與原值一致
+SRC_HW_002,A,是,部分,不確認,25–31k為單卡口徑；同頁HGX 8卡板250–320k÷8＝31.25–40k，30k不在其內
+SRC_MOD_010,A,是,是,確認,NeMo文件載256 routed+1 shared、top-6；ApX亦載256/6
+SRC_DEM_037,A,是,是,確認,Khaleej Times引Reuters：約351M distribution fees，約每美元16美分
+SRC_MOD_012,A,是,是,確認,Lockwood載Pro 6 active；NeMo載Flash top-6 routing，均為6
+SRC_DEM_042,A,是,是,確認,AI Weekly引WSJ：OpenAI 2026 Q2營收約6.7B、QoQ +18%（二手轉述）
+SRC_PRC_030,C1,是,是,確認,Z.ai官方價表GLM-5.3列：Input 1.4、Cached Input 0.26、Output 4.4（$/M）
+SRC_PRC_032,C1,是,是,確認,Z.ai官方價表GLM-5.3-Flash列：Input 0.15（$/M）
+SRC_PRC_023,C1,是,是,確認,DeepSeek官方頁deepseek-flash(V4.1-Flash)Output Peak $1.2/M
+SRC_PRC_001,C1,是,是,確認,CoreWeave官方頁GB200 NVL72 4 GPU實例On-Demand $42.00/hr，北美歐洲同價
+SRC_HW_044,C1,是,是,確認,"DCD載Rubin Ultra NVL576機架4.6PBps HBM4e＝4,600 TB/s，與原值一致"

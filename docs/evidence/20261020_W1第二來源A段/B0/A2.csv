@@ -1,0 +1,33 @@
+SRC_ID,複核結論,對象一致,口徑一致,頁面值,說明
+SRC_DEM_018,改B,是,部分,Q1-Q3 8.67（2.075/2.947/3.648）,頁面僅9個月、未明確限Azure；全年12.6為推估，頁面無此值
+SRC_DEM_026,維持A,是,是,約3500萬付費（Plus或Pro），約占週用戶5%,2025年7月，ChatGPT Plus/Pro付費數，一致
+SRC_DEM_036,維持A,是,是,約21.6億美元經Amazon與Google市集，占全年營收47%,Anthropic 2025全年雲端市集營收，一致
+SRC_DEM_040,維持A,是,是,ChatGPT 2024預期27億美元；總計約37億,OpenAI 2024年ChatGPT營收預期，一致
+SRC_DEM_062,改B,是,部分,approaching $50B；年底預期70B+,值在區間內，但頁面未明載為OpenAI自身淨份額口徑，僅暗示
+SRC_DEM_071,維持A,是,部分,API約占營收15%,落在0.15-0.20區間低端；頁面未標期間且各項占比加總超100%
+SRC_MOD_003,維持A,是,是,V4-Pro 61-layer stack；Lockwood 61+1 MTP,Pro為61層，MTP另計，一致
+SRC_MOD_006,維持A,是,是,"284B total, 13B active",V4-Flash每token啟用13B，一致
+SRC_MOD_009,維持A,是,是,"Lockwood：MQA 1 KV head, 512 dim；ApX Flash head dim 512",KV單頭維度512；128 heads為query頭，非KV
+SRC_MOD_012,維持A,是,是,Pro 384 total/6 active；Flash 256 routed/top-6,Pro、Flash皆每token啟用6個routed experts
+SRC_MOD_016,維持A,是,是,HCA compresses KV entries by 128x,HCA壓縮比128x，HF頁面明載
+SRC_MOD_020,維持A,是,是,"671B total, 37B active",V3總參數671B，三來源一致
+SRC_MOD_023,維持A,是,是,hidden_size=7168,V3 hidden 7168，Modular與GonzoML一致
+SRC_MOD_026,維持A,是,是,n_shared_experts=1；1 shared+256 routed,V3 shared expert 1個，一致
+SRC_MOD_030,維持A,是,是,trained on 33 trillion tokens,V4-Pro預訓練33T token，Lockwood明載
+SRC_MOD_041,維持A,是,是,2.788M H800 GPU hours（含後訓練；預訓練2.664M）,全流程2.788M H800小時，與「全部」口徑一致
+SRC_MOD_049,維持A,是,是,num_attention_heads=128,V3注意力頭128，一致
+SRC_MOD_052,維持A,是,是,"Hidden Dimension Size 4,096",V4-Flash hidden 4096，ApX規格框一致
+SRC_MOD_057,維持A,是,是,"2.8T total, ~104B active",K3總參數2.8T=2800B，一致
+SRC_MOD_060,維持A,是,是,"Hidden Dimension Size 7,168",K3 hidden 7168；該頁其他欄位自相矛盾但此欄一致
+SRC_PERF_072,維持A,是,部分,"Table 8 DSv3-profile：128 Hopper GPU, ctx 4096, TGS 2324",H800 decode每GPU一致；論文未載批次128與EP128，未能證實
+SRC_HW_001,維持A,是,是,Power Usage: 10.2kW max（8x H100系統）,DGX H100整機最大功率10.2kW，一致
+SRC_HW_005,維持A,是,是,GB300 NVL72 by HPE：TDP 132 kW nominal；EDPp約155 kW,GB300 NVL72整架TDP 132kW，與模型132起點一致
+SRC_HW_011,維持A,是,是,Vera Rubin NVL72：MaxQ 188 kW/rack，MaxP 227 kW/rack,VR200 NVL72機架MaxQ 188kW，一致
+SRC_HW_021,維持A,是,是,Max Memory Bandwidth 3.35 TB/s（HGX 8x H100 SXM5）,H100 SXM單GPU頻寬3.35TB/s；頁面為8卡板但值屬單卡
+SRC_HW_025,維持A,是,是,15 PFLOPS dense FP4（每B300 GPU）,B300每GPU FP4 dense 15PF，明標dense
+SRC_HW_040,改B,是,否,"Peak FP8 Tensor Core 3,958 TFLOPS（未註明sparse）",頁面值3958為原值1979的2倍，疑為sparse，無法佐證dense 1.979PF
+SRC_HW_043,維持A,部分,是,"GB200 NVL72：FP8 360 PFLOPS dense=5,000 TFLOPS/GPU",GB200 FP8 dense 5PF/GPU一致；GB300與「未提升」未被該頁證實
+SRC_HW_048,改B,是,否,1.8 TB/s per GPU（未註明單雙向）,頁面1.8為雙向總頻寬慣例，原值0.9為單向；單雙向不同、值非同
+SRC_HW_053,維持A,是,是,8x NVIDIA H100 SXM5 GPUs，640GB HBM3,HGX H100板8顆GPU，一致
+SRC_HW_058,維持A,是,是,"1,400W TDP per B300 GPU；視機箱1,100-1,400W",B300單GPU TDP上限1400W，與可配置上限相符
+SRC_PRC_039,維持A,是,是,Qwen3.8-Max 快取輸入$0.25/M，國際站，全1M窗口平價,型號、國際站、cached input、1M窗口皆一致

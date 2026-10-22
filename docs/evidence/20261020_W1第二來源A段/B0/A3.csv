@@ -1,0 +1,33 @@
+SRC_ID,複核結論,對象一致,口徑一致,頁面值,說明
+SRC_DEM_024,維持A,是,部分,15.5M,頁面稱paid subscribers，期為2024年底，與原2025-01差約一月；同源The Information。
+SRC_DEM_034,維持A,是,是,約$3.8B,approximately $3.8B 來自客戶實際用量，與原紀錄一致；底層仍Reuters。
+SRC_DEM_037,維持A,是,是,$351M（16 cents/$）,2025年付平台distribution fees約$351M，與0.351$B一致。
+SRC_DEM_042,維持A,是,是,$6.7B（+18% QoQ）,頁面稱Q2 2026 revenue 6.7B，同為WSJ轉述；未界定會計口徑。
+SRC_DEM_067,改B,是,否,about to hit 1B WAU（2026-07-29）,頁面稱「即將」達10億，原紀錄為「超過」10億；狀態不同，不支持已超過。
+SRC_MOD_001,維持A,是,是,1.6T total，49B active,HF blog：V4-Pro 1.6T總參數，一致。
+SRC_MOD_004,維持A,是,是,7168,表格Hidden dimension 7168，V4-Pro。
+SRC_MOD_007,維持A,是,是,43,NVIDIA文件：V4-Flash 43層all-MoE。
+SRC_MOD_010,維持A,是,是,256,NVIDIA文件：V4-Flash 256 routed experts。
+SRC_MOD_013,維持A,是,是,1 shared（Pro頁寫6 active+1 shared）,NVIDIA頁：每block一個shared expert；Pro頁亦為1 shared。
+SRC_MOD_017,維持A,是,是,128 tokens,vLLM blog：滑動窗口大小128，作用於未壓縮token。
+SRC_MOD_021,維持A,是,是,37B active（671B total）,V3每token啟用37B，一致。
+SRC_MOD_024,維持A,是,是,256 routed（每token選8）,V3每MoE層256 routed experts。
+SRC_MOD_027,維持A,是,是,129280,Modular config vocab_size=129280（DeepseekV3Config）。
+SRC_MOD_039,維持A,是,是,14.8T tokens,V3預訓練14.8T tokens，兩頁一致。
+SRC_MOD_042,維持A,是,是,4k tokens,頁面明述預訓練期間最大序列長4k tokens。
+SRC_MOD_050,維持A,是,是,qk_nope 128 + qk_rope 64,頁面給128與64兩分量，192為加總，合理。
+SRC_MOD_053,維持A,是,是,64 attention heads,NVIDIA頁：單一KV head廣播至全部64 attention heads。
+SRC_MOD_058,維持A,是,是,約104B active（2.8T total）,頁面：K3約104B啟用參數。
+SRC_MOD_061,維持A,是,是,896 experts（每token選16）,頁面：16 of 896 experts。
+SRC_PERF_024,無法判定,否,部分,"250,634 tokens/s（Interactive列）",值與情境(R1 Interactive)吻合，但頁面未載系統/GPU數，無法確認為72 GPU GB300 NVL72。
+SRC_HW_003,維持A,是,部分,"$250,000–320,000",新品8-GPU HGX H100，在區間內；頁面內文board/server用詞不一。
+SRC_HW_006,維持A,是,是,~$3M/rack；$2.8–3.4M,頁面為GB200 NVL72整架價（Tae Kim、Tom's），在2.8–3.4區間；3.1出處未見於本頁。
+SRC_HW_019,改B,是,否,"1,979 TFLOPS（頁面未標sparse）","H100 BF16 1,979為sparse值（dense約989，兩倍）；頁面為Gigabyte HGX整機單頁、未標dense，非dense證據。"
+SRC_HW_022,維持A,是,是,"720 PF系統／10,000 TFLOPS per GPU",頁面註明取dense值，72 GPU，每GPU 10 PF，一致。
+SRC_HW_026,維持A,是,是,288GB HBM3e per GPU,Supermicro GB300 NVL72頁：B300 每GPU 288GB。
+SRC_HW_041,維持A,是,是,13.4 TB,GB200 NVL72全架總記憶體13.4 TB（72×186GB），一致。
+SRC_HW_046,維持A,是,部分,"約1,800–2,300W per GPU","Max-Q 1,800W吻合原值；Max-P 2,300W為報導值，原值在頁面區間內。"
+SRC_HW_049,改B,是,否,3.6 TB/s per GPU（bi-directional）,頁面為雙向3.6 TB/s，原紀錄單向1.8；換算相等但口徑不同，非同值。
+SRC_HW_056,維持A,是,是,700W per GPU,Supermicro資料表：H100 SXM5 700W per GPU。
+SRC_HW_059,維持A,是,是,8 TB/s,頁面列B300每GPU 8 TB/s記憶體頻寬。
+SRC_DC_002,維持A,是,部分,GPU networking 10–25% of CapEx,15%在10–25%區間內；頁面未提J.P. Morgan，且為「GPU networking」佔capex。

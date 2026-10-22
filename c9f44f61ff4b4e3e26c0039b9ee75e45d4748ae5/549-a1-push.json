@@ -1,0 +1,580 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "c9f44f61ff4b4e3e26c0039b9ee75e45d4748ae5",
+ "github_sha": "c9f44f61ff4b4e3e26c0039b9ee75e45d4748ae5",
+ "ref": "refs/heads/claude/w1-b2-v19",
+ "event": "push",
+ "run_id": 39749705518,
+ "run_number": 549,
+ "run_attempt": 1,
+ "overall": "failure",
+ "jobs": [
+  {
+   "id": 119726884061,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-10-22T08:42:09Z",
+   "completed_at": "2026-10-22T08:42:54Z",
+   "seconds": 45,
+   "python": "3.11.17"
+  },
+  {
+   "id": 119726884383,
+   "name": "parity",
+   "conclusion": "failure",
+   "started_at": "2026-10-22T08:42:09Z",
+   "completed_at": "2026-10-22T09:04:08Z",
+   "seconds": 1319,
+   "python": "3.11.17"
+  },
+  {
+   "id": 119736404591,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-10-22T09:04:11Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.14.4"
+  }
+ ],
+ "failures": [
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_workbook_expectations",
+   "kind": "failure",
+   "message": "AssertionError: assert 53789 == 53369\n +  where 53789 = len([('Inputs', 'D5'), ('Inputs', 'F5'), ('Inputs', 'D6'), ('Inputs', 'F6'), ('Inputs', 'D8'), ('Inputs', 'F8'), ...])\n +    where [('Inputs', 'D5'), ('Inputs', 'F5'), ('Inputs', 'D6'), ('Inputs', 'F6'), ('Inputs', 'D8'), ('Inputs', 'F8'), ...] = <conftest.View object at 0x70c54c8ff1d0>.formula_cells\ntests/parity/test_parity.py:75: in test_workbook_expectations\n    assert len(eng.formula_cells) == EXPECT[\"formula_cells\"]\nE   AssertionError: assert 53789 == 53369\nE    +  where 53789 = len([('Inputs', 'D5'), ('Inputs', 'F5'), ('Inputs', 'D6'), ('Inputs', 'F6'), ('Inputs', 'D8'), ('Inputs', 'F8'), ...])\nE    +    where [('Inputs', 'D5'), ('Inputs', 'F5'), ('Inputs', 'D6'), ('Inputs', 'F6'), ('Inputs', 'D8'), ('Inputs', 'F8'), ...] = <conftest.View object at 0x70c54c8ff1d0>.formula_cells"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_named_ranges",
+   "kind": "failure",
+   "message": "assert 569 == 568\n +  where 569 = sum(<generator object test_named_ranges.<locals>.<genexpr> at 0x70c5396b75a0>)\ntests/parity/test_parity.py:97: in test_named_ranges\n    assert sum(n.startswith(\"SRC_\") for n in eng.names) == EXPECT[\"src_names\"]       # v5.11：第 0 層\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   assert 569 == 568\nE    +  where 569 = sum(<generator object test_named_ranges.<locals>.<genexpr> at 0x70c5396b75a0>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_floor_scenarios_expected_values",
+   "kind": "failure",
+   "message": "AssertionError: assert ('Luna\\uff5c\\u9078\\u5b9a' == 'Luna\\uff5c\\u9078\\u5b9a'\n  \n    Luna｜選定 and 0.0018996825501735991 < 0.0005)\n +  where 0.0018996825501735991 = abs((0.0110003174498264 - 0.0129))\ntests/parity/test_parity.py:255: in test_floor_scenarios_expected_values\n    assert f0.get_name(\"IF_FrontSuccVRName\")[4] == \"Luna｜選定\" and abs(f0.get_name(\"IF_FrontSuccVR\")[4] - 0.0129) < 5e-4\nE   AssertionError: assert ('Luna\\uff5c\\u9078\\u5b9a' == 'Luna\\uff5c\\u9078\\u5b9a'\nE     \nE       Luna｜選定 and 0.0018996825501735991 < 0.0005)\nE    +  where 0.0018996825501735991 = abs((0.0110003174498264 - 0.0129))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_named_ranges_vs_libreoffice",
+   "kind": "failure",
+   "message": "assert {'AL_APIratio...loc!C34', ...} == {'AL_APIratio...loc!C34', ...}\n  \n  Omitting 1360 identical items, use -vv to show\n  Differing items:\n  {'L1_RevGW_PQ_VR200_Life': \"'L1'!D131\"} != {'L1_RevGW_PQ_VR200_Life': 'L1!D131'}\n  {'L1_TokMW_Gen_ratio_GB300': \"'L1'!D59\"} != {'L1_TokMW_Gen_ratio_GB300': 'L1!D59'}\n  {'L1_FleetBreakeven_Hi': \"'L1'!F52\"} != {'L1_FleetBreakeven_Hi': 'L1!F52'}\n  {'L1_M_Sub_Hi': \"'L1'!F123\"} != {'L1_M_Sub_Hi': 'L1!F123'}\n  {'L1_Ans1_Lo': \"'L1'!E37\"} != {'L1_Ans1_Lo': 'L1!E37'}\n  {'L1_GapISL_Hi': \"'L1'!F72\"} != {'L1_GapISL_Hi': 'L1!F72'}\n  {'L1_Ans6_GPUh_Lo': \"'L1'!E51\"} != {'L1_Ans6_GPUh_Lo': 'L1!E51'}\n  {'L1_RevGW_Luna_VR200': \"'L1'!D26\"} != {'L1_RevGW_Luna_VR200': 'L1!D26'}\n  {'L1_CapexGW_GB200_Lo': \"'L1'!E6\"} != {'L1_CapexGW_GB200_Lo': 'L1!E6'}\n  {'L1_TokMW_Gen_ratio_GB200_Hi': \"'L1'!F58\"} != {'L1_TokMW_Gen_ratio_GB200_Hi': 'L1!F58'}\n  {'L1_HarVsGen_Chat_Lo': \"'L1'!E61\"} != {'L1_HarVsGen_Chat_Lo': 'L1!E61'}\n  {'L1_ExtDaily': \"'L1'!D48\"} != {'L1_ExtDaily': 'L1!D48'}\n  {'L1_HarVsGen_Coding_Lo': \"'L1'!E65\"} != {'L1_HarVsGen_Coding_Lo': 'L1!E65'}\n  {'L1_PretrainFLOP_Astra': \"'L1'!D36\"} != {'L1_PretrainFLOP_Astra': 'L1!D36'}\n  {'L1_RevGW_Sol_VR200': \"'L1'!D27\"} != {'L1_RevGW_Sol_VR200': 'L1!D27'}\n  {'L1_RevGWFleet_OAI2025_Hi': \"'L1'!F35\"} != {'L1_RevGWFleet_OAI2025_Hi': 'L1!F35'}"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_alloc_expected_values_and_slo_text",
+   "kind": "failure",
+   "message": "AssertionError: assert 0.0001190668469688988 < 5e-06\n +  where 0.0001190668469688988 = abs((0.0448959331530311 - 0.045015))\n +    where 0.0448959331530311 = get_name('AL_RefGWyr')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:301: in test_alloc_expected_values_and_slo_text\n    assert abs(base.get_name(\"AL_RefGWyr\") - 0.045015) < 5e-6   # v12.0 H2：0.0432504 → 0.0450046（GB200 CAL_BatchEtaD 3.04 → 2.36）； v11.0 G2：0.0562533 → 0.0432504（GB200 CAL_BatchEtaD 1 → 3.04，研發 GB200 每 GW token 增加）；                          # v5.18：0.01808→0.018153；v5.23 X10：→0.0210207（＝v5.22 暫存複本 L、M、N 欄第 53 列 ×0.75 的 LibreOffice 重算值）  # v15.2 B2／B3 預期變動：期望值依重算結果更新\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert 0.0001190668469688988 < 5e-06\nE    +  where 0.0001190668469688988 = abs((0.0448959331530311 - 0.045015))\nE    +    where 0.0448959331530311 = get_name('AL_RefGWyr')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_alloc_mix_2025_expected_values",
+   "kind": "failure",
+   "message": "AssertionError: ('AL_ServeGW', 0.146699149086855)\nassert 0.003723850913145005 < 5e-06\n +  where 0.003723850913145005 = abs((0.146699149086855 - 0.150423))\n +    where 0.146699149086855 = get_name('AL_ServeGW')\n +      where get_name = <conftest.View object at 0x70c53828e190>.get_name\ntests/parity/test_parity.py:342: in test_alloc_mix_2025_expected_values\n    assert abs(eng.get_name(n) - want) < 5e-6, (n, eng.get_name(n))\nE   AssertionError: ('AL_ServeGW', 0.146699149086855)\nE   assert 0.003723850913145005 < 5e-06\nE    +  where 0.003723850913145005 = abs((0.146699149086855 - 0.150423))\nE    +    where 0.146699149086855 = get_name('AL_ServeGW')\nE    +      where get_name = <conftest.View object at 0x70c53828e190>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_l1_v516_expected_values_and_h3",
+   "kind": "failure",
+   "message": "AssertionError: ('L1_Ans5_FullMargin', 0.919450512207774, 0.918969)\nassert 0.00048151220777392645 < 5e-06\n +  where 0.00048151220777392645 = abs((0.919450512207774 - 0.918969))\ntests/parity/test_parity.py:354: in test_l1_v516_expected_values_and_h3\n    assert abs(got - v) < 5e-6, (n + suffix, got, v)\nE   AssertionError: ('L1_Ans5_FullMargin', 0.919450512207774, 0.918969)\nE   assert 0.00048151220777392645 < 5e-06\nE    +  where 0.00048151220777392645 = abs((0.919450512207774 - 0.918969))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_prod_derate_expected_values",
+   "kind": "failure",
+   "message": "AssertionError: ('IF_FullCost_Astra_Prod', 1, 1.1625308157432017, 1.159402)\nassert 0.003128815743201674 < 0.0005\n +  where 0.003128815743201674 = abs((1.1625308157432017 - 1.159402))\n +    where 1.1625308157432017 = _pct(<conftest.View object at 0x70c54844a2d0>, 'IF_FullCost_Astra_Prod', 1)\ntests/parity/test_parity.py:377: in test_prod_derate_expected_values\n    assert abs(_pct(base, n, k) - v) < 5e-4, (n, k, _pct(base, n, k), v)\nE   AssertionError: ('IF_FullCost_Astra_Prod', 1, 1.1625308157432017, 1.159402)\nE   assert 0.003128815743201674 < 0.0005\nE    +  where 0.003128815743201674 = abs((1.1625308157432017 - 1.159402))\nE    +    where 1.1625308157432017 = _pct(<conftest.View object at 0x70c54844a2d0>, 'IF_FullCost_Astra_Prod', 1)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_batch_etad_expected_values",
+   "kind": "failure",
+   "message": "AssertionError: ('IF_TrainCost_Luna', 10, 0.14372264642991905, 0.1434)\nassert 0.00032264642991905457 < 6e-05\n +  where 0.00032264642991905457 = abs((((2.54914504530855 / 2.22881399897571) - 1) - 0.1434))\ntests/parity/test_parity.py:527: in test_batch_etad_expected_values\n    assert abs(a[k - 1] / b[k - 1] - 1 - v) < 6e-5, (n, k, a[k - 1] / b[k - 1] - 1, v)\nE   AssertionError: ('IF_TrainCost_Luna', 10, 0.14372264642991905, 0.1434)\nE   assert 0.00032264642991905457 < 6e-05\nE    +  where 0.00032264642991905457 = abs((((2.54914504530855 / 2.22881399897571) - 1) - 0.1434))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v529_contract_waterfall_expected_values",
+   "kind": "failure",
+   "message": "AssertionError: ('L1_FleetBreakeven', 0.128554642189859, 0.130432)\nassert 0.001877357810141006 < 5e-06\n +  where 0.001877357810141006 = abs((0.128554642189859 - 0.130432))\ntests/parity/test_parity.py:570: in test_v529_contract_waterfall_expected_values\n    assert abs(got - v) < 5e-6, (n, got, v)\nE   AssertionError: ('L1_FleetBreakeven', 0.128554642189859, 0.130432)\nE   assert 0.001877357810141006 < 5e-06\nE    +  where 0.001877357810141006 = abs((0.128554642189859 - 0.130432))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v533_fleet_basis",
+   "kind": "failure",
+   "message": "AssertionError: ('AL_ServeGW', 0.146699149086855, 0.150423)\nassert 0.003723850913145005 < 5e-06\n +  where 0.003723850913145005 = abs((0.146699149086855 - 0.150423))\n +    where 0.146699149086855 = get_name('AL_ServeGW')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:721: in test_v533_fleet_basis\n    assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)\nE   AssertionError: ('AL_ServeGW', 0.146699149086855, 0.150423)\nE   assert 0.003723850913145005 < 5e-06\nE    +  where 0.003723850913145005 = abs((0.146699149086855 - 0.150423))\nE    +    where 0.146699149086855 = get_name('AL_ServeGW')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v534_m_split",
+   "kind": "failure",
+   "message": "AssertionError: assert (1.1111111009043384e-07 < 5e-06 and 3.257791099109397e-07 < 5e-06 and 0.01524963992388606 < 5e-06)\n +  where 1.1111111009043384e-07 = abs((1.60711111111111 - 1.607111))\n +    where 1.60711111111111 = get_name('IF_PriceRef_Sol')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\n +  and   3.257791099109397e-07 = abs((2.51354667422089 - 2.513547))\n +    where 2.51354667422089 = get_name('L1_MImplied')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\n +  and   0.01524963992388606 = abs((0.600840360076114 - 0.61609))\n +    where 0.600840360076114 = get_name('L1_MFleet')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:757: in test_v534_m_split\n    assert abs(eng.get_name(\"IF_PriceRef_Sol\") - 1.607111) < 5e-6 and abs(eng.get_name(\"L1_MImplied\") - 2.513547) < 5e-6 and abs(eng.get_name(\"L1_MFleet\") - 0.61609) < 5e-6      # v8.0 L1：0.471739 → 0.550473（2025 年度單價）；v6.3 K1：0.449740 → 0.471739；v6.2：0.536920 → 0.449740（Hopper Astra TTFT 排除、Alloc 重新正規化）  # v15.2 B2／B3 預期變動：期望值依重算結果更新\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert (1.1111111009043384e-07 < 5e-06 and 3.257791099109397e-07 < 5e-06 and 0.01524963992388606 < 5e-06)\nE    +  where 1.1111111009043384e-07 = abs((1.60711111111111 - 1.607111))\nE    +    where 1.60711111111111 = get_name('IF_PriceRef_Sol')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\nE    +  and   3.257791099109397e-07 = abs((2.51354667422089 - 2.513547))\nE    +    where 2.51354667422089 = get_name('L1_MImplied')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v535_l_split",
+   "kind": "failure",
+   "message": "AssertionError: ('L1_LTotal_Lo', 0.4027623854228, 0.396968)\nassert 0.00579438542280003 < 5e-06\n +  where 0.00579438542280003 = abs((0.4027623854228 - 0.396968))\n +    where 0.4027623854228 = get_name('L1_LTotal_Lo')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:826: in test_v535_l_split\n    assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)\nE   AssertionError: ('L1_LTotal_Lo', 0.4027623854228, 0.396968)\nE   assert 0.00579438542280003 < 5e-06\nE    +  where 0.00579438542280003 = abs((0.4027623854228 - 0.396968))\nE    +    where 0.4027623854228 = get_name('L1_LTotal_Lo')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v536_spend_route_kappa_price",
+   "kind": "failure",
+   "message": "AssertionError: ('L1_ScaleServe', 6.12202713246285, 5.97049)\nassert 0.15153713246284983 <= (0.001 * 5.97049)\n +  where 0.15153713246284983 = abs((6.12202713246285 - 5.97049))\n +    where 6.12202713246285 = get_name('L1_ScaleServe')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\n +  and   5.97049 = abs(5.97049)\ntests/parity/test_parity.py:872: in test_v536_spend_route_kappa_price\n    assert abs(eng.get_name(n) - v) <= 1e-3 * abs(v), (n, eng.get_name(n), v)\nE   AssertionError: ('L1_ScaleServe', 6.12202713246285, 5.97049)\nE   assert 0.15153713246284983 <= (0.001 * 5.97049)\nE    +  where 0.15153713246284983 = abs((6.12202713246285 - 5.97049))\nE    +    where 6.12202713246285 = get_name('L1_ScaleServe')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\nE    +  and   5.97049 = abs(5.97049)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v600_audit_fix1_expected_values",
+   "kind": "failure",
+   "message": "AssertionError: assert (0 == 0 and 133 == 134)\n +  where 0 = get_name('GOV_Errors')\n +    where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\n +  and   133 = get_name('GOV_Warnings')\n +    where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:891: in test_v600_audit_fix1_expected_values\n    assert eng.get_name(\"GOV_Errors\") == 0 and eng.get_name(\"GOV_Warnings\") == 134 and eng.get_name(\"GOV_Info\") == 182      # v15.2：舊 SLO 視圖 Info 181 → 182（I3 +1、I1 +1、K5 −1：B2／B3 使 L1 外部對照差距旗標列數與 Gov_Map 區間內外狀態改變）；  # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：同上，Warnings 282 → 283（RG2）； v13.0 K3：Info 181 → 182（同上）； v12.0：Info 179 → 181（同上）； v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert (0 == 0 and 133 == 134)\nE    +  where 0 = get_name('GOV_Errors')\nE    +    where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\nE    +  and   133 = get_name('GOV_Warnings')\nE    +    where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v602_model_scale_ttft_alloc",
+   "kind": "failure",
+   "message": "AssertionError: ('AL_ServeGW', 0.146699149086855, 0.150423)\nassert 0.003723850913145005 < 5e-06\n +  where 0.003723850913145005 = abs((0.146699149086855 - 0.150423))\n +    where 0.146699149086855 = get_name('AL_ServeGW')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:981: in test_v602_model_scale_ttft_alloc\n    assert abs(eng.get_name(n) - v) < 5e-6, (n, eng.get_name(n), v)\nE   AssertionError: ('AL_ServeGW', 0.146699149086855, 0.150423)\nE   assert 0.003723850913145005 < 5e-06\nE    +  where 0.003723850913145005 = abs((0.146699149086855 - 0.150423))\nE    +    where 0.146699149086855 = get_name('AL_ServeGW')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v603_fleet_price_k2_k3",
+   "kind": "failure",
+   "message": "AssertionError: assert 0.020730648126933038 < 5e-07\n +  where 0.020730648126933038 = abs((0.816758351873067 - 0.837489))\n +    where 0.816758351873067 = get_name('L1_PriceRealFleet')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:1001: in test_v603_fleet_price_k2_k3\n    assert abs(eng.get_name(\"L1_PriceRealFleet\") - 0.837489) < 5e-7\nE   AssertionError: assert 0.020730648126933038 < 5e-07\nE    +  where 0.020730648126933038 = abs((0.816758351873067 - 0.837489))\nE    +    where 0.816758351873067 = get_name('L1_PriceRealFleet')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v700_leftovers",
+   "kind": "failure",
+   "message": "AssertionError: assert (2.220446049250313e-16 < 1e-12 and 5.428486129099852e-05 < 5e-06)\n +  where 2.220446049250313e-16 = abs((0.772706715138709 - (44.0903729965229 / 57.0596477715458)))\n +    where 0.772706715138709 = get_name('L1_FleetProdRatio')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\n +  and   5.428486129099852e-05 = abs((0.772706715138709 - 0.772761))\n +    where 0.772706715138709 = get_name('L1_FleetProdRatio')\n +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\ntests/parity/test_parity.py:1062: in test_v700_leftovers\n    assert abs(eng.get_name(\"L1_FleetProdRatio\") - rev_p / rev_u) < 1e-12 and abs(eng.get_name(\"L1_FleetProdRatio\") - 0.772761) < 5e-6\nE   AssertionError: assert (2.220446049250313e-16 < 1e-12 and 5.428486129099852e-05 < 5e-06)\nE    +  where 2.220446049250313e-16 = abs((0.772706715138709 - (44.0903729965229 / 57.0596477715458)))\nE    +    where 0.772706715138709 = get_name('L1_FleetProdRatio')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name\nE    +  and   5.428486129099852e-05 = abs((0.772706715138709 - 0.772761))\nE    +    where 0.772706715138709 = get_name('L1_FleetProdRatio')\nE    +      where get_name = <conftest.View object at 0x70c54844a2d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v800_audit_fix2_3",
+   "kind": "failure",
+   "message": "AssertionError: assert (0.01524963992388606 < 5e-06)\n +  where 0.01524963992388606 = abs((0.600840360076114 - 0.61609))\n +    where 0.600840360076114 = get_name('L1_MFleet')\ntests/parity/test_parity.py:1100: in test_v800_audit_fix2_3\n    assert abs(n(\"L1_MFleet\") - 0.61609) < 5e-6 and abs(n(\"L1_MFleet_Px2026\") - 0.427143) < 5e-6\nE   AssertionError: assert (0.01524963992388606 < 5e-06)\nE    +  where 0.01524963992388606 = abs((0.600840360076114 - 0.61609))\nE    +    where 0.600840360076114 = get_name('L1_MFleet')"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1020_eta_calibration",
+   "kind": "failure",
+   "message": "AssertionError: assert (0.012428772610156014 < 5e-06)\n +  where 0.012428772610156014 = abs((0.447574227389844 - 0.460003))\n +    where 0.447574227389844 = get_name('L1_MFleet')\ntests/parity/test_parity.py:1201: in test_v1020_eta_calibration\n    assert abs(n(\"L1_MFleet\") - 0.460003) < 5e-6 and abs(old.get_name(\"L1_MFleet\") - 0.61609) < 5e-6\nE   AssertionError: assert (0.012428772610156014 < 5e-06)\nE    +  where 0.012428772610156014 = abs((0.447574227389844 - 0.460003))\nE    +    where 0.447574227389844 = get_name('L1_MFleet')"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1200_gb200_geomean_and_v20_dependence",
+   "kind": "failure",
+   "message": "AssertionError: ('IF_AllocRDGW', 0.202611367920628, 0.202981)\nassert 0.00036963207937198983 < 5e-06\n +  where 0.00036963207937198983 = abs((0.202611367920628 - 0.202981))\n +    where 0.202611367920628 = get_name('IF_AllocRDGW')\ntests/parity/test_parity.py:1285: in test_v1200_gb200_geomean_and_v20_dependence\n    assert abs(n(name) - want) < 5e-6, (name, n(name), want)\nE   AssertionError: ('IF_AllocRDGW', 0.202611367920628, 0.202981)\nE   assert 0.00036963207937198983 < 5e-06\nE    +  where 0.00036963207937198983 = abs((0.202611367920628 - 0.202981))\nE    +    where 0.202611367920628 = get_name('IF_AllocRDGW')"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1200_service_side_unchanged",
+   "kind": "failure",
+   "message": "AssertionError: assert (0.006517492468302993 < 1e-12)\n +  where 0.006517492468302993 = abs((0.236205993507098 - 0.242723485975401))\n +    where 0.236205993507098 = get_name('L1_MFleet_Lo')\n +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_parity.py:1297: in test_v1200_service_side_unchanged\n    assert abs(v.get_name(\"L1_MFleet_Lo\") - 0.242723485975401) < 1e-12 and abs(v.get_name(\"L1_MFleet_Lo\") - v.get(\"Cap_In\", \"D121\")) < 1e-15      # R1 的新值：＝同欄下限\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert (0.006517492468302993 < 1e-12)\nE    +  where 0.006517492468302993 = abs((0.236205993507098 - 0.242723485975401))\nE    +    where 0.236205993507098 = get_name('L1_MFleet_Lo')\nE    +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1200_range_table",
+   "kind": "failure",
+   "message": "AssertionError: ('batch_gb200_lo', 0.211628, 0.211241538967691, 0.190703, 0.190421309098234)\nassert (0.0003864610323090212 < 5e-06)\n +  where 0.0003864610323090212 = abs((0.211628 - 0.211241538967691))\n +    where 0.211241538967691 = get_name('IF_AllocRDGW')\n +      where get_name = <conftest.View object at 0x70c548c0ecd0>.get_name\ntests/parity/test_parity.py:1329: in test_v1200_range_table\n    assert abs(rd - sc.get_name(\"IF_AllocRDGW\")) < 5e-6 and abs(q1 - sc.get_name(\"IF_AllocQ1\")) < 5e-6, (sid, rd, sc.get_name(\"IF_AllocRDGW\"), q1, sc.get_name(\"IF_AllocQ1\"))\nE   AssertionError: ('batch_gb200_lo', 0.211628, 0.211241538967691, 0.190703, 0.190421309098234)\nE   assert (0.0003864610323090212 < 5e-06)\nE    +  where 0.0003864610323090212 = abs((0.211628 - 0.211241538967691))\nE    +    where 0.211241538967691 = get_name('IF_AllocRDGW')\nE    +      where get_name = <conftest.View object at 0x70c548c0ecd0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1300_ranges_equal_scenarios",
+   "kind": "failure",
+   "message": "AssertionError: assert (14 == 12)\n +  where 14 = len({'CHK_VerifyFail', 'CHK_VerifyPass', 'L1_Ans5_FullMargin', 'L1_Ans5_FullMargin_Hi', 'L1_Ans5_FullMargin_Lo', 'L1_Ans6_GPUh', ...})\ntests/parity/test_parity.py:1413: in test_v1300_ranges_equal_scenarios\n    assert len(moved_vr) == 12 and len(have) == 71 and sum(len(_flat(base.get_name(n))) for n in have) == 659      # v15.0 T3-2：+12 個只經 VR200 欄的名稱、+12 格\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert (14 == 12)\nE    +  where 14 = len({'CHK_VerifyFail', 'CHK_VerifyPass', 'L1_Ans5_FullMargin', 'L1_Ans5_FullMargin_Hi', 'L1_Ans5_FullMargin_Lo', 'L1_Ans6_GPUh', ...})"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1300_range_file_matches_workbook",
+   "kind": "failure",
+   "message": "AssertionError: assert 132 == 133\n +  where 132 = get_name('GOV_Warnings')\n +    where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_parity.py:1461: in test_v1300_range_file_matches_workbook\n    assert base.get_name(\"GOV_Warnings\") == 133      # RG1／RG2 在基準為 0，不改變 GOV_Warnings      # v13.1：282 → 280（W1 −2）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert 132 == 133\nE    +  where 132 = get_name('GOV_Warnings')\nE    +    where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1300_stale_flag_fires",
+   "kind": "failure",
+   "message": "AssertionError: assert ('\\u4e00\\u81f4' == '\\u4e00\\u81f4'\n  \n    一致 and 132 == 133)\n +  where 132 = get_name('GOV_Warnings')\n +    where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_parity.py:1475: in test_v1300_stale_flag_fires\n    assert base.get_name(\"RNG_StaleFlag\") == \"一致\" and base.get_name(\"GOV_Warnings\") == 133      # v13.1：282 → 280      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert ('\\u4e00\\u81f4' == '\\u4e00\\u81f4'\nE     \nE       一致 and 132 == 133)\nE    +  where 132 = get_name('GOV_Warnings')\nE    +    where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_parity::test_v1300_existing_contract_names_unchanged",
+   "kind": "failure",
+   "message": "AssertionError: IF_CostAttVR_Luna\nassert (5 == 5 and False)\n +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\n +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\n +  and   False = all(<generator object test_v1300_existing_contract_names_unchanged.<locals>.<genexpr> at 0x70c50f9ebb50>)\ntests/parity/test_parity.py:1502: in test_v1300_existing_contract_names_unchanged\n    assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n\nE   AssertionError: IF_CostAttVR_Luna\nE   assert (5 == 5 and False)\nE    +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\nE    +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\nE    +  and   False = all(<generator object test_v1300_existing_contract_names_unchanged.<locals>.<genexpr> at 0x70c50f9ebb50>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1310::test_v1310_fingerprint_file_matches_workbook",
+   "kind": "failure",
+   "message": "AssertionError: assert 833 == 629\n +  where 833 = len([['Inputs', 'E5', 1], ['Inputs', 'E6', 2], ['Inputs', 'E8', 0.08], ['Inputs', 'D9', 1.1], ['Inputs', 'E9', 1.2], ['Inputs', 'F9', 1.3], ...])\ntests/parity/test_v1310.py:66: in test_v1310_fingerprint_file_matches_workbook\n    assert len(fp[\"leaves\"]) == 629      # v15.3：604 → 629（Alloc P 節新增 25 列：D156 變公式後區間情境多 25 格上游常數）； v15.0 T3-2：591 → 604（12 個 VR200 區間名稱新增 13 個上游常數格）； v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert 833 == 629\nE    +  where 833 = len([['Inputs', 'E5', 1], ['Inputs', 'E6', 2], ['Inputs', 'E8', 0.08], ['Inputs', 'D9', 1.1], ['Inputs', 'E9', 1.2], ['Inputs', 'F9', 1.3], ...])"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1310::test_v1310_existing_contract_names_unchanged",
+   "kind": "failure",
+   "message": "AssertionError: IF_CostAttVR_Luna\nassert (5 == 5 and False)\n +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\n +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\n +  and   False = all(<generator object test_v1310_existing_contract_names_unchanged.<locals>.<genexpr> at 0x70c50e56ea70>)\ntests/parity/test_v1310.py:101: in test_v1310_existing_contract_names_unchanged\n    assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n\nE   AssertionError: IF_CostAttVR_Luna\nE   assert (5 == 5 and False)\nE    +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\nE    +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\nE    +  and   False = all(<generator object test_v1310_existing_contract_names_unchanged.<locals>.<genexpr> at 0x70c50e56ea70>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1400::test_v1400_existing_contract_names_unchanged",
+   "kind": "failure",
+   "message": "AssertionError: IF_CostAttVR_Luna\nassert (5 == 5 and False)\n +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\n +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\n +  and   False = all(<generator object test_v1400_existing_contract_names_unchanged.<locals>.<genexpr> at 0x70c512c33d30>)\ntests/parity/test_v1400.py:125: in test_v1400_existing_contract_names_unchanged\n    assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n\nE   AssertionError: IF_CostAttVR_Luna\nE   assert (5 == 5 and False)\nE    +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\nE    +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\nE    +  and   False = all(<generator object test_v1400_existing_contract_names_unchanged.<locals>.<genexpr> at 0x70c512c33d30>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1400::test_v1400_new_checks_pass_on_base",
+   "kind": "failure",
+   "message": "AssertionError: assert 0.006006333326283003 < 1e-09\n +  where 0.006006333326283003 = abs((0.217680639842559 - 0.223686973168842))\n +    where 0.217680639842559 = get('Checks', 'E173')\n +      where get = <conftest.View object at 0x70c54c8ff1d0>.get\ntests/parity/test_v1400.py:163: in test_v1400_new_checks_pass_on_base\n    assert abs(v.get(\"Checks\", f\"E{_chk(v, 'V25')}\") - 0.223686973168842) < 1e-9\nE   AssertionError: assert 0.006006333326283003 < 1e-09\nE    +  where 0.006006333326283003 = abs((0.217680639842559 - 0.223686973168842))\nE    +    where 0.217680639842559 = get('Checks', 'E173')\nE    +      where get = <conftest.View object at 0x70c54c8ff1d0>.get"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1400::test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor",
+   "kind": "failure",
+   "message": "AssertionError: C\nassert 0.009106633311876 < 1e-12\n +  where 0.009106633311876 = abs((0.330041251201698 - 0.339147884513574))\n +    where 0.330041251201698 = get('Cap_In', 'C121')\n +      where get = <conftest.View object at 0x70c54c8ff1d0>.get\ntests/parity/test_v1400.py:231: in test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor\n    assert abs(v.get(\"Cap_In\", f\"{c}121\") - w) < 1e-12, c\nE   AssertionError: C\nE   assert 0.009106633311876 < 1e-12\nE    +  where 0.009106633311876 = abs((0.330041251201698 - 0.339147884513574))\nE    +    where 0.330041251201698 = get('Cap_In', 'C121')\nE    +      where get = <conftest.View object at 0x70c54c8ff1d0>.get"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1410::test_v1410_r1_base_values",
+   "kind": "failure",
+   "message": "AssertionError: assert (0.012428878720099013 < 1e-12)\n +  where 0.012428878720099013 = abs((0.447574227389844 - 0.460003106109943))\n +    where 0.447574227389844 = get_name('L1_MFleet')\n +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_v1410.py:78: in test_v1410_r1_base_values\n    assert abs(v.get_name(\"L1_MFleet\") - 0.460003106109943) < 1e-12 and abs(v.get_name(\"L1_MFleet_Hi\") - 1.33130310709466) < 1e-12\nE   AssertionError: assert (0.012428878720099013 < 1e-12)\nE    +  where 0.012428878720099013 = abs((0.447574227389844 - 0.460003106109943))\nE    +    where 0.447574227389844 = get_name('L1_MFleet')\nE    +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1410::test_v1410_r1_floor_binds_low_end_column",
+   "kind": "failure",
+   "message": "AssertionError: assert (0.0 <= 1e-12 and 0.006517492468302993 < 1e-12)\n +  where 0.0 = abs((0.236205993507098 - 0.236205993507098))\n +    where 0.236205993507098 = get_name('L1_MFleet_Lo')\n +      where get_name = <conftest.View object at 0x70c54db707d0>.get_name\n +  and   0.006517492468302993 = abs((0.236205993507098 - 0.242723485975401))\ntests/parity/test_v1410.py:96: in test_v1410_r1_floor_binds_low_end_column\n    assert abs(v.get_name(\"L1_MFleet_Lo\") - floor) <= 1e-12 and abs(floor - 0.242723485975401) < 1e-12      # 同欄下限不受該利用率影響\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert (0.0 <= 1e-12 and 0.006517492468302993 < 1e-12)\nE    +  where 0.0 = abs((0.236205993507098 - 0.236205993507098))\nE    +    where 0.236205993507098 = get_name('L1_MFleet_Lo')\nE    +      where get_name = <conftest.View object at 0x70c54db707d0>.get_name\nE    +  and   0.006517492468302993 = abs((0.236205993507098 - 0.242723485975401))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1410::test_v1410_r1_floor_applies_to_base_column",
+   "kind": "failure",
+   "message": "AssertionError: assert (0.12233695548655757 < 0.330041251201698 and 0.0 <= 1e-12 and 0.009106633311876 < 1e-12)\n +  where 0.0 = abs((0.330041251201698 - 0.330041251201698))\n +    where 0.330041251201698 = get_name('L1_MFleet')\n +      where get_name = <conftest.View object at 0x70c5412ff590>.get_name\n +  and   0.009106633311876 = abs((0.330041251201698 - 0.339147884513574))\ntests/parity/test_v1410.py:114: in test_v1410_r1_floor_applies_to_base_column\n    assert raw < floor and abs(v.get_name(\"L1_MFleet\") - floor) <= 1e-12 and abs(floor - 0.339147884513574) < 1e-12\nE   AssertionError: assert (0.12233695548655757 < 0.330041251201698 and 0.0 <= 1e-12 and 0.009106633311876 < 1e-12)\nE    +  where 0.0 = abs((0.330041251201698 - 0.330041251201698))\nE    +    where 0.330041251201698 = get_name('L1_MFleet')\nE    +      where get_name = <conftest.View object at 0x70c5412ff590>.get_name\nE    +  and   0.009106633311876 = abs((0.330041251201698 - 0.339147884513574))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1410::test_v1410_names_off_the_chain_unchanged",
+   "kind": "failure",
+   "message": "AssertionError: IF_CostAttVR_Luna\nassert (5 == 5 and False)\n +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\n +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\n +  and   False = all(<generator object test_v1410_names_off_the_chain_unchanged.<locals>.<genexpr> at 0x70c519aafb50>)\ntests/parity/test_v1410.py:134: in test_v1410_names_off_the_chain_unchanged\n    assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n\nE   AssertionError: IF_CostAttVR_Luna\nE   assert (5 == 5 and False)\nE    +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\nE    +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\nE    +  and   False = all(<generator object test_v1410_names_off_the_chain_unchanged.<locals>.<genexpr> at 0x70c519aafb50>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1420::test_v1420_s1_base_values",
+   "kind": "failure",
+   "message": "AssertionError: ([0.596878042930891, 0.315000646831843, 1.72743527718822], [0.613453002685703, 0.323692273630786, 1.77540516071392])\nassert False\n +  where False = all(<generator object test_v1420_s1_base_values.<locals>.<genexpr> at 0x70c51011a9b0>)\ntests/parity/test_v1420.py:88: in test_v1420_s1_base_values\n    assert all(abs(a - b) <= 1e-12 * max(1, abs(b)) for a, b in zip(got, want)), (got, want)\nE   AssertionError: ([0.596878042930891, 0.315000646831843, 1.72743527718822], [0.613453002685703, 0.323692273630786, 1.77540516071392])\nE   assert False\nE    +  where False = all(<generator object test_v1420_s1_base_values.<locals>.<genexpr> at 0x70c51011a9b0>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1420::test_v1420_s1_floor_binds_low_end_column",
+   "kind": "failure",
+   "message": "assert (0.00869162679894303 < 1e-12)\n +  where 0.00869162679894303 = abs((0.315000646831843 - 0.323692273630786))\ntests/parity/test_v1420.py:110: in test_v1420_s1_floor_binds_low_end_column\n    assert abs(v.get_name(\"L1_MFleet_P25Lo\")[1] - P25_LO_NEW[1]) < 1e-12 and abs(v.get_name(\"L1_MFleet_P25Hi\")[1] - P25_HI_NEW[1]) < 1e-12      # 同欄下限不受該利用率影響\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   assert (0.00869162679894303 < 1e-12)\nE    +  where 0.00869162679894303 = abs((0.315000646831843 - 0.323692273630786))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1420::test_v1420_names_off_the_chain_unchanged",
+   "kind": "failure",
+   "message": "AssertionError: IF_CostAttVR_Luna\nassert (5 == 5 and False)\n +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\n +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\n +  and   False = all(<generator object test_v1420_names_off_the_chain_unchanged.<locals>.<genexpr> at 0x70c51d8f2980>)\ntests/parity/test_v1420.py:162: in test_v1420_names_off_the_chain_unchanged\n    assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n\nE   AssertionError: IF_CostAttVR_Luna\nE   assert (5 == 5 and False)\nE    +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\nE    +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\nE    +  and   False = all(<generator object test_v1420_names_off_the_chain_unchanged.<locals>.<genexpr> at 0x70c51d8f2980>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1500::test_v1500_o13_names_and_base_inside",
+   "kind": "failure",
+   "message": "AssertionError: ('IF_AllocQ1', 0.184073753247684)\nassert 0.0002732467523160198 < 5e-06\n +  where 0.0002732467523160198 = abs((0.184073753247684 - 0.184347))\ntests/parity/test_v1500.py:69: in test_v1500_o13_names_and_base_inside\n    assert abs(base - want[n]) < 5e-6, (n, base)      # 基準不變（同 test_parity）\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: ('IF_AllocQ1', 0.184073753247684)\nE   assert 0.0002732467523160198 < 5e-06\nE    +  where 0.0002732467523160198 = abs((0.184073753247684 - 0.184347))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1500::test_v1500_t32_twelve_vr200_names_have_ranges",
+   "kind": "failure",
+   "message": "AssertionError: ['CHK_VerifyFail', 'CHK_VerifyPass', 'L1_Ans5_FullMargin', 'L1_Ans5_FullMargin_Hi', 'L1_Ans5_FullMargin_Lo', 'L1_Ans6_GPUh', ...]\nassert 14 == 12\n +  where 14 = len(['CHK_VerifyFail', 'CHK_VerifyPass', 'L1_Ans5_FullMargin', 'L1_Ans5_FullMargin_Hi', 'L1_Ans5_FullMargin_Lo', 'L1_Ans6_GPUh', ...])\ntests/parity/test_v1500.py:126: in test_v1500_t32_twelve_vr200_names_have_ranges\n    assert len(VR_NAMES) == 12, VR_NAMES\nE   AssertionError: ['CHK_VerifyFail', 'CHK_VerifyPass', 'L1_Ans5_FullMargin', 'L1_Ans5_FullMargin_Hi', 'L1_Ans5_FullMargin_Lo', 'L1_Ans6_GPUh', ...]\nE   assert 14 == 12\nE    +  where 14 = len(['CHK_VerifyFail', 'CHK_VerifyPass', 'L1_Ans5_FullMargin', 'L1_Ans5_FullMargin_Hi', 'L1_Ans5_FullMargin_Lo', 'L1_Ans6_GPUh', ...])"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1500::test_v1500_other_contract_names_unchanged_from_v142",
+   "kind": "failure",
+   "message": "AssertionError: IF_CostAttVR_Luna\nassert (5 == 5 and False)\n +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\n +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\n +  and   False = all(<generator object test_v1500_other_contract_names_unchanged_from_v142.<locals>.<genexpr> at 0x70c51a1bc400>)\ntests/parity/test_v1500.py:273: in test_v1500_other_contract_names_unchanged_from_v142\n    assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n\nE   AssertionError: IF_CostAttVR_Luna\nE   assert (5 == 5 and False)\nE    +  where 5 = len([8.55425798680921e-05, 0.000555064372931353, 0.000408718907241998, 0.00163487562896799, 0.00611395715580883])\nE    +  and   5 = len([7.25946099065536e-05, 0.000470467960383014, 0.000346989347620377, 0.00138795739048151, 0.00520806545869547])\nE    +  and   False = all(<generator object test_v1500_other_contract_names_unchanged_from_v142.<locals>.<genexpr> at 0x70c51a1bc400>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1510::test_v1510_every_name_value_equals_v150",
+   "kind": "failure",
+   "message": "AssertionError: DRV_FlopDec\nassert (15 == 15 and False)\n +  where 15 = len([38.728198496256, 133.37673125888, 531.1276032, 38.728198496256, 133.37673125888, 531.1276032, ...])\n +  and   15 = len([32.81832349696, 133.37673125888, 531.1276032, 32.81832349696, 133.37673125888, 531.1276032, ...])\n +  and   False = all(<generator object test_v1510_every_name_value_equals_v150.<locals>.<genexpr> at 0x70c519f63a60>)\ntests/parity/test_v1510.py:65: in test_v1510_every_name_value_equals_v150\n    assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n\nE   AssertionError: DRV_FlopDec\nE   assert (15 == 15 and False)\nE    +  where 15 = len([38.728198496256, 133.37673125888, 531.1276032, 38.728198496256, 133.37673125888, 531.1276032, ...])\nE    +  and   15 = len([32.81832349696, 133.37673125888, 531.1276032, 32.81832349696, 133.37673125888, 531.1276032, ...])\nE    +  and   False = all(<generator object test_v1510_every_name_value_equals_v150.<locals>.<genexpr> at 0x70c519f63a60>)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1510::test_v1510_alloc_row398_original_restored_verbatim",
+   "kind": "failure",
+   "message": "AssertionError: assert ('（a）只經 VR200 欄（CAL_BatchEtaD 第 4 格＝0.75；Gov_Map H156 區間 0.70–1.0）12 個，GB200／Hopper 倍數改變時不動，VR200 倍數改變時會動；本版區間只涵蓋 GB200／Hopper 倍數，未涵蓋 VR200 倍數：L1_Ans5_FullMargin、L1_Ans5_FullMargin_Hi、L1_Ans5_FullMargin_Lo、L1_Ans6_GPUh、L1_Ans6_GPUh_Hi、L1_Ans6_GPUh_Lo、L1_RLshare_Astra_VR200、L1_RLshare_Astra_VR200_Hi、L1_RLshare_Astra_VR200_Lo、L1_RLshare_Sol_VR200、L1_RLshare_Sol_VR200_Hi、L1_RLshare_Sol_VR200_Lo' in 'L1_ScaleRD_Hi')\ntests/parity/test_v1510.py:95: in test_v1510_alloc_row398_original_restored_verbatim\n    assert old in t and \"v15.0 更正（修訂九，T3-2）\" in t and \"v15.1 補回原文（修訂九\" in t\nE   AssertionError: assert ('（a）只經 VR200 欄（CAL_BatchEtaD 第 4 格＝0.75；Gov_Map H156 區間 0.70–1.0）12 個，GB200／Hopper 倍數改變時不動，VR200 倍數改變時會動；本版區間只涵蓋 GB200／Hopper 倍數，未涵蓋 VR200 倍數：L1_Ans5_FullMargin、L1_Ans5_FullMargin_Hi、L1_Ans5_FullMargin_Lo、L1_Ans6_GPUh、L1_Ans6_GPUh_Hi、L1_Ans6_GPUh_Lo、L1_RLshare_Astra_VR200、L1_RLshare_Astra_VR200_Hi、L1_RLshare_Astra_VR200_Lo、L1_RLshare_Sol_VR200、L1_RLshare_Sol_VR200_Hi、L1_RLshare_Sol_VR200_Lo' in 'L1_ScaleRD_Hi')"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1510::test_v1510_changed_cells_only_expected",
+   "kind": "failure",
+   "message": "KeyError: 'Alloc'\ntests/parity/test_v1510.py:172: in test_v1510_changed_cells_only_expected\n    assert sorted(diffs[\"Alloc\"]) == [\"A398\"], diffs[\"Alloc\"]      # v15.2：C177（版本字串）屬 v15.1→v15.2 差異，被遮掉\n                  ^^^^^^^^^^^^^^\nE   KeyError: 'Alloc'"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1520::test_v1520_m_values_and_decomposition",
+   "kind": "failure",
+   "message": "AssertionError: assert 0.012428878720099013 < 1e-09\n +  where 0.012428878720099013 = abs((0.447574227389844 - 0.460003106109943))\n +    where 0.447574227389844 = get_name('L1_MFleet')\n +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_v1520.py:68: in test_v1520_m_values_and_decomposition\n    assert abs(v.get_name(\"L1_MFleet\") - 0.460003106109943) < 1e-9\nE   AssertionError: assert 0.012428878720099013 < 1e-09\nE    +  where 0.012428878720099013 = abs((0.447574227389844 - 0.460003106109943))\nE    +    where 0.447574227389844 = get_name('L1_MFleet')\nE    +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1530::test_v1530_w1_inputs_and_l_values",
+   "kind": "failure",
+   "message": "AssertionError: assert (5.551115123125783e-17 < 1e-12 and 0.03034796244774693 < 1e-09)\n +  where 5.551115123125783e-17 = abs((0.200715984223655 - 0.20071598422365494))\n +    where 0.200715984223655 = get('Cap_In', 'D228')\n +      where get = <conftest.View object at 0x70c54c8ff1d0>.get\n +  and   0.03034796244774693 = abs((0.20071598422365494 - 0.170368021775908))\ntests/parity/test_v1530.py:65: in test_v1530_w1_inputs_and_l_values\n    assert abs(v.get(\"Cap_In\", \"D228\") - rho_lo) < 1e-12 and abs(rho_lo - 0.170368021775908) < 1e-9\nE   AssertionError: assert (5.551115123125783e-17 < 1e-12 and 0.03034796244774693 < 1e-09)\nE    +  where 5.551115123125783e-17 = abs((0.200715984223655 - 0.20071598422365494))\nE    +    where 0.200715984223655 = get('Cap_In', 'D228')\nE    +      where get = <conftest.View object at 0x70c54c8ff1d0>.get\nE    +  and   0.03034796244774693 = abs((0.20071598422365494 - 0.170368021775908))"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1530::test_v1530_unchanged_guards",
+   "kind": "failure",
+   "message": "AssertionError: assert 0.012428878720099013 < 1e-12\n +  where 0.012428878720099013 = abs((0.447574227389844 - 0.460003106109943))\n +    where 0.447574227389844 = get_name('L1_MFleet')\n +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_v1530.py:74: in test_v1530_unchanged_guards\n    assert abs(v.get_name(\"L1_MFleet\") - 0.460003106109943) < 1e-12\nE   AssertionError: assert 0.012428878720099013 < 1e-12\nE    +  where 0.012428878720099013 = abs((0.447574227389844 - 0.460003106109943))\nE    +    where 0.447574227389844 = get_name('L1_MFleet')\nE    +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1600::test_v1600_new_values_match_precomputed",
+   "kind": "failure",
+   "message": "AssertionError: ('L1_LTotalFleetV_Lo', 0.432648396824093, 0.4265)\nassert 0.0061483968240930165 < 0.0001\n +  where 0.0061483968240930165 = abs((0.432648396824093 - 0.4265))\n +    where 0.432648396824093 = get_name('L1_LTotalFleetV_Lo')\n +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_v1600.py:75: in test_v1600_new_values_match_precomputed\n    assert abs(v.get_name(n) - want) < 1e-4, (n, v.get_name(n), want)      # 工作單事前計算只有 4 位\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: ('L1_LTotalFleetV_Lo', 0.432648396824093, 0.4265)\nE   assert 0.0061483968240930165 < 0.0001\nE    +  where 0.0061483968240930165 = abs((0.432648396824093 - 0.4265))\nE    +    where 0.432648396824093 = get_name('L1_LTotalFleetV_Lo')\nE    +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1600::test_v1600_decisions_evidence_readme",
+   "kind": "failure",
+   "message": "AssertionError: assert ('E399' == 'E398'\n  \n  - E398\n  ?    ^\n  + E399\n  ?    ^)\ntests/parity/test_v1600.py:204: in test_v1600_decisions_evidence_readme\n    assert ids[-2] == \"E398\" and ids[-7:-2] == [\"E393\", \"E394\", \"E395\", \"E396\", \"E397\"] and ids[-1] == \"E399\"      # v18.0：DB_Evidence 新增 E399\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert ('E399' == 'E398'\nE     \nE     - E398\nE     ?    ^\nE     + E399\nE     ?    ^)"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1600::test_v1600_only_new_names_and_nothing_else_changed",
+   "kind": "failure",
+   "message": "AssertionError: L1_LTotal_Lo\nassert 0.005663484679620023 < 1e-09\n +  where 0.005663484679620023 = abs((0.401946108820037 - 0.396282624140417))\n +    where 0.401946108820037 = get_name('L1_LTotal_Lo')\n +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name\ntests/parity/test_v1600.py:236: in test_v1600_only_new_names_and_nothing_else_changed\n    assert abs(v.get_name(n) - want) < 1e-9, n\nE   AssertionError: L1_LTotal_Lo\nE   assert 0.005663484679620023 < 1e-09\nE    +  where 0.005663484679620023 = abs((0.401946108820037 - 0.396282624140417))\nE    +    where 0.401946108820037 = get_name('L1_LTotal_Lo')\nE    +      where get_name = <conftest.View object at 0x70c54c8ff1d0>.get_name"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1700::test_v1700_only_new_names_and_nothing_else_changed",
+   "kind": "failure",
+   "message": "AssertionError: ['AL_BlendFree', 'AL_BlendPaid', 'AL_BlendPaidProd', 'AL_CapFree', 'AL_CapPaid', 'AL_CapPaidProd', ...]\nassert {'AL_BlendFre...aidProd', ...} == {'RNG_Current', 'RNG_Version'}\n  \n  Extra items in the left set:\n  'DRV_PreShare'\n  'IF_AllocImpliedNk'\n  'IF_FullCost_Sol_Prod'\n  'IF_FullCost_Astra'\n  'AL_FamGWyr'\n  'DRV_GWTok'\n  'L1_CostDec_Luna_GB300_Lo'\n  'IF_TokRack_Luna'\n  'L1_FleetBreakeven_Hi'\n  'RNG_IF_ProgGWyr_Luna_Lo'\n  'IF_AmortDefault_Sol'\n  'IFW_RevGWFront_Luna_Util'\n  'IF_RevGW_Luna_Prod'\n  'RNG_IF_FullCost_Luna_Hi'\n  'IF_AmortBU_Luna'\n  'L1_Ans1_Lo'"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1710::test_v1710_w5_numbers_follow_cells",
+   "kind": "failure",
+   "message": "AssertionError: (233, 'D', '前 T1 年中階牌價、之後 ρ × 中階牌價的連續平均；數值以 C–E 欄為準（v17.0：基準 0.6595、D 0.3963、E 1.0964）')\nassert '0.4019' in '前 T1 年中階牌價、之後 ρ × 中階牌價的連續平均；數值以 C–E 欄為準（v17.0：基準 0.6595、D 0.3963、E 1.0964）'\n +  where '0.4019' = <built-in method rstrip of str object at 0x70c51b1ba8f0>('.')\n +    where <built-in method rstrip of str object at 0x70c51b1ba8f0> = '0.4019'.rstrip\n +      where '0.4019' = <built-in method rstrip of str object at 0x70c51b1ba8f0>('0')\n +        where <built-in method rstrip of str object at 0x70c51b1ba8f0> = '0.4019'.rstrip\ntests/parity/test_v1710.py:74: in test_v1710_w5_numbers_follow_cells\n    assert f\"{ci[f'{col}{row}'].value:.4f}\".rstrip(\"0\").rstrip(\".\") in txt, (row, col, txt)\nE   AssertionError: (233, 'D', '前 T1 年中階牌價、之後 ρ × 中階牌價的連續平均；數值以 C–E 欄為準（v17.0：基準 0.6595、D 0.3963、E 1.0964）')\nE   assert '0.4019' in '前 T1 年中階牌價、之後 ρ × 中階牌價的連續平均；數值以 C–E 欄為準（v17.0：基準 0.6595、D 0.3963、E 1.0964）'\nE    +  where '0.4019' = <built-in method rstrip of str object at 0x70c51b1ba8f0>('.')\nE    +    where <built-in method rstrip of str object at 0x70c51b1ba8f0> = '0.4019'.rstrip\nE    +      where '0.4019' = <built-in method rstrip of str object at 0x70c51b1ba8f0>('0')\nE    +        where <built-in method rstrip of str object at 0x70c51b1ba8f0> = '0.4019'.rstrip"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1720::test_v1720_w1_and_gov",
+   "kind": "failure",
+   "message": "AssertionError: assert {'E7': 0, 'E8...'E13': 0, ...} == {'E7': 0, 'E8...'E13': 0, ...}\n  \n  Omitting 4 identical items, use -vv to show\n  Differing items:\n  {'W1': 130} != {'W1': 131}\n  \n  Full diff:\n    {\n        'E7': 0,\n        'E8': 0,\n        'E12': 0,\n        'E13': 0,\n  -     'W1': 131,\n  ?             ^\n  +     'W1': 130,\n  ?             ^\n    }\ntests/parity/test_v1720.py:127: in test_v1720_w1_and_gov\n    assert got == {\"E7\": 0, \"E8\": 0, \"E12\": 0, \"E13\": 0, \"W1\": 131}\nE   AssertionError: assert {'E7': 0, 'E8...'E13': 0, ...} == {'E7': 0, 'E8...'E13': 0, ...}"
+  },
+  {
+   "source": "parity-results-all",
+   "test": "tests.parity.test_v1800::test_v1800_new_values_match_precomputed",
+   "kind": "failure",
+   "message": "AssertionError: ('L1_TokGW_PaidCap_VR200', 257035462226.142, 253258912515.9)\nassert False\n +  where False = _close(257035462226.142, 253258912515.9, 1e-06)\n +    where 1e-06 = _tol(253258912515.9, 'L1_TokGW_PaidCap_VR200')\ntests/parity/test_v1800.py:80: in test_v1800_new_values_match_precomputed\n    assert _close(got, want, _tol(want, n)), (n + suf, got, want)\nE   AssertionError: ('L1_TokGW_PaidCap_VR200', 257035462226.142, 253258912515.9)\nE   assert False\nE    +  where False = _close(257035462226.142, 253258912515.9, 1e-06)\nE    +    where 1e-06 = _tol(253258912515.9, 'L1_TokGW_PaidCap_VR200')"
+  }
+ ],
+ "log_excerpts": {
+  "parity": [
+   "2026-10-22T08:42:47.0699208Z platform linux -- Python 3.11.17, pytest-9.1.1, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.11.17/x64/bin/python",
+   "2026-10-22T08:52:21.3141431Z tests/parity/test_parity.py::test_workbook_expectations FAILED           [  4%]",
+   "2026-10-22T08:52:21.3641324Z tests/parity/test_parity.py::test_named_ranges FAILED                    [  4%]",
+   "2026-10-22T08:52:41.5659261Z tests/parity/test_parity.py::test_floor_scenarios_expected_values FAILED [  5%]",
+   "2026-10-22T08:52:52.8023906Z tests/parity/test_parity.py::test_named_ranges_vs_libreoffice FAILED     [  6%]",
+   "2026-10-22T08:52:54.6751783Z tests/parity/test_parity.py::test_alloc_expected_values_and_slo_text FAILED [ 22%]",
+   "2026-10-22T08:53:04.5730885Z tests/parity/test_parity.py::test_alloc_mix_2025_expected_values FAILED  [ 23%]",
+   "2026-10-22T08:53:04.6139568Z tests/parity/test_parity.py::test_l1_v516_expected_values_and_h3 FAILED  [ 23%]",
+   "2026-10-22T08:53:04.6587738Z tests/parity/test_parity.py::test_prod_derate_expected_values FAILED     [ 23%]",
+   "2026-10-22T08:53:37.0982737Z tests/parity/test_parity.py::test_batch_etad_expected_values FAILED      [ 24%]",
+   "2026-10-22T08:53:37.1486543Z tests/parity/test_parity.py::test_v529_contract_waterfall_expected_values FAILED [ 24%]",
+   "2026-10-22T08:53:42.7904415Z tests/parity/test_parity.py::test_v533_fleet_basis FAILED                [ 26%]",
+   "2026-10-22T08:53:42.8624635Z tests/parity/test_parity.py::test_v534_m_split FAILED                    [ 26%]",
+   "2026-10-22T08:53:42.9067426Z tests/parity/test_parity.py::test_v535_l_split FAILED                    [ 27%]",
+   "2026-10-22T08:53:42.9826911Z tests/parity/test_parity.py::test_v536_spend_route_kappa_price FAILED    [ 27%]",
+   "2026-10-22T08:53:43.0306668Z tests/parity/test_parity.py::test_v600_audit_fix1_expected_values FAILED [ 27%]",
+   "2026-10-22T08:54:43.0958389Z tests/parity/test_parity.py::test_v602_model_scale_ttft_alloc FAILED     [ 28%]",
+   "2026-10-22T08:54:43.1414400Z tests/parity/test_parity.py::test_v603_fleet_price_k2_k3 FAILED          [ 28%]",
+   "2026-10-22T08:55:03.0628870Z tests/parity/test_parity.py::test_v700_leftovers FAILED                  [ 29%]",
+   "2026-10-22T08:55:03.1184836Z tests/parity/test_parity.py::test_v800_audit_fix2_3 FAILED               [ 29%]",
+   "2026-10-22T08:55:06.8332724Z tests/parity/test_parity.py::test_v1020_eta_calibration FAILED           [ 30%]",
+   "2026-10-22T08:55:06.8855869Z tests/parity/test_parity.py::test_v1200_gb200_geomean_and_v20_dependence FAILED [ 31%]",
+   "2026-10-22T08:55:09.4559799Z tests/parity/test_parity.py::test_v1200_service_side_unchanged FAILED    [ 31%]",
+   "2026-10-22T08:55:09.4917426Z tests/parity/test_parity.py::test_v1200_range_table FAILED               [ 32%]",
+   "2026-10-22T08:55:51.5337780Z tests/parity/test_parity.py::test_v1300_ranges_equal_scenarios FAILED    [ 32%]",
+   "2026-10-22T08:55:51.5784724Z tests/parity/test_parity.py::test_v1300_range_file_matches_workbook FAILED [ 33%]",
+   "2026-10-22T08:55:51.6268855Z tests/parity/test_parity.py::test_v1300_stale_flag_fires FAILED          [ 33%]",
+   "2026-10-22T08:55:54.8439074Z tests/parity/test_parity.py::test_v1300_existing_contract_names_unchanged FAILED [ 33%]",
+   "2026-10-22T08:56:33.5996739Z tests/parity/test_v1310.py::test_v1310_fingerprint_file_matches_workbook FAILED [ 50%]",
+   "2026-10-22T08:56:36.1255539Z tests/parity/test_v1310.py::test_v1310_existing_contract_names_unchanged FAILED [ 51%]",
+   "2026-10-22T08:56:42.6051828Z tests/parity/test_v1400.py::test_v1400_existing_contract_names_unchanged FAILED [ 51%]",
+   "2026-10-22T08:56:46.2511523Z tests/parity/test_v1400.py::test_v1400_new_checks_pass_on_base FAILED    [ 52%]",
+   "2026-10-22T08:57:56.2643131Z tests/parity/test_v1400.py::test_v1400_q3_floor_row121_unchanged_and_mfleet_lo_is_v141_floor FAILED [ 55%]",
+   "2026-10-22T08:58:00.1658254Z tests/parity/test_v1410.py::test_v1410_r1_base_values FAILED             [ 56%]",
+   "2026-10-22T08:58:00.1709138Z tests/parity/test_v1410.py::test_v1410_r1_floor_binds_low_end_column FAILED [ 56%]",
+   "2026-10-22T08:58:00.1765084Z tests/parity/test_v1410.py::test_v1410_r1_floor_applies_to_base_column FAILED [ 57%]",
+   "2026-10-22T08:58:03.6884149Z tests/parity/test_v1410.py::test_v1410_names_off_the_chain_unchanged FAILED [ 57%]",
+   "2026-10-22T08:58:11.9868018Z tests/parity/test_v1420.py::test_v1420_s1_base_values FAILED             [ 59%]",
+   "2026-10-22T08:58:11.9916374Z tests/parity/test_v1420.py::test_v1420_s1_floor_binds_low_end_column FAILED [ 60%]",
+   "2026-10-22T08:58:20.1664311Z tests/parity/test_v1420.py::test_v1420_names_off_the_chain_unchanged FAILED [ 61%]",
+   "2026-10-22T08:58:20.1754469Z tests/parity/test_v1500.py::test_v1500_o13_names_and_base_inside FAILED  [ 62%]",
+   "2026-10-22T08:58:24.3130048Z tests/parity/test_v1500.py::test_v1500_t32_twelve_vr200_names_have_ranges FAILED [ 64%]",
+   "2026-10-22T08:58:31.3909254Z tests/parity/test_v1500.py::test_v1500_other_contract_names_unchanged_from_v142 FAILED [ 67%]",
+   "2026-10-22T08:58:34.7976875Z tests/parity/test_v1510.py::test_v1510_every_name_value_equals_v150 FAILED [ 68%]",
+   "2026-10-22T08:58:45.1568621Z tests/parity/test_v1510.py::test_v1510_alloc_row398_original_restored_verbatim FAILED [ 69%]",
+   "2026-10-22T08:58:56.3507811Z tests/parity/test_v1510.py::test_v1510_changed_cells_only_expected FAILED [ 71%]",
+   "2026-10-22T08:59:03.3557504Z tests/parity/test_v1520.py::test_v1520_m_values_and_decomposition FAILED [ 72%]",
+   "2026-10-22T08:59:21.2153508Z tests/parity/test_v1530.py::test_v1530_w1_inputs_and_l_values FAILED     [ 74%]",
+   "2026-10-22T08:59:21.2207332Z tests/parity/test_v1530.py::test_v1530_unchanged_guards FAILED           [ 74%]",
+   "2026-10-22T08:59:48.3312129Z tests/parity/test_v1600.py::test_v1600_new_values_match_precomputed FAILED [ 77%]",
+   "2026-10-22T09:00:18.3041619Z tests/parity/test_v1600.py::test_v1600_decisions_evidence_readme FAILED  [ 80%]",
+   "2026-10-22T09:00:27.6176695Z tests/parity/test_v1600.py::test_v1600_only_new_names_and_nothing_else_changed FAILED [ 81%]",
+   "2026-10-22T09:01:05.3013964Z tests/parity/test_v1700.py::test_v1700_only_new_names_and_nothing_else_changed FAILED [ 84%]",
+   "2026-10-22T09:01:37.6826359Z tests/parity/test_v1710.py::test_v1710_w5_numbers_follow_cells FAILED    [ 86%]",
+   "2026-10-22T09:02:20.4589730Z tests/parity/test_v1720.py::test_v1720_w1_and_gov FAILED                 [ 88%]",
+   "2026-10-22T09:02:20.4659503Z tests/parity/test_v1800.py::test_v1800_new_values_match_precomputed FAILED [ 88%]",
+   "2026-10-22T09:04:02.9079142Z E   AssertionError: assert 53789 == 53369",
+   "2026-10-22T09:04:02.9085204Z E   AssertionError: assert ('Luna\\uff5c\\u9078\\u5b9a' == 'Luna\\uff5c\\u9078\\u5b9a'",
+   "2026-10-22T09:04:02.9259993Z E           'GOV_Errors': 'Checks!D97',",
+   "2026-10-22T09:04:02.9516591Z E   AssertionError: assert 0.0001190668469688988 < 5e-06",
+   "2026-10-22T09:04:02.9517408Z E   AssertionError: ('AL_ServeGW', 0.146699149086855)",
+   "2026-10-22T09:04:02.9518082Z E   AssertionError: ('L1_Ans5_FullMargin', 0.919450512207774, 0.918969)",
+   "2026-10-22T09:04:02.9518630Z E   AssertionError: ('IF_FullCost_Astra_Prod', 1, 1.1625308157432017, 1.159402)",
+   "2026-10-22T09:04:02.9519325Z E   AssertionError: ('IF_TrainCost_Luna', 10, 0.14372264642991905, 0.1434)",
+   "2026-10-22T09:04:02.9519866Z E   AssertionError: ('L1_FleetBreakeven', 0.128554642189859, 0.130432)",
+   "2026-10-22T09:04:02.9520354Z E   AssertionError: ('AL_ServeGW', 0.146699149086855, 0.150423)",
+   "2026-10-22T09:04:02.9521992Z E   AssertionError: assert (1.1111111009043384e-07 < 5e-06 and 3.257791099109397e-07 < 5e-06 and 0.01524963992388606 < 5e-06)",
+   "2026-10-22T09:04:02.9523107Z E   AssertionError: ('L1_LTotal_Lo', 0.4027623854228, 0.396968)",
+   "2026-10-22T09:04:02.9523794Z E   AssertionError: ('L1_ScaleServe', 6.12202713246285, 5.97049)",
+   "2026-10-22T09:04:02.9525687Z     assert eng.get_name(\"GOV_Errors\") == 0 and eng.get_name(\"GOV_Warnings\") == 134 and eng.get_name(\"GOV_Info\") == 182      # v15.2：舊 SLO 視圖 Info 181 → 182（I3 +1、I1 +1、K5 −1：B2／B3 使 L1 外部對照差距旗標列數與 Gov_Map 區間內外狀態改變）；  # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：同上，Warnings 282 → 283（RG2）； v13.0 K3：Info 181 → 182（同上）； v12.0：Info 179 → 181（同上）； v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）",
+   "2026-10-22T09:04:02.9525997Z E   AssertionError: assert (0 == 0 and 133 == 134)",
+   "2026-10-22T09:04:02.9526054Z E    +  where 0 = get_name('GOV_Errors')",
+   "2026-10-22T09:04:02.9526669Z E   AssertionError: ('AL_ServeGW', 0.146699149086855, 0.150423)",
+   "2026-10-22T09:04:02.9527331Z E   AssertionError: assert 0.020730648126933038 < 5e-07",
+   "2026-10-22T09:04:02.9528081Z E   AssertionError: assert (2.220446049250313e-16 < 1e-12 and 5.428486129099852e-05 < 5e-06)",
+   "2026-10-22T09:04:02.9529021Z E   AssertionError: assert (0.01524963992388606 < 5e-06)",
+   "2026-10-22T09:04:02.9529616Z E   AssertionError: assert (0.012428772610156014 < 5e-06)",
+   "2026-10-22T09:04:02.9530203Z E   AssertionError: ('IF_AllocRDGW', 0.202611367920628, 0.202981)",
+   "2026-10-22T09:04:02.9531159Z E   AssertionError: assert (0.006517492468302993 < 1e-12)",
+   "2026-10-22T09:04:02.9531968Z E   AssertionError: ('batch_gb200_lo', 0.211628, 0.211241538967691, 0.190703, 0.190421309098234)",
+   "2026-10-22T09:04:02.9532903Z E   AssertionError: assert (14 == 12)",
+   "2026-10-22T09:04:02.9533853Z E   AssertionError: assert 132 == 133",
+   "2026-10-22T09:04:02.9534727Z E   AssertionError: assert ('\\u4e00\\u81f4' == '\\u4e00\\u81f4'",
+   "2026-10-22T09:04:02.9535401Z E   AssertionError: IF_CostAttVR_Luna",
+   "2026-10-22T09:04:02.9536658Z E   AssertionError: assert 833 == 629",
+   "2026-10-22T09:04:02.9537236Z E   AssertionError: IF_CostAttVR_Luna",
+   "2026-10-22T09:04:02.9538220Z E   AssertionError: IF_CostAttVR_Luna",
+   "2026-10-22T09:04:02.9539196Z E   AssertionError: assert 0.006006333326283003 < 1e-09",
+   "2026-10-22T09:04:02.9539831Z E   AssertionError: C",
+   "2026-10-22T09:04:02.9540566Z E   AssertionError: assert (0.012428878720099013 < 1e-12)",
+   "2026-10-22T09:04:02.9541591Z E   AssertionError: assert (0.0 <= 1e-12 and 0.006517492468302993 < 1e-12)",
+   "2026-10-22T09:04:02.9542619Z E   AssertionError: assert (0.12233695548655757 < 0.330041251201698 and 0.0 <= 1e-12 and 0.009106633311876 < 1e-12)",
+   "2026-10-22T09:04:02.9543329Z E   AssertionError: IF_CostAttVR_Luna",
+   "2026-10-22T09:04:02.9544368Z E   AssertionError: ([0.596878042930891, 0.315000646831843, 1.72743527718822], [0.613453002685703, 0.323692273630786, 1.77540516071392])",
+   "2026-10-22T09:04:02.9545689Z E   AssertionError: IF_CostAttVR_Luna",
+   "2026-10-22T09:04:02.9552071Z E   AssertionError: ('IF_AllocQ1', 0.184073753247684)",
+   "2026-10-22T09:04:02.9552703Z E   AssertionError: ['CHK_VerifyFail', 'CHK_VerifyPass', 'L1_Ans5_FullMargin', 'L1_Ans5_FullMargin_Hi', 'L1_Ans5_FullMargin_Lo', 'L1_Ans6_GPUh', ...]",
+   "2026-10-22T09:04:02.9553368Z E   AssertionError: IF_CostAttVR_Luna",
+   "2026-10-22T09:04:02.9554311Z E   AssertionError: DRV_FlopDec",
+   "2026-10-22T09:04:02.9556089Z E   AssertionError: assert ('（a）只經 VR200 欄（CAL_BatchEtaD 第 4 格＝0.75；Gov_Map H156 區間 0.70–1.0）12 個，GB200／Hopper 倍數改變時不動，VR200 倍數改變時會動；本版區間只涵蓋 GB200／Hopper 倍數，未涵蓋 VR200 倍數：L1_Ans5_FullMargin、L1_Ans5_FullMargin_Hi、L1_Ans5_FullMargin_Lo、L1_Ans6_GPUh、L1_Ans6_GPUh_Hi、L1_Ans6_GPUh_Lo、L1_RLshare_Astra_VR200、L1_RLshare_Astra_VR200_Hi、L1_RLshare_Astra_VR200_Lo、L1_RLshare_Sol_VR200、L1_RLshare_Sol_VR200_Hi、L1_RLshare_Sol_VR200_Lo' in 'L1_ScaleRD_Hi')",
+   "2026-10-22T09:04:02.9556706Z E   KeyError: 'Alloc'",
+   "2026-10-22T09:04:02.9557139Z E   AssertionError: assert 0.012428878720099013 < 1e-09",
+   "2026-10-22T09:04:02.9557865Z E   AssertionError: assert (5.551115123125783e-17 < 1e-12 and 0.03034796244774693 < 1e-09)",
+   "2026-10-22T09:04:02.9558570Z E   AssertionError: assert 0.012428878720099013 < 1e-12",
+   "2026-10-22T09:04:02.9559370Z E   AssertionError: ('L1_LTotalFleetV_Lo', 0.432648396824093, 0.4265)",
+   "2026-10-22T09:04:02.9560439Z E   AssertionError: assert ('E399' == 'E398'",
+   "2026-10-22T09:04:02.9561023Z E   AssertionError: L1_LTotal_Lo",
+   "2026-10-22T09:04:02.9561938Z E   AssertionError: ['AL_BlendFree', 'AL_BlendPaid', 'AL_BlendPaidProd', 'AL_CapFree', 'AL_CapPaid', 'AL_CapPaidProd', ...]",
+   "2026-10-22T09:04:02.9600066Z E   AssertionError: (233, 'D', '前 T1 年中階牌價、之後 ρ × 中階牌價的連續平均；數值以 C–E 欄為準（v17.0：基準 0.6595、D 0.3963、E 1.0964）')",
+   "2026-10-22T09:04:02.9601156Z E   AssertionError: assert {'E7': 0, 'E8...'E13': 0, ...} == {'E7': 0, 'E8...'E13': 0, ...}",
+   "2026-10-22T09:04:02.9602496Z E   AssertionError: ('L1_TokGW_PaidCap_VR200', 257035462226.142, 253258912515.9)",
+   "2026-10-22T09:04:02.9603099Z FAILED tests/parity/test_parity.py::test_workbook_expectations - AssertionError: assert 53789 == 53369",
+   "2026-10-22T09:04:02.9603589Z FAILED tests/parity/test_parity.py::test_named_ranges - assert 569 == 568",
+   "2026-10-22T09:04:02.9603956Z FAILED tests/parity/test_parity.py::test_floor_scenarios_expected_values - AssertionError: assert ('Luna\\uff5c\\u9078\\u5b9a' == 'Luna\\uff5c\\u9078\\u5b9a'",
+   "2026-10-22T09:04:02.9604408Z FAILED tests/parity/test_parity.py::test_named_ranges_vs_libreoffice - assert {'AL_APIratio...loc!C34', ...} == {'AL_APIratio...loc!C34', ...}",
+   "2026-10-22T09:04:02.9662805Z         'GOV_Errors': 'Checks!D97',",
+   "2026-10-22T09:04:02.9824737Z FAILED tests/parity/test_parity.py::test_alloc_expected_values_and_slo_text - AssertionError: assert 0.0001190668469688988 < 5e-06",
+   "2026-10-22T09:04:02.9825197Z FAILED tests/parity/test_parity.py::test_alloc_mix_2025_expected_values - AssertionError: ('AL_ServeGW', 0.146699149086855)",
+   "2026-10-22T09:04:02.9825719Z FAILED tests/parity/test_parity.py::test_l1_v516_expected_values_and_h3 - AssertionError: ('L1_Ans5_FullMargin', 0.919450512207774, 0.918969)",
+   "…（以下為最後 80 列）",
+   "2026-10-22T09:04:03.6867194Z assert False",
+   "2026-10-22T09:04:03.6867347Z  +  where False = _close(257035462226.142, 253258912515.9, 1e-06)",
+   "2026-10-22T09:04:03.6867561Z  +    where 1e-06 = _tol(253258912515.9, 'L1_TokGW_PaidCap_VR200')",
+   "2026-10-22T09:04:03.6867784Z ================= 55 failed, 226 passed in 1275.85s (0:21:15) ==================",
+   "2026-10-22T09:04:03.8565654Z ##[error]Process completed with exit code 1.",
+   "2026-10-22T09:04:03.8603539Z ##[group]Run python tools/ci_summary.py job \"parity\" junit.xml tests/parity/_results.json >> \"$GITHUB_STEP_SUMMARY\"",
+   "2026-10-22T09:04:03.8603958Z \u001b[36;1mpython tools/ci_summary.py job \"parity\" junit.xml tests/parity/_results.json >> \"$GITHUB_STEP_SUMMARY\"\u001b[0m",
+   "2026-10-22T09:04:03.8653090Z shell: /usr/bin/bash -e {0}",
+   "2026-10-22T09:04:03.8654667Z ##[endgroup]",
+   "2026-10-22T09:04:03.8986582Z ##[group]Run python tools/ci_summary.py gate tests/parity | tee -a \"$GITHUB_STEP_SUMMARY\"",
+   "2026-10-22T09:04:03.8986925Z \u001b[36;1mpython tools/ci_summary.py gate tests/parity | tee -a \"$GITHUB_STEP_SUMMARY\"\u001b[0m",
+   "2026-10-22T09:04:03.9032595Z shell: /usr/bin/bash -e {0}",
+   "2026-10-22T09:04:03.9034279Z ##[endgroup]",
+   "2026-10-22T09:04:03.9456726Z ## 情境覆蓋檢查（分片不得漏跑或重跑）",
+   "2026-10-22T09:04:03.9457075Z - scenarios.yaml：46 個；各片合計 46 個；缺 []；多 []；重複 []",
+   "2026-10-22T09:04:03.9457280Z - ✅ 全部情境恰跑一次",
+   "2026-10-22T09:04:03.9534479Z ##[group]Run actions/upload-artifact@v6",
+   "2026-10-22T09:04:03.9534637Z with:",
+   "2026-10-22T09:04:03.9534756Z   name: parity-results-all",
+   "2026-10-22T09:04:03.9534909Z   path: tests/parity/_results.json",
+   "junit.xml",
+   "",
+   "2026-10-22T09:04:03.9535076Z   if-no-files-found: ignore",
+   "2026-10-22T09:04:03.9535215Z   compression-level: 6",
+   "2026-10-22T09:04:03.9535338Z   overwrite: false",
+   "2026-10-22T09:04:03.9535462Z   include-hidden-files: false",
+   "2026-10-22T09:04:03.9537060Z ##[endgroup]",
+   "2026-10-22T09:04:04.0602084Z Multiple search paths detected. Calculating the least common ancestor of all paths",
+   "2026-10-22T09:04:04.0602995Z The least common ancestor is /home/runner/work/Tokenomics/Tokenomics. This will be the root directory of the artifact",
+   "2026-10-22T09:04:04.0603522Z With the provided path, there will be 2 files uploaded",
+   "2026-10-22T09:04:04.0603947Z Artifact name is valid!",
+   "2026-10-22T09:04:04.0604200Z Root directory input is valid!",
+   "2026-10-22T09:04:04.3511949Z Beginning upload of artifact content to blob storage",
+   "2026-10-22T09:04:04.5433207Z Uploaded bytes 64146",
+   "2026-10-22T09:04:04.5759603Z Finished uploading artifact content to blob storage!",
+   "2026-10-22T09:04:04.5760369Z SHA256 digest of uploaded artifact zip is f0e5d464551ce9639bc384611e70a66a7abb2d7e174935c59e62b7da24060b7a",
+   "2026-10-22T09:04:04.5761943Z Finalizing artifact upload",
+   "2026-10-22T09:04:05.0766599Z Artifact parity-results-all.zip successfully finalized. Artifact ID 12414476894",
+   "2026-10-22T09:04:05.0767232Z Artifact parity-results-all has been successfully uploaded! Final size is 64146 bytes. Artifact ID is 12414476894",
+   "2026-10-22T09:04:05.0770069Z Artifact download URL: https://github.com/YinchenChang/Tokenomics/actions/runs/39749705518/artifacts/12414476894",
+   "2026-10-22T09:04:05.0887605Z ##[group]Run python tools/ci_summary.py pyver \"parity\" pyver.json",
+   "2026-10-22T09:04:05.0887876Z \u001b[36;1mpython tools/ci_summary.py pyver \"parity\" pyver.json\u001b[0m",
+   "2026-10-22T09:04:05.0939214Z shell: /usr/bin/bash -e {0}",
+   "2026-10-22T09:04:05.0940825Z ##[endgroup]",
+   "2026-10-22T09:04:05.1168669Z Python 3.11.17（parity）",
+   "2026-10-22T09:04:05.1239583Z ##[group]Run actions/upload-artifact@v6",
+   "2026-10-22T09:04:05.1239745Z with:",
+   "2026-10-22T09:04:05.1239862Z   name: pyver-parity",
+   "2026-10-22T09:04:05.1239995Z   path: pyver.json",
+   "2026-10-22T09:04:05.1240122Z   if-no-files-found: warn",
+   "2026-10-22T09:04:05.1240262Z   compression-level: 6",
+   "2026-10-22T09:04:05.1240520Z   overwrite: false",
+   "2026-10-22T09:04:05.1240645Z   include-hidden-files: false",
+   "2026-10-22T09:04:05.1242422Z ##[endgroup]",
+   "2026-10-22T09:04:05.2233275Z With the provided path, there will be 1 file uploaded",
+   "2026-10-22T09:04:05.2236090Z Artifact name is valid!",
+   "2026-10-22T09:04:05.2236753Z Root directory input is valid!",
+   "2026-10-22T09:04:05.5483194Z Beginning upload of artifact content to blob storage",
+   "2026-10-22T09:04:05.7366907Z Uploaded bytes 175",
+   "2026-10-22T09:04:05.7803290Z Finished uploading artifact content to blob storage!",
+   "2026-10-22T09:04:05.7803952Z SHA256 digest of uploaded artifact zip is 90b0e11545e8d76dfcc3217d809ee868a49681ba23a52986bd9dacb5c3706c38",
+   "2026-10-22T09:04:05.7804976Z Finalizing artifact upload",
+   "2026-10-22T09:04:06.3728769Z Artifact pyver-parity.zip successfully finalized. Artifact ID 12413624211",
+   "2026-10-22T09:04:06.3729242Z Artifact pyver-parity has been successfully uploaded! Final size is 175 bytes. Artifact ID is 12413624211",
+   "2026-10-22T09:04:06.3738248Z Artifact download URL: https://github.com/YinchenChang/Tokenomics/actions/runs/39749705518/artifacts/12413624211",
+   "2026-10-22T09:04:06.3963849Z Post job cleanup.",
+   "2026-10-22T09:04:06.4529013Z [command]/usr/bin/git version",
+   "2026-10-22T09:04:06.4566100Z git version 2.55.0",
+   "2026-10-22T09:04:06.4601809Z Temporarily overriding HOME='/home/runner/work/_temp/0626b52a-e73b-4ef1-b206-c9a1d0ca3417' before making global git config changes",
+   "2026-10-22T09:04:06.4602763Z Adding repository directory to the temporary git global config as a safe directory",
+   "2026-10-22T09:04:06.4603508Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Tokenomics/Tokenomics",
+   "2026-10-22T09:04:06.4625741Z [command]/usr/bin/git config --local --name-only --get-regexp core\\.sshCommand",
+   "2026-10-22T09:04:06.4657031Z [command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'core\\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\"",
+   "2026-10-22T09:04:06.4905375Z [command]/usr/bin/git config --local --name-only --get-regexp http\\.https\\:\\/\\/github\\.com\\/\\.extraheader",
+   "2026-10-22T09:04:06.4929973Z http.https://github.com/.extraheader",
+   "2026-10-22T09:04:06.4938535Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader",
+   "2026-10-22T09:04:06.4972882Z [command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'http\\.https\\:\\/\\/github\\.com\\/\\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\"",
+   "2026-10-22T09:04:06.5201494Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\\.gitdir:",
+   "2026-10-22T09:04:06.5229186Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url",
+   "2026-10-22T09:04:06.5558045Z Cleaning up orphan processes"
+  ]
+ },
+ "recalc_seconds": null,
+ "generated_at": "2026-10-22T09:04:26Z",
+ "errors": []
+}

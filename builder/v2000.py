@@ -3,7 +3,7 @@
 #   W1  Cap_In P section "GW 優先校準（v20.0）": AL_FleetGW25 (+_Lo/_Hi) and L1_ServeGW_GW25, L1_TokPaid_GW25, L1_TokLedger_GW25 (each +_Lo/_Hi).
 #   W2  L1_HoldFleet25, L1_PayRatio25, L1_RevPerGW25, L1_LReqFleet_Full (each +_Lo/_Hi); Cap_In row 242 and L1 P89 read L1_LReqFleet_Full (v17.0 basis kept as a comparison row).
 #   W3  L1_M_2026Q2 E/F range, L1_M E/F; Checks P1 (price basis, WARN); L1 column T nature "觀測比值" for L1_M／L1_M_*.
-#   W4  SRC_DEM_088 (Codex tokens per day), L1_DPaid_Scen, L1_DPaid_wCodex, AL_ProdDerate_Lo/_Hi (Alloc_In), IF_ProdDerate_Lo/_Hi (Interface N), L1_RevGW_PQ_VR200 I-column tail.
+#   W4  SRC_DEM_088 (Codex tokens per day), L1_DPaid_T4k/T12k/T30k, L1_DPaid_wCodex, AL_ProdDerate_Lo/_Hi (Alloc_In), IF_ProdDerate_Lo/_Hi (Interface N), L1_RevGW_PQ_VR200 I-column tail.
 #   W5  Cap_In G232／G233 text, Decisions SL55-01, DB_Evidence E401, README, label tails.
 # Every write to an Excel-owned cell is guarded (old text / already-applied test); the new blue inputs are restored from the workbook on rebuild.
 import re
@@ -71,7 +71,7 @@ LAB = dict(
     lreq="全部算力回本所需 L＝全部算力年持有成本 ÷ 2025 營收　→ L1_LReqFleet_Full",
     pd="生產折減的效率區間（情境端點；D 低 0.72、E 高 0.95；基準＝CTL_ProdDerate）　→ AL_ProdDerate_Lo／_Hi（v20.0 W4）",
     tokscen="每則提示 token 情境（對照列用；D4000／12000／30000 對應 C／D／E 欄）",
-    dscen="付費 D 情境＝AL_DAPI ＋ SRC_DEM_012 × 1e9 × 每則 token × 365 ÷ 1e6 ×（1 − AL_FreeShare）　→ L1_DPaid_Scen（對照，不驅動）",
+    dscen="付費 D 情境＝AL_DAPI ＋ SRC_DEM_012 × 1e9 × 每則 token × 365 ÷ 1e6 ×（1 − AL_FreeShare）　→ L1_DPaid_T4k／T12k／T30k（對照，不驅動）",
     dcodex="付費 D ＋ Codex＝AL_DPaid ＋ SRC_DEM_088 × 1e12 × 365 ÷ 1e6（假設 Codex token 全為付費）　→ L1_DPaid_wCodex（對照，不驅動）",
     j_v17="對照：v17.0 主口徑（折現世代起點 L 對只含推論、經計價倍數的所需 L）：L1_LTotalFleetVDisc 區間 對 L1_LReqFleet_IdNoK 區間；三態",
 )
@@ -201,7 +201,7 @@ def gov_map_rows(wb):
     ent("Cap_In", R["gwlo"], f"C{R['gwlo']}", "單值", "Derived", None, None, "單值 1.0 GW（低端；基準 1.128 為指數內插、高端 1.25 為線性）",
         "v20.0 W1（" + WO + "；Decisions SL55-01）：2025 平均上線 GW 的低端（後段集中），Epoch 方法頁與 Abilene 時程（chat 端查證）；端點 SRC_DEM_008／009 為 OpenAI 官方，標產業校準錨點。只進 Cap_In P 節與 AL_FleetGW25_Lo")
     ent("Cap_In", R["tokscen"], f"C{R['tokscen']}:E{R['tokscen']}", "單值", "Assumed", None, None, "4,000／12,000／30,000 tok（C／D／E 欄為三個對照情境）",
-        "v20.0 W4（SL55-01）：每則提示 token 對照情境，只用於 L1_DPaid_Scen（對照列，不驅動）；4,000 同 Alloc_In 基準")
+        "v20.0 W4（SL55-01）：每則提示 token 對照情境，只用於 L1_DPaid_T4k／T12k／T30k（對照列，不驅動）；4,000 同 Alloc_In 基準")
     ent("Cap_In", R["pd"], f"D{R['pd']}:E{R['pd']}", "低／高", "Assumed", None, None, "0.72（低）～ 0.95（高）；基準 CTL_ProdDerate 不變",
         "v20.0 W4（SL55-01）：生產折減的效率區間。0.72＝Hopper SLO 不可達門檻附近、0.95＝軟體進步高端；只用於 L1_TokPaid_GW25 低／高與 IF_ProdDerate_Lo／_Hi")
     return out
@@ -258,18 +258,19 @@ def l1_rows_new():
         tri3("LReqFleet_Full", "回本所需 L — 全部算力持有成本口徑（v20.0 起主口徑）", "＝L1_HoldFleet25 ÷ SRC_DEM_007（不含計價倍數與 κ，因成本已是持有成本）", "x",
              "低＝GW 1.0 的持有成本 ÷ 營收；高＝GW 1.25 的持有成本 ÷ 營收", "v20.0：壽命期營收 × L ≥ 全部算力年持有成本。判讀（Cap_In 第 242 列、L1 第 89 列）的所需 L 側讀本列；v17.0 主口徑 L1_LReqFleet_IdNoK（只含推論、經計價倍數）改為對照。",
              "L1_HoldFleet25、SRC_DEM_007", "同 L1_HoldFleet25", "持有成本區間未組合進低／高"),
-        ("DPaid_Scen", "付費 D 情境（對照；D＝每則 4,000、E＝12,000、F＝30,000 token）",
-         "＝AL_DAPI ＋ SRC_DEM_012 × 1e9 × 每則 token × 365 ÷ 1e6 ×（1 − AL_FreeShare）；D／E／F 是三個每則 token 情境，不是基準／低／高",
-         cap("C", "dscen"), cap("D", "dscen"), cap("E", "dscen"), "M tok/年", "D／E／F＝每則 4,000／12,000／30,000 token 的三個情境（非基準／低／高）",
-         "對照列，不驅動。企業版訊息未計（SRC_DEM_012 只含消費方案，已搜尋未找到企業量）。", "AL_DAPI、SRC_DEM_012、每則 token（Cap_In P 節藍字）、AL_FreeShare", "每則 token：Assumed；訊息數：Interested-party",
-         *NONE_EXT, "SRC_DEM_012；AL_FreeShare", f"Cap_In 第 {R['dscen']} 列", "企業版訊息未計"),
+        *[(f"DPaid_{nm}", f"付費 D 情境（對照；每則 {tk} token）",
+           "＝AL_DAPI ＋ SRC_DEM_012 × 1e9 × 每則 token × 365 ÷ 1e6 ×（1 − AL_FreeShare）；單值情境，不是基準／低／高區間",
+           cap(col, "dscen"), _t(NR), _t(NR), "M tok/年", NR,
+           "對照列，不驅動。企業版訊息未計（SRC_DEM_012 只含消費方案，已搜尋未找到企業量）。", "AL_DAPI、SRC_DEM_012、每則 token（Cap_In P 節藍字）、AL_FreeShare", "每則 token：Assumed；訊息數：Interested-party",
+           *NONE_EXT, "SRC_DEM_012；AL_FreeShare", f"Cap_In 第 {R['dscen']} 列（{col} 欄）", "企業版訊息未計")
+          for nm, tk, col in (("T4k", "4,000", "C"), ("T12k", "12,000", "D"), ("T30k", "30,000", "E"))],
         ("DPaid_wCodex", "付費 D ＋ Codex（對照；假設 Codex token 全為付費）", "＝AL_DPaid ＋ SRC_DEM_088 × 1e12 × 365 ÷ 1e6", cap("C", "dcodex"), _t(NR), _t(NR), "M tok/年", NR,
          "對照列，不驅動。Codex 每日約 2 兆 token（OpenAI DevDay 2025-10-06，經 Epoch）。", "AL_DPaid、SRC_DEM_088", "Codex：Interested-party（3 級）", *NONE_EXT, "AL_DPaid；SRC_DEM_088",
          f"Cap_In 第 {R['dcodex']} 列", "Codex 是否全為付費無資料"),
     ]
 
 
-KEYS = ["ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_Scen", "DPaid_wCodex"]
+KEYS = ["ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex"]
 NEW_L1 = [f"L1_{k}{s}" for k in KEYS for s in ("", "_Lo", "_Hi")]
 NEW_NAMES = NEW_L1 + [f"AL_FleetGW25{s}" for s in ("", "_Lo", "_Hi")] + ["AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", SRC_ID]
 
@@ -277,7 +278,7 @@ v1000._n(v1000.E_, "GW 優先：平均上線 GW → 服務 GW → 付費 token�
 v1000._n(v1000.U_, "GW 優先供給 ÷ 需求面：兩路線的差距，未分解（token 帳診斷，不是 m）", "TokLedger_GW25")
 v1000._n(v1000.E_, "全部算力持有成本、每上線 GW 營收、回本比：平均上線 GW 乘持有成本或除營收（比值輸出）", "HoldFleet25", "PayRatio25", "RevPerGW25")
 v1000._n(v1000.I_, "全部算力年持有成本 ÷ 實收營收：同一口徑的恆等式讀法（＝ 1 ÷ L1_PayRatio25）", "LReqFleet_Full")
-v1000._n(v1000.E_, "付費 D 的對照情境（每則 token 與 Codex；不驅動）", "DPaid_Scen", "DPaid_wCodex")
+v1000._n(v1000.E_, "付費 D 的對照情境（每則 token 與 Codex；不驅動）", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex")
 OBS = "觀測比值"
 v1000._n(OBS, "m＝實收營收 ÷（觀測的付費 token × 有效牌價）：分子分母皆為觀測量（營收、API token、訊息數），不再是殘差（v20.0；Andy 2026-10-22）",
          "M_2025", "M_2026Q1", "M_2026Q2", "M_FY2026", "M", "M_API", "M_Sub", "M_Seat")
@@ -440,7 +441,7 @@ def _decisions():
     return [[DEC_ID, V, "v20.0 2025 校準改 GW 優先、回本改全部算力成本、m 區間與對照列",
              "W1：2025 校準先由 Tokenomics 的 GW 起算——AL_FleetGW25（SRC_DEM_008 → 009 指數內插，低＝後段集中 1.0 GW、高＝線性 1.25 GW）→ L1_ServeGW_GW25 → L1_TokPaid_GW25（Andy 07:34 公式）→ L1_TokLedger_GW25。"
              "W2：回本改以全部算力持有成本為口徑：L1_HoldFleet25、L1_PayRatio25、L1_RevPerGW25、L1_LReqFleet_Full；判讀（Cap_In 第 242 列、L1 第 89 列）的所需 L 側改讀 L1_LReqFleet_Full，v17.0 主口徑改為對照。"
-             "W3：L1_M_2026Q2 區間；Checks P1（價格基準，WARN）；L1_M／L1_M_* 性質由殘差改觀測比值。W4：對照列 L1_DPaid_Scen／L1_DPaid_wCodex（SRC_DEM_088）、效率區間 AL_ProdDerate_Lo／_Hi、IF_ProdDerate_Lo／_Hi。"
+             "W3：L1_M_2026Q2 區間；Checks P1（價格基準，WARN）；L1_M／L1_M_* 性質由殘差改觀測比值。W4：對照列 L1_DPaid_T4k／T12k／T30k／L1_DPaid_wCodex（SRC_DEM_088）、效率區間 AL_ProdDerate_Lo／_Hi、IF_ProdDerate_Lo／_Hi。"
              "OpenAI 特有資料留 Tokenomics 作『產業校準錨點』（Andy 16:11）。既有名稱的值全部不變（判讀文字列除外）。Andy 原話：" + DEC_BY,
              DATE, DEC_BY, "v20.0 已建", "Cap_In P 節；L1 第 134 列起；Cap_In 第 242 列；L1 第 89 列；Interface N 節；SRC_Demand SRC_DEM_088；DB_Evidence E401", f"{WO} W1–W5", "否"]]
 
@@ -480,7 +481,7 @@ def clear_l1_ratio(wb):
 
 # ================================================================== README
 README_VERSION = (VERSION + "（主版：" + WO + "——2025 校準改 GW 優先：AL_FleetGW25、L1_ServeGW_GW25、L1_TokPaid_GW25、L1_TokLedger_GW25；回本改全部算力持有成本：L1_HoldFleet25、L1_PayRatio25、L1_RevPerGW25、"
-                  "L1_LReqFleet_Full（判讀主口徑，Cap_In 第 242 列與 L1 第 89 列的所需 L 側改讀它）；L1_M_2026Q2 區間；對照列 L1_DPaid_Scen／L1_DPaid_wCodex；AL_ProdDerate_Lo／_Hi、IF_ProdDerate_Lo／_Hi；"
+                  "L1_LReqFleet_Full（判讀主口徑，Cap_In 第 242 列與 L1 第 89 列的所需 L 側改讀它）；L1_M_2026Q2 區間；對照列 L1_DPaid_T4k／T12k／T30k／L1_DPaid_wCodex；AL_ProdDerate_Lo／_Hi、IF_ProdDerate_Lo／_Hi；"
                   "SRC_DEM_088；Checks P1；Decisions SL55-01；DB_Evidence E401。既有名稱的值全部不變（判讀文字列除外）。）以下為 "
                   + v1910.README_VERSION.split("_Tokenomics_", 1)[1])
 _T = v1910.README_TITLE

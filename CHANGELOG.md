@@ -5,7 +5,7 @@
 ## 20261022_Tokenomics_v20.0.xlsx（取代 v19.1；**主版：2025 校準改 GW 優先、回本改全部算力成本**；依工作單 `docs/workorders/20261022_v20.0_GW優先校準.md` r0）
 
 - 分支 `claude/v20-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261022_v20.0_GW優先校準.md`；進度檔：`docs/reports/20261022_v20.0_進度.md`。**待合併（合併由 Andy 指示）。**
-- Excel（CC 以 `builder/v2000.py` 自 v19.1 產生，經 LibreOffice 重算存檔；冪等）：Cap_In P 節（GW 優先校準）、L1 新列 9 個、`AL_FleetGW25`、`AL_ProdDerate_Lo/_Hi`、`IF_ProdDerate_Lo/_Hi`、SRC_DEM_088（Codex 每日 2.0 T tok）、DB_Evidence E401、Decisions SL55-01、Checks P1；Cap_In 第 242 列與 L1 P89 改讀 `L1_LReqFleet_Full`；`L1_M_2026Q2`／`L1_M` 的低／高改數字區間。
+- Excel（CC 以 `builder/v2000.py` 自 v19.1 產生，經 LibreOffice 重算存檔；冪等）：Cap_In P 節（GW 優先校準）、L1 新列 11 個（含 L1_DPaid_T4k／T12k／T30k）、`AL_FleetGW25`、`AL_ProdDerate_Lo/_Hi`、`IF_ProdDerate_Lo/_Hi`、SRC_DEM_088（Codex 每日 2.0 T tok）、DB_Evidence E401、Decisions SL55-01、Checks P1；Cap_In 第 242 列與 L1 P89 改讀 `L1_LReqFleet_Full`；`L1_M_2026Q2`／`L1_M` 的低／高改數字區間。
 - 連帶：區間端點檔與指紋檔重產；契約快照 `contract_snapshot_v20.0.json`；下游契約 v0.22。
 - 測試：新增 `tests/parity/test_v2000.py`（20 項）；舊測試的 GOV_Warnings +2、CHK_L1Order 0 → 1、版本字串與判讀字樣依預期變動更新。
 

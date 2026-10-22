@@ -31,7 +31,7 @@ SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點（隨 Luna 值重算）、SR
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 
 
-V20_CHANGED = {"CHK_L1Order", "L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"}      # v20.0：H3 計數與 L1_M 的 2026 區間（test_v2000 看守）
+V20_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"}      # v20.0：H3 計數與 L1_M 的 2026 區間（test_v2000 看守）
 
 
 def _flat(v):
@@ -115,8 +115,8 @@ def test_v1910_stress_scenarios_no_error_values(lo):
 
 def test_v1910_governance_counts(lo):
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 1
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)
+    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
 
 
 # ---------------------------------------------------------------- static

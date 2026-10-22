@@ -29,7 +29,7 @@ PREWARM = {"test_v2000_inputs_propagate": [GW_END], "test_v2000_stress_scenarios
 
 SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點、SRC_Index 範圍、治理計數另行檢查
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
-ALLOWED_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi", "CHK_L1Order"}      # 文字「無區間」→ 數字區間（W3）；H3 計數（L1_DPaid_Scen 的 D／E／F 是三個情境）
+ALLOWED_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"}      # 文字「無區間」→ 數字區間（W3）；H3 計數（L1_DPaid_Scen 的 D／E／F 是三個情境）
 
 
 def _flat(v):
@@ -61,7 +61,6 @@ WO = {      # 工作單事前值（基準, 低, 高）
     "L1_RevPerGW25": (11.5889, 10.4560, 13.0700),
     "L1_LReqFleet_Full": (0.80708, 0.71562, 0.89452),
     "L1_M_2026Q2": (1.34320, 0.81018, 1.59505),
-    "L1_DPaid_Scen": (3825200000, 6745200000, 13315200000),
 }
 
 
@@ -106,7 +105,9 @@ def test_v2000_independent_recompute(lo):
     # 對照列
     dapi, msg, fshare = v.get_name("AL_DAPI"), v.get_name("SRC_DEM_012"), v.get_name("AL_FreeShare")
     scen = [dapi + msg * 1e9 * t * 365 / 1e6 * (1 - fshare) for t in (4000, 12000, 30000)]
-    assert all(_rel(a, b) <= 1e-9 for a, b in zip(_triple(v, "L1_DPaid_Scen"), scen))
+    for nm, want in zip(("T4k", "T12k", "T30k"), scen):      # 三個單值名稱（E／F 為「無區間」文字）
+        assert _rel(_flat(v.get_name("L1_DPaid_" + nm))[0], want) <= 1e-9
+        assert _flat(v.get_name("L1_DPaid_" + nm + "_Lo"))[0] == "無區間"
     assert _rel(_flat(v.get_name("L1_DPaid_wCodex"))[0], dpaid + v.get_name("SRC_DEM_088") * 1e12 * 365 / 1e6) <= 1e-9
     assert v.get_name("SRC_DEM_088") == 2.0
     # m 的 2026 區間（同 2025 寫法）
@@ -197,9 +198,9 @@ def test_v2000_stress_scenarios_no_error_values(lo):
 
 def test_v2000_governance_counts(lo):
     v = lo.view({})
-    # Warnings 132 → 134：SRC_DEM_088（利害關係方、3 級）缺第二來源 W1 +1；L1_DPaid_Scen 的 D／E／F 為三個情境、E ＞ D，Checks H3 +1（待 Project 判斷）
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 1
+    # Warnings 132 → 133：SRC_DEM_088（利害關係方、3 級）缺第二來源，W1 +1（真實狀態，chat 端接受；不補來源、不給免除）；H3 不變（CHK_L1Order＝0）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)
+    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
     r = next(r for r in range(1, 400) if v.get("Checks", f"A{r}") == "P1")
     assert v.get("Checks", f"D{r}") == 0 and v.get("Checks", f"C{r}") == "WARN"
 
@@ -308,8 +309,8 @@ def test_v2000_diffs_only_expected_vs_v191():
     assert na <= nb
     new = nb - na
     assert {"AL_FleetGW25", "AL_FleetGW25_Lo", "AL_FleetGW25_Hi", "AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", "SRC_DEM_088"} <= new
-    for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_Scen", "DPaid_wCodex"):
+    for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex"):
         assert {f"L1_{k}", f"L1_{k}_Lo", f"L1_{k}_Hi"} <= new, k
-    assert len(new) == 8 + 27, sorted(new)
+    assert len(new) == 8 + 33, sorted(new)
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_")) for k in changed), sorted(changed)[:10]

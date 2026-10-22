@@ -139,6 +139,8 @@ import v1600
 V1600_N = v1600.cap_in_n(wb, V800_M)      # v16.0 W1: Cap_In N section (L from each generation's own start; below M, nothing above moves)
 import v1700
 V1700_O = v1700.cap_in_o(wb, V1600_N)      # v17.0 W1: Cap_In O section (discounted generation-start fleet L; below N, nothing above moves)
+import v2000
+V2000_P = v2000.cap_in_p(wb, V1700_O)      # v20.0 W1／W2／W4: Cap_In P section (GW-first calibration, whole-fleet payback, comparison rows; below O, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -288,6 +290,7 @@ import v1400
 IFM = v1400.interface_m(wb)            # v14.0 (4-3B Q2): Interface M section (11 IF_ names) before the contract columns are built
 import v1900
 IFN = v1900.interface_n(wb)            # v19.0: Interface N section (P x Q 取數 names; appended last, before the contract columns are built)
+v2000.interface_n_ext(wb)             # v20.0 W4: IF_ProdDerate_Lo／_Hi in D／E of the IF_ProdDerate row
 SER14 = v1400.series_names(wb)         # v14.0 (4-3B Q2): L1_*_Ser／L1_MFleet_P25Lo／Hi series names on Cap_In
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
@@ -382,6 +385,8 @@ print("v1900 v19.0:", V1900)
 import v1910
 V1910 = v1910.apply(wb, v518._append_text)       # v19.1: W1 second sources B2 (SRC_MOD_018 -> V4-Pro, R fills, G17 label, E400, Decisions SL54-01; guarded)
 print("v1910 v19.1:", V1910)
+V2000 = v2000.apply(wb, v518._append_text)       # v20.0: label tails, judgement rows (Cap_In 242, L1 P89), G232／G233 text, Checks P1, E401, Decisions SL55-01
+print("v2000 v20.0:", V2000)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

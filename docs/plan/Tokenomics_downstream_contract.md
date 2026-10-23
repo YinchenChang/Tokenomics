@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.25（2026-10-23；對應 Tokenomics v21.1）
+# Tokenomics 下游資料契約 v0.26（2026-10-23；對應 Tokenomics v21.2）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -135,6 +135,8 @@
 | `L1_RevGW_PQ_VR200_F2030`／`_Lo`／`_Hi` | L1 第 148 列 | $B/GW/年 | 同上，2030 預估（乘 `Cap_In` C348） | 86.19／63.07／136.64 |
 
   `NonNV` 第 5–9 列的持有比為慣例值（Block 1『接近 1』），未推導；昇騰、Maia 兩列的持有比依每 kW 設備價推導。H:J 欄仍未接線。`L1_FreeShare_*` 與 `L1_RevGW_PQ_VR200_F2026`／`_F2030` 只供情境與下游讀取，不得當作基準；付費占比上升時 m 可能同時下降（『付費』可能含廣告方案）。取用規則同第 2 條。
+
+- v21.2（次版；計價倍數 `AL_SpendBasis` 改 1.8（區間 0.85–2.3）與四項說明修補，工作單 `docs/workorders/20261023_v21.2_計價倍數與說明修補.md` r0，分支 `claude/v21-2`，Decisions SL59-01；依 Andy 2026-10-23 21:58「按照預設」（9a Q 側缺口查證 J1–J5 定案）、22:02「開個新串來建置下一版」）：**沒有新增或刪除契約名稱，名稱與定義不變；有 44 個名稱的值改變**（`AL_SpendBasis`／`_Lo`／`_Hi` 3 個、`L1_` 系 41 個；全部在契約快照內），另 `RNG_Version`／`RNG_Current` 的版本字串隨版本更新。改變的原因只有一個：`Alloc_In` C23:E23 由 0.85／0.73／1.17 改為 1.8／0.85／2.3（Derived；OpenAI 2025 查核財報框出全部算力 161–217 億、GW 因子 0.89–1.11，價格因子為殘差，必須約 1.37–2.18 才能重現支出路線；**非實付價直接證據**，OpenAI 在 Azure 的實付價找不到），只影響支出路線與其診斷名稱。主要數值（重算值；v21.1 → v21.2，基準欄）：`L1_TokLedger` 5.62 → 2.65、`L1_TokLedger_2026Q2` 6.39 → 3.02、`L1_MFleet` 0.448 → 0.948、`L1_LReqFleet_IdNoK` 0.756 → 0.357（`L1_LReqFleet_Id` 同為 0.357）、`L1_LReqFleet` 2.04 → 0.962、`L1_LReqFleet_VR200` 0.692 → 0.327、`L1_GapSpendBasis` 0.85 → 1.8、`L1_GapProduct` 1.90 → 4.03、`L1_GapUnexplained` 5.62 → 2.65、`L1_PriceRealFleet` 0.608 → 1.29、`L1_TokPerPromptClose` 44,129 → 18,361。**不變的名稱**：全部 `IF_`／`IFW_`／`IFC_`；`L1_LReqFleet_Full*`（回本主口徑）；`L1_RevGW_PQ_VR200*`（含 `_FY`、`_Life`、`_F2026`、`_F2030`）；`L1_M`／`_Lo`／`_Hi`（收入面 m）；`L1_LTotal*`；其餘名稱逐格相同。讀法：計價倍數 1.8 讓支出路線換算的 2025 服務 GW 由約 1.06 降到約 0.50，與外部 0.5–0.63 GW 相容；token 帳診斷 `L1_TokLedger` 隨之降到約 2.7，是把 2 倍缺口歸給價格因子的結果，不是新的 Q 側證據。證偽條件：找到 2025 平均 GW ≥ 1.8，或 Azure 對 OpenAI 單價 ≤ 2 美元／GPU 小時。契約快照改為 `contract_snapshot_v21.2.json`。
 
 ## 6. 權威歸屬（v0.24 新增；依《情境卡產生規則》R1.6.1 第 13 條）
 

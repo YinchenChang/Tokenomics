@@ -295,4 +295,17 @@ for row in bs.iter_rows():
     for c in row:
         if isinstance(c.value,str) and c.value.startswith('CoreWeave 營業成本含租賃機房與電力'): c.value=c.value+'；分母不同（營收 vs 持有成本）：34%×營收 8.24≈2.81，30%×持有成本 9.35≈2.82，絕對值吻合'
 
+# ---- 第三輪：決定 #12/#13 與第二輪查核修正
+setp(2,7,'決定（Andy，2026-10-23）：不改模型；同列 10% 與出租方折現率。「3–8%」已被 #12 取代，改依公司分列（IREN 3.31%、CoreWeave 債務 9.6–9.9%）')
+setp(10,3,'要，只寫進查證檔不改模型；債務利率已取得（B 段第6節），active power 定義與 GPU 耐用年限待 10-Q 後半')
+setp(10,7,'決定（Andy）：要，只寫查證檔不改模型。狀態：部分完成（10-Q 只讀前約 80/181 頁；債務利率已取得）')
+setp(12,7,'決定（Andy，2026-10-23）：改為依公司分列。IREN 3.31% 是 Microsoft 擔保加預付款的個案，不能代表出租方')
+setp(13,7,'決定（Andy）：先不改模型，列為證據待查。兩項合計約占持有成本 12%，目前只有 IREN 一個對照點，營運 1.455 只是下界（不含企業管理費）；等有第二個對照點再判斷')
+for row in bs.iter_rows():
+    for c in row:
+        if c.value=='未取得（待 Drive inbox 的 10-Q 全文）': c.value='部分取得（10-Q 只讀前約 80/181 頁）'
+        elif c.value=='active power 定義、GPU 耐用年限、債務利率': c.value='債務利率已取得（第6節）；active power 定義、GPU 耐用年限仍未取得'
+        elif isinstance(c.value,str) and c.value.startswith('→ 有了債務利率才能'): c.value='→ 債務利率已用於第6節：出租方折現率改依公司分列（待判斷 #12，已決定）'
+q['F22']='已被 B 段第6節取代：此值是固定 TK 的 capex 與營運下求得，混入了 capex 與營運差異。以 IREN 自己的 capex 反推：營運取下界 1.455 時 9.0–10.2%（上限），取 TK 營運 1.98 時 7.2–8.4%。'
+
 wb.save(out); print('saved')

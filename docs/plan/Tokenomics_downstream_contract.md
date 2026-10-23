@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.24（2026-10-23；對應 Tokenomics v21.0）
+# Tokenomics 下游資料契約 v0.25（2026-10-23；對應 Tokenomics v21.1）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -121,6 +121,21 @@
 
   基準欄的值（v21.0）：`IF_RackPrice` Hopper 1.1、GB200 3.1、GB300 4.3、VR200 8.4、Rubin Ultra 16.8（低成本欄 0.9／2.8／4.0／7.8／12.6；高成本欄 1.3／3.4／5.0／9.1／21.0）；`IF_ScaleOutShare` 0.10；`IF_StoragePerGPU` 500。`NonNV` H:J 欄（每 token 成本比與角落）仍未接線。ASIC 每顆規格（每 GW 顆數、單價、HBM）不在 Tokenomics，歸 AI半導體（第 6 節）；昇騰、Maia 兩列不在本版，待證據後於 v21.1 加入。取用規則同第 2 條。
 
+- v21.1（次版；NonNV 新增昇騰／Maia 兩列、免費占比時間路徑、說明欄修正，並新增本文第 8 節，工作單 `docs/workorders/20261023_v21.1_NonNV與免費占比路徑.md` r0，分支 `claude/v21-1`，Decisions SL58-01；依 Andy 2026-10-23 13:52–13:56 NonNV Q1–Q4、14:22 利用率／服務占比 J1–J8 照預設、14:51「當然要放」與 13:12「J one J two 都同意」）：**新增 10 個契約名稱（`IF_NonNV_*` 4 個、`L1_FreeShare_*` 與 `L1_RevGW_PQ_VR200_F*` 各 2 個名稱，後兩類另有 `_Lo`／`_Hi`）；既有名稱的值全部不變**（逐格與 v21.0 相同；`IFC_*` 契約欄範圍隨新列延伸，不計）。每個新名稱都讀新格，不改任何既有格。快照 `tests/parity/fixtures/contract_snapshot_v21.1.json`。
+
+| 名稱 | 位置 | 單位 | 層級／口徑 | 欄（事前值＝實際值） |
+|---|---|---|---|---|
+| `IF_NonNV_Out_Ascend` | Interface P 節第 379 列 | 比（÷ VR200） | 華為昇騰 910C／CloudMatrix 384 每 GW 產出比；Assumed | C＝低 0.05、D＝基準 0.08、E＝高 0.15（`NonNV` B10:D10） |
+| `IF_NonNV_Out_Maia` | Interface P 節第 380 列 | 比（÷ VR200） | Microsoft Maia 200 每 GW 產出比；Assumed | 0.25／0.55／0.75（`NonNV` B11:D11） |
+| `IF_NonNV_Hold_Ascend` | Interface P 節第 381 列 | 比（÷ VR200） | 昇騰每 GW 持有成本比；Assumed；依每 kW 設備價推導 | 0.45／0.55／0.70（`NonNV` E10:G10） |
+| `IF_NonNV_Hold_Maia` | Interface P 節第 382 列 | 比（÷ VR200） | Maia 200 每 GW 持有成本比；Assumed；依每 kW 設備價推導 | 0.40／0.50／0.60（`NonNV` E11:G11） |
+| `L1_FreeShare_2026`／`_Lo`／`_Hi` | L1 第 145 列 D／E／F | 比例 | OpenAI 投資人資料預估的免費服務占服務（口徑同 `B4_Free`，支出口徑）；Interested-party，區間為 Assumed；不回流 `B4_Free` | 0.34／0.25／0.46（`Cap_In` 第 345 列 C／D／E） |
+| `L1_FreeShare_2030`／`_Lo`／`_Hi` | L1 第 146 列 | 比例 | 同上，2030 預估 | 0.06／0.03／0.30（`Cap_In` 第 346 列） |
+| `L1_RevGW_PQ_VR200_F2026`／`_Lo`／`_Hi` | L1 第 147 列 | $B/GW/年 | 情境列：`L1_RevGW_PQ_VR200` 只把（1 − 免費占比）換成 2026 預估（乘 `Cap_In` C347 ＝（1 − F2026）÷（1 − `B4_Free`））；低／高＝利用率 0.30／0.65（同 `L1_RevGW_PQ_VR200`）；m 可能隨廣告方案下降，未建模 | 60.52／44.28／95.94 |
+| `L1_RevGW_PQ_VR200_F2030`／`_Lo`／`_Hi` | L1 第 148 列 | $B/GW/年 | 同上，2030 預估（乘 `Cap_In` C348） | 86.19／63.07／136.64 |
+
+  `NonNV` 第 5–9 列的持有比為慣例值（Block 1『接近 1』），未推導；昇騰、Maia 兩列的持有比依每 kW 設備價推導。H:J 欄仍未接線。`L1_FreeShare_*` 與 `L1_RevGW_PQ_VR200_F2026`／`_F2030` 只供情境與下游讀取，不得當作基準；付費占比上升時 m 可能同時下降（『付費』可能含廣告方案）。取用規則同第 2 條。
+
 ## 6. 權威歸屬（v0.24 新增；依《情境卡產生規則》R1.6.1 第 13 條）
 
 劃界原則：**以「Tokenomics 的每 GW 計算是否用到」為準。** 計算用到的量，權威在 Tokenomics，其他專案只讀；計算不用到的量，權威在對應的產業專案，Tokenomics 不收。界線跟著計算移動：Tokenomics 的計算開始用到某個量時，該量的權威隨之移到 Tokenomics。
@@ -144,3 +159,7 @@
 7. 影響的 Tokenomics 名稱。
 
 權威方依 DB_Evidence 規則決定是否採用，並回執（採用、不採用與理由、或待補）。過渡規則：權威方新版發布前，讀取方的基準仍用現值；新證據的值只作敏感度，並標「待 Tokenomics 登錄」，不得當作基準。
+
+## 8. AIM 讀者（v0.25 新增）
+
+外部讀者 AIM（`YinchenChang/aim`；外部單向連接）只取數字，經其 `tools/internal_numbers.py` 讀取，排除估值、反向 DCF、可比、敏感度、checks 頁與目標價／評等列；Tokenomics 不提供論點或投資標的。AIM 的回饋只當線索，須依 DB_Evidence 重新查證登錄後才可用；出處為本 repo 者排除。

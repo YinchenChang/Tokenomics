@@ -94,7 +94,8 @@ def interface_op_ext(wb):
     ws = wb["Interface"]
     r = wb.defined_names["IF_NonNV_Hold_OAI"].attr_text
     last = int(r.split("$")[-1])
-    assert last == 378 and ws.max_row == 378, (last, ws.max_row)
+    top = max(c.row for row in ws.iter_rows() for c in row if c.value is not None)      # max_row can be larger on a rebuild (cleared cells keep their rows)
+    assert last == 378 and top == 378, (last, top)
     made = []
     row = last + 1
     for kind, stem, nrow in NEW_IF:

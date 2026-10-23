@@ -32,6 +32,8 @@
 | 口徑 | 營運口徑，0–1 | 支出口徑（代替 GW 比） | 支出口徑 |
 | 不是 | GPU 分配率、MFU、nvidia-smi 的 GPU-util、訂閱利用率、IF_Util、生產折減 | 用戶數、token、GW 占比 | 用戶數占比、訊息占比 |
 
+Andy 對 J3 的決定：仍另乘 0.85；**利用率換算與生產折減 0.85 部分重疊、無法分開**（尖谷換算只含時間平均，但「尖峰滿載度」0.7–1.0 與折減的餘裕／路由不均有部分重疊）。
+
 模型消費端：有效利用率＝AL_UtilActual × 生產折減 0.85 ÷ IF_Util 0.6。所以本段所有利用率證據，要先問「是否已含生產折減」（待判斷 J3）。
 
 ## 2. 證據摘要（全部 37 筆證據與 19 筆「未找到」在 xlsx「證據」頁；摘要只列採用者）
@@ -42,8 +44,8 @@
 | U1 | DynamoLLM（Illinois＋Microsoft Azure，HPCA 2025）；已讀原文 | 尖峰÷平均：對話 1.7×、程式 2.8× | 請求率，非 token 吞吐；假設尖峰滿載 | Verified（學術，Microsoft 自家 trace） | 換算主依據 |
 | U4 | DeepSeek 2025-03 自揭；已讀原文 | 節點數尖峰 278、均值 226.75（0.82） | 節點數，非 token；離峰節點轉去訓練，閒置被隱藏 | Interested-party | 參考 |
 | U11 | repo 前案對 DeepSeek 的推算 | 每節點日均÷服務期間速率 0.42–0.58 | 分母非理論產能，是上限參考 | Derived | 上限參考 |
-| U5 | Aegaeon（SOSP 2025）；**僅搜尋摘要，未讀原文** | 17.7% GPU 只服務 1.35% 請求 | 多模型長尾池，不可外推全機隊 | Interested-party（Alibaba） | 不採用 |
-| U8 | Cast AI 2026；**僅搜尋摘要** | 企業 K8s 叢集 GPU 利用率 5% | 口徑差極大（非推論、含閒置叢集） | Interested-party（賣優化軟體） | 不採用 |
+| U5 | Aegaeon（SOSP 2025）；B 段已讀原文 PDF | 長尾專屬實例 GPU 利用率 13.3–33.9%（70 小時，最低到最高負載模型）；17.7% GPU 服務 1.35% 請求 | 長尾池（約 5,300 顆 GPU）非機隊平均；GPU 利用率口徑；熱門模型無數字 | Interested-party（Alibaba） | 低端 0.30 的旁證，不用於換算 |
+| U8 | Cast AI 2026；B 段已讀新聞稿原頁 | 數萬個企業 K8s 叢集平均 GPU 利用率 5%（23,000 為 itbrief 數字，原頁沒有） | 口徑差極大（非推論、含閒置叢集） | Interested-party（賣優化軟體） | 不採用 |
 
 其餘（ServeGen、BurstGPT、Mooncake、Splitwise、CoreWeave／管理層說法）只有定性的「日夜週期」或「已售罄」，沒有可換算的利用率，詳見證據頁。
 
@@ -64,7 +66,7 @@ Anthropic 訓練 56%／推論 33%（Lambda Finance 彙整，SemiAnalysis 只是�
 - 機隊級「時間平均 ÷ SLO 產能」：未找到。Meta、Google 服務側、Together／Fireworks／Baseten、Character.AI 官方、Lambda、Oracle：未找到利用率數字。
 - OpenAI 官方研究 vs 服務算力比例、Anthropic／Google／Meta／Microsoft 訓練 vs 推論占比、Qwen／Mistral：未找到。
 - ChatGPT 免費層的 token／訊息／算力占比、Gemini／Meta AI 免費占比：未找到。
-- 原文未讀（網路被擋或付費牆）：Aegaeon 論文、Cast AI 原頁、The Information 全部、OpenAI 官網、Register 以外的轉述頁。完整清單見證據頁 D 區。
+- 原文未讀（網路被擋或付費牆）：The Information 全部、OpenAI 官網、Register 以外的轉述頁。Aegaeon 論文、Cast AI 原頁、Epoch CSV 已於 B 段（2026-10-23）由 chat 端讀到原文並補入（見第 7 節）。完整清單見證據頁 D 區。
 
 ## 4. 這份結論可能錯在哪裡
 
@@ -87,3 +89,10 @@ J1 利用率基準 0.41（預設保留）｜J2 高端 0.65（預設保留）｜J
 - **查核代理指出、本版已處理**：(a) S19 的 12.6 含約 65.5 億研究推論，與分母訓練混用，已從證據範圍扣除（範圍由 0.26–0.51 改為 0.26–0.50）；(b) B4_Serve 置信度由「低–中」改為「低」；(c) B4_Serve 高端 0.60 沒有直接證據，已明寫。
 - **查核代理另提的未收錄線索（未讀原文，留給 B 段）**：SemiAnalysis 兩家合計的配置圖表（預訓練 7%、後訓練 55%）；2026-10-05 一篇「訂閱占 Anthropic 推論算力逾 40%」的文章；Anthropic CFO 稱多數算力用於研究的轉述。
 - **覆蓋說明**：未抽 16 筆（U2、U3、U7、U10、U11、S7、S11、S13–S17、F3–F6）多為定性或無數字列。
+
+## 7. B 段原文補入（2026-10-23，chat 端 WebFetch 讀取；未改模型）
+
+- **U5 Aegaeon（已讀 PDF）**：Fig.1(a) 94.1% 的 779 個模型只有 1.35% 的 1.676 億請求、占 17.7% 的 3 萬顆 GPU（長尾＝平均到達率 < 1.16 req/s）；§7.5 專屬實例平均 GPU 利用率 13.3%–33.9% → 48.1%（70 小時）；1,192→213 顆 H20（−82%），beta 逾三個月。原文無尖峰／平均比。口徑是長尾模型專屬實例的 GPU 利用率，非機隊平均；只作 AL_UtilActual 低端 0.30 的旁證，建議區間不變。
+- **U8 Cast AI（已讀新聞稿）**：平均 GPU 利用率 5%；樣本「tens of thousands of clusters」（23,000 是 itbrief 的數字）；指標定義與推論／訓練區分原頁未寫。維持不採用。
+- **S1 Epoch CSV（已讀，2025-11-17 更新）**：2024 R&D 計算 50 億（GPT-4.5 最終訓練約 4.0 億、其他已發布模型最終訓練 0.8 億、其餘 45 億為基礎研究／實驗／未發布模型），推論 18 億；Serve＝18÷(50+18)＝0.265，與 A 段一致。CSV 無 2025 數字。
+- **仍未解**：The Information 2026-02（付費牆）。Andy 決定中：有訂閱則存 PDF 放 inbox，否則 J5 維持「出處待補」。

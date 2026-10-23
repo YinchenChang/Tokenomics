@@ -877,7 +877,7 @@ def test_v535_l_split(model, lo):
         assert abs(eng.get("Cap_In", f"{c}{row('消費訂閱營收')}") + eng.get("Cap_In", f"{c}{row('商用席次營收')}") + eng.get("Cap_In", f"{c}{row('API 營收')}") - eng.get("Cap_In", f"{c}{r}")) < 1e-9
     assert abs(eng.get("Cap_In", f"E{row('m_fleet')}") - 0.279813) < 5e-6 and eng.get("Cap_In", f"C{row('自我檢查：2025 欄')}") == "一致"
     assert abs(eng.get("Cap_In", f"C{row('壽命 T')}") - 6) < 1e-12 and abs(eng.get("Cap_In", f"D{row('降級後價值比')}") - rho_lo) < 1e-12
-    assert eng.get("Cap_In", f"C{row('判讀：L_total 對 Gov_Map')}") == "區間內（0.3–1.0）" and eng.get("Cap_In", f"E{row('判讀：L_total 對 Gov_Map')}") == "區間外（0.3–1.0）"
+    assert eng.get("Cap_In", f"C{row('判讀：主口徑 L（L1_LTotalFleetVDisc，世代起點＋折現）對 Gov_Map')}") == "區間內（0.3–1.0）" and eng.get("Cap_In", f"E{row('判讀：主口徑 L（L1_LTotalFleetVDisc，世代起點＋折現）對 Gov_Map')}") == "區間外（0.3–1.0）"
     assert eng.get("Cap_In", f"C{row('判讀：折現的世代起點 L 區間 對 全部算力持有成本的所需 L 區間')}").startswith(("未回本", "未定", "回本")) and eng.get("Cap_In", f"D{row('對照（字面讀法')}").startswith("未回本")      # v15.3 D1：第 242 列改三態（區間對區間，恆等式讀法）；第 243 列退為字面讀法對照
     assert abs(eng.get("Cap_In", f"C{row('回本所需 L（2025 機隊口徑；m＝L1_MAPI')}") - 1.542863) < 5e-6
 
@@ -889,10 +889,10 @@ def test_v536_spend_route_kappa_price(model, lo):
     assert eng.get_name("GOV_Errors") == 0 and eng.get_name("AL_Kappa") == 1.0
     anchors = {"AL_ServeGWSpend": 0.8981, "L1_ScaleServe": 5.97049, "L1_MFleet": 0.61609, "L1_TokPerPromptClose": 30749.840443, "L1_TokCeiling": 1.89739e+10,      # v6.2（2-1-b／c）：Hopper Astra 排除、Alloc 重新正規化；v6.1 為 4.7498、0.5369、23406.6、1.52935e10、0.5498、1.3011、1.0527、6.1801  # v15.2 B2／B3 預期變動：期望值依重算結果更新
                "L1_LReqFleet": 2.03604, "L1_GapSpendBasis": 0.85, "L1_GapPrompt": 1.299156, "L1_GapISL": 1.0, "L1_GapUtil": 1.7217,      # v7.0（2-2-b）：1.4634 → 1.7217  # v15.2 B2／B3 預期變動：期望值依重算結果更新
-               "L1_PriceRealFleet": 0.837489, "L1_PriceRealDemand": 4.92825, "L1_PriceReqBE": 2.585513, "L1_PriceRho": 1.165, "L1_ScaleServe2000": 7.756596}
+               "L1_PriceRealFleet": 0.837489, "L1_PriceRealDemand": 4.92825, "L1_PriceReqBE": 2.263557, "L1_PriceRho": 1.165, "L1_ScaleServe2000": 7.756596}
     for n, v in anchors.items():
         assert abs(eng.get_name(n) - v) <= 1e-3 * abs(v), (n, eng.get_name(n), v)
-    assert abs(eng.get_name("L1_PriceReqBE_Lo") - 1.555283) <= 1e-3 and abs(eng.get_name("L1_PriceReqBE_Hi") - 4.295464) <= 2e-3      # v15.3 E1／E2：L 改變使所需價格 1.4677／4.9859 → 1.5553／4.2955      # v6.3 K1：機隊口徑單價（0.498、1.692 → 0.4026、1.3676）  # v15.2 B2／B3 預期變動：期望值依重算結果更新
+    assert abs(eng.get_name("L1_PriceReqBE_Lo") - 1.513755) <= 1e-3 and abs(eng.get_name("L1_PriceReqBE_Hi") - 3.651691) <= 2e-3      # v20.1：L 改主口徑 L1_LTotalFleetVDisc，1.5553／4.2955 → 1.5138／3.6517（C17 舊值條件）；v15.3 E1／E2：L 改變使所需價格 1.4677／4.9859 → 1.5553／4.2955      # v6.3 K1：機隊口徑單價（0.498、1.692 → 0.4026、1.3676）  # v15.2 B2／B3 預期變動：期望值依重算結果更新
     assert abs(eng.get_name("L1_PriceRho_Lo") - 0.832) <= 1e-3 and abs(eng.get_name("L1_PriceRho_Hi") - 1.355) <= 1e-3
     assert abs(eng.get_name("SRC_DEM_073") - 7.5) < 1e-12 and eng.get_name("SRC_DEM_004_Lo") == 7.5 and eng.get_name("SRC_DEM_004_Hi") == 8.8
     for n in ("AL_Kappa", "L1_ScaleServe2000", "L1_PriceRealFleet", "L1_PriceRealDemand", "L1_PriceReqBE", "L1_PriceRho"):
@@ -1162,20 +1162,21 @@ def test_v800_audit_fix2_3(model, lo):
 
 
 def test_v1000_audit_fix2_5(model, lo):
-    """v10.0 N1：IFW_*_LifeSelf＝_Prod × L1_LTotal × L1_MFleet，且不回流（除 Interface／Load_Bearing／Gov_Map 外，無公式引用 _LifeSelf）；
+    """v10.0 N1（v20.1 起：_Prod × 該世代折現 L × L1_M）：IFW_*_LifeSelf，且不回流（除 Interface／Load_Bearing／Gov_Map 外，無公式引用 _LifeSelf）；
     N2：L1 性質欄逐列有值；N3：CHK_Verify* 只計能失敗的檢查，失敗不進 GOV_Errors。基準期望值為 LibreOffice 重算值。"""
     import openpyxl
     eng = lo.view({})
     n = eng.get_name
     num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
     stems = ["RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront"]
-    L, m = n("L1_LTotal"), n("L1_MFleet")
+    Lg, m = n("L1_LDiscGen"), n("L1_M")      # v20.1：LifeSelf＝_Prod × 該世代折現 L（L1_LDiscGen；O–Q 欄取 VR200）× L1_M（詳見 test_v2010）
+    g_of = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3]
     for s in stems:
         ls, pr = n(f"IFW_{s}_LifeSelf"), n(f"IFW_{s}_Prod")
         assert len(ls) == len(pr) == 15, s
-        for a, b in zip(ls, pr):
+        for k, (a, b) in enumerate(zip(ls, pr)):
             if num(b):
-                assert abs(a - b * L * m) <= 1e-12 * max(1.0, abs(a)), s
+                assert abs(a - b * Lg[g_of[k]] * m) <= 1e-12 * max(1.0, abs(a)), s
             else:
                 assert a == b, s      # 文字（不可達等）原樣帶過
     # 不回流：公式文字掃描

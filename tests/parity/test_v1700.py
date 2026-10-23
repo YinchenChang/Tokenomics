@@ -177,7 +177,7 @@ def test_v1700_decisions_readme(wbf):
     assert "L1_LReqFleet_IdNoK" in d.cell(_row(d, "SL50-01"), 4).value and "L1_LTotalFleetVDisc" in d.cell(_row(d, "SL50-02"), 4).value
     assert d.max_row < 1000      # Gov_Map AA 的 COUNTIF 範圍上限（$A$5:$A$1000）
     rd = wbf["README"]
-    assert str(rd["B5"].value).startswith("20261022_Tokenomics_v20.0（主版：") and "v19.1（次版，底版 v19.0：" in str(rd["B5"].value) and "v19.0（主版：" in str(rd["B5"].value) and "v18.0（主版：" in str(rd["B5"].value) and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v20.0")      # v19.0：版本字串隨版本；v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
+    assert str(rd["B5"].value).startswith("20261023_Tokenomics_v20.1（次版，底版 v20.0：") and "v20.0（主版：" in str(rd["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rd["B5"].value) and "v19.0（主版：" in str(rd["B5"].value) and "v18.0（主版：" in str(rd["B5"].value) and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v20.1")      # v19.0：版本字串隨版本；v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
     rows = [r for r in range(4, rd.max_row + 1) if rd.cell(r, 1).value == "v17.0 回本判讀主口徑"]
     assert len(rows) == 1 and "世代起點、折現的機隊 L" in rd.cell(rows[0], 2).value and "不含 κ" in rd.cell(rows[0], 2).value
 

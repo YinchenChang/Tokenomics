@@ -2,6 +2,13 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261023_Tokenomics_v20.1.xlsx（取代 v20.0；**次版：Interface LifeSelf 改用世代折現 L × 收入面 m；回本所需實收單價改主口徑 L**；依工作單 `docs/workorders/20261023_v20.1_LifeSelf主口徑.md` r0）
+
+- 分支 `claude/v20-1`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v20.1_LifeSelf主口徑.md`；進度檔：`docs/reports/20261023_v20.1_進度.md`；名稱新舊值：`docs/reports/20261023_v20.1_變動名稱.csv`。**待合併（本單明定不自行合併，等 Andy 說「合併」）。**
+- Excel（CC 以 `builder/v2010.py` 自 v20.0 產生，經 LibreOffice 重算存檔；冪等）：W1 新工程類具名範圍 `L1_LDiscGen`（Cap_In C322:F322）；Interface 第 321–328 列 8 個 `IFW_*_LifeSelf` 的 C:Q 改為 `_Prod` × `INDEX(L1_LDiscGen,1,g)` × `L1_M`（Rubin Ultra 取 VR200 的 L）；第 320 列標題與 8 個 A 欄標籤。W2 `L1_PriceReqBE`（＋`_Lo`／`_Hi`）的 L 改 `L1_LTotalFleetVDisc`（1.8798 → 1.6342）。W3 Cap_In 第 238 列判讀改讀主口徑 L（C233 不改）、第 313 列標籤、Interface K 節標題。W4 Decisions SL56-01、README。
+- 連帶：區間端點檔與指紋檔版本字串重產；契約快照 `contract_snapshot_v20.1.json`；下游契約 v0.23；`docs/builder/Tokenomics_builder_v5.md` 重產。
+- 測試：新增 `tests/parity/test_v2010.py`（21 項）；`test_parity.py` 的名稱數（1,785 → 1,786；L1_ 426 → 427）、`L1_PriceReqBE` 錨點、第 238 列標籤與 LifeSelf 公式斷言依預期變動更新；舊測試的版本字串釘版。
+
 ## 20261022_Tokenomics_v20.0.xlsx（取代 v19.1；**主版：2025 校準改 GW 優先、回本改全部算力成本**；依工作單 `docs/workorders/20261022_v20.0_GW優先校準.md` r0）
 
 - 分支 `claude/v20-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261022_v20.0_GW優先校準.md`；進度檔：`docs/reports/20261022_v20.0_進度.md`。**待合併（合併由 Andy 指示）。**

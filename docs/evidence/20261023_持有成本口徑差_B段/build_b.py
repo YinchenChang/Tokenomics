@@ -151,4 +151,8 @@ nq=[(9,'Epoch 機隊對照的矛盾（1.37 對 0.89–0.93）要不要進一步�
 for rw in nq:
     for j,x in enumerate(rw,1):
         c=p.cell(p.max_row+1 if j==1 else p.max_row,j,x); c.alignment=Alignment(wrap_text=True,vertical='top')
+D2={9:'決定（Andy）：維持「不可分離」。補記：OpenAI 揭露支出分項，或揭露對 Azure 的實付價，才能分開。',10:'決定（Andy）：要；只寫進查證檔，不改模型（Tokenomics 維持 10%）。',11:'決定（Andy）：A／B 兩種配置並列即可，不再追；影響 GB300 持有成本 −0.38 至 +0.33（約 ±3%），不改結論。'}
+for i in range(2,p.max_row+1):
+    if p.cell(i,1).value in D2:
+        p.cell(i,7,D2[p.cell(i,1).value]); p.cell(i,7).alignment=Alignment(wrap_text=True,vertical='top')
 wb.save(out); print('saved')

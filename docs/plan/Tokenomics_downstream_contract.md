@@ -121,7 +121,7 @@
 
   基準欄的值（v21.0）：`IF_RackPrice` Hopper 1.1、GB200 3.1、GB300 4.3、VR200 8.4、Rubin Ultra 16.8（低成本欄 0.9／2.8／4.0／7.8／12.6；高成本欄 1.3／3.4／5.0／9.1／21.0）；`IF_ScaleOutShare` 0.10；`IF_StoragePerGPU` 500。`NonNV` H:J 欄（每 token 成本比與角落）仍未接線。ASIC 每顆規格（每 GW 顆數、單價、HBM）不在 Tokenomics，歸 AI半導體（第 6 節）；昇騰、Maia 兩列不在本版，待證據後於 v21.1 加入。取用規則同第 2 條。
 
-- v21.1（次版；NonNV 新增昇騰／Maia 兩列、免費占比時間路徑、說明欄修正，並新增本文第 8 節，工作單 `docs/workorders/20261023_v21.1_NonNV與免費占比路徑.md` r0，分支 `claude/v21-1`，Decisions SL58-01；依 Andy 2026-10-23 13:52–13:56 NonNV Q1–Q4、14:22 利用率／服務占比 J1–J8 照預設、14:51「當然要放」與 13:12「J one J two 都同意」）：**新增 10 個契約名稱（`IF_NonNV_*` 4 個、`L1_FreeShare_*` 與 `L1_RevGW_PQ_VR200_F*` 各 2 個名稱，後兩類另有 `_Lo`／`_Hi`）；既有名稱的值全部不變**（逐格與 v21.0 相同；`IFC_*` 契約欄範圍隨新列延伸，不計）。每個新名稱都讀新格，不改任何既有格。快照 `tests/parity/fixtures/contract_snapshot_v21.1.json`。
+- v21.1（次版；NonNV 新增昇騰／Maia 兩列、免費占比時間路徑、說明欄修正，並新增本文第 8 節，工作單 `docs/workorders/20261023_v21.1_NonNV與免費占比路徑.md` r0，分支 `claude/v21-1`，Decisions SL58-01；依 Andy 2026-10-23 13:52–13:56 NonNV Q1–Q4、14:22 利用率／服務占比 J1–J8 照預設、14:51「當然要放」與 13:12「J one J two 都同意」）：**新增 16 個契約名稱（`IF_NonNV_*` 4 個；`L1_FreeShare_2026`／`_2030` 與 `L1_RevGW_PQ_VR200_F2026`／`_F2030` 各含 `_Lo`／`_Hi`，共 12 個）；另新增來源名稱 `SRC_DEM_089`／`_090` 2 個，具名範圍合計 +18（1,799 → 1,817）；**（chat 端 2026-10-23 獨立查核更正：原寫「10 個」）既有名稱的值全部不變**（逐格與 v21.0 相同；`IFC_*` 契約欄範圍隨新列延伸，不計）。每個新名稱都讀新格，不改任何既有格。快照 `tests/parity/fixtures/contract_snapshot_v21.1.json`。
 
 | 名稱 | 位置 | 單位 | 層級／口徑 | 欄（事前值＝實際值） |
 |---|---|---|---|---|

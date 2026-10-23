@@ -2,6 +2,14 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261023_Tokenomics_v21.1.xlsx（取代 v21.0；**次版：NonNV 新增昇騰／Maia 兩列、免費占比時間路徑；新增 10 個契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261023_v21.1_NonNV與免費占比路徑.md` r0）
+
+- 分支 `claude/v21-1`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v21.1_NonNV與免費占比路徑.md`；進度檔：`docs/reports/20261023_v21.1_進度.md`。**待合併（本單明定不自行合併，等 Andy 說「合併」）。**
+- Excel（CC 以 `builder/v2110.py` 自 v21.0 產生，經 LibreOffice 重算存檔；冪等）：W1 NonNV 第 10 列（華為昇騰 910C／CloudMatrix 384）、第 11 列（Microsoft Maia 200），B:G 十二格新輸入（Assumed，登錄 Gov_Map），第 5–9 列 L 欄追加持有比說明；W2 Interface P 節第 379–382 列 `IF_NonNV_Out_`／`IF_NonNV_Hold_` × Ascend／Maia；W3 SRC_DEM_089／090、DB_Evidence E402、Cap_In Q 節（第 344–348 列）、L1 第 145–148 列（`L1_FreeShare_2026`／`_2030`、`L1_RevGW_PQ_VR200_F2026`／`_F2030`，各含 `_Lo`／`_Hi`；性質欄新增「情境」）；W4 只改文字：Alloc_In G24、SRC_DEM_006 W 欄、Interface A364／A368；Decisions SL58-01；README（Excel 與 repo）。
+- 文件：下游契約 v0.25（v21.1 版本段、第 8 節「AIM 讀者」）；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.1.json`。
+- 連帶：區間端點檔與指紋檔版本字串重產；Checks D86／D118／D119／E118 的範圍隨新列延伸（builder 自動）；GOV_Warnings 133 → 135（SRC_DEM_089／090 為利害關係方、缺第二來源，W1 +2）。
+- 測試：新增 `tests/parity/test_v2110.py`；`scenarios.yaml` 公式格數（54,066 → 54,414）、具名範圍數（1,799 → 1,817）、下游名稱數（248 → 252）、SRC 名稱數（570 → 572）、L1 名稱數（427 → 439）與 `test_parity.py` 的 173 → 177、性質集合加「情境」、GOV 警示計數依預期變動更新；舊測試的版本字串釘版與「既有名稱不變」例外清單更新。
+
 ## 20261023_Tokenomics_v21.0.xlsx（取代 v20.1；**主版：Interface 新增 O 節「硬體取數」與 P 節「非 NVIDIA 比例」，共 13 個 `IF_` 契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261023_v21.0_硬體取數與NonNV.md` r0）
 
 - 分支 `claude/v21-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v21.0_硬體取數與NonNV.md`；進度檔：`docs/reports/20261023_v21.0_進度.md`。**待合併（本單明定不自行合併，等 Andy 說「合併」）。**

@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2110 import NEW_NAMES as V2110_NEW_NAMES      # v21.1：+18 個新名稱（test_v2110 看守）
 
 REPO = Path(__file__).resolve().parents[2]
 V200 = REPO / "model" / "archive" / "20261022_Tokenomics_v20.0.xlsx"
@@ -215,7 +216,7 @@ def test_v2010_records(wbf):
     for key in ("本来就是应该用自己每个世代来算的", "m＝實收單價 ÷ 有效牌價", "07:34", "J1", "J6", "08:54"):
         assert key in txt, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.0（主版：") and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.0")
+    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
     rows = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.1 LifeSelf 主口徑"]
     assert len(rows) == 1 and "L1_LDiscGen" in rm.cell(rows[0], 2).value and "L1_LTotalFleetVDisc" in rm.cell(rows[0], 2).value
     assert wbf.defined_names["L1_LDiscGen"].attr_text == "Cap_In!$C$322:$F$322"
@@ -265,19 +266,19 @@ def test_v2010_diffs_only_expected_vs_v200():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y and (x is not None or ws.title == "Interface" and c == 26):
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
-    allowed = {"Cap_In", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Index", "Alloc", "Checks", "NonNV"}      # v21.0：Checks D118／D119／E118（範圍延伸）、NonNV M5:M9（test_v2100 看守）
+    allowed = {"Cap_In", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Index", "Alloc", "Checks", "NonNV", "Alloc_In", "SRC_Demand", "DB_Evidence"}      # v21.0：Checks D118／D119／E118（範圍延伸）、NonNV M5:M9（test_v2100 看守）； v21.1：Alloc_In G24、SRC_Demand W10（test_v2110 看守）
     assert set(d) <= allowed, set(d) - allowed
     # Cap_In 既有格：只有 A238、C238:E238、A313
     assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A313", "C238", "D238", "E238"], sorted(t[0] for t in d["Cap_In"])
     # L1 既有格：只有第 93 列的 B／C／D／E／F／H（以及指向它的說明欄不變）
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"]}) == [r93], d["L1"][:3]
-    assert {re.sub(r"\d+", "", t[0]) for t in d["L1"]} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
+    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [r93], d["L1"][:3]      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
+    assert {re.sub(r"\d+", "", t[0]) for t in d["L1"] if t[0] != "T4"} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
     # Interface：LifeSelf 列（C:Q 與 A）、第 320 列標題、K 節標題、契約元資料欄（R／V／W）、Z 欄說明
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
     assert cols <= set("ACDEFGHIJKLMNOPQ") | {"R", "S", "T", "U", "V", "W", "Z"}, cols
     # 名稱：只新增 L1_LDiscGen
     na, nb = set(a.defined_names), set(b.defined_names)
-    assert na <= nb and nb - na == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")}, sorted(nb - na)      # v21.0：+13（test_v2100 看守）
+    assert na <= nb and nb - na == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")} | V2110_NEW_NAMES, sorted(nb - na)      # v21.0：+13（test_v2100 看守）
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

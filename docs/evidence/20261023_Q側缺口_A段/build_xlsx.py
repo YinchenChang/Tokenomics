@@ -52,8 +52,8 @@ NF = [
 CHAT = ["openai.com 原文（HTTP 403）","sec.gov：Microsoft 10-Q／10-K、CoreWeave、Oracle 申報","wheresyoured.at、nextplatform.com、deepquarry.substack.com、sacra.com、aiafterhours.substack.com、safeguard.sh、controlplane.news、techcrunch.com、cnbc.com、finance.yahoo.com（本環境 DNS 失敗，改用搜尋摘要）","The Information 原文（付費牆）"]
 JD = [
 ("J1","SRC_DEM_006（訓練 120 億）出處標『待補』，數值先不改","只標記，不改值","本段未找到原文；最近外部數為 94 億（日期不明）"),
-("J2","口徑因子：204 億（84＋120）超過 Epoch 引的 2025 雲端總支出 160 億，是否要在 B4_Serve 分母改用 160 或 84＋76","維持現值 0.41，於報告標註敏感度","改動屬判斷類；兩條路對 0.41 的影響請見 README 敏感度"),
-("J3","價格因子是否由 0.85 改採 1.0–1.4 區間","等 chat 端讀 SEC 與 Drive 筆記後定","本段無 OpenAI 實付 $/GPU·小時"),
+("J2","204 億與 Epoch 160 億的差距，B4_Serve 分母是否調整","維持 0.41，160 億已被查核帳取代","查核帳框出 2025 全部算力約 172–210 億，與 204 億相容（s 約 0.85–1.0，chat 端）"),
+("J3","價格因子是否由 0.85 改採區間","交 chat 端審閱檔","本段無 OpenAI 實付價；chat 端 Derived 區間 1.4–2.3 倍"),
 ("J4","GW 因子","維持 AL_FleetGW25=1.128（你已決定 GW 不調）","官方端點內插已落在 1.0–1.25"),
 ]
 
@@ -102,7 +102,7 @@ for i,(n,g,p,k) in enumerate(sc,30):
         c=ws.cell(row=i,column=col,value=v); 
         if not (isinstance(v,str) and v.startswith("=")): c.font=blue
     ws.cell(row=i,column=5,value=f"=B{i}*C{i}*D{i}"); ws.cell(row=i,column=6,value="=$B$12"); ws.cell(row=i,column=7,value=f"=E{i}/F{i}")
-ws["A34"]="註：口徑因子中檔／高檔取 1/s＝204÷160（Epoch 雲端總支出），為 Derived 且與總支出口徑同源，僅示範量級。"
+ws["A34"]="註：(d) 為舊版對照，口徑因子取 204÷160（Epoch 雲端總支出）；160 億已被查核帳取代（chat 端），不作結論。"
 ws["A36"]="(e) 兩年一致性（Assumed 區間，不是來源值）"; ws["A36"].font=hf
 head(ws,37,["項目","低","高","備註"])
 rows=[("2025 總算力支出（$B）","=B7","=B7","Epoch 引報導"),("2025 平均 GW",1.0,1.25,"官方端點內插區間"),("2025 支出÷GW（$B/GW·年）","=B38/C39","=C38/B39","高＝支出÷低GW"),
@@ -111,6 +111,12 @@ for i,r in enumerate(rows,38):
     for j,v in enumerate(r,1):
         c=ws.cell(row=i,column=j,value=v)
         if j in (2,3) and not (isinstance(v,str)): c.font=blue
+ws["A47"]="(f) 依查核帳 s（chat 端）反推價格因子 P＝R÷(1/s)＝R×s（必須為真）"; ws["A47"].font=hf
+head(ws,48,["s（chat 端）","P（GW=1.0）","P（GW=1.128）","P（GW=1.25）"])
+for i,sv in enumerate([0.85,1.0],49):
+    c=ws.cell(row=i,column=1,value=sv); c.font=blue
+    for col,gr in [(2,17),(3,18),(4,19)]: ws.cell(row=i,column=col,value=f"=$D${gr}*$A{i}")
+ws["A51"]="chat 端 Derived：Azure 隱含每 GW·年為持有成本的 1.4–2.3 倍（約 $2.3–3.9／GPU 小時），非實付價直接證據"
 ws.column_dimensions["A"].width=48
 for col in "BCDEFGH": ws.column_dimensions[col].width=22
 

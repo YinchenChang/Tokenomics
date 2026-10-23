@@ -293,5 +293,6 @@ def test_v1800_existing_names_unchanged():
         if not same:
             changed.add(n)
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
-    assert tuple(val(cw, n)[0] for n in ("GOV_Errors", "GOV_Warnings", "GOV_Info")) == (0, 133, 182)      # v17.2 同；v18.0 不增減任何治理計數
+    assert tuple(val(cw, n)[0] for n in ("GOV_Errors", "GOV_Warnings", "GOV_Info")) == (0, 135, 182)      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)
+    #      # v17.2 同；v18.0 不增減任何治理計數
     assert val(cw, "RNG_StaleFlag")[0] == "一致" and val(cw, "RNG_OutCount")[0] == 0 and val(cw, "CHK_L1Order")[0] == 0

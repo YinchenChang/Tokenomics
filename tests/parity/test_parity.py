@@ -241,7 +241,7 @@ def test_interface_d_e_shapes(model, lo):
         assert isinstance(v, list) and len(v) == 15 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v), f"{n}: {v!r}"
     v = eng.get_name("IF_WarrantyYrs"); assert not isinstance(v, list) and isinstance(v, (int, float)) and not isinstance(v, bool), v
     v531_new |= {"IF_WarrantyYrs"}
-    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) - len(v531_new) == 173  # v21.0：160 → 173（Interface O／P 節 13 個名稱）； v20.0：158 → 160（IF_ProdDerate_Lo／_Hi）； v19.0：133 → 158（downstream_names 208 → 233，新增 Interface N 節 25 個 IF_ 名稱）； v15.0：132 → 133（downstream_names 207 → 208，新增 IF_FrontSuccVRQual）； v5.31 新增 3 個； v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個
+    assert len(v510_new) == 10 and EXPECT["downstream_names"] - len(v59_new) - len(v510_new) - len(v519_new) - len(v522_new) - len(v526_new) - len(v531_new) == 177  # v21.1：173 → 177（Interface P 節 IF_NonNV_Out_／Hold_ × Ascend／Maia 4 個名稱）； v21.0：160 → 173（Interface O／P 節 13 個名稱）； v20.0：158 → 160（IF_ProdDerate_Lo／_Hi）； v19.0：133 → 158（downstream_names 208 → 233，新增 Interface N 節 25 個 IF_ 名稱）； v15.0：132 → 133（downstream_names 207 → 208，新增 IF_FrontSuccVRQual）； v5.31 新增 3 個； v5.8 的下游名稱數 113＋v5.15 的 IF_Alloc* 7 個；v5.10 新增 10 個；v5.19 新增 7 個；v5.22 新增 4 個；v5.26 新增 10 個
     for n in (n for n in eng.names if n.startswith(("B4_", "B5_"))):                       # B4_／B5_：每個名稱都能取值（形狀不另規定）
         eng.get_name(n)
     mkt = eng.get_name("B4_MktChina")                                                       # v5.9：中國廠商旗標（1＝中國廠商），與國別欄同長
@@ -1193,7 +1193,7 @@ def test_v1000_audit_fix2_5(model, lo):
     assert not bad, bad[:5]
     # N2：L1 性質欄（T）每個有數值列都有五種性質之一
     ws = wb["L1"]
-    kinds = {"估計", "殘差", "倒推", "恆等式", "未解釋", "觀測比值"}      # v20.0：L1_M 系列新增「觀測比值」性質
+    kinds = {"估計", "殘差", "倒推", "恆等式", "未解釋", "觀測比值", "情境"}      # v20.0：L1_M 系列新增「觀測比值」性質； v21.1：L1_RevGW_PQ_VR200_F2026／_F2030 新增「情境」性質
     cnt = {}
     for r in range(5, ws.max_row + 1):
         if ws.cell(r, 1).value and ws.cell(r, 4).value is not None:

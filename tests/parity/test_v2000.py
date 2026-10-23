@@ -199,7 +199,7 @@ def test_v2000_stress_scenarios_no_error_values(lo):
 def test_v2000_governance_counts(lo):
     v = lo.view({})
     # Warnings 132 → 133：SRC_DEM_088（利害關係方、3 級）缺第二來源，W1 +1（真實狀態，chat 端接受；不補來源、不給免除）；H3 不變（CHK_L1Order＝0）
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 135, 182)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
     r = next(r for r in range(1, 400) if v.get("Checks", f"A{r}") == "P1")
     assert v.get("Checks", f"D{r}") == 0 and v.get("Checks", f"C{r}") == "WARN"
@@ -231,7 +231,7 @@ def test_v2000_records(wbf):
     txt = d.cell(rd[0], 4).value + d.cell(rd[0], 6).value
     assert "產業校準錨點" in txt and "16:11" in txt and "20:57" in txt and "07:34" in txt
     rm = wbf["README"]
-    assert "v20.0（主版：" in str(rm["B5"].value) and str(rm["B5"].value).startswith("20261023_Tokenomics_v21.0（主版：") and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.0")      # v20.1：現行版字串為 v20.1
+    assert "v20.0（主版：" in str(rm["B5"].value) and "20261023_Tokenomics_v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")      # v20.1：現行版字串為 v20.1
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"]) == 1
     assert "L1_LReqFleet_Full" in str([rm.cell(x, 2).value for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"][0])
 
@@ -289,7 +289,7 @@ def test_v2000_diffs_only_expected_vs_v191():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y and x is not None:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
-    allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index"}      # v21.0：NonNV M5:M9
+    allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index", "Alloc_In", "DB_Evidence", "Decisions"}      # v21.0：NonNV M5:M9； v21.1：Alloc_In G24（test_v2110 看守）
     assert set(d) <= allowed, set(d) - allowed
     # Alloc：只有 A70（標籤尾注）與版本字串 C177／C178
     assert sorted(t[0] for t in d["Alloc"]) == ["A70", "C177"]
@@ -311,6 +311,6 @@ def test_v2000_diffs_only_expected_vs_v191():
     assert {"AL_FleetGW25", "AL_FleetGW25_Lo", "AL_FleetGW25_Hi", "AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", "SRC_DEM_088"} <= new
     for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex"):
         assert {f"L1_{k}", f"L1_{k}_Lo", f"L1_{k}_Hi"} <= new, k
-    assert len(new) == 8 + 33 + 1 + 13, sorted(new)      # v21.0：+13（Interface O／P 節）； v20.1：+ L1_LDiscGen
+    assert len(new) == 8 + 33 + 1 + 13 + 18, sorted(new)      # v21.1：+18（IF_NonNV 4、L1 12、SRC_DEM_089／090；test_v2110 看守）； v21.0：+13（Interface O／P 節）； v20.1：+ L1_LDiscGen
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

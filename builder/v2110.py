@@ -130,7 +130,7 @@ def rack_label_fix(wb):
     assert m, t
     t = t.replace(m.group(0), new_sent + "；")
     ru_old = "價格為 VR200 機架價 × 倍數（Assumed，無公開報價）"
-    ru_new = "價格為 VR200 機架價 × 倍數（基準倍數 2.0，Spec_Rack G12＝F12 × 2；Assumed，無公開報價）"
+    ru_new = "價格為 VR200 機架價 × 倍數（Assumed，無公開報價）；基準倍數 2.0（Spec_Rack G12＝F12 × 2）"
     assert ru_old in t, t
     ws[f"A{r}"].value = t.replace(ru_old, ru_new)
     return 1

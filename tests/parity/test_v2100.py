@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2110 import NEW_NAMES as V2110_NEW_NAMES      # v21.1：+18 個新名稱（test_v2110 看守）
 
 REPO = Path(__file__).resolve().parents[2]
 V201 = REPO / "model" / "archive" / "20261023_Tokenomics_v20.1.xlsx"
@@ -155,7 +156,7 @@ def test_v2100_existing_names_unchanged(lo):
 def test_v2100_names_added_only(wbf):
     a = openpyxl.load_workbook(V201)
     na, nb = set(a.defined_names), set(wbf.defined_names)
-    assert na <= nb and nb - na == NEW_NAMES, sorted(nb - na)
+    assert na <= nb and nb - na == NEW_NAMES | V2110_NEW_NAMES, sorted((nb - na) ^ NEW_NAMES)      # v21.1：另加 V2110_NEW_NAMES
     changed = {k for k in na if a.defined_names[k].attr_text != wbf.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]
     for nm in NEW_NAMES:
@@ -176,13 +177,13 @@ def test_v2100_diffs_only_expected_vs_v201():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
-    allowed = {"Alloc", "Checks", "Decisions", "Interface", "L1", "NonNV", "README"}
+    allowed = {"Alloc", "Checks", "Decisions", "Interface", "L1", "NonNV", "README", "Alloc_In", "Cap_In", "DB_Evidence", "Gov_Map", "Load_Bearing", "SRC_Demand", "SRC_Index"}      # v21.1：另加的頁由 test_v2110 看守
     assert set(d) <= allowed, set(d) - allowed
     assert [t[0] for t in d["Alloc"]] == ["C177"]      # 版本字串
-    assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "E118"], d["Checks"]      # 契約欄檢查的範圍 R6:R361 → R6:R378（builder 自動延伸）
-    assert sorted(t[0] for t in d["NonNV"]) == [f"M{r}" for r in range(5, 10)]
+    assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "D86", "E118"], d["Checks"]      # v21.1：D86（SRC 範圍計數公式隨新紀錄延伸）      # 契約欄檢查的範圍 R6:R361 → R6:R378（builder 自動延伸）
+    assert [t[0] for t in d["NonNV"] if t[0][0] == "M" and int(t[0][1:]) <= 9] == [f"M{r}" for r in range(5, 10)]      # v21.1：NonNV 其餘變動（A1、L5:L9、第 10–11 列）由 test_v2110 看守
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted(t[0] for t in d["L1"]) == [f"{c}{r93}" for c in "CIJK"], [t[0] for t in d["L1"]]
+    assert sorted(t[0] for t in d["L1"] if int(re.sub(r"[A-Z]+", "", t[0])) <= 144 and t[0] != "T4") == [f"{c}{r93}" for c in "CIJK"], [t[0] for t in d["L1"]]      # v21.1：T4 表頭與第 145 列以後由 test_v2110 看守
     # Interface：既有列（≤ 361）的 A–Q 不變；R–Y 契約欄的變動只限因範圍延伸而改的格（無）；新列在 363 以後
     old_last = 361      # v20.1 Interface 最後一列（N 節）
     for coord, x, y in d["Interface"]:
@@ -200,7 +201,7 @@ def test_v2100_records_and_text(wbf):
     for key in ("先做 Tokenomics V 二十一", "你這樣的規劃，我是認同的", "R1.6.1 第 13 條", "同步請求回覆", "R4R5與權威歸屬"):
         assert key in txt, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.0（主版：") and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.0")
+    assert "20261023_Tokenomics_v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.0 硬體取數與 NonNV"]
     assert len(rr) == 1 and "IF_RackPrice" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_" in rm.cell(rr[0], 2).value
     ws = wbf["Interface"]

@@ -1513,7 +1513,7 @@ def test_v1300_existing_contract_names_unchanged(model, lo):
     from openpyxl.utils import range_boundaries
     prev = openpyxl.load_workbook(V120_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED]      # v15.2：B2／B3 預期變動名單（605 個既有契約名稱中 252 個移出對照，餘 353 個仍須與 v12.0 相同）；      # v14.0（4-3B Q4）：CHK_VerifyTotal／Pass 因新增 V23–V26 而變（見檔尾斷言）；Fail／Warn 仍須相同
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱（test_v2120 看守）      # v15.2：B2／B3 預期變動名單（605 個既有契約名稱中 252 個移出對照，餘 353 個仍須與 v12.0 相同）；      # v14.0（4-3B Q4）：CHK_VerifyTotal／Pass 因新增 V23–V26 而變（見檔尾斷言）；Fail／Warn 仍須相同
     assert len(keep) >= 300, len(keep)      # v15.3：350 → 340（再扣除 v15.3 預期變動名稱後餘 343）； v15.2：500 → 350（預期變動名稱移出後的餘額 353）      # v19.1：扣除預期變動名稱後 ≥ 300
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)

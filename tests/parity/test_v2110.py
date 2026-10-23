@@ -247,7 +247,7 @@ def test_v2110_diffs_only_expected_vs_v210():
     # L1：T4 表頭；其餘為第 145 列以後新增
     for coord, x, y in d["L1"]:
         row = int(re.sub(r"[A-Z]+", "", coord))
-        assert coord in ("T4", "C71", "H71") or (row >= 145 and x is None), (coord, x, y)      # v21.2：C71／H71（test_v2120 看守）
+        assert coord in ("T4", "C71", "H71", "K71") or (row >= 145 and x is None), (coord, x, y)      # v21.2：C71／H71／K71（test_v2120 看守）
     assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "D86", "E118"] or sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "E118"], d["Checks"]
     nn = sorted(t[0] for t in d["NonNV"])
     assert nn == sorted(["A1", "L5", "L6", "L7", "L8", "L9"] + [f"{c}{r}" for r in (10, 11) for c in "ABCDEFGHIJKLM"]), nn

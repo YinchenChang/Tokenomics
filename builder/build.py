@@ -98,6 +98,8 @@ STR = sens_train(wb, SP, AR, TI, PB, TR)
 U = unit_cost(wb, PR)
 WL = workload(wb, U)
 nonnv(wb)
+import v2110
+v2110.nonnv_rows(wb)       # v21.1 W1: NonNV rows 10 (Ascend) and 11 (Maia); before restore so the blue inputs are restored from the workbook on a rebuild
 interface(wb, PR, U)
 def last_row(ws):
     return max(c.row for row in ws.iter_rows() for c in row if c.value is not None)
@@ -141,6 +143,7 @@ import v1700
 V1700_O = v1700.cap_in_o(wb, V1600_N)      # v17.0 W1: Cap_In O section (discounted generation-start fleet L; below N, nothing above moves)
 import v2000
 V2000_P = v2000.cap_in_p(wb, V1700_O)      # v20.0 W1／W2／W4: Cap_In P section (GW-first calibration, whole-fleet payback, comparison rows; below O, nothing above moves)
+V2110_Q = v2110.cap_in_q(wb, V2000_P)      # v21.1 W3: Cap_In Q section (free-share time path, rows 344-348; below P, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -295,6 +298,7 @@ IFN = v1900.interface_n(wb)            # v19.0: Interface N section (P x Q 取�
 v2000.interface_n_ext(wb)             # v20.0 W4: IF_ProdDerate_Lo／_Hi in D／E of the IF_ProdDerate row
 import v2100
 IFOP = v2100.interface_op(wb)         # v21.0 W1／W2: Interface O (hardware 取數) and P (non-NVIDIA ratios) sections; appended last, before the contract columns are built
+v2110.interface_op_ext(wb)             # v21.1 W2: Interface rows 379-382 (IF_NonNV_Out_／Hold_ Ascend／Maia) and the P title tail
 SER14 = v1400.series_names(wb)         # v14.0 (4-3B Q2): L1_*_Ser／L1_MFleet_P25Lo／Hi series names on Cap_In
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
@@ -395,6 +399,8 @@ V2010 = v2010.apply(wb, v518._append_text)       # v20.1: Cap_In 238 / 313 and I
 print("v2010 v20.1:", V2010)
 V2100 = v2100.apply(wb, v518._append_text)       # v21.0: NonNV M5:M9 text, Decisions SL57-01
 print("v2100 v21.0:", V2100)
+V2110 = v2110.apply(wb, v518._append_text)       # v21.1: NonNV text, Alloc_In G24／SRC_DEM_006／Interface A364 text, 用途 marks, E402, Decisions SL58-01
+print("v2110 v21.1:", V2110)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

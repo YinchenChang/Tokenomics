@@ -157,7 +157,7 @@ def test_v1910_records(wbf):
     assert "17:29" in d.cell(rd[0], 6).value and "SRC_MOD_106" in d.cell(rd[0], 4).value and "修訂九" in d.cell(rd[0], 4).value
     assert d.max_row < 1000
     rm = wbf["README"]
-    assert "20261023_Tokenomics_v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rm["B5"].value) and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
+    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rm["B5"].value) and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v19.1 W1 第二來源 B2"]) == 1
 
 

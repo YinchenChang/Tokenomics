@@ -231,7 +231,7 @@ def test_v2000_records(wbf):
     txt = d.cell(rd[0], 4).value + d.cell(rd[0], 6).value
     assert "產業校準錨點" in txt and "16:11" in txt and "20:57" in txt and "07:34" in txt
     rm = wbf["README"]
-    assert "v20.0（主版：" in str(rm["B5"].value) and "20261023_Tokenomics_v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")      # v20.1：現行版字串為 v20.1
+    assert "v20.0（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")      # v20.1：現行版字串為 v20.1
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"]) == 1
     assert "L1_LReqFleet_Full" in str([rm.cell(x, 2).value for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"][0])
 

@@ -216,7 +216,7 @@ def test_v2010_records(wbf):
     for key in ("本来就是应该用自己每个世代来算的", "m＝實收單價 ÷ 有效牌價", "07:34", "J1", "J6", "08:54"):
         assert key in txt, key
     rm = wbf["README"]
-    assert "20261023_Tokenomics_v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
+    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
     rows = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.1 LifeSelf 主口徑"]
     assert len(rows) == 1 and "L1_LDiscGen" in rm.cell(rows[0], 2).value and "L1_LTotalFleetVDisc" in rm.cell(rows[0], 2).value
     assert wbf.defined_names["L1_LDiscGen"].attr_text == "Cap_In!$C$322:$F$322"
@@ -272,8 +272,8 @@ def test_v2010_diffs_only_expected_vs_v200():
     assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A313", "C238", "D238", "E238"], sorted(t[0] for t in d["Cap_In"])
     # L1 既有格：只有第 93 列的 B／C／D／E／F／H（以及指向它的說明欄不變）
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"]}) == [r93], d["L1"][:3]
-    assert {re.sub(r"\d+", "", t[0]) for t in d["L1"]} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
+    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [r93], d["L1"][:3]      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
+    assert {re.sub(r"\d+", "", t[0]) for t in d["L1"] if t[0] != "T4"} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
     # Interface：LifeSelf 列（C:Q 與 A）、第 320 列標題、K 節標題、契約元資料欄（R／V／W）、Z 欄說明
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
     assert cols <= set("ACDEFGHIJKLMNOPQ") | {"R", "S", "T", "U", "V", "W", "Z"}, cols

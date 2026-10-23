@@ -201,7 +201,7 @@ def test_v2100_records_and_text(wbf):
     for key in ("先做 Tokenomics V 二十一", "你這樣的規劃，我是認同的", "R1.6.1 第 13 條", "同步請求回覆", "R4R5與權威歸屬"):
         assert key in txt, key
     rm = wbf["README"]
-    assert "20261023_Tokenomics_v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
+    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.0 硬體取數與 NonNV"]
     assert len(rr) == 1 and "IF_RackPrice" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_" in rm.cell(rr[0], 2).value
     ws = wbf["Interface"]

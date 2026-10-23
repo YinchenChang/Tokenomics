@@ -1,5 +1,5 @@
 {
-"version": "20261023_Tokenomics_v21.1",
+"version": "20261023_Tokenomics_v21.2",
 "roots": 73,
 "leaves": [
 [
@@ -3040,17 +3040,17 @@
 [
 "Alloc_In",
 "C23",
-0.85
+1.8
 ],
 [
 "Alloc_In",
 "D23",
-0.73
+0.85
 ],
 [
 "Alloc_In",
 "E23",
-1.17
+2.3
 ],
 [
 "Alloc_In",

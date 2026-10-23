@@ -3,6 +3,9 @@ import openpyxl, sys
 from openpyxl.styles import Font, PatternFill, Alignment
 src,out=sys.argv[1],sys.argv[2]
 wb=openpyxl.load_workbook(src)
+import openpyxl as _o
+_m=_o.load_workbook('model/'+open('model/CURRENT').read().strip(),data_only=True)
+dc=_m['DC_Cost']
 BLUE=Font(color='0000FF'); BOLD=Font(bold=True); HDR=PatternFill('solid',fgColor='DDEBF7'); SEC=PatternFill('solid',fgColor='F2F2F2')
 T="'TK 拆解'!"
 s=wb.create_sheet('B 段')
@@ -113,12 +116,65 @@ put(['TK 對照：廠房側成本占持有成本（廠房年金＋電費＋廠�
 put(['TK 對照：IT 帳面折舊 ÷ 持有成本（組合）',f'={T}G39/{T}E11/{T}G66',None,'CoreWeave 折舊占營收 54%；TK 組合 IT 折舊約 47%（以 9.35 為營收）；差距可由新世代較貴、含租賃改良折舊解釋（Derived）'],{2:'0%'})
 put(['CoreWeave active power Q1 末（GW）',1.0,None,'由 Q2 末 1.5GW 與「Q2 淨增近 500MW」反推（與「Q1 突破 1GW」一致）；IT 或設施口徑未取得'],{2:'0.0'},blue=(2,))
 put(['CoreWeave active power Q2 末（GW）',1.5,None,'Q2 新聞稿（搜尋摘要，二手）'],{2:'0.0'},blue=(2,))
-put(['平均 active power Q2（GW）',f'=(B{r[0]-2}+B{r[0]-1})/2',None,''],{2:'0.00'})
+avgr=put(['平均 active power Q2（GW）',f'=(B{r[0]-2}+B{r[0]-1})/2',None,''],{2:'0.00'})
 put(['營收年化 ÷ 平均 active power（$B/GW·年）',f'=B{rv}*4/1000/B{r[0]-1}',None,'Q4 2025 為 8.73（A 段）；新容量爬坡拉低比值'],{2:N})
 put(['  ÷ TK 組合 9.35',f'=B{r[0]-1}/{T}G66',None,''],{2:N})
 put(['  隱含 $/GPU-hr（用 TK 組合每 GW GPU 數）',f'=B{r[0]-2}*1000000000/({T}G35*8760)',None,'明顯低於 H100 指數 2.5–3.2：爬坡落差（電通但未計費）＋舊約低價＋口徑；不可分離'],{2:N})
 put(['Nebius 設備耐用年限','4 → 5 年（2026Q1 起）','','折舊率下降約 20%，抬高帳面利潤，不改現金成本；MW 定義未揭露'])
 put(['未取得（待 Drive inbox 的 10-Q 全文）','active power 定義、GPU 耐用年限、債務利率','','→ 有了債務利率才能把「出租方折現率 3–8%」落到 CoreWeave 實值'])
+# ---- 6 資金成本依公司分列
+sec('6. 出租方資金成本依公司分列；IREN 租金差額重新拆解（CoreWeave 10-Q Note 10；IREN 8-K）')
+s.cell(r[0],1,'注意：10-Q 只讀到 181 頁中的前約 80 頁（財報本文、附註 1–15、MD&A 前半）；active power 與 contracted power 定義、GPU 耐用年限未找到。').alignment=Alignment(wrap_text=True); r[0]+=1
+hdr(['CoreWeave 債務（2026-06-30；$M）','有效利率','餘額 $M','類別','說明'])
+debt=[('DDTL 1.0',.15,1300,'DDTL'),('DDTL 2.0',.11,3190,'DDTL'),('DDTL 2.1',.09,3000,'DDTL'),('DDTL 3.0',.09,2215,'DDTL'),('DDTL 5.0（SOFR+4.50%）',.09,1101,'DDTL'),('DDTL 4.0（non-recourse；SOFR+2.25% 或 Treasury+2.00%）',.07,2837,'DDTL'),('2030 Senior Notes',.10,2000,'其他'),('2031 9.00% Notes',.10,1750,'其他'),('2031 9.75% Notes',.10,2750,'其他'),('2032 9.625% Notes',.10,1250,'其他'),('2032 EUR Notes',.09,2279,'其他'),('2031 Convertible',.02,2588,'可轉債'),('2032 Convertible',.02,4000,'可轉債'),('OEM／Software financing（recourse）',.11,4220,'其他'),('OEM／Software financing（non-recourse）',.09,882,'其他'),('Magnetar Loan',.12,189,'其他')]
+d0=r[0]
+for nm,rt,bal,ty in debt: put([nm,rt,bal,ty,'10-Q Note 10「Effective Interest Rates」'],{2:'0%',3:'#,##0'},blue=(2,3))
+d1=r[0]-1
+rg=lambda c: f'{c}{d0}:{c}{d1}'
+wa=put(['加權平均（全部，按餘額）',f'=SUMPRODUCT({rg("B")},{rg("C")})/SUM({rg("C")})',f'=SUM({rg("C")})','','Derived（10-Q 無整體加權平均；原文只有 OEM 短期工具 9%）'],{2:'0.0%',3:'#,##0'})
+wb_=put(['加權平均（不含可轉債）',f'=SUMPRODUCT(({rg("D")}<>"可轉債")*{rg("B")}*{rg("C")})/SUMPRODUCT(({rg("D")}<>"可轉債")*{rg("C")})',None,'','Derived'],{2:'0.0%'})
+wc=put(['加權平均（DDTL 系列，GPU 擔保）',f'=SUMPRODUCT(({rg("D")}="DDTL")*{rg("B")}*{rg("C")})/SUMPRODUCT(({rg("D")}="DDTL")*{rg("C")})',None,'','Derived'],{2:'0.0%'})
+put(['Q2 利息費用淨額年化 ÷ 債務餘額',f'=640*4/C{wa}',None,'','Derived；利息費用 (640)，含資本化等影響'],{2:'0.0%'})
+put(['IREN GPU 融資平均成本',0.0331,None,'','8-K 後續融資新聞：$3.65B 投資級設施＋客戶預付款，涵蓋 $5.81B 的 96%；債務以 Microsoft 長約為擔保（個案）'],{2:'0.00%'},blue=(2,))
+put(['Tokenomics WACC（基準）',f'={T}E10',None,'','Assumed（區間 8–13%）'],{2:'0.0%'})
+s.cell(r[0],1,'讀法：出租方資金成本依公司而異——IREN 3.31%（Microsoft 擔保＋預付款）；CoreWeave 債務 9.6–9.9%，接近 TK 的 10%。先前「出租方折現率 3–8%」只適用 IREN 個案，不能推廣為市場常態。').alignment=Alignment(wrap_text=True); r[0]+=2
+hdr(['IREN 租金差額（GB300，$B/GW·年）重新拆解','IREN IT capex','IREN 廠房 capex','IT capex 效果','廠房 capex 效果','營運費用效果','折現率與其他殘差','租金差額（IREN 9.70 − TK）','殘差占差額'])
+CR=f'{T}E10/(1-(1+{T}E10)^(-{T}E11))'
+def gaprow(lab,it,fac):
+    rr=r[0]
+    put([lab,it,fac,f'=(B{rr}-{T}E39)*{CR}',f'=(C{rr}-{T}E46)*{T}E54/{T}E46',f'=0.15*9.7-{T}E65',f'=H{rr}-D{rr}-E{rr}-F{rr}',f'=9.7-{T}E66',f'=G{rr}/H{rr}'],{2:N,3:N,4:'0.000',5:'0.000',6:'0.000',7:'0.000',8:'0.000',9:'0%'},blue=(2,3))
+gaprow('A. 叢集部署歸 IT 側（32.0）；廠房＝本體 10',f'=B{perg}+B{cl}',10)
+gaprow('B. 叢集部署歸廠房側（29.0；廠房 13）',f'=B{perg}',13)
+gaprow('C. 全包（29.0；廠房 15）',f'=B{perg}',15)
+s.cell(r[0],1,'效果＝以 TK 的 WACC 10%、IT 6 年、廠房年金率計算「IREN 的 capex 相對 TK 的 capex」造成的年持有成本差；營運效果＝IREN 營運下界 1.455 減 TK 營運 1.98；殘差＝其餘（含折現率差與配置誤差）。結論：差額主要來自 IT 設備單價（B、C 配置約 −0.74，占 63%）與營運費用（約 −0.53，占 44%）；折現率與其他殘差只占 −4% 至 24%，隨叢集部署歸屬而變，不是主因。').alignment=Alignment(wrap_text=True); r[0]+=1
+hdr(['隱含 WACC（使年持有成本＝IREN 租金 9.70；Derived，二分法）','用 IREN 營運 1.455','用 TK 營運 1.98','說明'])
+import math
+def crf_(w,n): return w/(1-(1+w)**-n)
+def fa(w,fac):
+    parts=[(3.6,30),(4.5,20),(2.5,15),(0.4,10)]
+    tot=sum(a for a,_ in parts)*1.15+.02
+    return (sum(a*crf_(w,n) for a,n in parts)*1.15+.02*w)/tot*fac
+def solv(it,fac,opex):
+    lo,hi=.0001,.5
+    for _ in range(80):
+        m=(lo+hi)/2
+        if it*crf_(m,6)+fa(m,fac)+opex>9.7: hi=m
+        else: lo=m
+    return m
+tko=dc['J48'].value
+for lab,it,fac in (('A（IT 32.0；廠房 10）',32,10),('B（IT 29.0；廠房 13）',29,13),('C（IT 29.0；廠房 15）',29,15)):
+    put([lab,solv(it,fac,1.455),solv(it,fac,tko),'廠房年金依 TK 各分項年限比例縮放'],{2:'0.0%',3:'0.0%'})
+s.cell(r[0],1,'讀法：以 IREN 自己的 capex 與營運下界計算，隱含 WACC 約 9–10%，與 TK 的 10% 相當。IREN 的 0.89 倍不需要「低折現率」來解釋；A 段「使 TK 等於 IREN 租金需 WACC 6.2–7.9%」是在固定 TK 的 capex 與營運下求得，混入了 capex 與營運差異。').alignment=Alignment(wrap_text=True); r[0]+=2
+hdr(['CoreWeave 2026Q2 觀察（單家、單季，待驗證）','值','','說明'])
+cw=put(['營收年化 ÷ 平均 active power（照字面當 IT）',f'=B{rv}*4/1000/B{avgr}',None,'同第5節；分母為反推值（Q1 末 1.0、Q2 末 1.5 的平均），IT 或設施口徑未取得'],{2:N})
+cwg=put(['  若 active power 為設施口徑，換 IT（×PUE）',f'=B{cw}*{T}C9',None,'未取得定義，此為上界情境'],{2:N})
+put(['  ÷ TK 組合 9.35：IT 情境／設施情境',f'=B{cw}/{T}G66',f'=B{cwg}/{T}G66',''],{2:N,3:N})
+put(['  使 TK 組合持有成本＝此營收的隱含 WACC：IT 情境',f'=0.05+(B{cw}-{T}G80)/({T}G81-{T}G80)*0.03',None,'線性內插 TK 拆解第80–81列（5%、8%）；債務成本 9.6–9.9% → 租金低於以該資金成本的全成本'],{2:'0.0%'})
+put(['  同上：設施情境',f'=0.10+(B{cwg}-{T}G82)/({T}G83-{T}G82)*0.03',None,'線性內插第82–83列（10%、13%）'],{2:'0.0%'})
+put(['營收 − 營業成本 − 技術與基礎設施',f'=B{rv}-B{cr}-B{ti}',None,'$M'],{2:'0'})
+put(['  其他營業費用（反推）＝上列 − 營業損失 (49)',f'=B{r[0]-1}+49',f'=B{r[0]}/B{rv}','$M；占營收（SG&A 等，TK 範圍不含平台研發與管理費）'],{2:'0',3:'0.0%'})
+put(['利息費用淨額 (640) ÷ 營收',f'=640/B{rv}',None,'營業損失 (49) 之後再扣利息，淨損 (626)'],{2:'0%'})
+s.cell(r[0],1,'觀察（待驗證）：在資金成本相近的情況下，CoreWeave 每 GW 年化營收 8.24（為 TK 組合 9.35 的 0.88 倍）且營業損失，較符合「出租價格目前低於以 10% 資金成本計的全成本」，而不是「Tokenomics 持有成本偏高」。保留：(1) 營收含爬坡落差（電已通、尚未計費），分母偏大；(2) active power 若為設施口徑，倍數變 1.06；(3) 營業損失含 SG&A 等不屬 TK 範圍的費用（約占營收 9%）；(4) 只有一家公司、一季資料；(5) 98% 營收來自承諾合約，客戶集中（A 36%、B 26%、C 10%），RPO $103.7B（41% 在 24 個月內），加權平均合約期未找到。').alignment=Alignment(wrap_text=True); r[0]+=1
 for c,w in zip('ABCDEFGHIJK',[58,16,16,22,22,18,14,22,16,16,80]): s.column_dimensions[c].width=w
 # ---- 證據
 z=wb['證據']
@@ -205,5 +261,38 @@ setp(6,2,'Oracle 算式：300÷5 年÷5GW＝12.0（Andy）；4.5GW 版本 13.3')
 setp(6,3,'並列 5GW（IT 12.0／設施 14.4）與 4.5GW（IT 13.3／設施 16.0），標明各自出處；不影響結論：對 VR200 為 0.98–1.31 倍')
 setp(6,4,'只用單一 GW 版本')
 setp(6,5,'對 VR200 倍數 0.98–1.31')
+
+# ---- 第二輪：CoreWeave 10-Q 債務與查核修正
+e=wb['外部價格換算']; q=wb['對帳']; p=wb['待判斷']; z=wb['證據']
+e['G32']="設施 5GW ÷ PUE 1.2 ＝ IT"
+e['B16']=e['B16'].value.replace('Andy 算式；','分子取 Epoch 方法頁 16.3（Andy 記錄的約值 16.0 為 12.8／1.37，見 B 段頁第2節）；')
+for row in q.iter_rows():
+    for c in row:
+        if isinstance(c.value,str):
+            if c.value.startswith('X6a 支出÷1.25GW（使用者算式）'): c.value='X6a 支出 16.3÷1.25GW（16.0 版＝12.8）'
+            if '「12–12.8」型數字' in c.value: c.value=c.value.replace('「12–12.8」型數字','「12–13」型數字（16.0 版 12.8，倍數 1.37／1.52；16.3 版 13.04，倍數 1.39／1.55）')
+            if '缺 CoreWeave 10-Q 的 cost of revenue／折舊／租賃費' in c.value: c.value=c.value.replace('缺 CoreWeave 10-Q 的 cost of revenue／折舊／租賃費','2026Q2 已有營業成本與折舊（證據 E22、E26），仍缺租賃費明細與 2025Q4 同口徑資料')
+            if '缺 CoreWeave 季報 10-Q 的 cost of revenue／折舊／租賃費' in c.value: c.value=c.value.replace('缺 CoreWeave 季報 10-Q 的 cost of revenue／折舊／租賃費','2026Q2 已有營業成本與折舊（證據 E22、E26），仍缺租賃費明細與 2025Q4 同口徑資料')
+q['F20']='修正（B 段第二輪）：先前稱「租金低於 TK 主要是出租方折現率較低」不成立。以 IREN 自己的 capex 與營運下界反推，隱含 WACC 約 9–10%；差額主要來自 IT 設備單價與營運費用（見 B 段頁第6節）。IREN 3.31% 融資只是個案，CoreWeave 債務 9.6–9.9%。'
+for row in z.iter_rows(min_row=2):
+    if row[0].value=='E20': row[2].value=row[2].value.replace('$16B','$16.0B（約值；方法頁為 16.3）')
+    if row[0].value=='E22': row[7].value=str(row[7].value)+'｜已補：E26（債務、損益、客戶）；仍缺 active power 定義（10-Q 只讀前約 80/181 頁）'
+z.append(['E26','CoreWeave 2026Q2 10-Q 續（chat 端由 Drive PDF 讀取；僅讀前約 80/181 頁）','(1) active power／contracted power 在已讀範圍內未找到定義與數值；租約附註只有站點電力：393MW、355MW（2026–2028 交付）、DCSP 最多 78MW，只寫 electrical power，未標 IT 或 gross。(2) GPU 耐用年限未找到（附註1空白）。PP&E（$M，6/30/26 對 12/31/25）：Technology equipment 33,823／20,903；Data center equipment & leasehold 5,997／2,842；CIP 11,918／9,376；淨額 46,736／30,557；Q2 折舊 $1.4B。(3) 債務 Note 10 有效利率與餘額：見 B 段頁第6節 16 列；原文唯一加權平均：OEM 短期工具 9%。DDTL 4.0 為 SOFR+2.25% 或 Treasury+2.00%，DDTL 5.0 為 SOFR+4.50%。(4) 損益：營收 2,575；營業成本 879（含資料中心租金、電力、電力系統折舊；增加額中租金約 +335、電力約 +87、電力系統折舊約 +79）；技術與基礎設施 1,507（折舊約 1,300）；營業損失 (49)；利息費用淨額 (640)；淨損 (626)。(5) 客戶 A 36%、B 26%、C 10%；98% 營收來自承諾合約；RPO $103.7B（41% 在 24 個月內、39% 在 25–48 個月）；加權平均合約期間未找到；資料中心租約期 5–15 年。','Drive 02-算力收支/Tokenomics/inbox/（10-Q PDF）','2026-10-23','Verified（公司申報）；加權平均為 Derived','部分（後半未讀到）','加權平均利率為 chat 端按餘額加權：全部 8.4%、不含可轉債 9.9%、DDTL 9.6%；本檔重算一致'])
+for c in z[z.max_row]: c.alignment=Alignment(wrap_text=True,vertical='top')
+def setp(n,col,val):
+    for i in range(2,p.max_row+1):
+        if p.cell(i,1).value==n: p.cell(i,col,val); p.cell(i,col).alignment=Alignment(wrap_text=True,vertical='top')
+setp(1,5,'使用 9.35 時，Oracle／支出÷GW 的倍數相對同世代分母虛高約 1.16–1.31 倍（÷GB300 對 ÷組合 1.16；÷VR200 對 ÷組合 1.31；見對帳 D 節）')
+setp(2,3,'不改模型。TK 以 10% 為基準；出租方資金成本依公司分列：IREN 3.31%（Microsoft 擔保＋預付款，個案）、CoreWeave 債務 9.6–9.9%。先前「出租方 3–8%」只適用 IREN 個案')
+setp(4,5,'每 +1 $M/MW（＝+1 $B/GW）約 +0.1436 $B/GW·年＝廠房資本回收 1.5019＋廠房維護 0.2534＋財產稅 0.0634（0.5% 總資本）÷ 廠房 capex 12.67（GB300；含土地年金與預備費攤銷）。廠房取 10／13／15 $M/MW（本體中點／含叢集中點／全包）→ −0.38／+0.05／+0.33')
+for rw in [(12,'是否把 Project 決定第 2 題的「出租方折現率 3–8%」改為依公司分列？','是：IREN 3.31%（個案）、CoreWeave 債務 9.6–9.9%；README 已據此撤回「WACC 是主因」','維持 3–8% 區間','「WACC 主因」結論被推翻：以 IREN 自己的 capex 與營運反推，隱含 WACC 約 9–10%；差額主因為 IT 設備單價與營運費用','B 段頁第6節；證據 E26'),
+(13,'TK GB300 的 IT 設備（32.2 $B/GW）比 IREN（29.0）高 11%，且營運費用高 36%：要查嗎？','先不改模型；列為待查（機架單價 $4.3M、GPU 密度 kW／GPU、Dell 大單折扣、營運範圍定義）','TK 下調','兩項合計約 1.27 $B/GW（約 12%）','B 段頁第6節')]:
+    for j,x in enumerate(rw,1):
+        c=p.cell(p.max_row+1 if j==1 else p.max_row,j,x); c.alignment=Alignment(wrap_text=True,vertical='top')
+# B 段 D80 說明
+bs=wb['B 段']
+for row in bs.iter_rows():
+    for c in row:
+        if isinstance(c.value,str) and c.value.startswith('CoreWeave 營業成本含租賃機房與電力'): c.value=c.value+'；分母不同（營收 vs 持有成本）：34%×營收 8.24≈2.81，30%×持有成本 9.35≈2.82，絕對值吻合'
 
 wb.save(out); print('saved')

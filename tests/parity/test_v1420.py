@@ -165,7 +165,8 @@ def test_v1420_names_off_the_chain_unchanged(lo):
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     allnames = set(keep) | V152_CHANGED      # v15.2：RNG_*、IF_Alloc*、IF_TokGW_* 都在 B2／B3 預期變動名單內（test_v1520 逐名稱釘住），不再屬『不變』比較集
     assert any(n.startswith("RNG_") for n in allnames) and any(n.startswith("IF_AllocQ1") for n in allnames) and any(n.startswith("IF_TokGW_") for n in allnames)
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v19.1：C17_OLD 視圖下 RG2／RG3 因區間端點檔按 C17＝2176 重產而觸發，故仍 133（基準視圖 132，見 test_v1910）； v15.0：Info 184 → 182（O14）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 136, 182)      # v21.1: +2 (SRC_DEM_089/090 W1)
+    #      # v19.1：C17_OLD 視圖下 RG2／RG3 因區間端點檔按 C17＝2176 重產而觸發，故仍 133（基準視圖 132，見 test_v1910）； v15.0：Info 184 → 182（O14）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert (v.get_name("CHK_VerifyTotal"), v.get_name("CHK_VerifyPass"), v.get_name("CHK_VerifyFail"), v.get_name("CHK_VerifyWarn")) == (21, 13, 7, 1)      # v15.0 O9：V16 移出計數
     assert v.get_name("RNG_StaleFlag") == "區間過期"      # v19.1：C17_OLD 視圖下指紋與端點（按 C17＝2176 重產）不符；基準視圖見 test_v1910。 區間檔與指紋檔的版本字串已隨 v14.2 更新，端點與指紋格逐值不變
 

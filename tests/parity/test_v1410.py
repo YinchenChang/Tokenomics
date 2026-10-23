@@ -137,7 +137,8 @@ def test_v1410_names_off_the_chain_unchanged(lo):
         assert len(want) == len(got) and all(_same(a, b) for a, b in zip(want, got)), n
     for n in ("IF_AllocQ1", "IF_AllocRDGW", "IF_AllocServeGW", "IF_AllocQ2"):      # 工作單點名的名稱
         assert n not in R1_CHANGED
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v19.1：C17_OLD 視圖下 RG2／RG3 因區間端點檔按 C17＝2176 重產而觸發，故仍 133（基準視圖 132，見 test_v1910）； v15.0：Info 184 → 182（O14 L1 外部對照換算，P 欄旗標淨減 2）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 136, 182)      # v21.1: +2 (SRC_DEM_089/090 W1)
+    #      # v19.1：C17_OLD 視圖下 RG2／RG3 因區間端點檔按 C17＝2176 重產而觸發，故仍 133（基準視圖 132，見 test_v1910）； v15.0：Info 184 → 182（O14 L1 外部對照換算，P 欄旗標淨減 2）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
 
 
 # ── R3 ──

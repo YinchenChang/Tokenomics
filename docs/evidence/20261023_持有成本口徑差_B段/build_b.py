@@ -40,30 +40,33 @@ ora('4.5GW 當設施，換 IT',4.5,'設施','同上')
 s.cell(r[0],1,'兩份報導的 GW 數不同（5 對 4.5）且 IT／設施口徑均未明：每 IT-GW·年介於 12.0–16.0，對 VR200 倍數 0.98–1.31。A 段「複算不出 12.0」是因我只用了 4.5GW 的報導；Andy 的 12.0＝5GW 當 IT。').alignment=Alignment(wrap_text=True); r[0]+=1
 # ---- 2 Epoch
 sec('2. Epoch／OpenAI 2025 雲端支出 ÷ GW（機隊層級對照；保留，不當單價）')
-hdr(['項目','數值','單位','','標記／來源'])
-a=put(['雲端算力支出 2025（Epoch 引用媒體報導）',16.0,'$B','','Interested-party；二手。Epoch 方法頁另列 16.3'],blue=(2,))
-b0=put(['上線 GW 2024 年底',0.6,'GW','','官方（OpenAI 財務長揭露，見供給側查證.md 第27–31列）'],blue=(2,))
-b1=put(['上線 GW 2025 年底',1.9,'GW','','同上'],blue=(2,))
-lin=put(['全年平均 GW：線性內插',f'=(B{b0}+B{b1})/2','GW','','Derived（=1.25）'],{2:N})
-exp_=put(['全年平均 GW：指數內插',f'=(B{b1}-B{b0})/LN(B{b1}/B{b0})','GW','','Derived（=1.13）'],{2:'0.000'})
-pl=put(['每 GW·年：線性',f'=B{a}/B{lin}','$B/GW·年','','Derived（=12.8）'],{2:N})
-pe=put(['每 GW·年：指數',f'=B{a}/B{exp_}','$B/GW·年','','Derived（=14.2）'],{2:N})
-put(['倍數 ÷ 2025 組合 9.35：線性 ／ 指數',f'=B{pl}/{T}G66',f'=B{pe}/{T}G66','','Andy 記錄 1.37／1.52'],{2:N,3:N})
-s.cell(r[0],1,'與長約 0.89–0.93 矛盾的可能原因逐項評估（「必須為真」是反推，不是證據）').font=BOLD; r[0]+=1
-hdr(['可能原因','方向','量級（公式）','評估','證據狀態','能解決它的輸入'])
-# what-must-be-true
-w93=put(['若真實倍數為 0.93：分子須為 ($B)',None,f'=0.93*{T}G66*B{lin}','與 16.0 的差即「必須是非 GPU 或其他」的部分','Derived',None],{3:N})
-w93b=r[0]-1
-s.cell(w93b,2,'分子須下修'); 
-put(['  須排除的支出 ($B)／占比',None,f'=B{a}-C{w93b}',f'=C{r[0]}/B{a}','Derived',None],{3:N,4:'0%'})
-put(['  同上，用指數 GW 1.13',None,f'=0.93*{T}G66*B{exp_}',f'=1-C{r[0]}/B{a}','Derived（此列 D＝須排除占比）',None],{3:N,4:'0%'})
-put(['(a) 非 GPU 雲端服務與研究實驗（儲存、CPU、網路出口、推論以外的雲端帳單）','降低倍數','上段「須排除」約 $5.1–6.2B（占 32–39%）即所需規模','合理但無數字：OpenAI 營業成本 75 億 vs 推論 84 億已顯示口徑不整齊；若這類占 20–35% 即可解釋','搜尋未找到分項','OpenAI 雲端帳單分項（GPU 時數 vs 其他服務）'])
-put(['(b) 2025 年初 Hopper 舊約','提高（Hopper 租金 > TK Hopper 持有成本）',f'=B{pl}*1000000000/({T}G35*8760)','隱含每 GPU 小時 ($)；若 2025 Hopper 約定價 $2.0–2.5 即與 12.8 一致；GB300 長約隱含 $2.27，兩者同量級→租金不隨世代上升，TK 持有成本隨世代上升','Derived','OpenAI 各供應商實付 $/GPU-hr（已搜尋，未找到）'])
+hdr(['項目','16.3（Epoch 方法頁，原文值）','16.0（10-21 筆記約值；Andy 記錄 12.8／1.37／1.52）','單位','標記／來源'])
+a=put(['雲端算力支出 2025',16.3,16.0,'$B','Interested-party；二手。兩個分子並列，全檔以 16.3 為主、16.0 對照 Andy 的記錄'],blue=(2,3))
+b0=put(['上線 GW 2024 年底',0.6,None,'GW','官方（OpenAI 財務長揭露，供給側查證.md 第27–31列）'],blue=(2,))
+b1=put(['上線 GW 2025 年底',1.9,None,'GW','同上'],blue=(2,))
+lin=put(['全年平均 GW：線性內插',f'=(B{b0}+B{b1})/2',None,'GW','Derived（=1.25＝(0.6+1.9)/2）'],{2:N})
+exp_=put(['全年平均 GW：指數內插',f'=(B{b1}-B{b0})/LN(B{b1}/B{b0})',None,'GW','Derived（=1.13）'],{2:'0.000'})
+pl=put(['每 GW·年：線性（$B）',f'=B{a}/B{lin}',f'=C{a}/B{lin}','$B/GW·年','Derived（16.0 版＝12.8）'],{2:N,3:N})
+pe=put(['每 GW·年：指數（$B）',f'=B{a}/B{exp_}',f'=C{a}/B{exp_}','$B/GW·年','Derived（16.0 版＝14.19）'],{2:N,3:N})
+put(['倍數 ÷ 2025 組合 9.35：線性',f'=B{pl}/{T}G66',f'=C{pl}/{T}G66','x','16.3：1.39；16.0：1.37'],{2:N,3:N})
+put(['倍數 ÷ 2025 組合 9.35：指數',f'=B{pe}/{T}G66',f'=C{pe}/{T}G66','x','16.3：1.55；16.0：1.52'],{2:N,3:N})
+s.cell(r[0],1,'若要把倍數拉回 0.93，分子須為多少（「必須為真」是反推，不是證據）').font=BOLD; r[0]+=1
+hdr(['反推項目','16.3 版','16.0 版','單位','說明'])
+n1=put(['分子須為（線性 GW）',f'=0.93*{T}G66*B{lin}',f'=0.93*{T}G66*B{lin}','$B','同一個數，與分子版本無關'],{2:N,3:N})
+x1=put(['  須排除的支出（線性 GW）',f'=B{a}-B{n1}',f'=C{a}-C{n1}','$B','不是 GPU 容量租金的部分'],{2:N,3:N})
+put(['  占全年支出',f'=B{x1}/B{a}',f'=C{x1}/C{a}','%',''],{2:'0%',3:'0%'})
+n2=put(['分子須為（指數 GW 1.13）',f'=0.93*{T}G66*B{exp_}',f'=0.93*{T}G66*B{exp_}','$B',''],{2:N,3:N})
+x2=put(['  須排除的支出（指數 GW）',f'=B{a}-B{n2}',f'=C{a}-C{n2}','$B','16.0 版＝6.19'],{2:N,3:N})
+put(['  占全年支出',f'=B{x2}/B{a}',f'=C{x2}/C{a}','%',''],{2:'0%',3:'0%'})
+s.cell(r[0],1,'與長約 0.89–0.93 矛盾的可能原因逐項評估').font=BOLD; r[0]+=1
+hdr(['可能原因','方向','量級','評估','證據狀態','能解決它的輸入'])
+put(['(a) 非 GPU 雲端服務與研究實驗（儲存、CPU、網路出口、推論以外的雲端帳單）','降低倍數','須排除約 $5.1–6.5B（占 32–40%，見上表）','合理但無數字：OpenAI 營業成本 75 億 vs 推論 84 億已顯示口徑不整齊（出處見證據 E25）；若這類占 30–40% 即可解釋','搜尋未找到分項','OpenAI 雲端帳單分項（GPU 時數 vs 其他服務）'])
+put(['(b) 2025 年初 Hopper 舊約','提高（Hopper 租金 > TK Hopper 持有成本）',f'=B{pl}*1000000000/({T}G35*8760)','隱含每 GPU 小時 ($，16.3 版)；若 2025 Hopper 約定價 $2.0–2.5 即與 13.0 一致；GB300 長約隱含 $2.27，兩者同量級→租金不隨世代上升，TK 持有成本隨世代上升','Derived','OpenAI 各供應商實付 $/GPU-hr（已搜尋，未找到）'],{3:N})
 put(['(c) 雲端商加價（Azure 轉售）','提高','倍數 ×(1+加價)：1.0–1.3（Assumed）','IREN 賣給 Microsoft 是批發價；Microsoft 轉給 OpenAI 若加價 20% → 0.89×1.2＝1.07；與 Microsoft–OpenAI 關係（持股、額度）交織','Assumed','OpenAI 向 Microsoft 的實付價（找不到）'])
-put(['(d) GW 口徑','IT 較低→倍數提高；設施較低→倍數降低','若 1.25 為設施：IT＝1.25/PUE',f'=B{a}/(B{lin}/{T}C9)','Derived（本列 D＝每 IT-GW）','OpenAI 財務長 GW 的定義（IT 或設施）'],{4:N})
+put(['(d) GW 口徑','若 1.25 為設施口徑 → IT GW 較小（÷PUE）→ 每 IT-GW 支出較高 → 倍數更高；若為 IT 口徑則維持',f'=B{a}/(B{lin}/{T}C9)','設施口徑下每 IT-GW 支出（$B，16.3 版）；不能降低倍數，只會更高','Derived','OpenAI 財務長 GW 的定義（IT 或設施）'],{3:N})
 put(['(e) 非現金額度','降低現金口徑，但「支出」若含額度則提高','無數字','The Register 提醒 Microsoft 端數字可能含額度','二手','OpenAI 現金支付表'])
 put(['(f) 時間窗與預付','分子含預留未上線容量→提高','無數字','分母用年底上線 GW 內插，未含「已付費但未上線」容量','Assumed','各供應商合約生效與上線日'])
-put(['綜合','',None,'(a) 與 (b)(c) 方向相反且量級都能到 ±20–30%；現有資料無法分離。→ 列為「不可分離」，缺 OpenAI 雲端帳單分項與實付 GPU 小時單價。','',''])
+put(['綜合','',None,'(a) 與 (b)(c)(d)(f) 方向相反且量級都能到 ±20–30%；現有資料無法分離 → 列為「不可分離」。補記：OpenAI 揭露支出分項，或揭露對 Azure 的實付價，才能分開。','',''])
 # ---- 3 IREN
 sec('3. IREN 原文對帳（sec.gov 8-K 附件 99-1、99-2；chat 端 WebFetch 取得，[Verified]；IREN＝Interested-party）')
 hdr(['項目','IREN 值','單位','TK 值','IREN ÷ TK','說明'])
@@ -81,7 +84,7 @@ k=f'(({T}E54+{T}E62+0.005*{T}E46)/{T}E46)'
 rA=put(['A. 叢集部署歸 IT 側（29.0＋3）；廠房＝本體 10（中點）',f'=B{perg}+B{cl}',10,f'={T}E39',f'={T}E46','=B%d/D%d'%(r[0],r[0]),'=C%d/E%d'%(r[0],r[0]),f'=(C{r[0]}-E{r[0]})*{k}'],{2:N,3:N,4:N,5:N,6:N,7:N,8:N},blue=(3,))
 rB=put(['B. 叢集部署歸廠房側（29.0；10＋3）',f'=B{perg}',13,f'={T}E39',f'={T}E46','=B%d/D%d'%(r[0],r[0]),'=C%d/E%d'%(r[0],r[0]),f'=(C{r[0]}-E{r[0]})*{k}'],{2:N,3:N,4:N,5:N,6:N,7:N,8:N},blue=(3,))
 rC=put(['C. 全包（A 段用法）：29.0＋15',f'=B{perg}',15,f'={T}E39',f'={T}E46','=B%d/D%d'%(r[0],r[0]),'=C%d/E%d'%(r[0],r[0]),f'=(C{r[0]}-E{r[0]})*{k}'],{2:N,3:N,4:N,5:N,6:N,7:N,8:N},blue=(3,))
-s.cell(r[0],1,'讀法：IT 設備與 IREN 一致（A 配置 0.99、B/C 配置 0.90）；廠房本體 TK 12.67 高於 IREN 9–11（高 15–41%），但加上叢集部署 3 後（12–14）TK 落在區間內。→ A 段「廠房可能偏低」應撤回：以原文的本體 9–11 比，TK 偏高；以含叢集部署比，TK 持平。總 capex 不變（約 44），不影響前述 0.98 倍。').alignment=Alignment(wrap_text=True); r[0]+=1
+s.cell(r[0],1,'讀法：IT 設備與 IREN 一致（A 配置 0.99、B/C 配置 0.90）；廠房本體 TK 12.67 高於 IREN 9–11（高 15–41%），但加上叢集部署 3 後（12–14）TK 落在區間內。→ A 段「廠房可能偏低」應撤回：以原文的本體 9–11 比，TK 偏高；以含叢集部署比，TK 持平。總 capex：C 配置（29＋15）為 44.0、0.98 倍；A、B 配置（32＋10＝29＋13）為 42.0、0.935 倍（對 TK 44.9）。租金差額的分解方式不受影響。').alignment=Alignment(wrap_text=True); r[0]+=1
 put(['營運費用下界','=0.15*9.7','$B/GW·年',f'={T}E65',f'=B{r[0]}/D{r[0]}','15%×9.70＝1.455；扣電費、維修、其他直接營運費，不含企業管理費、財務費用、非現金項目 → 是下界（原文有依據）；TK 1.98 含站點營運與財產稅'],{2:'0.000',4:N,5:N})
 # ---- 4 per GPU hour
 sec('4. 每 GPU 小時視角：長約租金是否不隨世代上升，而 TK 持有成本隨世代上升？（Derived）')
@@ -90,7 +93,7 @@ def ph(lab,col,ext,src_,fmt='0.00'):
     rr=r[0]; return put([lab,f'={T}{col}35',f'={T}{col}76',ext.replace('#',str(rr)),f'=D{rr}/C{rr}',src_],{2:'#,##0',3:N,4:N,5:N})
 ph('Hopper：Silicon Data H100 指數（2026-10）','C','2.53','Interested-party（指數商）')
 ph('Hopper：Ornn H100 成交價（2026-10）','C','3.15','Interested-party')
-ph('機隊層級（2025 組合，含 Hopper）：Andy 12.8 隱含','G',f'=B{pl}*1000000000/(B#*8760)','Derived：機隊層級，非單一世代')
+ph('機隊層級（2025 組合，含 Hopper）：16.3÷1.25＝13.04 隱含（16.0 版 12.8 → $2.31）','G',f'=B{pl}*1000000000/(B#*8760)','Derived：機隊層級，非單一世代')
 ph('GB300：IREN 9.70','E',f'=9.7*1000000000/(B#*8760)','Interested-party（8-K）')
 ph('GB300：Nscale Narvik（第三方推算）','E','=6200000000/5/52000/8760','Derived（單一第二手）')
 ph('VR200：Oracle 12.0（5GW 當 IT）','F',f'=G{rows["5GW 當 IT（Andy 的 12.0）"]}*1000000000/(B#*8760)','Interested-party（匿名消息）')
@@ -108,8 +111,9 @@ put(['營收 − 營業成本 − 技術與基礎設施（SG&A 前）',f'=B{rv}-
 put(['  ÷ 營收',f'=B{r[0]-1}/B{rv}',None,''],{2:'0.0%'})
 put(['TK 對照：廠房側成本占持有成本（廠房年金＋電費＋廠房維護＋站點營運＋廠房財產稅）',f'=({T}G54+{T}G60+{T}G62+{T}G63+0.005*{T}G46)/{T}G66',None,'CoreWeave 營業成本含租賃機房與電力 → 與此對照（34% vs 約 30%），量級吻合；營業成本內容未逐項揭露（Derived）'],{2:'0%'})
 put(['TK 對照：IT 帳面折舊 ÷ 持有成本（組合）',f'={T}G39/{T}E11/{T}G66',None,'CoreWeave 折舊占營收 54%；TK 組合 IT 折舊約 47%（以 9.35 為營收）；差距可由新世代較貴、含租賃改良折舊解釋（Derived）'],{2:'0%'})
-put(['active power（GW）：Q1 末／Q2 末','=1.0','=1.5','Q2 末 1.5 GW、Q2 淨增「近 500MW」（搜尋摘要，二手）；Q1 末由此反推約 1.0（與「Q1 突破 1GW」一致）；IT 或設施口徑未取得'],{2:'0.0',3:'0.0'})
-put(['平均 active power Q2（GW）',f'=(B{r[0]-1}+C{r[0]-1})/2',None,''],{2:'0.00'})
+put(['CoreWeave active power Q1 末（GW）',1.0,None,'由 Q2 末 1.5GW 與「Q2 淨增近 500MW」反推（與「Q1 突破 1GW」一致）；IT 或設施口徑未取得'],{2:'0.0'},blue=(2,))
+put(['CoreWeave active power Q2 末（GW）',1.5,None,'Q2 新聞稿（搜尋摘要，二手）'],{2:'0.0'},blue=(2,))
+put(['平均 active power Q2（GW）',f'=(B{r[0]-2}+B{r[0]-1})/2',None,''],{2:'0.00'})
 put(['營收年化 ÷ 平均 active power（$B/GW·年）',f'=B{rv}*4/1000/B{r[0]-1}',None,'Q4 2025 為 8.73（A 段）；新容量爬坡拉低比值'],{2:N})
 put(['  ÷ TK 組合 9.35',f'=B{r[0]-1}/{T}G66',None,''],{2:N})
 put(['  隱含 $/GPU-hr（用 TK 組合每 GW GPU 數）',f'=B{r[0]-2}*1000000000/({T}G35*8760)',None,'明顯低於 H100 指數 2.5–3.2：爬坡落差（電通但未計費）＋舊約低價＋口徑；不可分離'],{2:N})
@@ -120,7 +124,7 @@ for c,w in zip('ABCDEFGHIJK',[58,16,16,22,22,18,14,22,16,16,80]): s.column_dimen
 z=wb['證據']
 EV=[('E19','Oracle–OpenAI（5GW 版本）','The Register 2025-09-11 轉述 WSJ："$300 billion ... five gigawatts ... over the course of five years ... begin in 2027"；GW 口徑未明。','https://www.theregister.com/2025/09/11/openai_reportedly_on_the_hook/','2025-09-11（chat 端提供）','Interested-party（匿名消息）','已找到（chat 端）','與 E8 的 4.5GW 版本並列於 B 段頁'),
 ('E20','Epoch 12.8 的算式','$16B ÷ 1.25 GW；1.25＝(0.6+1.9)/2，為 OpenAI 財務長揭露 2024、2025 年底上線 GW 的線性內插；指數內插 1.13。','docs/evidence/20261021_token帳閉合A段/供給側查證.md（第27–31列）','2026-10-21','官方（GW 端點）＋Derived','已找到','1.25 非 Epoch 揭露的 GW，是內插值；A 段「出處未知」更正為此'),
-('E21','IREN 8-K 附件 99-1、99-2（原文）','$9.7B／5 年、20% 預付款（抵第 3–5 年）；200MW critical IT load；GPU 與周邊 capex $5.8B（含部署、伺服器、InfiniBand、線材、軟體授權）；每 MW 全部 capex $14–16M（IT 口徑）＝資料中心本體 9–11＋100MW 超級叢集架構部署 3＋加速費用 2；年化營收 $194M×… 即 $1.94B；專案 EBITDA 率 85%（扣電費、維修、其他直接營運費後；扣企業管理費、財務費用、非現金項目前）。','sec.gov/Archives/edgar/data/1878848/000114036125040072/（ex99-1、ex99-2）','2026-10-23（chat 端 WebFetch）','Verified（原文）；IREN＝Interested-party','已找到（原文）','取代 A 段 E2 的二手摘要；A 段把 14–16 當「資料中心基礎設施」是誤讀，見 B 段頁第3節'),
+('E21','IREN 8-K 附件 99-1、99-2（原文）','$9.7B／5 年、20% 預付款（抵第 3–5 年）；200MW critical IT load；GPU 與周邊 capex $5.8B（含部署、伺服器、InfiniBand、線材、軟體授權）；每 MW 全部 capex $14–16M（IT 口徑）＝資料中心本體 9–11＋100MW 超級叢集架構部署 3＋加速費用 2；年化營收 $1.94B；專案 EBITDA 率 85%（扣電費、維修、其他直接營運費後；扣企業管理費、財務費用、非現金項目前）。','sec.gov/Archives/edgar/data/1878848/000114036125040072/（ex99-1、ex99-2）','2026-10-23（chat 端 WebFetch）','Verified（原文）；IREN＝Interested-party','已找到（原文）','取代 A 段 E2 的二手摘要；A 段把 14–16 當「資料中心基礎設施」是誤讀，見 B 段頁第3節'),
 ('E22','CoreWeave 2026Q2 10-Q（部分）','季營收 2,575、營業成本 879、技術與基礎設施 1,507、折舊 1,400（百萬美元）；RPO 1,037 億，41% 於 24 個月內認列。','chat 端提供（10-Q 部分）','2026-10-23','Verified（公司申報）','部分','active power 定義、GPU 耐用年限、債務利率待 10-Q 全文（Drive inbox）'),
 ('E23','Nebius 2026Q2 6-K','營收 582.3、營業成本 133.6、折舊 259.7（百萬美元）；伺服器與網路設備耐用年限 2026Q1 起 4→5 年。MW 定義未揭露。','chat 端提供','2026-10-23','Verified（公司申報）','已找到；MW 定義已搜尋，未找到','—'),
 ('E24','CoreWeave active power 2026Q1／Q2','Q1：營收約 $2.08B、active power 突破 1GW、contracted >3.5GW；Q2：active power 增近 500MW 至 1.5GW，contracted 約 3.7GW（6 月底）、4.2GW（8 月 11 日），backlog $104.2B。','https://www.businesswire.com/news/home/20260507558197/en/ ；Q2 新聞稿（搜尋摘要）','2026-05／08','Verified（公司揭露，二手摘要）','已找到（摘要）','Q1 末 1.0GW 是反推；口徑未明')]
@@ -128,9 +132,15 @@ for i,rw in enumerate(EV):
     for j,x in enumerate(rw,1):
         c=z.cell(z.max_row+1 if j==1 else z.max_row,j,x); c.alignment=Alignment(wrap_text=True,vertical='top')
 # 更正 E2、E8 註記
+Z=lambda rid: next(rw for rw in z.iter_rows(min_row=2) if rw[0].value==rid)
+rw=Z('E2'); rw[2].value=rw[2].value.replace('GPU 融資：$3.65B 設施涵蓋 $5.81B GPU capex 的 96%，平均成本 3.31%。','GPU 融資：$3.65B 投資級設施（約占 $5.81B GPU capex 的 62.8%）加客戶預付款，合計融資 $5.59B（約 96%），平均成本 3.31%。')
+rw=Z('E9'); rw[7].value='這是「全部雲端支出」，不是 GW 單價；「1.25GW」＝(0.6+1.9)/2 線性內插（見 E20，供給側查證.md 第27–31列）。分子 16.3（方法頁）與約值 16.0 並存，見 B 段頁。'
+rw=Z('E17'); rw[2].value='原本未找到「1.25GW」出處。B 段已由 chat 端提供：1.25＝OpenAI 財務長揭露 2024、2025 年底上線 GW（0.6、1.9）的線性內插，見 E20。'; rw[7].value='已解決'
+z.append(['E25','OpenAI 營業成本與推論數字','營業成本（cost of revenue）2025 約 75 億；推論 84 億（The Information 轉述，另 Sacra）；兩者不可能同口徑。','docs/reports/20261020_回本側證據A段_查證筆記.md（任務2 §2.1–2.2）','2026-10-20','Interested-party／二手','已找到','引自既有筆記；來源為 Zitron 取得文件與 The Information 轉述'])
+for c in z[z.max_row]: c.alignment=Alignment(wrap_text=True,vertical='top')
 for row in z.iter_rows(min_row=2):
     if row[0].value=='E2': row[7].value=str(row[7].value)+'｜B 段更正：原文顯示 $14–16M/MW 為「全部 capex（IT 口徑）」＝本體 9–11＋叢集部署 3＋加速 2，不是資料中心本體。'
-    if row[0].value=='E8': row[7].value=str(row[7].value)+'｜B 段補：另有 5GW 版本（E19），12.0＝300÷5÷5。'
+    if row[0].value=='E8': row[7].value='A 段僅用 4.5GW 版本（13.3；設施換 IT 為 16.0）。B 段補：5GW 版本（E19）12.0＝300÷5÷5（5GW 當設施換 IT 為 14.4）；四種讀法並列於外部價格換算 X5a–X5e 與 B 段頁。'
     if row[0].value=='E17': row[6].value='已解決（B 段）：1.25＝(0.6+1.9)/2 內插，見 E20'
 # 對帳 註記
 q=wb['對帳']
@@ -155,4 +165,45 @@ D2={9:'決定（Andy）：維持「不可分離」。補記：OpenAI 揭露支�
 for i in range(2,p.max_row+1):
     if p.cell(i,1).value in D2:
         p.cell(i,7,D2[p.cell(i,1).value]); p.cell(i,7).alignment=Alignment(wrap_text=True,vertical='top')
+
+# ---- 審查修正（PR #150 查核 13 項）
+e=wb['外部價格換算']
+import copy
+def clone(src,dst,gw,label,iid,low_div):
+    for col in range(1,27):
+        c0=e.cell(src,col); c=e.cell(dst,col); v=c0.value
+        if isinstance(v,str) and v.startswith('='): v=v.replace(str(src),str(dst))
+        c.value=v
+        if c0.has_style: c.font=copy.copy(c0.font); c.number_format=c0.number_format; c.alignment=copy.copy(c0.alignment)
+    e.cell(dst,1,iid); e.cell(dst,2,label); e.cell(dst,26,'E19')
+    e.cell(dst,25).value='低：5GW 版本（The Register 轉述 WSJ，供給側查證.md 第59列）；口徑未明'
+clone(13,31,5,'Oracle–OpenAI（The Register 轉述 WSJ：$300B／5 年／5GW）— 5GW 當 IT 口徑（=Andy 的 12.0）','X5d',5)
+e['F31']=5
+clone(12,32,5,'同上，5GW 當設施口徑，換 IT（÷PUE）','X5e',5)
+e['F32']="=5/'TK 拆解'!C9"; e['J32']='=C32/E32/5'
+e['B16']=e['B16'].value.replace('（使用者算式；1.25GW 來源未知）','（Andy 算式；1.25GW＝(0.6+1.9)/2 線性內插，見證據 E20）')
+q=wb['對帳']
+q['B46']="=MIN(外部價格換算!N12,外部價格換算!N13,外部價格換算!N31,外部價格換算!N32)"
+q['C46']="=MAX(外部價格換算!N12,外部價格換算!N13,外部價格換算!N31,外部價格換算!N32)"
+q['D46']='X5a／b（4.5GW）、X5d／e（5GW）Oracle'
+q['A7']='IREN 不含 GPU 的全部 capex（$B/GW；本體 9–11＋叢集部署 3＋加速 2）對 TK 廠房 capex'
+q['F7']='原文：每 MW 14–16 百萬美元（取 15）＝資料中心本體 9–11＋叢集部署 3＋加速 2；TK 廠房不含叢集部署與網路。like-for-like（對本體 9–11 或 12–14）見「B 段」頁第3節'
+q['G7']='Verified（8-K 原文）；Interested-party'
+q['H7']='B 段更正：此列比值 1.18 是「全包 vs TK 廠房」，不是 like-for-like。對本體 9–11，TK 廠房偏高 15–41%；本體加叢集部署（12–14）則持平。「TK 廠房可能偏低」撤回。'
+p=wb['待判斷']
+def setp(n,col,val):
+    for i in range(2,p.max_row+1):
+        if p.cell(i,1).value==n: p.cell(i,col,val); p.cell(i,col).alignment=Alignment(wrap_text=True,vertical='top')
+setp(2,5,'TK 拆解敏感度：GB300 在 WACC 8% 約 −0.63；在 3.31% 約 −2.01（見 TK 拆解第79列起，營運費用固定）')
+setp(4,2,'廠房 capex：TK 12.67 $M/MW 相對 IREN 原文如何？（原問題誤以 14–16 為資料中心本體）')
+setp(4,3,'不改。B 段撤回「偏低」：對 IREN 本體 9–11，TK 偏高；加叢集部署 12–14 則持平')
+setp(4,4,'廠房改為 IREN 值')
+setp(4,5,'每 +1 $M/MW（＝+1 $B/GW）約 +0.1436 $B/GW·年＝廠房資本回收 1.5019＋廠房維護 0.2534＋財產稅 0.0634（0.5% 總資本）÷ 廠房 capex 12.67（GB300；含土地年金與預備費攤銷）。改用 9–11／12–14／15 → −0.38／+0.05／+0.33')
+setp(5,3,'保留作機隊層級對照，不當價格；1.25GW 已確認為 (0.6+1.9)/2 線性內插')
+setp(5,5,'若採用，倍數 1.37–1.55（分子 16.0／16.3 × 線性／指數 GW），與同口徑長約相反')
+setp(6,2,'Oracle 算式：300÷5 年÷5GW＝12.0（Andy）；4.5GW 版本 13.3')
+setp(6,3,'並列 5GW（IT 12.0／設施 14.4）與 4.5GW（IT 13.3／設施 16.0），標明各自出處；不影響結論：對 VR200 為 0.98–1.31 倍')
+setp(6,4,'只用單一 GW 版本')
+setp(6,5,'對 VR200 倍數 0.98–1.31')
+
 wb.save(out); print('saved')

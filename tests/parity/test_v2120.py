@@ -168,6 +168,7 @@ def test_v2120_text_w1_to_w4(wbf):
     assert r == 71
     assert l1[f"C{r}"].value == "Alloc_In 計價倍數（v21.2 起 Derived：基準 1.8、區間 0.85–2.3；X46）｜原：Alloc_In 計價倍數（Assumed）；X46"
     assert l1[f"H{r}"].value == "0.85–2.3（Derived；v21.2 9a J5）｜原：1.0–1.6（Assumed）"
+    assert l1[f"K{r}"].value == "本列：Derived（v21.2 9a J5；E403；X46）｜原：本列：Assumed（E262；X46）"
     sd = wbf["SRC_Demand"]
     assert sd["A10"].value == "SRC_DEM_006"
     w = sd["W10"].value
@@ -233,7 +234,7 @@ def test_v2120_diffs_only_expected_vs_v211():
         "Cap_In": ["G28"],
         "DB_Evidence": sorted(f"{c}327" for c in "ABCDEFGHIJKLMNOPQR"),
         "Decisions": sorted(f"{c}331" for c in "ABCDEFGHIJ"),
-        "L1": ["C71", "H71"],
+        "L1": ["C71", "H71", "K71"],
         "NonNV": ["L11"],
         "README": sorted(["A1", "A72", "B5", "B72"]),
         "SRC_Demand": ["W10"],

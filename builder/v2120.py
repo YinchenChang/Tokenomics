@@ -39,6 +39,8 @@ C71_OLD = "Alloc_In 計價倍數（Assumed）；X46"
 C71_NEW = "Alloc_In 計價倍數（v21.2 起 Derived：基準 1.8、區間 0.85–2.3；X46）｜原：Alloc_In 計價倍數（Assumed）；X46"
 H71_OLD = "1.0–1.6（Assumed）"
 H71_NEW = "0.85–2.3（Derived；v21.2 9a J5）｜原：1.0–1.6（Assumed）"
+K71_OLD = "本列：Assumed（E262；X46）"
+K71_NEW = "本列：Derived（v21.2 9a J5；E403；X46）｜原：本列：Assumed（E262；X46）"
 
 DEM006_OLD_PREFIX = "出處待補；已排除 The Information 2026-02〈Why OpenAI, Anthropic Missed Their Own Gross Margin Forecasts〉（2026-10-23 查證 J5）｜"
 DEM006_INSERT = "外部最近為 2025-09 預測逾 90 億（2026-10-23 9a 查證 J1，" + EVD + "）｜"
@@ -76,7 +78,8 @@ def l1_patch(R):
         if row[0] == "GapSpendBasis":
             assert row[2] == C71_OLD, row[2]
             assert row[7] == H71_OLD, row[7]
-            row[2], row[7] = C71_NEW, H71_NEW; n += 1
+            assert row[10] == K71_OLD, row[10]
+            row[2], row[7], row[10] = C71_NEW, H71_NEW, K71_NEW; n += 1
         out.append(tuple(row))
     assert n == 1, n
     return out
@@ -140,7 +143,7 @@ def evidence_append(wb):
 def _decisions():
     return [[DEC_ID, V, "v21.2 計價倍數 AL_SpendBasis 改 1.8（0.85–2.3）；四項說明修補",
              "W1：Alloc_In C23／D23／E23 0.85／0.73／1.17 → 1.8／0.85／2.3（Derived；價格因子為殘差，必須約 1.37–2.18 才能重現支出路線；非實付價直接證據），G23 說明改寫、原文逐字保留於其後；"
-             "修訂九標記更正：L1 C71 由『Alloc_In 計價倍數（Assumed）；X46』、H71 由『1.0–1.6（Assumed）』更正為 Derived 版本，原值逐字保留在同格『｜原：』之後（更正版本 v21.2，依據 9a J5）。"
+             "修訂九標記更正：L1 C71 由『Alloc_In 計價倍數（Assumed）；X46』、H71 由『1.0–1.6（Assumed）』、K71 由『本列：Assumed（E262；X46）』更正為 Derived 版本，原值逐字保留在同格『｜原：』之後（更正版本 v21.2，依據 9a J5）。"
              "只影響支出路線與其診斷名稱；回本主口徑 L1_LReqFleet_Full、L1_RevGW_PQ_VR200、全部 IF_／IFW_／IFC_ 不變。"
              "W2：SRC_DEM_006 備註加『外部最近為 2025-09 預測逾 90 億』（J1）；W3：Cap_In G28 加『支出比代 GW 比，前提是兩邊價格倍數相同』（B4_Serve 0.41 不變，J2）；"
              "W4：NonNV L11 加 Maia 區間 0.25–0.75 說明（B11:G11 不變）。證偽條件：找到 2025 平均 GW ≥ 1.8，或 Azure 對 OpenAI 單價 ≤ 2 美元／GPU 小時。Andy 原話與依據：" + DEC_BY,

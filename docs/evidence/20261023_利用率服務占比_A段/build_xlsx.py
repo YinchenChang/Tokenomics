@@ -66,8 +66,12 @@ def parse_md(path, heads):
             out.append((sect, cells))
     return out
 r = 4
+FIX = [('2026（頁面未顯示確切日）', '2026-02-04（獨立查核確認頁面日期）'), ('頁面未顯示確切日', '頁面日期 2026-02-04（獨立查核確認）'),
+       ('另一站稱免費層約占活躍用戶 81%', '另一站稱免費層約占活躍用戶 81%（獨立查核無法復現，只找到約 94%–95%）'),
+       ('引 SemiAnalysis 與其他估計，非公司揭露', 'Lambda Finance 彙整，SemiAnalysis 只是其輸入之一，非公司揭露')]
 def put(vals, use):
     global r
+    vals = [(__import__('functools').reduce(lambda t, f: t.replace(f[0], f[1]), FIX, v) if isinstance(v, str) else v) for v in vals]
     for j, v in enumerate(vals, 1):
         c = e.cell(r, j, v); c.alignment = WR
     if use is not None: e.cell(r, 10, use).alignment = WR
@@ -87,8 +91,8 @@ sf = parse_md(D + '服務占比證據_原稿.md', 7)
 for sect, c in sf:
     if len(c) >= 7 and re.match(r'S\d+$', c[0]):
         put([c[0], 'B4_Serve', c[1], c[2], c[3], '見數字欄', c[4], c[5], c[6]], USE_S.get(c[0], '參考'))
-put(['S18', 'B4_Serve', 'repo：model/20261023_Tokenomics_v20.1.xlsx SRC_Demand 第 10 列（SRC_DEM_006）', '來源欄僅寫 openai_token_revenue.json（內部檔）', '訓練支出 $12B（約值）', '支出口徑，OpenAI 2025 年度', '現值 0.41 的分母之一；原始外部出處本段查不到（子代理搜尋亦同）', '[Interested-party]，等級 2；出處待補', '已讀（活頁簿）', '採用（現值出處疑點）'], None)
-put(['S19', 'B4_Serve', 'repo：SRC_Demand 第 22 列（SRC_DEM_018，Azure 帳單，Where\'s Your Ed At 2025-11-12，二手）', '—', '推論 $12.6B（12.3–13.0）', '支出口徑，含 Microsoft 利潤與資本回收；Q1–Q3 實際 8.67，Q4 推估', '若代入 B4_Serve：12.6/(12.6+12)=0.51；與 S3「約各半」同向。與 8.4 版（0.41）並列為口徑差', '[Interested-party]，二手', '已讀（活頁簿）', '參考'], None)
+put(['S18', 'B4_Serve', 'repo：model/20261023_Tokenomics_v20.1.xlsx SRC_Demand 第 10 列（SRC_DEM_006）', '來源欄僅寫 openai_token_revenue.json（內部檔）', '訓練支出 $12B（約值）', '支出口徑，OpenAI 2025 年度', '現值 0.41 的分母之一；原始外部出處本段查不到（子代理搜尋亦同）。活頁簿 v17.2 已記載「15 組查詢未找到」，非本段新發現', '[Interested-party]，等級 2；出處待補', '已讀（活頁簿）', '採用（現值出處疑點）'], None)
+put(['S19', 'B4_Serve', 'repo：SRC_Demand 第 22 列（SRC_DEM_018，Azure 帳單，Where\'s Your Ed At 2025-11-12，二手）', '—', '推論 $12.6B（12.3–13.0）', '支出口徑，含 Microsoft 利潤與資本回收；Q1–Q3 實際 8.67，Q4 推估', '若代入 B4_Serve：12.6/(12.6+12)=0.51；與 S3「約各半」同向。**雙重計入警告**（獨立查核指出；活頁簿 SRC_DEM_018 備註 v5.36／v15.2）：12.6 中約 $6.55B（65.5 億美元）未進 OpenAI 營業成本，最可能是研究推論，分子含研究、分母又含訓練；且含 Microsoft 加價。故 0.51 只作方向，不作範圍上緣的證據', '[Interested-party]，二手', '已讀（活頁簿）', '參考'], None)
 sec(e, r, 'C. B4_Free（來源：服務占比證據_原稿.md）', 10); r += 1
 for sect, c in sf:
     if len(c) >= 7 and re.match(r'F\d+$', c[0]):
@@ -178,8 +182,8 @@ for i, (nm, a, b, nt) in enumerate(ev):
     g.cell(rr, 4, f'=C{rr}/(B{rr}+C{rr})').number_format = '0.000'
     g.cell(rr, 5, nt).alignment = WR
 lab(37, 'OpenAI 2025（Epoch S3，文字）', 0.5, fmt='0.00', blue=True, note='S3：2025 研發與推論「roughly evenly」；無精確數字，我把「各半」記為 0.50（Derived，±0.1 不確定）')
-lab(38, '證據範圍（OpenAI 2024–2025、Anthropic 2025）', '=MIN(D32:D36,B37)', fmt='0.000'); g['C38'] = '=MAX(D32:D36,B37)'; g['C38'].number_format = '0.000'
-lab(39, '建議（低／基準／高）', 0.30, fmt='0.00', blue=True, note='基準保留 0.41（證據中位約 0.40–0.51）；高 0.60 保留（理論最適 0.5＋短缺期服務擠壓研究 S13）；低 0.30 由 2024 實測 0.26–0.29 支持。不提議放寬區間。口徑：支出，不是 GW')
+lab(38, '證據範圍（扣除 S19 後）', '=MIN(D32:D34,D36,B37)', fmt='0.000'); g['C38'] = '=MAX(D32:D34,D36,B37)'; g['C38'].number_format = '0.000'
+lab(39, '建議（低／基準／高）', 0.30, fmt='0.00', blue=True, note='基準保留 0.41（扣除 S19 後證據範圍 0.26–0.50）；高 0.60 **沒有直接證據支持**（上緣證據只有 S3 文字「各半」0.50 與理論最適 0.5；短缺期服務擠壓研究 S13 為定性），僅因「不放寬也不收窄」而保留；低 0.30 由 2024 實測 0.26–0.29 支持。不提議放寬區間。口徑：支出，不是 GW')
 g['C39'] = 0.41; g['D39'] = 0.60
 for c in ('C39', 'D39'): g[c].font = BLUE; g[c].number_format = '0.00'
 lab(40, '替代基準（Epoch「約各半」）', '=B37', fmt='0.00', note='若 Andy 選此替代（待判斷 J4），2025 服務 GW 由 0.462 升到 0.564')
@@ -188,7 +192,7 @@ sec(g, 42, '4. B4_Free — 支出口徑', 6)
 hdr(g, 43, ['項目', '值', '', '說明'])
 lab(44, '免費用戶推論 $B（SRC_DEM_005）', mv['SRC_Demand']['C9'].value, fmt='0.0', blue=True)
 lab(45, '總推論 $B（SRC_DEM_004）', mv['SRC_Demand']['C8'].value, fmt='0.0', blue=True)
-lab(46, '免費占服務', '=B44/B45', fmt='0.000', note='F1：單一來源（The Information 2026-02），本段與子代理皆未能讀到原文')
+lab(46, '免費占服務', '=B44/B45', fmt='0.000', note='F1：單一來源（The Information〈Why OpenAI, Anthropic Missed Their Own Gross Margin Forecasts〉約 2026-02-24，付費牆），本段與子代理皆未能讀到原文；B 段可依此篇名取原文')
 lab(47, '用戶數占比（上限參考）', 0.95, fmt='0.00', blue=True, note='F2／F7：免費約 81%–95% 的用戶，但免費用戶訊息少、有上限、模型較便宜，故算力占比應低於此')
 lab(48, '建議（低／基準／高）', 0.35, fmt='0.00', blue=True, note='全部保留；證據不足以移動基準。下行訊號：免費層成本下降（F3）、改用較便宜模型（F4，低可信）')
 g['C48'] = 0.46; g['D48'] = 0.60

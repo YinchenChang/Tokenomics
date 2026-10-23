@@ -31,7 +31,7 @@ SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點（隨 Luna 值重算）、SR
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 
 
-V20_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"}      # v20.0：H3 計數與 L1_M 的 2026 區間（test_v2000 看守）
+V20_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"} | {f"IFW_{s}_LifeSelf" for s in ("RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront")} | {"L1_PriceReqBE", "L1_PriceReqBE_Lo", "L1_PriceReqBE_Hi"}      # v20.0：H3 計數與 L1_M 的 2026 區間（test_v2000 看守）；v20.1：LifeSelf 與 L1_PriceReqBE 三格（test_v2010 看守）
 
 
 def _flat(v):
@@ -156,7 +156,7 @@ def test_v1910_records(wbf):
     assert "17:29" in d.cell(rd[0], 6).value and "SRC_MOD_106" in d.cell(rd[0], 4).value and "修訂九" in d.cell(rd[0], 4).value
     assert d.max_row < 1000
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261022_Tokenomics_v20.0（主版：") and "v19.1（次版，底版 v19.0：" in str(rm["B5"].value) and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v20.0")
+    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v20.1（次版，底版 v20.0：") and "v20.0（主版：" in str(rm["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rm["B5"].value) and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v20.1")
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v19.1 W1 第二來源 B2"]) == 1
 
 

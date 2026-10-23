@@ -29,7 +29,7 @@ PREWARM = {"test_v2000_inputs_propagate": [GW_END], "test_v2000_stress_scenarios
 
 SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點、SRC_Index 範圍、治理計數另行檢查
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
-ALLOWED_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"}      # 文字「無區間」→ 數字區間（W3）；H3 計數（L1_DPaid_Scen 的 D／E／F 是三個情境）
+ALLOWED_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"} | {f"IFW_{s}_LifeSelf" for s in ("RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront")} | {"L1_PriceReqBE", "L1_PriceReqBE_Lo", "L1_PriceReqBE_Hi"}      # v20.1：LifeSelf 與 L1_PriceReqBE 三格值改變（test_v2010 看守）；      # 文字「無區間」→ 數字區間（W3）；H3 計數（L1_DPaid_Scen 的 D／E／F 是三個情境）
 
 
 def _flat(v):
@@ -231,7 +231,7 @@ def test_v2000_records(wbf):
     txt = d.cell(rd[0], 4).value + d.cell(rd[0], 6).value
     assert "產業校準錨點" in txt and "16:11" in txt and "20:57" in txt and "07:34" in txt
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261022_Tokenomics_v20.0（主版：") and str(rm["A1"].value).startswith("Tokenomics v20.0")
+    assert "v20.0（主版：" in str(rm["B5"].value) and str(rm["B5"].value).startswith("20261023_Tokenomics_v20.1（次版，底版 v20.0：") and str(rm["A1"].value).startswith("Tokenomics v20.1")      # v20.1：現行版字串為 v20.1
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"]) == 1
     assert "L1_LReqFleet_Full" in str([rm.cell(x, 2).value for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"][0])
 
@@ -294,15 +294,15 @@ def test_v2000_diffs_only_expected_vs_v191():
     # Alloc：只有 A70（標籤尾注）與版本字串 C177／C178
     assert sorted(t[0] for t in d["Alloc"]) == ["A70", "C177"]
     # Cap_In 既有列：只有 A242、C242:E242、G232、G233、G242（P 節以上不動）
-    assert sorted(t[0] for t in d["Cap_In"]) == ["A242", "C242", "D242", "E242", "G232", "G233", "G242"], sorted(t[0] for t in d["Cap_In"])
+    assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A242", "A313", "C238", "C242", "D238", "D242", "E238", "E242", "G232", "G233", "G242"], sorted(t[0] for t in d["Cap_In"])      # v20.1：A238／C238:E238／A313（test_v2010 看守）
     # Interface：IF_ProdDerate 與兩個標籤、契約元資料欄（R／V／W）
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
-    assert cols <= {"A", "R", "V", "W"}, cols
+    assert cols <= {"A", "R", "V", "W"} | set("CDEFGHIJKLMNOPQ") | {"Z"}, cols      # v20.1：LifeSelf 列 C:Q 公式與 Z 欄說明（test_v2010 看守）
     # L1 既有格：標籤／判讀／說明／性質，以及 L1_M_2026Q2、L1_M 的 E／F（文字→公式）
     for coord, x, y in d["L1"]:
         col = re.sub(r"\d+", "", coord)
-        assert col in ("B", "E", "F", "H", "I", "P", "T", "U"), (coord, x, y)
-        if col in ("E", "F"):
+        assert col in ("B", "C", "D", "E", "F", "H", "I", "P", "T", "U"), (coord, x, y)      # v20.1：第 93 列 B／C／D／E／F／H
+        if col in ("E", "F") and int(re.sub(r"[A-Z]+", "", coord)) != 93:
             assert x == '="無區間"' and int(re.sub(r"[A-Z]+", "", coord)) in (119, 121), (coord, x, y)
     # 名稱：只新增
     na, nb = set(a.defined_names), set(b.defined_names)
@@ -311,6 +311,6 @@ def test_v2000_diffs_only_expected_vs_v191():
     assert {"AL_FleetGW25", "AL_FleetGW25_Lo", "AL_FleetGW25_Hi", "AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", "SRC_DEM_088"} <= new
     for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex"):
         assert {f"L1_{k}", f"L1_{k}_Lo", f"L1_{k}_Hi"} <= new, k
-    assert len(new) == 8 + 33, sorted(new)
+    assert len(new) == 8 + 33 + 1, sorted(new)      # v20.1：+ L1_LDiscGen
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_")) for k in changed), sorted(changed)[:10]

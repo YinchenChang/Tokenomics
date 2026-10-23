@@ -2,6 +2,14 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261023_Tokenomics_v21.0.xlsx（取代 v20.1；**主版：Interface 新增 O 節「硬體取數」與 P 節「非 NVIDIA 比例」，共 13 個 `IF_` 契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261023_v21.0_硬體取數與NonNV.md` r0）
+
+- 分支 `claude/v21-0`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v21.0_硬體取數與NonNV.md`；進度檔：`docs/reports/20261023_v21.0_進度.md`。**待合併（本單明定不自行合併，等 Andy 說「合併」）。**
+- Excel（CC 以 `builder/v2100.py` 自 v20.1 產生，經 LibreOffice 重算存檔；冪等）：W1 Interface O 節（第 363–366 列）`IF_RackPrice`（Spec_Rack C:G 第 11／12／13 列）、`IF_ScaleOutShare`（Inputs D13:F13）、`IF_StoragePerGPU`（Inputs D14:F14），各 1×15；W2 Interface P 節（第 368–378 列）`IF_NonNV_Out_`／`IF_NonNV_Hold_` × AMD／TPU／Trn／CS／OAI（NonNV 第 5–9 列），各 1×3；NonNV M5:M9 文字改為已接 P 節；W4 L1 第 93 列 C／I／J／K 欄 `L_total` 舊口徑文字改為 `L1_LTotalFleetVDisc`；Decisions SL57-01；README（Excel 與 repo）。
+- 文件：下游契約 v0.24（新增第 6 節「權威歸屬」、第 7 節「證據送件」與 v21.0 版本段）；`CLAUDE.md` 修訂十（第 4 節 4a-ter，合併後下游同步通知掃描範圍）；`docs/builder/Tokenomics_builder_v5.md` 重產。
+- 連帶：區間端點檔與指紋檔版本字串重產；契約快照 `contract_snapshot_v21.0.json`（13 個新名稱；`IFC_*` 契約欄範圍隨新列延伸）；Checks D118／D119／E118 的範圍 R6:R361 → R6:R378（builder 自動延伸）。
+- 測試：新增 `tests/parity/test_v2100.py`（14 項）；`scenarios.yaml` 公式格數（53,926 → 54,066）、具名範圍數（1,786 → 1,799）、下游名稱數（235 → 248）與 `test_parity.py` 的 160 → 173 依預期變動更新；舊測試的版本字串釘版與「既有名稱不變」例外清單（IFC_）更新。
+
 ## 20261023_Tokenomics_v20.1.xlsx（取代 v20.0；**次版：Interface LifeSelf 改用世代折現 L × 收入面 m；回本所需實收單價改主口徑 L**；依工作單 `docs/workorders/20261023_v20.1_LifeSelf主口徑.md` r0）
 
 - 分支 `claude/v20-1`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v20.1_LifeSelf主口徑.md`；進度檔：`docs/reports/20261023_v20.1_進度.md`；名稱新舊值：`docs/reports/20261023_v20.1_變動名稱.csv`。**待合併（本單明定不自行合併，等 Andy 說「合併」）。**

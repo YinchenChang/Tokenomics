@@ -29,6 +29,7 @@ Excel 的具名範圍分為兩類（見 Excel README 頁）：
   - v19.0 新增 Interface N 節「P×Q 取數」25 個（`IF_Disc`、`IF_MixPaid_*`、`IF_MixFree_*`、`IF_UtilActual`、`IF_ProdDerate`、`IF_FleetProdRatio_VR200`、`IF_PxEffMix`、`IF_PxEffMix25`、`IF_LTotalDisc`、`IF_LTotalFleetVDisc`〔含 `_Lo`／`_Hi`〕與 15 欄的 `IF_TokGWPaidMix`）：下游做營收＝P × Q、實際 m×L ÷ 所需 m×L 時，每 GW 參數只從這裡取（`B4_*`、`AL_*`、`L1_*`、`CTL_*` 不得直接連結）；公司層級計算放 company-models。全部是既有格的引用或組合，既有名稱的值不變。
   - v20.0 新增 `IF_ProdDerate_Lo`（0.72）、`IF_ProdDerate_Hi`（0.95）；既有 `IF_` 值不變。回本判讀主口徑改為 `L1_LReqFleet_Full`（全部算力持有成本，基準 0.807）；2025 校準以 GW 優先（`AL_FleetGW25`、`L1_TokLedger_GW25`，見 Cap_In P 節）。
   - v20.1 不新增契約名稱。Interface LifeSelf（8 個 `IFW_*_LifeSelf`）改為「`_Prod` × 世代折現 L（`L1_LDiscGen`，工程類名稱）× `L1_M`」，Rubin Ultra 欄取 VR200 的 L，仍為情境、不回流；`L1_PriceReqBE`（＋`_Lo`／`_Hi`）的 L 改主口徑 `L1_LTotalFleetVDisc`。其餘契約名稱值不變。
+  - v21.0 新增 13 個 `IF_` 契約名稱，既有名稱值不變：Interface O 節「硬體取數」`IF_RackPrice`（$M/架，C–Q）、`IF_ScaleOutShare`、`IF_StoragePerGPU`（供 AI半導體 改接 `chip_bridge` In 頁抄錄值）；Interface P 節「非 NVIDIA 比例」`IF_NonNV_Out_`／`IF_NonNV_Hold_` × AMD／TPU／Trn／CS／OAI（相對 VR200，Assumed，C＝低、D＝基準、E＝高）。下游契約 v0.24 新增「權威歸屬」「證據送件」兩節。
 - **`IF_Hdr*`（`IF_HdrGen`、`IF_HdrCost`、`IF_HdrTask`）、`DRV_*`、`CAL_*`、`TRN_*`、`TR_*`、`B4_*`、`B5_*`、`CTL_*`**：僅供本網站顯示（表頭、推導鏈、Calib 驗證表、Tech_Registry 唯讀表）、內部用或輸入控制，下游不得連結。
   `B4_*`（41 個；v5.34 加 `B4_Disc_Lo`／`B4_Disc_Hi`）與 `B5_*`（24 個；v5.9 新增、v5.10 加 `B5_PFloor`）是 Block 4、Block 5 的顯示或內部用名稱（Cap_In／Har_In 輸入、市場候選表、有效單價列、選定 harness 檔案等），**下游一律不得連結**，應改連 `IF_` 的 Block 4、5 輸出（Interface D、E 節）。
 

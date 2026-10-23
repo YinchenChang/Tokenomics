@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2110 import NEW_NAMES as V2110_NEW_NAMES      # v21.1：+18 個新名稱（test_v2110 看守）
 
 REPO = Path(__file__).resolve().parents[2]
@@ -140,7 +141,7 @@ def test_v2100_existing_names_unchanged(lo):
     v = lo.view({})
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -179,11 +180,11 @@ def test_v2100_diffs_only_expected_vs_v201():
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
     allowed = {"Alloc", "Checks", "Decisions", "Interface", "L1", "NonNV", "README", "Alloc_In", "Cap_In", "DB_Evidence", "Gov_Map", "Load_Bearing", "SRC_Demand", "SRC_Index"}      # v21.1：另加的頁由 test_v2110 看守
     assert set(d) <= allowed, set(d) - allowed
-    assert [t[0] for t in d["Alloc"]] == ["C177"]      # 版本字串
+    assert [t[0] for t in d["Alloc"]] == ["C177", "D1020", "D1021", "D1022"]      # 版本字串；v21.2：D1020:D1022 指紋記錄值（test_v2120 看守）
     assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "D86", "E118"], d["Checks"]      # v21.1：D86（SRC 範圍計數公式隨新紀錄延伸）      # 契約欄檢查的範圍 R6:R361 → R6:R378（builder 自動延伸）
     assert [t[0] for t in d["NonNV"] if t[0][0] == "M" and int(t[0][1:]) <= 9] == [f"M{r}" for r in range(5, 10)]      # v21.1：NonNV 其餘變動（A1、L5:L9、第 10–11 列）由 test_v2110 看守
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted(t[0] for t in d["L1"] if int(re.sub(r"[A-Z]+", "", t[0])) <= 144 and t[0] != "T4") == [f"{c}{r93}" for c in "CIJK"], [t[0] for t in d["L1"]]      # v21.1：T4 表頭與第 145 列以後由 test_v2110 看守
+    assert sorted(t[0] for t in d["L1"] if int(re.sub(r"[A-Z]+", "", t[0])) <= 144 and t[0] != "T4") == sorted([f"{c}{r93}" for c in "CIJK"] + ["C71", "H71"]), [t[0] for t in d["L1"]]      # v21.2：第 71 列 C／H（test_v2120 看守）      # v21.1：T4 表頭與第 145 列以後由 test_v2110 看守
     # Interface：既有列（≤ 361）的 A–Q 不變；R–Y 契約欄的變動只限因範圍延伸而改的格（無）；新列在 363 以後
     old_last = 361      # v20.1 Interface 最後一列（N 節）
     for coord, x, y in d["Interface"]:

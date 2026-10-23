@@ -16,7 +16,8 @@ import openpyxl
 import pytest
 import yaml
 
-PREWARM = {"test_v1800_new_values_match_precomputed": [{"SRC_MOD_106": 1024}]}
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+PREWARM = {"test_v1800_new_values_match_precomputed": [{"SRC_MOD_106": 1024, **SB_OLD}]}
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
@@ -72,7 +73,7 @@ def _close(got, want, tol):
 
 
 def test_v1800_new_values_match_precomputed(lo):
-    v = lo.view({"SRC_MOD_106": 1024})      # v19.1：Arch!C17 改值（4224 → 2176）後 Luna 相關值變動；事前值在 C17 回 4224 時仍成立（SRC_MOD_106＝1024）
+    v = lo.view({"SRC_MOD_106": 1024, **SB_OLD})      # v21.2：另設回 AL_SpendBasis 0.85／0.73／1.17；v19.1：Arch!C17 改值（4224 → 2176）後 Luna 相關值變動；事前值在 C17 回 4224 時仍成立（SRC_MOD_106＝1024）
     for n, trio in PRE.items():
         for suf, want in zip(("", "_Lo", "_Hi"), trio):
             got = v.get_name(n + suf)

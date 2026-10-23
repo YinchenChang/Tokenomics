@@ -12,10 +12,11 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from parity_lib import lo_recalc
 
 # v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
-C17_OLD = {"SRC_MOD_106": 1024}
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值（v14.x–v15.x）仍成立；新值由 test_v2120 看守
 
 REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v19.1：併入 Arch!C17 下游的預期變動名稱； v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
@@ -118,7 +119,7 @@ def test_v1400_existing_contract_names_unchanged(lo):
     例外只有：CHK_VerifyTotal／Pass（新增 V23–V26）、IFC_*（Interface 新增列，範圍變長）、RNG_Version／Current（版本字串）。"""
     prev = openpyxl.load_workbook(V131_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED | V152_CHANGED]
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED | V152_CHANGED | V2120_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱
     assert len(keep) >= 300, len(keep)      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300（原 ≥ 340）； v15.2：同上；原 ≥ 700
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
@@ -163,7 +164,7 @@ def test_v1400_new_checks_pass_on_base(lo):
         assert v.get("Checks", f"G{r}") == "驗證" and v.get("Checks", f"F{r}") == 1, (code, v.get("Checks", f"F{r}"))
     r = _chk(v, "V23")
     assert v.get("Checks", f"D{r}") == 32 and v.get("Checks", f"C{r}") == 0      # 可達欄 32（Perf 15＋Perf_Batch 17）、低於 SLO 的欄數 0
-    assert abs(v.get("Checks", f"E{_chk(v, 'V25')}") - 0.217680639842559) < 1e-9      # v19.1：V25 0.2237 → 0.2177（Arch!C17 改值）
+    assert abs(v.get("Checks", f"E{_chk(v, 'V25')}") - 0.322541070274425) < 1e-9      # v21.2：0.2177 → 0.3225（AL_SpendBasis 0.85 → 1.8）； v19.1：V25 0.2237 → 0.2177（Arch!C17 改值）
     assert v.get("Checks", f"E{_chk(v, 'V24')}") == 0 and v.get("Checks", f"E{_chk(v, 'V26')}") == 0
 
 

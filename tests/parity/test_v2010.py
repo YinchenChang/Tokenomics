@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2110 import NEW_NAMES as V2110_NEW_NAMES      # v21.1：+18 個新名稱（test_v2110 看守）
 
 REPO = Path(__file__).resolve().parents[2]
@@ -179,7 +180,7 @@ def test_v2010_existing_names_unchanged(lo):
     v = lo.view({})
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or name in CHANGED_NAMES or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in CHANGED_NAMES or name in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -269,10 +270,10 @@ def test_v2010_diffs_only_expected_vs_v200():
     allowed = {"Cap_In", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Index", "Alloc", "Checks", "NonNV", "Alloc_In", "SRC_Demand", "DB_Evidence"}      # v21.0：Checks D118／D119／E118（範圍延伸）、NonNV M5:M9（test_v2100 看守）； v21.1：Alloc_In G24、SRC_Demand W10（test_v2110 看守）
     assert set(d) <= allowed, set(d) - allowed
     # Cap_In 既有格：只有 A238、C238:E238、A313
-    assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A313", "C238", "D238", "E238"], sorted(t[0] for t in d["Cap_In"])
+    assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A313", "C238", "D238", "E238", "G28"], sorted(t[0] for t in d["Cap_In"])      # v21.2：G28（test_v2120 看守）
     # L1 既有格：只有第 93 列的 B／C／D／E／F／H（以及指向它的說明欄不變）
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [r93], d["L1"][:3]      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
+    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [71, r93], d["L1"][:3]      # v21.2：第 71 列 C／H（test_v2120 看守）      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
     assert {re.sub(r"\d+", "", t[0]) for t in d["L1"] if t[0] != "T4"} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
     # Interface：LifeSelf 列（C:Q 與 A）、第 320 列標題、K 節標題、契約元資料欄（R／V／W）、Z 欄說明
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}

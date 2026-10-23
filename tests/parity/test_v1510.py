@@ -11,6 +11,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
@@ -54,7 +55,7 @@ def test_v1510_every_name_value_equals_v150(lo):
     v = lo.view({})
     n_ok = 0
     for n, d in prev.defined_names.items():
-        if n in VERSION_NAMES or n in V152_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
+        if n in VERSION_NAMES or n in V152_CHANGED or n in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -68,7 +69,7 @@ def test_v1510_every_name_value_equals_v150(lo):
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 135, 182)      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)
     #      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.1") and str(v.get_name("RNG_Current")).endswith("v21.1")      # v19.0：版本字串隨版本；v18.0：      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
+    assert str(v.get_name("RNG_Version")).endswith("v21.2") and str(v.get_name("RNG_Current")).endswith("v21.2")      # v21.2：版本字串；v19.0：版本字串隨版本；v18.0：      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
 
 
 def test_v1510_decisions_recorded(wbf):

@@ -17,6 +17,7 @@ import yaml
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 REPO = Path(__file__).resolve().parents[2]
 V191 = REPO / "model" / "archive" / "20261022_Tokenomics_v19.1.xlsx"
@@ -130,7 +131,7 @@ def test_v2000_identities(lo):
     m = _triple(v, "L1_M_2026Q2")
     assert m[1] <= m[0] <= m[2]
     # GW 優先 token 帳降為 1.52（支出路線 L1_TokLedger 5.62 保留對照且不變）
-    assert abs(_flat(v.get_name("L1_TokLedger"))[0] - 5.61593255464987) <= 1e-9
+    assert abs(_flat(v.get_name("L1_TokLedger"))[0] - 2.65196815080688) <= 1e-9      # v21.2：5.6159 → 2.6520（AL_SpendBasis 0.85 → 1.8）
     assert 1.51 < _flat(v.get_name("L1_TokLedger_GW25"))[0] < 1.53
     # 拆解：GW 1.0566 → 0.4624 為 ×0.4377（工作單 W6）
     assert abs(v.get_name("AL_ServeGWSpend") - 1.0566) < 1e-3 or True
@@ -151,7 +152,7 @@ def test_v2000_judgement_text(lo):
     wb = openpyxl.load_workbook(model_path())
     ws = wb["Cap_In"]
     r = next(r for r in range(327, ws.max_row + 1) if str(ws.cell(r, 1).value).startswith("對照：v17.0 主口徑"))
-    assert "未定" in v.get("Cap_In", f"C{r}") and "0.756" in v.get("Cap_In", f"C{r}")
+    assert "未定" in v.get("Cap_In", f"C{r}") and "0.357" in v.get("Cap_In", f"C{r}")      # v21.2：0.756 → 0.357
 
 
 # ---------------------------------------------------------------- 4. 既有名稱不變（對封存的 v19.1）
@@ -160,7 +161,7 @@ def test_v2000_existing_names_unchanged(lo):
     v = lo.view({})
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or name in ALLOWED_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in ALLOWED_CHANGED or name in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -292,9 +293,9 @@ def test_v2000_diffs_only_expected_vs_v191():
     allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index", "Alloc_In", "DB_Evidence", "Decisions"}      # v21.0：NonNV M5:M9； v21.1：Alloc_In G24（test_v2110 看守）
     assert set(d) <= allowed, set(d) - allowed
     # Alloc：只有 A70（標籤尾注）與版本字串 C177／C178
-    assert sorted(t[0] for t in d["Alloc"]) == ["A70", "C177"]
+    assert sorted(t[0] for t in d["Alloc"]) == ["A70", "C177", "D1020", "D1021", "D1022"]      # v21.2：D1020:D1022（區間時效指紋記錄值 0.85／0.73／1.17 → 1.8／0.85／2.3，W6）
     # Cap_In 既有列：只有 A242、C242:E242、G232、G233、G242（P 節以上不動）
-    assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A242", "A313", "C238", "C242", "D238", "D242", "E238", "E242", "G232", "G233", "G242"], sorted(t[0] for t in d["Cap_In"])      # v20.1：A238／C238:E238／A313（test_v2010 看守）
+    assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A242", "A313", "C238", "C242", "D238", "D242", "E238", "E242", "G232", "G233", "G242", "G28"], sorted(t[0] for t in d["Cap_In"])      # v21.2：G28（test_v2120 看守）      # v20.1：A238／C238:E238／A313（test_v2010 看守）
     # Interface：IF_ProdDerate 與兩個標籤、契約元資料欄（R／V／W）
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
     assert cols <= {"A", "R", "V", "W"} | set("CDEFGHIJKLMNOPQ") | {"Z"}, cols      # v20.1：LifeSelf 列 C:Q 公式與 Z 欄說明（test_v2010 看守）

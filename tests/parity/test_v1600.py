@@ -14,9 +14,10 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 # v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；本檔下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
-C17_OLD = {"SRC_MOD_106": 1024}
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值仍成立；新值由 test_v2120 看守
 PREWARM = {"test_v1600_new_values_match_precomputed": [C17_OLD], "test_v1600_only_new_names_and_nothing_else_changed": [C17_OLD]}
 
 REPO = Path(__file__).resolve().parents[2]
@@ -157,9 +158,9 @@ def test_v1600_comparison_rows(wbf, lo):
     v = lo.view({})
     ci = wbf["Cap_In"]
     ra, rb, rc = (_lab(ci, p) for p in ("對照：2025＝第 0 年（v15.3 口徑）", "對照：世代起點 L 對 不含 κ 所需 L", "對照：折現版 L 對 不含 κ 所需 L"))
-    assert v.get("Cap_In", f"C{ra}") == "未定（區間重疊；基準 L（2025＝第 0 年） 0.660 對所需 L 0.756）"
-    assert v.get("Cap_In", f"C{rb}") == "未定（區間重疊；基準 世代起點 L 0.716 對所需 L 0.756）"
-    assert v.get("Cap_In", f"C{rc}") == "未定（區間重疊；基準 折現版 L 0.699 對所需 L 0.756）"
+    assert v.get("Cap_In", f"C{ra}") == "未定（區間重疊；基準 L（2025＝第 0 年） 0.660 對所需 L 0.357）"      # v21.2：0.756 → 0.357（AL_SpendBasis 0.85 → 1.8）
+    assert v.get("Cap_In", f"C{rb}") == "未定（區間重疊；基準 世代起點 L 0.716 對所需 L 0.357）"
+    assert v.get("Cap_In", f"C{rc}") == "未定（區間重疊；基準 折現版 L 0.699 對所需 L 0.357）"
     neg = lo.view({"Cap_In!C226": -0.9, "Cap_In!D226": -0.9, "Cap_In!E226": -0.85})      # 世代起點 L 較 v15.3 口徑低，需 g 更低才使 L 上端 0.315 < 所需 L 下端 0.357
     assert neg.get("Cap_In", f"C{rb}").startswith(("未回本", "未定")) and neg.get("Cap_In", f"C{rc}").startswith(("未回本", "未定"))
 
@@ -205,7 +206,7 @@ def test_v1600_decisions_evidence_readme(wbf):
     assert "F1" in t3 and "F2" in t3 and "未回應前不改主口徑" in t3
     e = wbf["DB_Evidence"]
     ids = [e.cell(r, 1).value for r in range(5, e.max_row + 1)]
-    assert ids[-5] == "E398" and ids[-10:-5] == ["E393", "E394", "E395", "E396", "E397"] and ids[-4] == "E399" and ids[-3] == "E400" and ids[-2] == "E401" and ids[-1] == "E402"      # v21.1：DB_Evidence 新增 E402；      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
+    assert ids[-6] == "E398" and ids[-11:-6] == ["E393", "E394", "E395", "E396", "E397"] and ids[-5] == "E399" and ids[-4] == "E400" and ids[-3] == "E401" and ids[-2] == "E402" and ids[-1] == "E403"      # v21.2：DB_Evidence 新增 E403； v21.1：DB_Evidence 新增 E402；      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
     assert "不新增外部來源" in e.cell(_row(e, "E398"), 4).value and "可撤回" in e.cell(_row(e, "E398"), 11).value
     rd = wbf["README"]
     assert any(rd.cell(r, 1).value == "v16.0 L 世代起點" for r in range(4, rd.max_row + 1))      # v17.0：README B5／A1 的版本字串已是 v17.0（test_v1700）；v16.0 列保留

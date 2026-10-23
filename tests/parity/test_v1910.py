@@ -16,15 +16,16 @@ import yaml
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 REPO = Path(__file__).resolve().parents[2]
 V190 = REPO / "model" / "archive" / "20261022_Tokenomics_v19.0.xlsx"
 SC = {s["id"]: s["inputs"] for s in yaml.safe_load((Path(__file__).resolve().parent / "scenarios.yaml").read_text(encoding="utf-8"))["scenarios"]}
 F_REGISTRY = SC["f_registry_t07_t09_on"]
 CACHE_OFF = SC["d9_cache_cap_off"]
-C17_OLD = {"SRC_MOD_106": 1024}      # 把新紀錄設回舊共用值 1024：C17＝4224，應回到 v19.0
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # 把新紀錄設回舊共用值 1024：C17＝4224，並把 Alloc_In C23:E23 設回 0.85／0.73／1.17（v21.2），應回到 v19.0
 PREWARM = {"test_v1910_stress_scenarios_no_error_values": [F_REGISTRY, CACHE_OFF], "test_v1910_changes_only_downstream_of_c17": [C17_OLD],
-           "test_v1910_direction": [C17_OLD]}
+           "test_v1910_direction": [SB_OLD, C17_OLD]}
 
 NEW = {"SRC_MOD_106", "RNG_CHK_VerifyFail_Lo", "RNG_CHK_VerifyFail_Hi", "RNG_CHK_VerifyPass_Lo", "RNG_CHK_VerifyPass_Hi"}      # 新增名稱（區間端點檔多納入 2 個 CHK_ 名稱）
 SKIP = ("RNG_", "IDX_", "GOV_", "IFC_")      # 區間端點（隨 Luna 值重算）、SRC_Index 範圍、治理計數另行檢查
@@ -60,14 +61,14 @@ def test_v1910_c17_and_sources(lo):
 
 # 預期變動的關鍵名稱：(名稱, 索引, v19.1 值)；v19.0 值在封存檔（下一項逐名稱比對）
 KEY = [
-    ("L1_MFleet", 0, 0.447574227389844),
+    ("L1_MFleet", 0, 0.947804246237318),      # v21.2：0.4476 → 0.9478（AL_SpendBasis 0.85 → 1.8）
     ("L1_RevGW_PQ_VR200", 0, 49.5137840363362),
     ("L1_LTotalFleetVDisc", 0, 0.758597367273996),
     ("L1_LTotalFleetVDisc_Lo", 0, 0.478526587147247),
-    ("L1_TokLedger", 0, 5.61593255464987),
+    ("L1_TokLedger", 0, 2.65196815080688),      # v21.2：5.6159 → 2.6520
     ("IF_TokGWPaidMix", 0, 26017336543.4207),
     ("IF_LTotalFleetVDisc", 0, 0.758597367273996),
-    ("L1_LReqFleet_IdNoK", 0, 0.756109635897205),      # 所需 L（不含 κ）與 Luna 跨度無關：不變（v19.0 同值）
+    ("L1_LReqFleet_IdNoK", 0, 0.357051772507014),      # 所需 L（不含 κ）與 Luna 跨度無關（v19.0 同值 0.7561）；v21.2：0.7561 → 0.3571（AL_SpendBasis 0.85 → 1.8）
 ]
 
 
@@ -99,7 +100,7 @@ def test_v1910_changes_only_downstream_of_c17(lo):
 
 def test_v1910_direction(lo):
     """Luna 跨度上限縮短（4224 → 2176）：Luna 每 GW token 增加、m 下降。"""
-    v, w = lo.view({}), lo.view(C17_OLD)
+    v, w = lo.view(SB_OLD), lo.view(C17_OLD)      # v21.2：兩邊都用舊計價倍數，只比 C17 的影響
     assert _flat(v.get_name("IF_TokGW_Luna"))[0] > _flat(w.get_name("IF_TokGW_Luna"))[0]
     assert _flat(v.get_name("L1_MFleet"))[0] < _flat(w.get_name("L1_MFleet"))[0]
     assert _flat(v.get_name("L1_LReqFleet_IdNoK"))[0] == _flat(w.get_name("L1_LReqFleet_IdNoK"))[0]

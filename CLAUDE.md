@@ -1,4 +1,6 @@
-# Tokenomics — Claude Code 工作規範（2026-10-15 修訂八，取代 repo 內現有 CLAUDE.md）
+# Tokenomics — Claude Code 工作規範（2026-10-23 修訂十，取代 repo 內現有 CLAUDE.md）
+
+> 修訂十（2026-10-23，Andy 同意權威歸屬）：第 4 節新增一條「合併後的下游同步通知」（R3）：掃描 company-models 全部非快照檔，不只快照檔。理由：資料權威歸屬確認後（下游契約 v0.24 第 6 節），AI半導體 等產業專案直接讀取 Tokenomics 的具名範圍；只看快照檔會漏掉實際在讀取的公式。本修訂只改通知範圍，不改任何數值、公式或驗收門檻。
 
 > 修訂八（2026-10-15，Andy 同意）：網站短期暫停，公式引擎與 parity 隨之停用，所有數值檢查改由 LibreOffice 單一計算器完成。理由：2026-10-15 量測顯示 parity 全套約 170 分鐘，主因是引擎每次重建約 100 秒、全套重建約 81 次；網站停用後引擎只剩「與 LibreOffice 對答案」一個用途。檢查本身不放寬：錯誤值、期望值、GOV、冪等、版本逐格比較全部保留。引擎與網站程式保留在 `legacy/`，日後恢復網站時再評估。
 
@@ -71,6 +73,7 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
    - 與現行版逐格比較：差異必須全部落在工作單的「預期變動」範圍內。
 3. 如果具名範圍有增減，依 Excel 更新 `app/` 的欄位映射。（網站暫停期間不適用；`app/` 已移到 `legacy/app/`。）
 4. 在 `CHANGELOG.md` 記錄 Excel 版本、commit 與變動摘要。
+4a-ter. **合併後的下游同步通知（修訂十，R3）**：掃描 company-models **全部非快照檔**（含 `markets/`：`chip_bridge`、`network`、`equipment`、`memory`、`overview`），找出實際讀取變動名稱的公式或程式；只出現在 `tokenomics_snapshot_*.json` 的名稱屬告知性質。涉及 AI半導體 讀取的名稱時，另由 chat 端發 `交流/` 訊息。
 4a-bis. **合併（修訂六）**：第 2 項驗收全部成立、報告已寫入 repo 並貼成 PR comment 後，CC 以 `gh api -X PUT repos/YinchenChang/Tokenomics/pulls/<n>/merge -f merge_method=merge -f sha=<最新 SHA>` 自行合併到 master，不等 Andy 確認。合併被權限或衝突擋下時，不繞過，在最終回覆與報告寫明「待合併」與原因。Andy 事後有異議可 revert；判斷類內容仍以工作單為界，工作單沒寫的不因可自行合併而放寬。
 5. 發現 Excel 本身的錯誤（`#REF!`、`#DIV/0!`、循環參照、單位不一致）時：
    - 在 PR 描述與報告中列出；不得在 Python 端旁路修補。

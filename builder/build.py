@@ -293,6 +293,8 @@ IFM = v1400.interface_m(wb)            # v14.0 (4-3B Q2): Interface M section (1
 import v1900
 IFN = v1900.interface_n(wb)            # v19.0: Interface N section (P x Q 取數 names; appended last, before the contract columns are built)
 v2000.interface_n_ext(wb)             # v20.0 W4: IF_ProdDerate_Lo／_Hi in D／E of the IF_ProdDerate row
+import v2100
+IFOP = v2100.interface_op(wb)         # v21.0 W1／W2: Interface O (hardware 取數) and P (non-NVIDIA ratios) sections; appended last, before the contract columns are built
 SER14 = v1400.series_names(wb)         # v14.0 (4-3B Q2): L1_*_Ser／L1_MFleet_P25Lo／Hi series names on Cap_In
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
@@ -391,6 +393,8 @@ V2000 = v2000.apply(wb, v518._append_text)       # v20.0: label tails, judgement
 print("v2000 v20.0:", V2000)
 V2010 = v2010.apply(wb, v518._append_text)       # v20.1: Cap_In 238 / 313 and Interface K title text, Decisions SL56-01
 print("v2010 v20.1:", V2010)
+V2100 = v2100.apply(wb, v518._append_text)       # v21.0: NonNV M5:M9 text, Decisions SL57-01
+print("v2100 v21.0:", V2100)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.23（2026-10-23；對應 Tokenomics v20.1）
+# Tokenomics 下游資料契約 v0.24（2026-10-23；對應 Tokenomics v21.0）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -109,3 +109,38 @@
 - v19.0（主版；Interface 新增 N 節「P×Q 取數」，工作單 `docs/workorders/20261022_v19.0_Interface取數.md` r0，分支 `claude/v19-0`；依 Andy 2026-10-22 05:19「Tokenomics 裡面應該只是提供一 G 瓦的……三 G 瓦其實應該是擺在 OpenAI 他們自己裡面的，然後他只是去取用 Tokenomics 裡面一 G 瓦的相關的訊息」與 05:23「你這邊做 A 段就好了」）：**新增 25 個 `IF_` 契約名稱（Interface 第 346–361 列），既有名稱的值全部不變（唯一例外是版本字串 `RNG_Version`、`RNG_Current`）。** 目的：下游做『營收＝P × Q、實際 m×L ÷ 所需 m×L』時只從 Interface 取每 GW 參數；`B4_*`、`AL_*`、`L1_*`、`CTL_*` 依本契約第 2 節不得直接連結，故補成 `IF_` 名稱。公司層級（多 GW、多世代）計算放在下游公司模型，Tokenomics 只露出每 GW 參數。每個新名稱都只是既有格的引用或其組合。工作單稱新節為「K」，但 Interface K／L／M 節已被 v8.0／v10.0／v14.0 使用，本節為 **N**。新名稱（單位；基準 C／低 D／高 E；無區間者只有 C）：`IF_Disc`、`IF_Disc_Lo`、`IF_Disc_Hi`（%；折扣 d，有效牌價＝表列牌價 ×（1 − d）；0.20／0.10／0.40）；`IF_MixPaid_Luna`／`_Sol`／`_Astra`（%；付費 token 層級占比；0.40／0.45／0.15）；`IF_MixFree_Luna`／`_Sol`／`_Astra`（%；免費 token 層級占比；0.90／0.10／0）；`IF_UtilActual`／`_Lo`／`_Hi`（x；實際利用率，營運口徑；0.41／0.30／0.65）；`IF_ProdDerate`（x；線性生產折減，＝`CTL_ProdDerate`；0.85；其他世代的重解比待補，下游暫用本名稱）；`IF_FleetProdRatio_VR200`（x；VR200 生產折減重解比，＝`L1_FleetProdRatio`；0.80582；只有 VR200）；`IF_PxEffMix`（$/M；付費層級組合有效牌價，2026 快照，＝`Cap_In!C90`；1.96068）；`IF_PxEffMix25`／`_Lo`／`_Hi`（$/M；2025 年度有效牌價；1.35936／1.01933／1.64651）；`IF_LTotalDisc`／`_Lo`／`_Hi`（x；新世代自身起點、折現的 L；0.69884／0.44008／1.09414）；`IF_LTotalFleetVDisc`／`_Lo`／`_Hi`（x；2025 機隊、世代起點、折現的 L；0.75860／0.47298／1.13827）；`IF_TokGWPaidMix`（M tok/GW/年；15 欄＝5 世代 × 3 成本情境，同 `IF_TokGW_*`；付費層級組合下的 100% 利用率、全部付費的每 GW 年產能＝1 ÷ Σ（`IF_MixPaid_*` ÷ 該欄 `IF_TokGW_*`）；任一分母非數字或非正時回傳 `AL_UnavailTxt`；基準欄 Hopper／GB200／GB300／VR200／Rubin Ultra＝25,658,985,091／126,261,198,140／154,004,682,276／253,258,912,516／351,710,375,478）。**讀法**：實際每 GW 付費 token ＝ `IF_TokGWPaidMix` × 對外服務占比 `IF_ServeShare`（0.41）×（1 − 免費占比 `IF_FreeShare`（0.46））× `IF_UtilActual` × 生產折減（VR200 用 `IF_FleetProdRatio_VR200`，其他世代用 `IF_ProdDerate`）；單價 P ＝ `IF_PxEffMix`（2026）或 `IF_PxEffMix25`（2025）× m；有效牌價已含 `IF_Disc`（表列牌價 ×（1 − `IF_Disc`））。服務占比與免費占比用既有的 `IF_ServeShare`、`IF_FreeShare`（支出口徑，v15.0 O12；本版不新增）。快照 `contract_snapshot_v19.0.json`。
 - v20.0（主版；2025 校準改 GW 優先、回本改全部算力成本，工作單 `docs/workorders/20261022_v20.0_GW優先校準.md` r0，分支 `claude/v20-0`，Decisions SL55-01）：**新增 `IF_ProdDerate_Lo`（0.72）、`IF_ProdDerate_Hi`（0.95）兩個 `IF_` 名稱；既有 `IF_` 名稱的值全部不變。** Tokenomics 內新增（非契約，下游不得直接連結）：`AL_FleetGW25`（2025 平均上線 GW，1.128／1.0／1.25）、`L1_ServeGW_GW25`、`L1_TokPaid_GW25`、`L1_TokLedger_GW25`（1.520／0.453／5.258）、`L1_HoldFleet25`（10.55 $B）、`L1_PayRatio25`（1.239／1.118／1.397）、`L1_RevPerGW25`（11.59 $B/GW）、`L1_LReqFleet_Full`（全部算力所需 L，0.807／0.716／0.895，為回本判讀的新主口徑；`L1_LReqFleet_IdNoK` 降為對照）、`L1_DPaid_T4k`／`_T12k`／`_T30k`、`L1_DPaid_wCodex`；`L1_M_2026Q2`／`L1_M` 的低／高由『無區間』改為數字（0.810／1.595）。判讀由「0.759 對 0.756」改為「0.759 對 0.807（未定）」。治理計數 GOV_Warnings 132 → 133（Checks W1 +1：SRC_DEM_088 單一來源，真實狀態）。快照 `contract_snapshot_v20.0.json`。
 - v20.1（次版；Interface LifeSelf 改用世代折現 L × 收入面 m，回本所需實收單價改主口徑 L，工作單 `docs/workorders/20261023_v20.1_LifeSelf主口徑.md` r0，分支 `claude/v20-1`，Decisions SL56-01；依 Andy 2026-10-18 10:20 L 定義、2026-10-21 m 定義、2026-10-23 02:17 指示與 08:54「請繼續」＝判斷題 J1–J6 採預設）：**沒有新增或刪除契約名稱；11 個契約名稱的值與公式改變，其餘契約名稱值全部不變（版本字串 `RNG_Version`、`RNG_Current` 除外）。** （1）8 個 `IFW_*_LifeSelf`（Interface 第 321–328 列 C:Q）＝`_Prod` × 該世代折現 L × `L1_M`：Hopper／GB200／GB300／VR200 各取 `L1_LDiscGen` 的對應格（0.8439／0.7326／0.6988／0.6988），Rubin Ultra 欄取 VR200 的 L；m 由 `L1_MFleet` 改 `L1_M`（1.3432）。基準欄新值（$B/GW/年；Hopper／GB200／GB300／VR200／Rubin Ultra）：`IFW_RevGW_Luna_LifeSelf` 5.561／25.157／31.079／44.939／60.539；`IFW_RevGW_Sol_LifeSelf` 29.285／127.347／157.420／237.351／323.521；`IFW_RevGW_Astra_LifeSelf` 26.901／125.507／137.890／250.572／356.347；`IFW_RevGWFleet_LifeSelf` 5.766／26.213／30.209／50.638／70.598；前緣四個名稱見報告（前緣單價列套 m 為近似）。仍標示「情境、上限、不回流、不建議下游作為基準」；與 v20.0 比，Hopper 為 3.840 倍、GB200 3.334 倍、其餘 3.180 倍。（2）`L1_PriceReqBE`、`_Lo`、`_Hi`（L1 第 93 列 D／E／F，$/M）的 L 由 `L1_LTotal` 改主口徑 `L1_LTotalFleetVDisc`（世代起點＋折現）：1.8798 → 1.6342、1.1308 → 1.0891、3.0843 → 2.5907；成本範圍仍為 `L1_FleetBreakeven2025`（全部算力口徑未套用，待 Project 判斷）。（3）新增工程類具名範圍 `L1_LDiscGen`＝`Cap_In!$C$322:$F$322`（各世代折現 L_rel，相對自身起點；基準；**非契約名稱，下游不得直接連結**）。（4）文字：Cap_In 第 238 列判讀改讀主口徑 L（字樣仍為「區間內（0.3–1.0）」），第 313 列標籤，Interface K 節標題。下游實際讀取：契約規定 `IFW_*_LifeSelf` 不得作為下游基準，本 repo 內無公式引用；`L1_PriceReqBE` 為 L1 顯示用名稱（回本所需實收單價），下游若有引用須同步（逐名稱新舊值見 `docs/reports/20261023_v20.1_變動名稱.csv`）。快照 `contract_snapshot_v20.1.json`。
+- v21.0（主版；Interface 新增 O 節「硬體取數」與 P 節「非 NVIDIA 比例」，並新增本文第 6、7 節，工作單 `docs/workorders/20261023_v21.0_硬體取數與NonNV.md` r0，分支 `claude/v21-0`，Decisions SL57-01）：**新增 13 個 `IF_` 契約名稱；既有名稱的值全部不變**（逐格與 v20.1 相同；`IFC_*` 契約欄範圍隨新列延伸，不計）。每個新名稱都是既有格的引用，不改任何既有格。快照 `tests/parity/fixtures/contract_snapshot_v21.0.json`。
+
+| 名稱 | 位置 | 單位 | 層級／口徑 | 欄 |
+|---|---|---|---|---|
+| `IF_RackPrice` | Interface O 節 | $M/架 | 買方取得價（CSP／hyperscaler 口徑）；涵蓋範圍＝`Spec_Rack` 第 14 列文字摘要；Rubin Ultra 為 VR200 × 倍數（Assumed）；標記沿用 `Spec_Rack` 第 17 列 | C–Q（5 世代 × 低成本／基準／高成本；來源 `Spec_Rack` 第 11／12／13 列） |
+| `IF_ScaleOutShare` | Interface O 節 | 比例（÷ 機架價） | Scale-out 網路占機架價比例（`Inputs` 第 13 列，Analogy）；來源不分世代，各世代相同 | C–Q（每世代三欄＝`Inputs` D13／E13／F13：0.05／0.10／0.15） |
+| `IF_StoragePerGPU` | Interface O 節 | $/GPU | 儲存與管理設備（`Inputs` 第 14 列，Assumed）；來源不分世代，各世代相同 | C–Q（每世代三欄＝`Inputs` D14／E14／F14：300／500／800） |
+| `IF_NonNV_Out_AMD`／`_TPU`／`_Trn`／`_CS`／`_OAI` | Interface P 節 | 比（÷ VR200） | 每 GW 產出比，相對 VR200、同層級、同 SLO；全部 Assumed；候選＝AMD MI455X（Helios）、Google TPU v7 Ironwood、AWS Trainium3、Cerebras WSE-3、OpenAI／Broadcom 客製 | C＝低、D＝基準、E＝高（`NonNV` B:D，第 5–9 列） |
+| `IF_NonNV_Hold_AMD`／`_TPU`／`_Trn`／`_CS`／`_OAI` | Interface P 節 | 比（÷ VR200） | 每 GW 持有成本比，相對 VR200、同層級、同 SLO；全部 Assumed | C＝低、D＝基準、E＝高（`NonNV` E:G，第 5–9 列） |
+
+  基準欄的值（v21.0）：`IF_RackPrice` Hopper 1.1、GB200 3.1、GB300 4.3、VR200 8.4、Rubin Ultra 16.8（低成本欄 0.9／2.8／4.0／7.8／12.6；高成本欄 1.3／3.4／5.0／9.1／21.0）；`IF_ScaleOutShare` 0.10；`IF_StoragePerGPU` 500。`NonNV` H:J 欄（每 token 成本比與角落）仍未接線。ASIC 每顆規格（每 GW 顆數、單價、HBM）不在 Tokenomics，歸 AI半導體（第 6 節）；昇騰、Maia 兩列不在本版，待證據後於 v21.1 加入。取用規則同第 2 條。
+
+## 6. 權威歸屬（v0.24 新增；依《情境卡產生規則》R1.6.1 第 13 條）
+
+劃界原則：**以「Tokenomics 的每 GW 計算是否用到」為準。** 計算用到的量，權威在 Tokenomics，其他專案只讀；計算不用到的量，權威在對應的產業專案，Tokenomics 不收。界線跟著計算移動：Tokenomics 的計算開始用到某個量時，該量的權威隨之移到 Tokenomics。
+
+| 權威在 Tokenomics（他方只讀） | 權威在 AI半導體（Tokenomics 不收） |
+|---|---|
+| 每 GW 顆數、機架數、機架價、功率、每 GW 資本支出；NonNV 相對 VR200 的產出比與持有成本比 | HBM 單價與容量、每顆內容拆分、網通內容、晶片商份額、出貨顆數、ASIC 每顆規格、晶圓與設備 |
+
+- 依賴方向單向：讀取方即時讀 Tokenomics 的具名範圍（第 2 條）；反方向（產業專案發現的新證據）只送證據，不直接改 Tokenomics 的值。
+
+## 7. 證據送件（v0.24 新增）
+
+產業專案若認為 Tokenomics 內的某個值需要修正或新增，經 Drive `00-共用情境/交流/` 寄給權威專案。每筆證據列：
+
+1. 主張（要改或要新增什麼）；
+2. 數值與單位；
+3. 口徑（例如 IT 或設施電力、買方取得價或廠商報價、哪一世代與層級）；
+4. 出處（網址或文件位置）；
+5. 來源等級（Verified／Interested-party／Analogy／Assumed／Derived）；
+6. 立場（來源是否有利害關係）；
+7. 影響的 Tokenomics 名稱。
+
+權威方依 DB_Evidence 規則決定是否採用，並回執（採用、不採用與理由、或待補）。過渡規則：權威方新版發布前，讀取方的基準仍用現值；新證據的值只作敏感度，並標「待 Tokenomics 登錄」，不得當作基準。

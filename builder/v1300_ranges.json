@@ -1,6 +1,6 @@
 {
- "version": "20261023_Tokenomics_v20.1",
- "generated_from": "20261023_Tokenomics_v20.1.xlsx",
+ "version": "20261023_Tokenomics_v21.0",
+ "generated_from": "20261023_Tokenomics_v21.0.xlsx",
  "scenarios": {
   "hi": {
    "CAL_BatchEtaD[2]": 1.59

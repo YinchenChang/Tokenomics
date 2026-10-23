@@ -1,7 +1,7 @@
 """產生 tests/parity/fixtures 的兩個快照（4-2a F4／F5）。用法：
     python3 tools/make_test_fixtures.py <LibreOffice 重算後的 xlsx>
 輸出：
-  tests/parity/fixtures/contract_snapshot_v20.1.json   下游契約名稱（契約文件所列＋全部 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_）逐格值
+  tests/parity/fixtures/contract_snapshot_v21.0.json   下游契約名稱（契約文件所列＋全部 IF_／IFW_／IFC_／L1_／GOV_／CHK_／CAP_）逐格值
   tests/parity/fixtures/dead_unmarked_baseline_v10.3.json   死格中「用途」欄為空者（基準名單；之後新增的死格必須有用途標記）
 之後每版若有預期變動，必須在同一個 PR 重跑本工具更新快照，並在報告列出差異（舊值、新值、理由）。"""
 import json
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     p = Path(sys.argv[1])
     FIX.mkdir(parents=True, exist_ok=True)
     cs = contract_snapshot(p)
-    (FIX / "contract_snapshot_v20.1.json").write_text(json.dumps(cs, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    (FIX / "contract_snapshot_v21.0.json").write_text(json.dumps(cs, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print("契約名稱快照：名稱", cs["n_names"], "格", cs["n_cells"])
     du = dead_unmarked(p)
     (FIX / "dead_unmarked_baseline_v10.3.json").write_text(json.dumps(du, ensure_ascii=False, indent=0), encoding="utf-8")

@@ -67,7 +67,7 @@ def test_v1510_every_name_value_equals_v150(lo):
     assert n_ok >= 1000, n_ok      # v15.2：B2／B3 預期變動的 455 個名稱（V152_CHANGED）不比，其餘仍逐值相同
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 182)      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v20.1") and str(v.get_name("RNG_Current")).endswith("v20.1")      # v19.0：版本字串隨版本；v18.0：      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
+    assert str(v.get_name("RNG_Version")).endswith("v21.0") and str(v.get_name("RNG_Current")).endswith("v21.0")      # v19.0：版本字串隨版本；v18.0：      # v17.1：版本字串隨版本（v17.0 同）      # v17.2：版本字串隨版本
 
 
 def test_v1510_decisions_recorded(wbf):

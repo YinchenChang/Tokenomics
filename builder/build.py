@@ -286,6 +286,8 @@ I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuatio
 IFK = v800.interface_k(wb)            # v8.0 L5: Interface K section (IF_AllocServeGW_Tok; appended last, before the contract columns are built)
 import v1000
 IFL = v1000.interface_l(wb)            # v10.0 N1: Interface L section (IFW_*_LifeSelf; appended last, before the contract columns are built; nothing reads these names)
+import v2010
+v2010.interface_l_patch(wb, IFL)       # v20.1 W1: LifeSelf rows = _Prod x per-generation discounted L (L1_LDiscGen) x L1_M; name L1_LDiscGen (before dependency tracing)
 import v1400
 IFM = v1400.interface_m(wb)            # v14.0 (4-3B Q2): Interface M section (11 IF_ names) before the contract columns are built
 import v1900
@@ -387,6 +389,8 @@ V1910 = v1910.apply(wb, v518._append_text)       # v19.1: W1 second sources B2 (
 print("v1910 v19.1:", V1910)
 V2000 = v2000.apply(wb, v518._append_text)       # v20.0: label tails, judgement rows (Cap_In 242, L1 P89), G232／G233 text, Checks P1, E401, Decisions SL55-01
 print("v2000 v20.0:", V2000)
+V2010 = v2010.apply(wb, v518._append_text)       # v20.1: Cap_In 238 / 313 and Interface K title text, Decisions SL56-01
+print("v2010 v20.1:", V2010)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

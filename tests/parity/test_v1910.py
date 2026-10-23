@@ -27,7 +27,7 @@ PREWARM = {"test_v1910_stress_scenarios_no_error_values": [F_REGISTRY, CACHE_OFF
            "test_v1910_direction": [C17_OLD]}
 
 NEW = {"SRC_MOD_106", "RNG_CHK_VerifyFail_Lo", "RNG_CHK_VerifyFail_Hi", "RNG_CHK_VerifyPass_Lo", "RNG_CHK_VerifyPass_Hi"}      # 新增名稱（區間端點檔多納入 2 個 CHK_ 名稱）
-SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點（隨 Luna 值重算）、SRC_Index 範圍、治理計數另行檢查
+SKIP = ("RNG_", "IDX_", "GOV_", "IFC_")      # 區間端點（隨 Luna 值重算）、SRC_Index 範圍、治理計數另行檢查
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 
 
@@ -156,7 +156,7 @@ def test_v1910_records(wbf):
     assert "17:29" in d.cell(rd[0], 6).value and "SRC_MOD_106" in d.cell(rd[0], 4).value and "修訂九" in d.cell(rd[0], 4).value
     assert d.max_row < 1000
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v20.1（次版，底版 v20.0：") and "v20.0（主版：" in str(rm["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rm["B5"].value) and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v20.1")
+    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.0（主版：") and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rm["B5"].value) and "v19.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.0")
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v19.1 W1 第二來源 B2"]) == 1
 
 
@@ -190,4 +190,4 @@ def test_v1910_diffs_only_expected_vs_v190():
     na, nb = set(a.defined_names), set(b.defined_names)
     assert na <= nb and nb - na == NEW, (nb - na)
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
-    assert all(k.startswith(("IDX_", "RNG_", "GOV_")) for k in changed), sorted(changed)[:10]
+    assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

@@ -35,7 +35,7 @@ WO = {      # 工作單 W1 事前值（Hopper, GB200, GB300, VR200, Rubin Ultra�
 WO_PRICE = {"L1_PriceReqBE": 1.63424, "L1_PriceReqBE_Lo": 1.08913, "L1_PriceReqBE_Hi": 2.59072}
 CHANGED_NAMES = {f"IFW_{s}_LifeSelf" for s in STEMS} | {"L1_PriceReqBE", "L1_PriceReqBE_Lo", "L1_PriceReqBE_Hi"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
-SKIP = ("RNG_", "IDX_", "GOV_")
+SKIP = ("RNG_", "IDX_", "GOV_", "IFC_")      # v21.0：IFC_ 契約欄範圍隨 O／P 節新列延伸
 SLO_UNREACH = {"CTL_ProdDerate": 0.3}      # 生產折減 0.3：Hopper 欄 _Prod 的營收列為文字（SLO 不可達）；Serving!C18 的不可達情境（z1_c18_07_text）下 _Prod 營收列仍為數字
 WACC_UP = {"Inputs!E28": 0.15}
 PREWARM = {"test_v2010_l_input_propagates": [WACC_UP], "test_v2010_slo_unreachable_returns_text": [SLO_UNREACH]}
@@ -215,7 +215,7 @@ def test_v2010_records(wbf):
     for key in ("本来就是应该用自己每个世代来算的", "m＝實收單價 ÷ 有效牌價", "07:34", "J1", "J6", "08:54"):
         assert key in txt, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v20.1（次版，底版 v20.0：") and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v20.1")
+    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.0（主版：") and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.0")
     rows = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.1 LifeSelf 主口徑"]
     assert len(rows) == 1 and "L1_LDiscGen" in rm.cell(rows[0], 2).value and "L1_LTotalFleetVDisc" in rm.cell(rows[0], 2).value
     assert wbf.defined_names["L1_LDiscGen"].attr_text == "Cap_In!$C$322:$F$322"
@@ -265,19 +265,19 @@ def test_v2010_diffs_only_expected_vs_v200():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y and (x is not None or ws.title == "Interface" and c == 26):
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
-    allowed = {"Cap_In", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Index", "Alloc"}
+    allowed = {"Cap_In", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Index", "Alloc", "Checks", "NonNV"}      # v21.0：Checks D118／D119／E118（範圍延伸）、NonNV M5:M9（test_v2100 看守）
     assert set(d) <= allowed, set(d) - allowed
     # Cap_In 既有格：只有 A238、C238:E238、A313
     assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A313", "C238", "D238", "E238"], sorted(t[0] for t in d["Cap_In"])
     # L1 既有格：只有第 93 列的 B／C／D／E／F／H（以及指向它的說明欄不變）
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
     assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"]}) == [r93], d["L1"][:3]
-    assert {re.sub(r"\d+", "", t[0]) for t in d["L1"]} <= {"B", "C", "D", "E", "F", "H"}
+    assert {re.sub(r"\d+", "", t[0]) for t in d["L1"]} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
     # Interface：LifeSelf 列（C:Q 與 A）、第 320 列標題、K 節標題、契約元資料欄（R／V／W）、Z 欄說明
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
     assert cols <= set("ACDEFGHIJKLMNOPQ") | {"R", "S", "T", "U", "V", "W", "Z"}, cols
     # 名稱：只新增 L1_LDiscGen
     na, nb = set(a.defined_names), set(b.defined_names)
-    assert na <= nb and nb - na == {"L1_LDiscGen"}, sorted(nb - na)
+    assert na <= nb and nb - na == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")}, sorted(nb - na)      # v21.0：+13（test_v2100 看守）
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
-    assert all(k.startswith(("IDX_", "RNG_", "GOV_")) for k in changed), sorted(changed)[:10]
+    assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

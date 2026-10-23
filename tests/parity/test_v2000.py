@@ -27,7 +27,7 @@ GW_END = {"SRC_DEM_009": 2.2}
 DERATE_HI = {}          # AL_ProdDerate_Hi 在 Cap_In P 節，用格位鍵改（見測試內）
 PREWARM = {"test_v2000_inputs_propagate": [GW_END], "test_v2000_stress_scenarios_no_error_values": [F_REGISTRY, CACHE_OFF]}
 
-SKIP = ("RNG_", "IDX_", "GOV_")      # 區間端點、SRC_Index 範圍、治理計數另行檢查
+SKIP = ("RNG_", "IDX_", "GOV_", "IFC_")      # 區間端點、SRC_Index 範圍、治理計數另行檢查
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 ALLOWED_CHANGED = {"L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"} | {f"IFW_{s}_LifeSelf" for s in ("RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Luna", "RevGWFront_Sol", "RevGWFront_Astra", "RevGWFleetFront")} | {"L1_PriceReqBE", "L1_PriceReqBE_Lo", "L1_PriceReqBE_Hi"}      # v20.1：LifeSelf 與 L1_PriceReqBE 三格值改變（test_v2010 看守）；      # 文字「無區間」→ 數字區間（W3）；H3 計數（L1_DPaid_Scen 的 D／E／F 是三個情境）
 
@@ -231,7 +231,7 @@ def test_v2000_records(wbf):
     txt = d.cell(rd[0], 4).value + d.cell(rd[0], 6).value
     assert "產業校準錨點" in txt and "16:11" in txt and "20:57" in txt and "07:34" in txt
     rm = wbf["README"]
-    assert "v20.0（主版：" in str(rm["B5"].value) and str(rm["B5"].value).startswith("20261023_Tokenomics_v20.1（次版，底版 v20.0：") and str(rm["A1"].value).startswith("Tokenomics v20.1")      # v20.1：現行版字串為 v20.1
+    assert "v20.0（主版：" in str(rm["B5"].value) and str(rm["B5"].value).startswith("20261023_Tokenomics_v21.0（主版：") and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.0")      # v20.1：現行版字串為 v20.1
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"]) == 1
     assert "L1_LReqFleet_Full" in str([rm.cell(x, 2).value for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"][0])
 
@@ -289,7 +289,7 @@ def test_v2000_diffs_only_expected_vs_v191():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y and x is not None:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
-    allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Demand", "SRC_Index"}
+    allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index"}      # v21.0：NonNV M5:M9
     assert set(d) <= allowed, set(d) - allowed
     # Alloc：只有 A70（標籤尾注）與版本字串 C177／C178
     assert sorted(t[0] for t in d["Alloc"]) == ["A70", "C177"]
@@ -301,7 +301,7 @@ def test_v2000_diffs_only_expected_vs_v191():
     # L1 既有格：標籤／判讀／說明／性質，以及 L1_M_2026Q2、L1_M 的 E／F（文字→公式）
     for coord, x, y in d["L1"]:
         col = re.sub(r"\d+", "", coord)
-        assert col in ("B", "C", "D", "E", "F", "H", "I", "P", "T", "U"), (coord, x, y)      # v20.1：第 93 列 B／C／D／E／F／H
+        assert col in ("B", "C", "D", "E", "F", "H", "I", "J", "K", "P", "T", "U"), (coord, x, y)      # v20.1：第 93 列 B／C／D／E／F／H
         if col in ("E", "F") and int(re.sub(r"[A-Z]+", "", coord)) != 93:
             assert x == '="無區間"' and int(re.sub(r"[A-Z]+", "", coord)) in (119, 121), (coord, x, y)
     # 名稱：只新增
@@ -311,6 +311,6 @@ def test_v2000_diffs_only_expected_vs_v191():
     assert {"AL_FleetGW25", "AL_FleetGW25_Lo", "AL_FleetGW25_Hi", "AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", "SRC_DEM_088"} <= new
     for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex"):
         assert {f"L1_{k}", f"L1_{k}_Lo", f"L1_{k}_Hi"} <= new, k
-    assert len(new) == 8 + 33 + 1, sorted(new)      # v20.1：+ L1_LDiscGen
+    assert len(new) == 8 + 33 + 1 + 13, sorted(new)      # v21.0：+13（Interface O／P 節）； v20.1：+ L1_LDiscGen
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
-    assert all(k.startswith(("IDX_", "RNG_", "GOV_")) for k in changed), sorted(changed)[:10]
+    assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

@@ -12,9 +12,10 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 # v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；本檔下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
-C17_OLD = {"SRC_MOD_106": 1024}
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值仍成立；新值由 test_v2120 看守
 PREWARM = {"test_v1520_m_values_and_decomposition": [C17_OLD]}
 
 REPO = Path(__file__).resolve().parents[2]

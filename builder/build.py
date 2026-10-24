@@ -210,6 +210,8 @@ import v1530
 V518_LOG += v1530.inputs_update(wb, v518._append_text)       # v15.3: E1／E2 Cap_In C226:E228 (inputs, D228 formula, marks), D1 rows 242／243, C2 Calib D156 = SQRT(C254*D201) (before gov_all so the contract tracing sees the final formulas)
 V518_LOG += v1600.inputs_update(wb, v518._append_text)       # v16.0 W2: Cap_In row 242 reads L1_LTotalFleetV (after v1530 wrote the v15.3 text; before gov_all)
 V518_LOG += v1700.inputs_update(wb, v518._append_text)       # v17.0 W2: Cap_In row 242 reads L1_LTotalFleetVDisc / L1_LReqFleet_IdNoK (after v1600; before gov_all)
+import v2120
+V518_LOG += v2120.inputs_update(wb)       # v21.2 W1 J5: Alloc_In C23:E23 0.85/0.73/1.17 -> 1.8/0.85/2.3 (old-value guards; after restore, before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -401,6 +403,8 @@ V2100 = v2100.apply(wb, v518._append_text)       # v21.0: NonNV M5:M9 text, Deci
 print("v2100 v21.0:", V2100)
 V2110 = v2110.apply(wb, v518._append_text)       # v21.1: NonNV text, Alloc_In G24／SRC_DEM_006／Interface A364 text, 用途 marks, E402, Decisions SL58-01
 print("v2110 v21.1:", V2110)
+V2120 = v2120.apply(wb, v518._append_text)       # v21.2: Alloc_In G23／SRC_DEM_006／Cap_In G28／NonNV L11 text, E403, Decisions SL59-01
+print("v2120 v21.2:", V2120)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261023_Tokenomics_v21.2.xlsx（取代 v21.1；**次版：計價倍數 AL_SpendBasis 改 1.8（0.85–2.3）＋四項說明修補；沒有新增或刪除契約名稱，44 個名稱的值改變**；依工作單 `docs/workorders/20261023_v21.2_計價倍數與說明修補.md` r0）
+
+- 分支 `claude/v21-2`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v21.2_計價倍數.md`；進度檔：`docs/reports/20261023_v21.2_進度.md`。**待合併（本單明定不自行合併，Project Instructions 第 6 條）。**
+- Excel（CC 以 `builder/v2120.py` 自 v21.1 產生，經 LibreOffice 重算存檔；冪等）：W1 `Alloc_In` C23:E23 0.85／0.73／1.17 → 1.8／0.85／2.3（Derived；只在仍為舊值時才寫），G23 說明改寫（原文逐字保留於後）、L1 C71／H71 標記 Assumed → Derived（原值逐字保留；CLAUDE.md 修訂九）；W2 SRC_DEM_006 備註加外部預測；W3 Cap_In G28 加前提；W4 NonNV L11 加 Maia 區間說明；W5 Decisions SL59-01、DB_Evidence E403、README；W6 區間時效指紋（Alloc P 節記錄值 1.8／0.85／2.3）與區間端點檔重產。
+- 值改變的名稱 44 個（`AL_SpendBasis*` 3、`L1_Gap*`、`L1_LReqFleet*`（不含 `_Full`）、`L1_MFleet*`、`L1_PriceRealFleet*`、`L1_TokCeiling*`、`L1_TokLedger*`、`L1_TokPerPromptClose*`），另 `RNG_Version`／`RNG_Current` 版本字串；`L1_TokLedger` 5.62 → 2.65、`L1_MFleet` 0.448 → 0.948、`L1_LReqFleet_IdNoK` 0.756 → 0.357。全部 `IF_`／`IFW_`／`IFC_`、`L1_LReqFleet_Full*`、`L1_RevGW_PQ_VR200*`、`L1_M*`（收入面）、`L1_LTotal*` 的值不變。
+- 文件：下游契約 v0.26（v21.2 版本段）；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.2.json`。
+- 連帶：`RNG_StaleFlag` 一致、Alloc C410＝0、GOV 三項計數 0／135／182 不變（中途 136 與「區間過期」來自指紋記錄值，重產後恢復）。
+- 測試：新增 `tests/parity/test_v2120.py`；既有測試期望值與版本字串更新見報告表 1。
+
 ## 20261023_Tokenomics_v21.1.xlsx（取代 v21.0；**次版：NonNV 新增昇騰／Maia 兩列、免費占比時間路徑；新增 10 個契約名稱，既有名稱的值全部不變**；依工作單 `docs/workorders/20261023_v21.1_NonNV與免費占比路徑.md` r0）
 
 - 分支 `claude/v21-1`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v21.1_NonNV與免費占比路徑.md`；進度檔：`docs/reports/20261023_v21.1_進度.md`。**待合併（本單明定不自行合併，等 Andy 說「合併」）。**

@@ -14,6 +14,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 REPO = Path(__file__).resolve().parents[2]
 V160 = REPO / "model" / "archive" / "20261018_Tokenomics_v16.0.xlsx"
@@ -128,19 +129,19 @@ def test_v1700_three_state_row242(wbf, lo):
     assert pos.get("Cap_In", "C242") == "回本（L 區間全在所需 L 之上）"
     # L1 P89 同步
     p89 = v.get("L1", "P89")
-    assert p89.startswith("恆等式讀法：未定（世代起點折現 L 0.76 對全部算力所需 L 0.81；v15.3 口徑 2025＝第 0 年：L 0.660）（v17.0 口徑對照：只含推論、經計價倍數的所需 L 0.76）（v16.0 口徑：L 0.716 對 0.756）；字面讀法 ")
+    assert p89.startswith("恆等式讀法：未定（世代起點折現 L 0.76 對全部算力所需 L 0.81；v15.3 口徑 2025＝第 0 年：L 0.660）（v17.0 口徑對照：只含推論、經計價倍數的所需 L 0.36）（v16.0 口徑：L 0.716 對 0.357）；字面讀法 ")
     assert neg.get("L1", "P89").startswith("恆等式讀法：未回本") and pos.get("L1", "P89").startswith("恆等式讀法：回本")
     assert "（v16.0 口徑：L " in neg.get("L1", "P89") and "（v16.0 口徑：L " in pos.get("L1", "P89")
     # 基準比值 1.003 寫在 G242
     assert "基準比值（L ÷ 所需 L）＝1.003" in wbf["Cap_In"]["G242"].value
-    assert abs(v.get_name("L1_LTotalFleetVDisc") / v.get_name("L1_LReqFleet_IdNoK") - 1.003) < 5e-4
+    assert abs(v.get_name("L1_LTotalFleetVDisc") / v.get_name("L1_LReqFleet_IdNoK") - 2.1246) < 5e-4      # v21.2：1.003 → 2.125（L1_LReqFleet_IdNoK 0.756 → 0.357；G242 文字內的 1.003 是 v17.0 當時值，不改）
 
 
 def test_v1700_v160_comparison_row(wbf, lo):
     v = lo.view({})
     ci = wbf["Cap_In"]
     r = _lab(ci, "對照：v16.0 口徑（不折現、含 κ）")
-    assert v.get("Cap_In", f"C{r}") == "未定（區間重疊；基準 世代起點 L（v16.0 口徑） 0.716 對所需 L 0.756）"
+    assert v.get("Cap_In", f"C{r}") == "未定（區間重疊；基準 世代起點 L（v16.0 口徑） 0.716 對所需 L 0.357）"      # v21.2：0.756 → 0.357
     for p in ("對照：2025＝第 0 年（v15.3 口徑）", "對照：世代起點 L 對 不含 κ 所需 L", "對照：折現版 L 對 不含 κ 所需 L"):      # v16.0 既有三個對照列保留
         assert _lab(ci, p) < r
     assert r > _lab(ci, "機隊折現 L（世代起點＋折現")
@@ -203,9 +204,10 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     changed -= set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"]) - VERSION_NAMES      # v19.1：Arch!C17 下游的預期變動名稱
     changed -= set(V172["changed"]) - VERSION_NAMES      # v17.2：同上
     changed -= {"IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"}      # v19.0：Interface 契約欄範圍隨 N 節新列延伸（既有列的值不變，由 test_v1900 看守）
+    changed -= V2120_CHANGED      # v21.2：AL_SpendBasis 0.85 → 1.8 的預期變動名稱（44 個；test_v2120 看守）
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
-    for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.756109635897205), ("L1_LTotalFleetV", 0.715894950036491),
-                    ("L1_LReqFleet_IdNoK", 0.756109635897205), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.447574227389844), ("IF_AllocServeGW", 0.89809617101894)):
+    for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.357051772507014), ("L1_LTotalFleetV", 0.715894950036491),
+                    ("L1_LReqFleet_IdNoK", 0.357051772507014), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.947804246237318), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 135, 182)      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)
     #      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）

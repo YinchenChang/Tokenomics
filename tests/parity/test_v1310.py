@@ -7,6 +7,7 @@ import openpyxl
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 import deadcells_lib
 
 REPO = Path(__file__).resolve().parents[2]
@@ -88,7 +89,7 @@ def test_v1310_existing_contract_names_unchanged(lo):
     只有 RNG_Version／RNG_Current 兩個版本字串可以不同（隨版本更新）。"""
     prev = openpyxl.load_workbook(V130_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED]
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱
     assert len(keep) >= 300, len(keep)      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300； v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)

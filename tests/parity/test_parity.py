@@ -9,6 +9,7 @@ import pytest
 import yaml
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from parity_lib import lo_recalc, read_defined_names_xml, set_inputs
 
 HERE = Path(__file__).parent
@@ -47,7 +48,7 @@ PREWARM = {
 
 # v19.1（W1 B2）：Arch!C17 由 4224 改為 2176 後，下列檢驗的事前值（v5.x–v12.0 的 Luna 相關期望值）在 C17 回 4224 時仍成立。
 # 做法：這些測試的每個視圖都疊上 SRC_MOD_106＝1024（C17＝4224）；C17 改值本身由 test_v1910 看守。
-C17_OLD_INPUT = {"SRC_MOD_106": 1024}
+C17_OLD_INPUT = {"SRC_MOD_106": 1024, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17（AL_SpendBasis 1.8 的預期變動由 test_v2120 看守）
 C17_OLD_TESTS = {'test_floor_scenarios_expected_values', 'test_alloc_expected_values_and_slo_text', 'test_v529_contract_waterfall_expected_values', 'test_alloc_mix_2025_expected_values', 'test_prod_derate_expected_values', 'test_v1020_eta_calibration', 'test_l1_v516_expected_values_and_h3', 'test_v536_spend_route_kappa_price', 'test_v600_audit_fix1_expected_values', 'test_v1200_gb200_geomean_and_v20_dependence', 'test_v534_m_split', 'test_v533_fleet_basis', 'test_v602_model_scale_ttft_alloc', 'test_v1200_service_side_unchanged', 'test_v1200_range_table', 'test_v700_leftovers', 'test_v535_l_split', 'test_batch_etad_expected_values', 'test_v603_fleet_price_k2_k3', 'test_v800_audit_fix2_3'}
 
 
@@ -251,7 +252,8 @@ def test_interface_d_e_shapes(model, lo):
 # 以 v10.1 以前的 SLO 120／65／55 為條件（＝情境 slo_v10 的輸入：SRC_PERF_066–071 兩家皆設舊值），期望值與 v10.1 相同；
 # 新基準的期望值由 test_v1020_eta_calibration 另行斷言。
 OLD_SLO = {"SRC_PERF_066": 120, "SRC_PERF_067": 120, "SRC_PERF_068": 65, "SRC_PERF_069": 65, "SRC_PERF_070": 55, "SRC_PERF_071": 55,
-           "Gov_Map!K243": 0, "Gov_Map!L243": 200, "Gov_Map!K244": 0, "Gov_Map!L244": 200, "Gov_Map!K245": 0, "Gov_Map!L245": 200}   # 舊 SLO 超出新區間（Gov_Map GM239–GM241 的低／高）會觸發 Checks E10；機制測試放寬該區間（列號為 v10.2）
+           "Gov_Map!K243": 0, "Gov_Map!L243": 200, "Gov_Map!K244": 0, "Gov_Map!L244": 200, "Gov_Map!K245": 0, "Gov_Map!L245": 200, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值（v5.x–v15.x）仍成立；新值由 test_v2120 看守
+#   # 舊 SLO 超出新區間（Gov_Map GM239–GM241 的低／高）會觸發 Checks E10；機制測試放寬該區間（列號為 v10.2）
 
 
 def _vo(lo, inputs=None):
@@ -1511,7 +1513,7 @@ def test_v1300_existing_contract_names_unchanged(model, lo):
     from openpyxl.utils import range_boundaries
     prev = openpyxl.load_workbook(V120_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED]      # v15.2：B2／B3 預期變動名單（605 個既有契約名稱中 252 個移出對照，餘 353 個仍須與 v12.0 相同）；      # v14.0（4-3B Q4）：CHK_VerifyTotal／Pass 因新增 V23–V26 而變（見檔尾斷言）；Fail／Warn 仍須相同
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱（test_v2120 看守）      # v15.2：B2／B3 預期變動名單（605 個既有契約名稱中 252 個移出對照，餘 353 個仍須與 v12.0 相同）；      # v14.0（4-3B Q4）：CHK_VerifyTotal／Pass 因新增 V23–V26 而變（見檔尾斷言）；Fail／Warn 仍須相同
     assert len(keep) >= 300, len(keep)      # v15.3：350 → 340（再扣除 v15.3 預期變動名稱後餘 343）； v15.2：500 → 350（預期變動名稱移出後的餘額 353）      # v19.1：扣除預期變動名稱後 ≥ 300
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)

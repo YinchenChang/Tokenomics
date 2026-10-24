@@ -15,9 +15,10 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 # v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
-C17_OLD = {"SRC_MOD_106": 1024}
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值仍成立；新值由 test_v2120 看守
 
 REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v172_changed_names.json", encoding="utf-8"))["changed"]) | set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）；v17.2：併入 v17.1→v17.2 預期變動名稱（GOV 計數、IFC_Updated 審查日、IDX_ 範圍；test_v1720 與契約快照看守）
@@ -29,9 +30,9 @@ R1_CHANGED = {"L1_MFleet_Lo": 0.242723485975401, "L1_PriceRealFleet_Lo": 0.32994
 R2_CHANGED = {"CHK_VerifyTotal", "CHK_VerifyPass"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 P25_V142 = {"L1_MFleet_P25Lo", "L1_MFleet_P25Hi"}      # v14.2 S1：預期變動（新值與下限由 test_v1420.py 逐一斷言）
-SC_HI = {**{"SRC_MOD_106": 1024}, "Alloc_In!E24": 1.0}      # 低端欄（token 取高）的實際利用率 0.65 → 1.0：點估計 token 再高 1.54 倍
-SC_LO_OK = {**{"SRC_MOD_106": 1024}, "Alloc_In!E24": 0.3}      # 0.65 → 0.3：點估計 token 降到上限之下（點估計 m 0.398 > 下限 0.215）
-SC_BASE = {**{"SRC_MOD_106": 1024}, "Alloc_In!C24": 1.5}      # 基準欄的實際利用率 0.41 → 1.5：基準欄點估計 m（約 0.111）低於基準欄下限 0.301
+SC_HI = {**C17_OLD, "Alloc_In!E24": 1.0}      # 低端欄（token 取高）的實際利用率 0.65 → 1.0：點估計 token 再高 1.54 倍
+SC_LO_OK = {**C17_OLD, "Alloc_In!E24": 0.3}      # 0.65 → 0.3：點估計 token 降到上限之下（點估計 m 0.398 > 下限 0.215）
+SC_BASE = {**C17_OLD, "Alloc_In!C24": 1.5}      # 基準欄的實際利用率 0.41 → 1.5：基準欄點估計 m（約 0.111）低於基準欄下限 0.301
 PREWARM = {"test_v1410_r1_base_values": [C17_OLD], "test_v1410_names_off_the_chain_unchanged": [C17_OLD], 
     "test_v1410_r1_floor_binds_low_end_column": [SC_HI],
     "test_v1410_r1_floor_does_not_cut_when_point_above_floor": [SC_LO_OK],

@@ -14,9 +14,10 @@ import openpyxl
 import pytest
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 # v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
-C17_OLD = {"SRC_MOD_106": 1024}
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值仍成立；新值由 test_v2120 看守
 
 REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v19.1：併入 Arch!C17 下游的預期變動名稱； v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
@@ -100,7 +101,8 @@ def test_v1500_o13_out_of_range_fires_rg4(lo):
     assert base.get_name("RNG_Dem004_OutCount") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG4')}") == 0
     assert out.get_name("RNG_Dem004_OutCount") >= 1
     assert out.get("Checks", f"D{_chk_row(out, 'RG4')}") == 1
-    assert out.get_name("GOV_Warnings") == base.get_name("GOV_Warnings") + 1 + (out.get("Checks", f"D{_chk_row(out, 'RG1')}") + out.get("Checks", f"D{_chk_row(out, 'RG2')}") + out.get("Checks", f"D{_chk_row(out, 'RG3')}") - base.get("Checks", f"D{_chk_row(base, 'RG1')}") - base.get("Checks", f"D{_chk_row(base, 'RG2')}") - base.get("Checks", f"D{_chk_row(base, 'RG3')}")) + 1      # v16.0：L1_LReqFleet_IdNoK（第 115 列）的基準隨 SRC_DEM_004 離開其 _Lo／_Hi（兩端固定取 SRC_DEM_004_Lo／_Hi）→ Checks H3 ＋1（與 RG4 同源）；K7／M3 為既有
+    m3 = out.get("Checks", f"D{_chk_row(out, 'M3')}") - base.get("Checks", f"D{_chk_row(base, 'M3')}")
+    assert out.get_name("GOV_Warnings") == base.get_name("GOV_Warnings") + 3 + m3      # v21.2：RG4 ＋1、MAX(RG2, RG3) ＋1、H3 ＋1（Checks D98 公式）；M3（L1_MFleet 落在 CTL_Monetize 區間外）在計價倍數 0.85 時隨之 ＋1（139＝135＋3＋1），1.8 時 L1_MFleet 仍在區間內（138＝135＋3＋0）；原式 v16.0：v16.0：L1_LReqFleet_IdNoK（第 115 列）的基準隨 SRC_DEM_004 離開其 _Lo／_Hi（兩端固定取 SRC_DEM_004_Lo／_Hi）→ Checks H3 ＋1（與 RG4 同源）；K7／M3 為既有
     assert out.get("Checks", f"D{_chk_row(out, 'H3')}") == 1 and base.get("Checks", f"D{_chk_row(base, 'H3')}") == 0
     assert out.get_name("GOV_Errors") == 0
 

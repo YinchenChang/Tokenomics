@@ -19,6 +19,7 @@ import yaml
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 
 REPO = Path(__file__).resolve().parents[2]
 V210 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.0.xlsx"
@@ -194,7 +195,7 @@ def test_v2110_existing_names_unchanged(lo):
     v = lo.view({})
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -234,11 +235,11 @@ def test_v2110_diffs_only_expected_vs_v210():
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
     allowed = {"Alloc", "Alloc_In", "Cap_In", "Checks", "DB_Evidence", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index"}
     assert set(d) <= allowed, set(d) - allowed
-    assert [t[0] for t in d["Alloc"]] == ["C177"]      # 版本字串
-    assert [t[0] for t in d["Alloc_In"]] == ["G24"]
+    assert [t[0] for t in d["Alloc"]] == ["C177", "D1020", "D1021", "D1022"]      # 版本字串；v21.2：D1020:D1022 指紋記錄值（test_v2120 看守）
+    assert [t[0] for t in d["Alloc_In"]] == ["C23", "D23", "E23", "G23", "G24"]      # v21.2：C23:E23、G23（test_v2120 看守）
     # Cap_In：只有第 344 列以後新增（含用途欄）；既有格不變
     for coord, x, y in d["Cap_In"]:
-        assert x is None and int(re.sub(r"[A-Z]+", "", coord)) >= 344, (coord, x, y)
+        assert (x is None and int(re.sub(r"[A-Z]+", "", coord)) >= 344) or coord == "G28", (coord, x, y)      # v21.2：G28（test_v2120 看守）
     # Interface：A364、A368 文字；其餘為第 379 列以後新增；既有列的 R–Y 契約欄不變
     for coord, x, y in d["Interface"]:
         row = int(re.sub(r"[A-Z]+", "", coord))
@@ -246,7 +247,7 @@ def test_v2110_diffs_only_expected_vs_v210():
     # L1：T4 表頭；其餘為第 145 列以後新增
     for coord, x, y in d["L1"]:
         row = int(re.sub(r"[A-Z]+", "", coord))
-        assert coord == "T4" or (row >= 145 and x is None), (coord, x, y)
+        assert coord in ("T4", "C71", "H71", "K71") or (row >= 145 and x is None), (coord, x, y)      # v21.2：C71／H71／K71（test_v2120 看守）
     assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "D86", "E118"] or sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "E118"], d["Checks"]
     nn = sorted(t[0] for t in d["NonNV"])
     assert nn == sorted(["A1", "L5", "L6", "L7", "L8", "L9"] + [f"{c}{r}" for r in (10, 11) for c in "ABCDEFGHIJKLM"]), nn
@@ -255,8 +256,8 @@ def test_v2110_diffs_only_expected_vs_v210():
         row = int(re.sub(r"[A-Z]+", "", coord))
         col = re.sub(r"\d+", "", coord)
         assert coord == "W10" or row in (93, 94) or col == "X", (coord, x, y)
-    assert {t[0] for t in d["DB_Evidence"]} <= {f"{c}326" for c in "ABCDEFGHIJKLMNOPQR"}
-    assert {t[0] for t in d["Decisions"]} <= {f"{c}330" for c in "ABCDEFGHIJ"}
+    assert {t[0] for t in d["DB_Evidence"]} <= {f"{c}{r}" for c in "ABCDEFGHIJKLMNOPQR" for r in (326, 327)}      # v21.2：E403 在第 327 列
+    assert {t[0] for t in d["Decisions"]} <= {f"{c}{r}" for c in "ABCDEFGHIJ" for r in (330, 331)}      # v21.2：SL59-01 在第 331 列
     print({k: len(v) for k, v in d.items()})      # 供報告核對：Gov_Map／SRC_Index／Load_Bearing 的連帶差異格數
 
 
@@ -269,7 +270,7 @@ def test_v2110_records_and_text(wbf):
     for key in ("當然要放", "J one J two 都同意", "NonNV Q1–Q4", "J1", "J2"):
         assert key in txt, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.1（主版：") and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.1")
+    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.2（次版，底版 v21.1：") and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.2")      # v21.2：版本字串
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.1 NonNV 昇騰／Maia 與免費占比路徑"]
     assert len(rr) == 1 and "L1_FreeShare" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_／IF_NonNV_Hold_ × Ascend／Maia" in rm.cell(rr[0], 2).value
     nv = wbf["NonNV"]
@@ -299,7 +300,7 @@ def test_v2110_records_and_text(wbf):
     assert g24.startswith("純利用率＝平均 token 吞吐 ÷ 容量；0.41＝原 0.35 ÷ 生產折減 0.85。無直接量測（2026-10-23 查證，PR #151／#152）") and g24.endswith("暫定、待證據。")
     assert "Azure 尖峰／平均換算 0.25–0.59" in g24 and "Aegaeon 長尾專屬實例 0.13–0.34" in g24
     sd = wbf["SRC_Demand"]
-    assert sd["A10"].value == "SRC_DEM_006" and sd["W10"].value.startswith("出處待補；已排除 The Information 2026-02〈Why OpenAI, Anthropic Missed Their Own Gross Margin Forecasts〉（2026-10-23 查證 J5）｜—｜v17.2 Q1")
+    assert sd["A10"].value == "SRC_DEM_006" and sd["W10"].value.startswith("出處待補；已排除 The Information 2026-02〈Why OpenAI, Anthropic Missed Their Own Gross Margin Forecasts〉（2026-10-23 查證 J5）｜外部最近為 2025-09 預測逾 90 億（2026-10-23 9a 查證 J1，docs/evidence/20261023_Q側缺口_A段/）｜—｜v17.2 Q1")      # v21.2：W2 插入句
 
 
 def test_v2110_sources_and_evidence(wbf):

@@ -124,4 +124,4 @@ def test_v1720_w1_and_gov():
     wb = openpyxl.load_workbook(model_path(), data_only=True)
     ck = wb["Checks"]
     got = {ck.cell(r, 1).value: ck.cell(r, 4).value for r in range(1, ck.max_row + 1) if ck.cell(r, 1).value in ("E7", "E8", "E12", "E13", "W1")}
-    assert got == {"E7": 0, "E8": 0, "E12": 0, "E13": 0, "W1": 133}      # v21.1：131 → 133（SRC_DEM_089／090 缺第二來源）； v20.0：130 → 131（SRC_DEM_088 缺第二來源）； v19.1：131 → 130（SRC_MOD_018 填 C1 免除標記）
+    assert got == {"E7": 0, "E8": 0, "E12": 0, "E13": 0, "W1": 132}      # v21.4：133 → 132（SRC_PRC_049 第二來源填 C1 免除標記，W3）；v21.1：131 → 133（SRC_DEM_089／090 缺第二來源）； v20.0：130 → 131（SRC_DEM_088 缺第二來源）； v19.1：131 → 130（SRC_MOD_018 填 C1 免除標記）

@@ -1,6 +1,6 @@
 # L 閱讀版的維護工具
 
-> **m 閱讀版恢復（v21.2 重做，2026-10-24）：** 依 Andy 2026-10-21 新定義（m＝實收單價 ÷ 有效牌價，只有收入面）重做為 `docs/plan/20261024_m閱讀版_v21.2.xlsx`（含必備的 `1A_需求公式樹`）。舊 m（成本鏈 `L1_MFleet`）現為 token 帳診斷，不是 m。v17.0 舊檔已刪除（歷史在 git）。
+> **m 閱讀版恢復（v21.2 重做，2026-10-24）：** 依 Andy 2026-10-21 新定義（m＝實收單價 ÷ 有效牌價，只有收入面）重做（v21.2）；現行 `docs/plan/20261024_m閱讀版_v21.3.xlsx`（v21.3 重產）（含必備的 `1A_需求公式樹`）。舊 m（成本鏈 `L1_MFleet`）現為 token 帳診斷，不是 m。v17.0 舊檔已刪除（歷史在 git）。
 > 建檔：`python3 build_reading_m.py <Tokenomics.xlsx> <輸出.xlsx>`（再用 LibreOffice 重算存檔）；核對：`python3 check_reading_m.py <Tokenomics.xlsx> <m閱讀版.xlsx>`（先自動重算；檢查有 1A、9_核對對照 每格等於 Tokenomics、L1_M* 名稱一致、無錯誤值；通過結束碼 0）。換版時重跑建檔程式即可，不必手改。
 > 先前的 v18.0 說明：m 閱讀版 10-21 退役；`check_reading.py` 仍只核對 L 閱讀版。
 
@@ -19,7 +19,7 @@
    ```
    python3 check_reading.py <新版 Tokenomics.xlsx> <L閱讀版.xlsx>
    ```
-   L 閱讀版要先用 LibreOffice 重算。全部通過時結束碼為 0。（現行：`20261023_Tokenomics_v21.2.xlsx` 對 `20261024_L閱讀版_v21.2.xlsx`：通過。注意：先前認為「v18.0 起 L 側免換版」不成立——v19.1 改了 ρ 低端與每 GW 營收、v21.2 改了計價倍數，L 閱讀版已於 v21.2 換版。）
+   L 閱讀版要先用 LibreOffice 重算。全部通過時結束碼為 0。（現行：`20261024_Tokenomics_v21.3.xlsx` 對 `20261024_L閱讀版_v21.3.xlsx`：通過；v21.3 只改 ρ 低端與一個摘要原值。注意：先前認為「v18.0 起 L 側免換版」不成立——v19.1 改了 ρ 低端與每 GW 營收、v21.2 改了計價倍數，L 閱讀版已於 v21.2 換版。）
 3. 有不一致時，依核對結果更新閱讀版的輸入與原值欄。
 4. 改版本標籤與修訂紀錄（0_說明），LibreOffice 重算後放進 `docs/plan/`，檔名 `YYYYMMDD_L閱讀版_vN.xlsx`；Drive 放 `02-算力收支/Tokenomics/閱讀版/`。
 5. 合併前請未參與製作的代理獨立核對一次數字。

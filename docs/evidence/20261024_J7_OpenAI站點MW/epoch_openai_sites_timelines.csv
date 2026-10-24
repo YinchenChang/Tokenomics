@@ -1,0 +1,122 @@
+site,openai_tag,date,buildings,it_mw,power_mw,h100e
+Microsoft Fairwater Atlanta,likely,2023-04-09,0.0,0.0,0.0,0.0
+Microsoft Fairwater Atlanta,likely,2025-10-14,2.0,321.0,433.0,387981.94436584134
+Microsoft Fairwater Atlanta,likely,2026-02-13,2.0,321.0,433.0,387981.94436584134
+Microsoft Fairwater Atlanta,likely,2026-05-15,2.0,321.0,433.0,387981.94436584134
+Microsoft Fairwater Atlanta,likely,2026-06-14,4.0,636.0,859.0,768768.7220818596
+OpenAI Stargate Abilene,confident,2024-05-31,0.0,0.0,0.0,0.0
+OpenAI Stargate Abilene,confident,2025-06-28,0.0,0.0,0.0,0.0
+OpenAI Stargate Abilene,confident,2025-09-26,1.0,105.0,147.0,127337.03890853966
+OpenAI Stargate Abilene,confident,2025-12-24,2.0,211.0,295.0,254674.07781707932
+OpenAI Stargate Abilene,confident,2026-01-15,2.0,211.0,295.0,254674.07781707932
+OpenAI Stargate Abilene,confident,2026-03-24,2.0,211.0,295.0,254674.07781707932
+OpenAI Stargate Abilene,confident,2026-05-23,4.0,421.0,590.0,509348.15563415864
+OpenAI Stargate Abilene,confident,2026-07-28,4.0,421.0,590.0,509348.15563415864
+OpenAI Stargate Abilene,confident,2026-11-01,8.0,843.0,1180.0,1018696.3112683173
+Microsoft Fairwater Wisconsin,likely,2023-07-14,0.0,0.0,0.0,0.0
+Microsoft Fairwater Wisconsin,likely,2025-09-26,0.0,0.0,0.0,0.0
+Microsoft Fairwater Wisconsin,likely,2026-01-28,0.0,0.0,0.0,0.0
+Microsoft Fairwater Wisconsin,likely,2026-04-16,1.0,369.0,442.0,445679.63617988885
+Microsoft Fairwater Wisconsin,likely,2026-05-15,1.0,369.0,442.0,445679.63617988885
+Microsoft Fairwater Wisconsin,likely,2027-02-20,2.0,737.0,885.0,889338.0495199596
+Microsoft Fairwater Wisconsin,likely,2028-05-13,11.0,2263.0,2715.0,4527539.161192521
+CoreWeave Denton TX,likely,2024-11-01,0.0,0.0,0.0,0.0
+CoreWeave Denton TX,likely,2025-05-31,1.0,8.0,11.0,7781.707933299646
+CoreWeave Denton TX,likely,2025-12-31,3.0,67.0,94.0,64679.13087417888
+CoreWeave Denton TX,likely,2026-02-23,4.0,131.0,183.0,126326.42748863062
+CoreWeave Denton TX,likely,2026-03-02,4.0,131.0,183.0,126326.42748863062
+CoreWeave Denton TX,likely,2026-07-03,7.0,262.0,367.0,252652.85497726125
+CoreWeave Denton TX,likely,2026-09-01,7.0,262.0,367.0,252652.85497726125
+CoreWeave Denton TX,likely,2027-05-31,8.0,282.0,395.0,271854.4719555331
+Microsoft Goodyear,likely,2021-06-21,0.0,0.0,0.0,0.0
+Microsoft Goodyear,likely,2023-04-24,1.0,40.0,53.0,29156.13946437595
+Microsoft Goodyear,likely,2025-01-16,2.0,81.0,105.0,58110.15664477008
+Microsoft Goodyear,likely,2025-09-01,4.0,202.0,263.0,205154.11824153614
+Microsoft Goodyear,likely,2025-11-12,4.0,202.0,263.0,205154.11824153614
+Microsoft Goodyear,likely,2026-04-27,4.0,202.0,263.0,205154.11824153614
+Coreweave Helios,speculative,2025-05-31,0.0,0.0,0.0,0.0
+Coreweave Helios,speculative,2025-08-27,0.0,0.0,0.0,0.0
+Coreweave Helios,speculative,2026-04-04,0.0,0.0,0.0,0.0
+Coreweave Helios,speculative,2026-06-17,0.0,0.0,0.0,0.0
+Coreweave Helios,speculative,2026-08-30,1.0,132.0,200.0,159551.768236855
+Coreweave Helios,speculative,2028-01-01,3.0,396.0,600.0,478655.30471056444
+Coreweave Helios,speculative,2029-01-01,4.0,528.0,800.0,638207.072947418
+Microsoft Project Osmium,speculative,2018-12-18,0.0,0.0,0.0,0.0
+Microsoft Project Osmium,speculative,2021-01-01,1.0,48.0,57.0,7882.769075290551
+Microsoft Project Osmium,speculative,2023-06-30,2.0,95.0,114.0,40576.048509348155
+Microsoft Project Osmium,speculative,2025-03-01,4.0,190.0,228.0,155634.15866599293
+Microsoft Project Osmium,speculative,2025-10-08,4.0,190.0,228.0,155634.15866599293
+Microsoft Project Osmium,speculative,2026-06-16,4.0,190.0,228.0,155634.15866599293
+CoreWeave Ellendale ND,speculative,2023-10-31,0.0,0.0,0.0,0.0
+CoreWeave Ellendale ND,speculative,2025-05-28,0.0,0.0,0.0,0.0
+CoreWeave Ellendale ND,speculative,2025-08-29,0.0,0.0,0.0,0.0
+CoreWeave Ellendale ND,speculative,2025-10-27,1.0,50.0,65.0,68721.57655381506
+CoreWeave Ellendale ND,speculative,2025-11-24,1.0,68.0,88.0,93481.55634158666
+CoreWeave Ellendale ND,speculative,2026-03-27,1.0,68.0,88.0,93481.55634158666
+CoreWeave Ellendale ND,speculative,2026-06-30,1.0,68.0,88.0,93481.55634158666
+CoreWeave Ellendale ND,speculative,2026-12-31,2.0,88.0,114.0,300151.59171298635
+CoreWeave Ellendale ND,speculative,2027-06-01,3.0,400.0,520.0,505305.7099545225
+CoreWeave Chester VA,speculative,2023-09-18,0.0,0.0,0.0,0.0
+CoreWeave Chester VA,speculative,2024-01-31,1.0,18.0,25.0,14805.45730166751
+CoreWeave Chester VA,speculative,2024-04-30,1.0,27.0,38.0,22081.85952501263
+CoreWeave Chester VA,speculative,2025-01-22,1.0,27.0,38.0,22081.85952501263
+CoreWeave Chester VA,speculative,2026-05-20,2.0,82.0,114.0,88428.49924204143
+CoreWeave Chester VA,speculative,2027-06-30,3.0,113.0,197.0,125821.1217786761
+CoreWeave Marble NC,speculative,2024-06-25,0.0,0.0,0.0,0.0
+CoreWeave Marble NC,speculative,2026-03-13,1.0,36.0,50.4,43456.291056088936
+CoreWeave Marble NC,speculative,2026-04-17,1.0,36.0,50.4,43456.291056088936
+CoreWeave Marble NC,speculative,2026-05-06,1.0,65.0,91.0,78827.6907529055
+CoreWeave Norway,speculative,2024-01-23,0.0,0.0,0.0,0.0
+CoreWeave Norway,speculative,2025-07-27,1.0,42.0,55.0,50773.11773623042
+CoreWeave Norway,speculative,2026-04-25,1.0,42.0,55.0,50773.11773623042
+CoreWeave Norway,speculative,2026-08-15,1.0,42.0,55.0,50773.11773623042
+CoreWeave Dalton 1 & 2,speculative,2024-06-03,0.0,0.0,0.0,0.0
+CoreWeave Dalton 1 & 2,speculative,2025-05-01,0.0,0.0,0.0,0.0
+CoreWeave Dalton 1 & 2,speculative,2025-08-29,0.0,0.0,0.0,0.0
+CoreWeave Dalton 1 & 2,speculative,2026-02-20,1.0,28.0,40.0,32238.504295098533
+CoreWeave Lancaster Greenfield site,speculative,2025-07-15,0.0,0.0,0.0,0.0
+CoreWeave Lancaster Greenfield site,speculative,2026-07-13,0.0,0.0,0.0,0.0
+CoreWeave Lancaster Greenfield site,speculative,2027-06-30,1.0,92.0,124.0,232945.93228903486
+CoreWeave Muskogee OK,speculative,2024-11-18,0.0,0.0,0.0,0.0
+CoreWeave Muskogee OK,speculative,2026-04-09,0.0,0.0,0.0,0.0
+CoreWeave Muskogee OK,speculative,2026-06-13,0.0,0.0,0.0,0.0
+CoreWeave Muskogee OK,speculative,2026-12-31,1.0,70.0,98.0,90955.02779181405
+CoreWeave Muskogee OK,speculative,2027-12-31,2.0,153.0,181.0,198079.8383021728
+OpenAI Stargate Lordstown,confident,2025-10-12,0.0,0.0,0.0,0.0
+OpenAI Stargate Lordstown,confident,2026-02-27,0.0,0.0,0.0,0.0
+OpenAI Stargate Lordstown,confident,2026-07-30,0.0,0.0,0.0,0.0
+OpenAI Stargate Lordstown,confident,2027-03-01,1.0,214.0,300.0,545730.1667508843
+OpenAI Stargate Michigan,confident,2025-12-04,0.0,0.0,0.0,0.0
+OpenAI Stargate Michigan,confident,2026-01-20,0.0,0.0,0.0,0.0
+OpenAI Stargate Michigan,confident,2026-03-12,0.0,0.0,0.0,0.0
+OpenAI Stargate Michigan,confident,2028-12-31,3.0,988.0,1383.0,2880242.5467407783
+OpenAI Stargate Milam,confident,2025-09-27,0.0,0.0,0.0,0.0
+OpenAI Stargate Milam,confident,2026-01-04,0.0,0.0,0.0,0.0
+OpenAI Stargate Milam,confident,2026-03-23,0.0,0.0,0.0,0.0
+OpenAI Stargate Milam,confident,2028-12-31,,857.0,1200.0,2496210.207175341
+OpenAI Stargate New Mexico,confident,2025-10-01,0.0,0.0,0.0,0.0
+OpenAI Stargate New Mexico,confident,2026-02-06,0.0,0.0,0.0,0.0
+OpenAI Stargate New Mexico,confident,2026-06-22,0.0,0.0,0.0,0.0
+OpenAI Stargate New Mexico,confident,2028-12-31,4.0,1750.0,2450.0,5103587.670540676
+OpenAI Stargate Shackelford,confident,2025-08-01,0.0,0.0,0.0,0.0
+OpenAI Stargate Shackelford,confident,2026-01-18,0.0,0.0,0.0,0.0
+OpenAI Stargate Shackelford,confident,2026-04-14,0.0,0.0,0.0,0.0
+OpenAI Stargate Shackelford,confident,2026-09-04,0.0,0.0,0.0,0.0
+OpenAI Stargate Shackelford,confident,2027-08-15,1.0,140.0,196.0,355229.9140980293
+OpenAI Stargate Shackelford,confident,2027-10-19,2.0,280.0,392.0,712481.0510358767
+OpenAI Stargate Shackelford,confident,2027-11-18,3.0,420.0,588.0,1066195.0480040424
+OpenAI Stargate Shackelford,confident,2028-02-11,4.0,560.0,784.0,1419909.044972208
+OpenAI Stargate Shackelford,confident,2028-03-08,5.0,700.0,980.0,1778676.0990399192
+OpenAI Stargate Shackelford,confident,2028-04-04,6.0,840.0,1176.0,2334512.379989894
+OpenAI Stargate Shackelford,confident,2028-05-12,7.0,980.0,1372.0,2890348.6609398685
+OpenAI Stargate Shackelford,confident,2028-10-17,8.0,1120.0,1568.0,3451237.998989389
+OpenAI Stargate Shackelford,confident,2028-10-18,9.0,1260.0,1764.0,4007074.2799393632
+OpenAI Stargate Shackelford,confident,2028-11-11,10.0,1400.0,1960.0,4562910.560889338
+OpenAI Stargate UAE,confident,2025-06-09,0.0,0.0,0.0,0.0
+OpenAI Stargate UAE,confident,2025-11-16,0.0,0.0,0.0,0.0
+OpenAI Stargate UAE,confident,2026-12-01,2.0,200.0,280.0,252652.85497726125
+OpenAI Stargate UAE,confident,2028-01-01,10.0,1000.0,1400.0,2021222.83981809
+OpenAI Stargate Wisconsin,confident,2026-01-02,0.0,0.0,0.0,0.0
+OpenAI Stargate Wisconsin,confident,2026-02-14,0.0,0.0,0.0,0.0
+OpenAI Stargate Wisconsin,confident,2026-07-24,0.0,0.0,0.0,0.0
+OpenAI Stargate Wisconsin,confident,2028-12-31,4.0,902.0,1300.0,2627589.691763517

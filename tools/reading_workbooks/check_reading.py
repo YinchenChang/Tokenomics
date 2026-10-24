@@ -50,7 +50,21 @@ for r in range(6, 13):
     d, nm, c = ws.cell(r, 4).value, ws.cell(r, 6).value, ws.cell(r, 3).value
     check('L 摘要原值', same(d, named(nm)), f'{nm} {d} → {named(nm)}')
     check('L 摘要重算', same(c, named(nm)), f'{nm} 本簿 {c} → {named(nm)}')
-check('所需 L', same(L['1_公式樹']['C8'].value, named('L1_LReqFleet_IdNoK')), '')
+# 所需 L：v21.2 起主口徑＝L1_LReqFleet_Full（全部算力持有成本）；L1_LReqFleet_IdNoK 為舊口徑對照（L9）
+ft = L['1_公式樹']
+for cellref, nm in (('C8', 'L1_LReqFleet_Full'), ('C19', 'L1_LReqFleet_Full'), ('C20', 'L1_LReqFleet_Full_Lo'),
+                    ('C21', 'L1_LReqFleet_Full_Hi'), ('C17', 'L1_HoldFleet25'), ('C11', 'L1_HoldFleet25'),
+                    ('C79', 'L1_LReqFleet_IdNoK'), ('C7', 'L1_LTotalFleetVDisc')):
+    check('所需 L／持有成本', same(ft[cellref].value, named(nm)), f'1_公式樹 {cellref} {ft[cellref].value} → {nm} {named(nm)}')
+check('所需 L 區間文字', ft['C13'].value == f"{named('L1_LReqFleet_Full_Lo'):.3f}–{named('L1_LReqFleet_Full_Hi'):.3f}", f"{ft['C13'].value}")
+check('舊口徑區間文字', ft['C80'].value == f"{named('L1_LReqFleet_IdNoK_Lo'):.3f}–{named('L1_LReqFleet_IdNoK_Hi'):.3f}", f"{ft['C80'].value}")
+check('L 區間文字', ft['C12'].value == f"{named('L1_LTotalFleetVDisc_Lo'):.3f}–{named('L1_LTotalFleetVDisc_Hi'):.3f}", f"{ft['C12'].value}")
+# 三態判讀：同 Tokenomics Cap_In C242（文字全等）
+check('主口徑判讀', ft['C14'].value == T['Cap_In']['C242'].value, f"{ft['C14'].value} ≠ {T['Cap_In']['C242'].value}")
+# 2_輸入：全部算力持有成本（基準／低／高）
+wi = L['2_輸入']
+for col, nm in (('C', 'L1_HoldFleet25'), ('D', 'L1_HoldFleet25_Lo'), ('E', 'L1_HoldFleet25_Hi')):
+    check('2_輸入 IN_Hold', same(wi[f'{col}34'].value, named(nm)), f'{col}34 {wi[col+"34"].value} → {nm} {named(nm)}')
 
 # 2. 「差異」欄與錯誤值
 for name, W in (('L', L),):

@@ -619,7 +619,36 @@ items4 = [
     dict(kind='step', key='ypt', id='R21', name='每百萬 token 實收：商用席次', unit='$/M tok', desc='＝R6 × 10⁹ ÷ R12。', loc='（本簿新增）',
          f=lambda R: [f'={c}{R["rseat"]}*1000000000/{c}{R["tseat"]}' for c in 'FGHI'], fmt=FMT_M),
 ]
+c3 = lambda key, col: f"{q(S3)}!{col}{R3[key]}"  # noqa
 R4 = render_rows(ws4, items4, 5)
+
+# 2025 低／高端（Cap_In D／E 欄；F＝低端、G＝高端）
+r_lh = max(R4.values()) + 2
+hdr(ws4, r_lh, ['步驟', '項目', '白話說明與公式', '單位', '原活頁簿位置', '值 2025 低端', '值 2025 高端', '', '',
+                'Tokenomics 原值 2025 低端', '2025 高端', '', '', '差異 2025 低端', '2025 高端', '', ''])
+N2 = [None, None]
+def lh(key, id_, name, unit, desc, loc, flo, fhi, olo, ohi, fmt):
+    return dict(kind='step', key=key, id=id_, name=name, unit=unit, desc=desc, loc=loc,
+                f=(lambda R, flo=flo, fhi=fhi: [flo(R) if callable(flo) else flo, fhi(R) if callable(fhi) else fhi, None, None]),
+                o=[olo, ohi, None, None], fmt=fmt)
+items_lh = [
+    dict(kind='grp', text='2025 低／高端（Tokenomics 的 L1_MAPI／MSub／MSeat 區間；低端＝席次與訂閱營收取低、token 取高；API 為餘額，低高不是同向組合）'),
+    lh('l_sub', 'H1', '消費訂閱營收份額', '%', '低端取 IN_SubShare_Lo、高端取 IN_SubShare_Hi。', 'Cap_In D70／E70', '=IN_SubShare_Lo', '=IN_SubShare_Hi', 'Cap_In!D70', 'Cap_In!E70', '0.000'),
+    lh('l_seat', 'H2', '商用席次營收份額', '%', '低端 IN_SeatShare_Lo、高端 IN_SeatShare_Hi。', 'Cap_In D131／E131', '=IN_SeatShare_Lo', '=IN_SeatShare_Hi', 'Cap_In!D131', 'Cap_In!E131', '0.000'),
+    lh('l_rsub', 'H3', '消費訂閱營收', '$B', '＝營收 × H1。', 'Cap_In D135／E135', lambda R: f'=IN_Rev*F{R["l_sub"]}', lambda R: f'=IN_Rev*G{R["l_sub"]}', 'Cap_In!D135', 'Cap_In!E135', FMT_B),
+    lh('l_rseat', 'H4', '商用席次營收', '$B', '＝營收 × H2。', 'Cap_In D136／E136', lambda R: f'=IN_Rev*F{R["l_seat"]}', lambda R: f'=IN_Rev*G{R["l_seat"]}', 'Cap_In!D136', 'Cap_In!E136', FMT_B),
+    lh('l_rapi', 'H5', 'API 營收（餘額）', '$B', '＝營收 − H3 − H4。', 'Cap_In D137／E137', lambda R: f'=IN_Rev-F{R["l_rsub"]}-F{R["l_rseat"]}', lambda R: f'=IN_Rev-G{R["l_rsub"]}-G{R["l_rseat"]}', 'Cap_In!D137', 'Cap_In!E137', FMT_B),
+    lh('l_tapi', 'H6', 'API token', 'M tok/年', '連結 3_m重算 E4（低端取 API 全年比例上緣）。', 'Cap_In D140／E140', f"={c3('e_api', 'F')}", f"={c3('e_api', 'G')}", 'Cap_In!D140', 'Cap_In!E140', FMT_T),
+    lh('l_cp', 'H7', 'ChatGPT 付費 token', 'M tok/年', '連結 3_m重算 E5。', 'Cap_In D81／E81', f"={c3('e_cp', 'F')}", f"={c3('e_cp', 'G')}", 'Cap_In!D81', 'Cap_In!E81', FMT_T),
+    lh('l_sts', 'H8', '消費訂閱占 ChatGPT 付費 token 份額', '%', '低端取上緣 IN_SubTokShare_Hi（消費 token 多）、高端取下緣。', 'Cap_In D132／E132', '=IN_SubTokShare_Hi', '=IN_SubTokShare_Lo', 'Cap_In!D132', 'Cap_In!E132', '0.00'),
+    lh('l_tsub', 'H9', '消費訂閱 token', 'M tok/年', '＝H7 × H8。', 'Cap_In D141／E141', lambda R: f'=F{R["l_cp"]}*F{R["l_sts"]}', lambda R: f'=G{R["l_cp"]}*G{R["l_sts"]}', 'Cap_In!D141', 'Cap_In!E141', FMT_T),
+    lh('l_tseat', 'H10', '商用席次 token', 'M tok/年', '＝H7 ×（1 − H8）。', 'Cap_In D142／E142', lambda R: f'=F{R["l_cp"]}*(1-F{R["l_sts"]})', lambda R: f'=G{R["l_cp"]}*(1-G{R["l_sts"]})', 'Cap_In!D142', 'Cap_In!E142', FMT_T),
+    lh('l_px', 'H11', '混合有效單價（取基準）', '$/M tok', '連結 3_m重算 S10（價格區間不交）。', 'CAP_Price25Mix', f"={c3('px', 'F')}", f"={c3('px', 'F')}", 'CAP_Price25Mix', 'CAP_Price25Mix', FMT_M),
+    lh('l_mapi', 'H12', 'm_API 2025 低／高', 'x', '＝H5 × 10⁹ ÷（H6 × H11）。', 'Cap_In D144／E144', lambda R: f'=F{R["l_rapi"]}*1000000000/(F{R["l_tapi"]}*F{R["l_px"]})', lambda R: f'=G{R["l_rapi"]}*1000000000/(G{R["l_tapi"]}*G{R["l_px"]})', 'Cap_In!D144', 'Cap_In!E144', FMT_M),
+    lh('l_msub', 'H13', 'm_消費訂閱 2025 低／高', 'x', '＝H3 × 10⁹ ÷（H9 × H11）。', 'Cap_In D145／E145', lambda R: f'=F{R["l_rsub"]}*1000000000/(F{R["l_tsub"]}*F{R["l_px"]})', lambda R: f'=G{R["l_rsub"]}*1000000000/(G{R["l_tsub"]}*G{R["l_px"]})', 'Cap_In!D145', 'Cap_In!E145', FMT_M),
+    lh('l_mseat', 'H14', 'm_商用席次 2025 低／高', 'x', '＝H4 × 10⁹ ÷（H10 × H11）。', 'Cap_In D146／E146', lambda R: f'=F{R["l_rseat"]}*1000000000/(F{R["l_tseat"]}*F{R["l_px"]})', lambda R: f'=G{R["l_rseat"]}*1000000000/(G{R["l_tseat"]}*G{R["l_px"]})', 'Cap_In!D146', 'Cap_In!E146', FMT_M),
+]
+R4.update(render_rows(ws4, items_lh, r_lh + 1))
 defname('OUT_M_API', f"{q(S4)}!$H${R4['mapi']}")
 defname('OUT_M_Sub', f"{q(S4)}!$H${R4['msub']}")
 defname('OUT_M_Seat', f"{q(S4)}!$H${R4['mseat']}")

@@ -87,6 +87,54 @@ for o, t in PAIR.items():
     tv = tk(t)
     if not same(v, tv):
         fails.append(f'結果 {o}={v} ≠ {t}={tv}')
+
+# (e) 本簿內部一致性（r1）
+def outv(o):
+    sh, rng = list(RF.defined_names[o].destinations)[0]
+    return W[sh][rng.replace('$', '')].value
+
+
+def rowby(ws, col, pred):
+    for r in ws.iter_rows():
+        v = r[col].value
+        if isinstance(v, str) and pred(v):
+            return r
+    return None
+
+
+m25, m26 = outv('OUT_M_2025'), outv('OUT_M_2026Q2')
+ov = W['1_總覽']
+r = rowby(ov, 1, lambda v: v.startswith('m 倍數＝'))
+if r is None or not same(r[4].value, m26 / m25) or abs(r[4].value - m26 / m25) > 1e-9:
+    fails.append('三因子乘積 ≠ m 的 Q2 ÷ 2025')
+for lab in ('3_m重算 的 m ÷', '4_分路線 三路線合計'):
+    r = rowby(ov, 1, lambda v: v.startswith(lab))
+    if r is None or not (isinstance(r[2].value, (int, float)) and abs(r[2].value) <= 1e-9):
+        fails.append(f'1_總覽 檢核格 {lab} = {None if r is None else r[2].value}')
+s3 = W['3_m重算']
+rm, rc = rowby(s3, 0, lambda v: v == 'S13'), rowby(s3, 0, lambda v: v == 'S14')
+for i in range(5, 9):
+    if abs(rm[i].value - rc[i].value) > 1e-9:
+        fails.append('3_m重算 S14 ≠ S13')
+r18 = rowby(W['4_分路線'], 0, lambda v: v == 'R18')
+for i in range(5, 9):
+    if abs(r18[i].value) > 1e-9:
+        fails.append('4_分路線 R18 ≠ 0')
+rt = rowby(W['1A_需求公式樹'], 1, lambda v: v.startswith('檢查：分子'))
+for i, mv in ((2, m25), (3, m26)):
+    if abs(rt[i].value - mv) > 1e-9:
+        fails.append('1A 分子÷分母 ≠ m')
+sv = W['5_敏感度']
+if abs(sv['G6'].value) > 1e-9:
+    fails.append('5_敏感度 基準重算檢查 ≠ 0')
+rows = [(r[11].value, r[1].value, r[10].value) for r in sv.iter_rows(min_row=7) if isinstance(r[11].value, (int, float)) and isinstance(r[0].value, int)]
+top = sorted(rows, reverse=True)[:8]
+hd = rowby(ov, 1, lambda v: v.startswith('最不確定的輸入'))
+for k, (sw, nm, el) in enumerate(top, 1):
+    o = ov.cell(hd[1].row + 1 + k, 2).value, ov.cell(hd[1].row + 1 + k, 3).value
+    if o[0] != nm or abs(o[1] - sw) > 1e-9:
+        fails.append(f'1_總覽 前 8 名第 {k} 項 {o} ≠ 5_敏感度 {nm} {sw}')
+
 # (d) 錯誤值
 for wsx in W.worksheets:
     for row in wsx.iter_rows():

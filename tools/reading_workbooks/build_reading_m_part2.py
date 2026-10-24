@@ -119,7 +119,7 @@ TS('', 'd 改成試算值後的 m', m25_d('IN_DTest'), m26({'d': 'IN_DTest'}), '
    '用同一組輸入、只把 d 換成試算值，整套有效單價重算（營收與 token 是觀測值，不隨 d 動）。', 'Derived', fmt='0.0000', key='dtest')
 TS('', 'm 變動倍數（試算 ÷ 基準）', 'C{dt}/C{m}', 'D{dt}/D{m}', '倍', '＝(1 − 基準 d) ÷ (1 − 試算 d)。', 'Derived', fmt='0.0000', key='dtest_ratio')
 TS('', '不變的是 m ×（1 − d）', '=C{m}*(1-IN_Disc)', '=D{m}*(1-IN_Disc)', '倍', '＝實收單價 ÷ 表列牌價。d 只是改「用哪個價當基準」，營收不變，所以不變的是實收對表列牌價的比，不是 m。', 'Derived', fmt='0.0000')
-TG('L5　必須為真：m＝1（實收＝有效牌價）需要什麼（每次只動一個假設，其他不動）')
+TG('L5　若要 m＝1，需要什麼為真（實收＝有效牌價；每次只動一個假設，其他不動）')
 TS('', '(a) 每則 token τ 要多大', f"=({c3('num', 'F')}*1000000000/{c3('px', 'F')}-{c3('api', 'F')})/({c3('pr', 'F')}*1000000000*365/1000000*(1-IN_FreeShare))",
    f"=({c3('num', 'H')}*1000000000/{c3('px', 'H')}-{c3('api', 'H')})/({c3('pr', 'H')}*1000000000*365/1000000*(1-IN_FreeShare))", 'token/則',
    '令 ChatGPT 付費 token ＝（營收 ÷ 有效單價）− API token，反解 τ。現值 4,000，Tokenomics 區間 2,000–11,000。', 'Derived', fmt='#,##0', key='ra')
@@ -127,6 +127,7 @@ TS('', '(b) 付費 token 要多少', f"={c3('num', 'F')}*1000000000/{c3('px', 'F
    '＝m 分子營收 ÷ 有效單價。', 'Derived', fmt='#,##0')
 TS('', '　　相對現有付費 token 的倍數', '=C{rb}/C{tokrow}', '=D{rb}/D{tokrow}', '倍', '＝m（因為 m ＝ 營收折算 token ÷ 實際付費 token）。', 'Derived', fmt='0.000')
 TS('', '(c) d 要是多少', '=1-(1-IN_Disc)*C{m}', '=1-(1-IN_Disc)*D{m}', '%', '令有效牌價＝實收單價，反解 d＝1 −（1 − d）× m。負值代表連不打折的表列牌價都低於實收，d 不可能解釋 m＞1。', 'Derived', fmt='0.0%')
+tree.append(('t', 'Q2 需每則 token ≈10,521（在 Tokenomics 區間 2,000–11,000 內、接近上緣）；實收 $2.634／M 高於未打折的表列牌價 $2.451／M，所以 d＝0 也得不到 m＝1（v21.2 值）。'))
 TG('下鑽')
 for t in ['牌價與有效單價（L0、L4）→ 3_m重算 S10–S11 與層級單價展開表', '付費 token（L3）→ 3_m重算 S4–S9', '分路線 m（L2）→ 4_分路線',
           '各輸入的區間與擺動 → 5_敏感度；要找的證據 → 6_不確定與證據', '本頁每個原值與 Tokenomics 的對應 → 9_核對對照']:
@@ -279,7 +280,7 @@ def lk(lab, col):
 
 UNC = [
     ('一、可以「搜尋」解決', None),
-    ('每則訊息 token τ', '4,000（2,000–11,000）', '每則訊息 token τ', 'Alloc_In C15 → 3_m重算 S6',
+    ('每則訊息 token τ', '4,000（2,000–11,000）', '每則 token τ', 'Alloc_In C15 → 3_m重算 S6',
      '無公開數字；含輸入、上下文、推理與輸出，agent 與長文件使用會大幅拉高。', 'ChatGPT 每則對話（含推理）的平均 token；付費與免費用戶分開。',
      'OpenRouter《State of AI》（每請求 token 代理值）；NBER《How people use ChatGPT》（訊息數、無 token）；OpenAI DevDay。本串已搜尋：ChatGPT token 長度未找到。',
      'τ↑→付費 token↑→m↓。', 'C'),
@@ -297,6 +298,10 @@ UNC = [
     ('快取命中率 χ 與請求形狀（ISL／OSL）', 'χ 0.55（0.3–0.75）；Sol ISL 16,384／OSL 2,048', '快取命中 χ', 'Cap_In C13；Serving 第 23–24 列 → T5–T7',
      '決定新鮮輸入、快取輸入、輸出三種價在混合價裡的權重；2026 agent 流量快取約 88%，高於現值。', '各類流量（API、ChatGPT、agent）的平均輸入／輸出長度與快取命中率。',
      'OpenRouter（prompt 1.5K→6K、completion 150→400、agent 快取約 88%）；OpenAI DevDay。', 'χ↑→有效單價↓→m↑；輸出越長→有效單價↑→m↓。', 'C'),
+    ('請求形狀 κ', '1.0（0.65–1.2）', '請求形狀 κ', 'Alloc_In C26（AL_Kappa）→ 3_m重算 S10',
+     '實際流量每 GPU 秒總 token ÷ 參考請求；由各類流量的輸入／輸出長度、快取命中與 token 占比決定，API 與 ChatGPT 的 token 占比、agent 型流量比重都沒有一手數字。擺動全表最大。',
+     '各類請求（API、ChatGPT、agent）的平均輸入／輸出長度、快取命中率與各自的 token 占比。', 'OpenRouter《State of AI》（代理值）；OpenAI DevDay；Anthropic Economic Index；NBER《How people use ChatGPT》。',
+     'κ↑→有效單價↑→m↓（m 與 κ 成反比，彈性 −1）。', 'C'),
     ('廣告營收', '2026 Q2 0.5 $B（0.3–0.8）', '2026 Q2 廣告營收（年化）', 'Cap_In E186 → S2',
      '依據 SRC_DEM_072（2026-08 廣告年化達 $1B）；Q2 年化值為推定。', '廣告營收的季度揭露。', 'OpenAI／媒體報導。', '廣告↑→分子↓→m↓（影響小）。', 'C'),
     ('二、需要「實地調研」或付費資料', None),
@@ -399,7 +404,7 @@ hdr(ws, r, ['路線', '2025', '2026 Q1', '2026 Q2', 'FY2026', '單位', '讀法'
 r += 1
 for key, lab, how in [('mapi', 'm_API', 'API 按量計費：實收約為有效牌價的三分之一（2026 Q2），因為 2026 的 API token 用的是 2026-03 時點值、營收份額 0.20 是餘額。'),
                       ('msub', 'm_消費訂閱', '定額月費：每個 token 實收是有效牌價的 5 倍以上，是整體 m＞1 的主因。'),
-                      ('mseat', 'm_商用席次', '席次定額收費，同上，倍數較小。')]:
+                      ('mseat', 'm_商用席次', '席次定額收費，同上；倍數在 Q1、Q2 小於消費訂閱，但 FY2026（8.04）大於消費訂閱（5.57）。')]:
     put(ws, f'B{r}', lab)
     for i, col in enumerate('FGHI'):
         put(ws, f'{CL(3 + i)}{r}', f"={c4(key, col)}", F_GREEN, None, '0.000', wrap=False)
@@ -423,7 +428,9 @@ for lab, key, fmt, how in [('分子：m 分子營收（$B）', 'num', '0.00', '�
     r += 1
 put(ws, f'B{r}', 'm 倍數＝分子倍數 ÷（token 倍數 × 有效牌價倍數）', F_BOLD, FILL_M)
 put(ws, f'E{r}', f'=E{f1}/(E{f1 + 1}*E{f1 + 2})', F_BOLD, FILL_M, '0.000', wrap=False)
-put(ws, f'H{r}', f'="應等於 m 的 Q2 ÷ 2025："&TEXT(D{OVR["m"]}/C{OVR["m"]},"0.000")&"；差 "&TEXT(E{r}-D{OVR["m"]}/C{OVR["m"]},"0.0E+00")', F_GRAY)
+put(ws, f'H{r}', f'="應等於 m 的 Q2 ÷ 2025："&TEXT(E{OVR["m"]}/C{OVR["m"]},"0.000")&"；差 "&TEXT(E{r}-E{OVR["m"]}/C{OVR["m"]},"0.0E+00")', F_GRAY)
+r += 1
+put(ws, f'B{r}', '註：「有效牌價 ×1.44」是世代與層級單價基準的更換（2025 年度層級單價 → 2026-09 GPT-6 快照），不是同一產品漲價；m 的下降有一部分來自基準更換。', F_GRAY, wrap=False)
 r += 2
 put(ws, f'B{r}', '與 token 帳診斷的區別（以下三項不是 m）', F_BOLD, wrap=False)
 r += 1
@@ -447,16 +454,18 @@ r += 1
 put(ws, f'B{r}', '4_分路線 三路線合計 − 整體 m（四欄最大絕對值）')
 put(ws, f'C{r}', f"=MAX(ABS({q(S4)}!F{R4['mchk']}),ABS({q(S4)}!G{R4['mchk']}),ABS({q(S4)}!H{R4['mchk']}),ABS({q(S4)}!I{R4['mchk']}))", F_BASE, None, '0.0E+00', wrap=False)
 r += 2
-put(ws, f'B{r}', '最不確定的輸入（依 5_敏感度 擺動；細節見 6 頁）', F_BOLD, wrap=False)
+put(ws, f'B{r}', '最不確定的輸入（依 5_敏感度 擺動由大到小取前 8 名；細節見 6 頁）', F_BOLD, wrap=False)
 r += 1
 hdr(ws, r, ['輸入', '擺動', '承重度'], c0=2)
 r += 1
-for lab in ['每則 token τ', '有效折扣 d', '請求形狀 κ', 'Astra 層級占比', '快取命中 χ', 'ChatGPT 免費占比', 'Sol 參考輸入長度 ISL', 'Sol 參考輸出長度 OSL']:
-    if srow(lab):
-        put(ws, f'B{r}', f"='5_敏感度'!B{srow(lab)}", F_GREEN)
-        put(ws, f'C{r}', f"='5_敏感度'!L{srow(lab)}", F_GREEN, None, '0%', wrap=False)
-        put(ws, f'D{r}', f"='5_敏感度'!K{srow(lab)}", F_GREEN, None, '0.00', wrap=False)
-        r += 1
+TOP8 = r
+for k in range(1, 9):
+    rngL = f"'5_敏感度'!$L${first}:$L${last}"
+    put(ws, f'C{r}', f'=LARGE({rngL},{k})', F_BASE, None, '0.0%', wrap=False)
+    put(ws, f'B{r}', f"=INDEX('5_敏感度'!$B${first}:$B${last},MATCH(C{r},{rngL},0))", F_BASE)
+    put(ws, f'D{r}', f"=INDEX('5_敏感度'!$K${first}:$K${last},MATCH(C{r},{rngL},0))", F_BASE, None, '0.00', wrap=False)
+    r += 1
+put(ws, f'B{r}', '註：d 的擺動是定義上的機械擺動（m ∝ 1/(1 − d)），不代表實收對表列牌價的不確定；m ×（1 − d）＝實收單價 ÷ 表列牌價，不受 d 影響。', F_GRAY, wrap=False)
 
 # ───────────────────────── 0_說明 ─────────────────────────
 ws = WS['0_說明']
@@ -484,12 +493,13 @@ lines = [
     ('B23', '2. token 帳診斷不是 m：L1_MFleet、L1_TokLedger、L1_TokLedger_2026Q2 是舊成本鏈的診斷值，在 1_總覽 只作對照並標明「不是 m」。', F_BASE),
     ('B24', '3. 回本不在本簿：回本由 L（壽命期價格係數）與所需 L 決定，見 L 閱讀版。', F_BASE),
     ('B25', '4. 2026 有效單價的牌價前緣只展開到「表列牌價 × 請求形狀 ×（1 − d）× 能力倍數」；能力倍數（ε＝0）現值為 1，只列原值，不展開。', F_BASE),
-    ('B26', '5. 敏感度為單變數測試，未測交互作用；Tokenomics 無區間的輸入不自訂區間。2026 Q1／FY2026 與分路線 m 在 Tokenomics 為單值，無區間。', F_BASE),
+    ('B26', '5. 敏感度為單變數測試，未測交互作用；Tokenomics 無區間的輸入不自訂區間。2026 Q1／FY2026 與 2026 的分路線 m 在 Tokenomics 為單值，無區間；2025 的分路線 m（L1_MAPI／MSub／MSeat）有低／高（Cap_In D144:E146），已列在 4_分路線。', F_BASE),
     ('B28', '修訂紀錄', F_BOLD),
     ('B29', 'r2（2026-10-20）：新增 1A_需求公式樹；2_輸入 新增 K 群三個輸入（IN_SubShare、IN_SeatShare、IN_SubTokShare，取自 Tokenomics v15.3 Cap_In C70、C131、C132）。其餘頁未改。', F_BASE),
-    ('B30', 'v17.0（2026-10-20）：改名為「m 閱讀版」；數字全部對 Tokenomics v17.0 核對（前置格 2,993、輸入 139、Gov_Map 區間 74、各頁原值、公式樹 42 個原值，全部相同；重算差異 < 10⁻¹⁴）；IN_SubShare 低端改為 Tokenomics 原值 0.612、標記改為 Derived（N10）；移除 9_前置格清單（閱讀用不到，另存於 repo 供換版核對）。另補推論支出、Hopper、GB200 三個輸入的 Tokenomics 區間（原本空白）。經未參與製作的代理獨立核對，不一致 0。', F_BASE),
+    ('B30', 'v17.0（2026-10-20）：改名為「m 閱讀版」；數字全部對 Tokenomics v17.0 核對（前置格 2,993、輸入 139、Gov_Map 區間 74、各頁原值、公式樹 42 個原值，全部相同；重算差異 < 10⁻¹⁴）；IN_SubShare 低端改為 Tokenomics 原值 0.612、標記改為 Derived（N10）；移除 9_前置格清單（閱讀用不到，另存於 repo 供換版核對）。另補推論支出、Hopper、GB200 三個輸入的 Tokenomics 區間（原本空白）。經未參與製作的代理獨立核對，不一致 0（僅限 v17.0）。', F_BASE),
     ('B31', 'v21.2 r0（2026-10-24）：依 Andy 10-21 新定義重做；舊 m（成本鏈 L1_MFleet）改列 token 帳診斷；移除 4_持有成本、5_每GW產出（屬成本鏈，新 m 不用）。新增 4_分路線，7、8 頁合併為 6_不確定與證據，新增 9_核對對照。', F_BASE),
-    ('B33', '本簿是 Tokenomics v21.2 的版本快照，不會隨基準模型自動同步。姊妹檔：20261020_L閱讀版_v17.0.xlsx（L 閱讀版另行維護）。', F_T2),
+    ('B32', 'v21.2 r1（2026-10-24）：經未參與製作的代理獨立核對（2026-10-24）：數值不符 0，文字 7 項已修（r1）；另在 4_分路線 加 2025 低／高，核對程式加檢查。', F_BASE),
+    ('B34', '本簿是 Tokenomics v21.2 的版本快照，不會隨基準模型自動同步。姊妹檔：20261020_L閱讀版_v17.0.xlsx（L 閱讀版另行維護）。', F_T2),
 ]
 for a, t, f in lines:
     put(ws, a, t, f)

@@ -280,7 +280,7 @@ def test_v2010_diffs_only_expected_vs_v200():
     assert strip("Cap_In", sorted(t[0] for t in d["Cap_In"])) == strip("Cap_In", ["A238", "A313", "C238", "D238", "E238", "G28"]), sorted(t[0] for t in d["Cap_In"])      # v21.3：扣掉 A47／D7／F47／G7（W2，test_v2130 看守）      # v21.2：G28（test_v2120 看守）
     # L1 既有格：只有第 93 列的 B／C／D／E／F／H（以及指向它的說明欄不變）
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [71, r93, 128, 129, 130, 131], d["L1"][:3]      # v21.3：第 128–131 列 I（W5，test_v2130 看守）； v21.2：第 71 列 C／H（test_v2120 看守）      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
+    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [71, r93, *range(128, 137)], d["L1"][:3]      # v21.4：第 128–136 列 I（W1／W2，test_v2140 看守）； v21.3：第 128–131 列 I（W5，test_v2130 看守）； v21.2：第 71 列 C／H（test_v2120 看守）      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
     assert {re.sub(r"\d+", "", t[0]) for t in d["L1"] if t[0] != "T4"} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
     # Interface：LifeSelf 列（C:Q 與 A）、第 320 列標題、K 節標題、契約元資料欄（R／V／W）、Z 欄說明
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}

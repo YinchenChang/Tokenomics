@@ -58,7 +58,7 @@ def per_gw_ratio(k, spend_key, gw_key, note=""):
     row(k+"_ratio", "÷ AL_FleetHold（倍數）", f"={C[k+'_pergw']}/{hold}", "x","Derived")
 
 blk("E01 The Information 2024（DCD 轉述）：A100 每小時 1.30 美元、等效 35 萬顆 A100")
-row("e01_p","Microsoft 向 OpenAI 收費（每 A100 小時）",1.30,"$/A100·小時","Interested-party","DCD：「about $1.30 per A100 server per hour」；以下用『每顆』讀法，因為 35 萬×1.30×8760＝約 39.9 億與同文『約 40 億』吻合，若指整台 8 顆伺服器則每顆僅 0.16 美元、金額對不上")
+row("e01_p","Microsoft 向 OpenAI 收費（每 A100 小時）",1.30,"$/A100·小時","Interested-party","DCD：「about $1.30 per A100 server per hour」；以下用『每顆』讀法：The Information 原句寫 chips；若 35 萬是 8 顆伺服器，則 280 萬顆 A100 約 2.6 GW，遠超 OpenAI 2024 年底總量 0.6 GW。金額 35 萬×1.30×8760＝39.9 億兩種讀法都吻合")
 row("e01_n","等效 A100 顆數",350000,"顆","Interested-party","The Information 2024-07：cluster 'has the equivalent of 350,000 Nvidia A100 chips'")
 row("e01_spend","隱含年支出",f"={C['e01_p']}*{C['e01_n']}*{hrs}/1E9","$B/年","Derived","應≈ 報導『約 40 億』")
 row("e01_zit","對照：Zitron 內部文件 2024 全年 Azure 推論（4 季加總）",3.767,"$B","Interested-party","wheresyoured.at；與上行同量級（相差約 6%）")

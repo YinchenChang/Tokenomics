@@ -266,7 +266,7 @@ INHI = {}
 ws = WS['2_輸入']
 widths(ws, {'A': 17, 'B': 7, 'C': 44, 'D': 13, 'E': 12, 'F': 30, 'G': 11, 'H': 11, 'I': 20, 'J': 70, 'K': 9})
 put(ws, 'A1', 'm 推導的全部輸入（藍字＝輸入值，可改；改動後 3、4、5 頁與 1A 會自動重算）', F_T1, wrap=False)
-put(ws, 'A2', '值取自 Tokenomics v21.2（20261023_Tokenomics_v21.2.xlsx，master 45ce1ca）。標記與區間取自該簿 Gov_Map 或 Cap_In 的低／高欄；'
+put(ws, 'A2', '值取自 Tokenomics v21.3（20261024_Tokenomics_v21.3.xlsx，master aa17328）。標記與區間取自該簿 Gov_Map 或 Cap_In 的低／高欄；'
     '「—」＝Tokenomics 無此登錄。黃底＝不確定度高且對 m 影響大（見 5_敏感度）。每格與 Tokenomics 的對應登錄在 9_核對對照。', F_T2, wrap=False)
 hdr(ws, 4, ['ID', '群組', '項目', '值', '單位', '標記（Gov_Map／SRC）', '區間低', '區間高', 'Tokenomics 位置', '說明與來源', '不確定度'])
 r = 5

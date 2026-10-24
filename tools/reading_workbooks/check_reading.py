@@ -66,6 +66,86 @@ wi = L['2_輸入']
 for col, nm in (('C', 'L1_HoldFleet25'), ('D', 'L1_HoldFleet25_Lo'), ('E', 'L1_HoldFleet25_Hi')):
     check('2_輸入 IN_Hold', same(wi[f'{col}34'].value, named(nm)), f'{col}34 {wi[col+"34"].value} → {nm} {named(nm)}')
 
+# 1b. 2_輸入 第 6–34 列全部藍字輸入（基準／低端組合／高端組合）逐格對 Tokenomics 來源
+# 欄序：Tokenomics 欄 → 閱讀版 (C基準, D低端組合, E高端組合)。swap＝低／高欄序對調。
+def tk_row(sheet, rng):
+    return [c.value for row in T[sheet][rng] for c in row]
+
+def tk3(sheet, rng, order):
+    v = tk_row(sheet, rng)
+    return [v[i] for i in order]
+
+wi = L['2_輸入']
+IN_MAP = {  # 閱讀版列: (來源列表 [C,D,E])
+    6: lambda: [tk_row('SRC_Demand', 'C11:C11')[0]] * 3,
+    7: lambda: tk3('SRC_Demand', 'C8:E8', (0, 1, 2)),
+    8: lambda: tk3('Alloc_In', 'C23:E23', (0, 2, 1)),
+    10: lambda: tk3('Cap_In', 'C226:E226', (0, 1, 2)),
+    11: lambda: tk3('Cap_In', 'C227:E227', (0, 1, 2)),
+    12: lambda: tk3('Cap_In', 'C228:E228', (0, 1, 2)),
+    13: lambda: tk3('Cap_In', 'C229:E229', (0, 1, 2)),
+    14: lambda: tk3('Cap_In', 'C304:E304', (0, 2, 1)),
+    15: lambda: tk3('Inputs', 'D28:F28', (1, 0, 2)),
+    16: lambda: [tk_row('Cap_In', 'C303:C303')[0]] * 3,
+    31: lambda: tk3('Cap_In', 'C70:E70', (0, 1, 2)),
+    32: lambda: tk3('Cap_In', 'C131:E131', (0, 1, 2)),
+    34: lambda: [named('L1_HoldFleet25'), named('L1_HoldFleet25_Lo'), named('L1_HoldFleet25_Hi')],
+}
+for k, r in enumerate((18, 19, 20, 21)):  # 服務起點：Tokenomics 列 300 基準、301 較早、302 較晚；低端組合取較晚
+    IN_MAP[r] = (lambda k=k: [tk_row('Cap_In', 'C300:F300')[k], tk_row('Cap_In', 'C302:F302')[k], tk_row('Cap_In', 'C301:F301')[k]])
+for k, r in enumerate((22, 23, 24, 25)):
+    IN_MAP[r] = (lambda k=k: [tk_row('Alloc', 'C18:F18')[k]] * 3)
+for k, r in enumerate((26, 27, 28, 29)):
+    IN_MAP[r] = (lambda k=k: [tk_row('Alloc', 'C153:F153')[k]] * 3)
+n_in = 0
+for r in range(6, 36):
+    if wi.cell(r, 1).value is None or wi.cell(r, 3).value is None:
+        continue  # 節標題列
+    if r not in IN_MAP:
+        fails.append(f'2_輸入 第 {r} 列（{wi.cell(r,1).value}）沒有對應的核對來源')
+        continue
+    exp = IN_MAP[r]()
+    for col, e in zip((3, 4, 5), exp):
+        n_in += 1
+        check('2_輸入', same(wi.cell(r, col).value, e), f'{wi.cell(r,1).value} 第 {r} 列 {"CDE"[col-3]} 欄 {wi.cell(r,col).value} → Tokenomics {e}')
+check('2_輸入 格數', n_in == 75, f'核對格數 {n_in}（應為 75：第 6–32 列 72 格＋IN_Hold 3 格）')
+
+# 1c. 1_公式樹 G 欄全部「Tokenomics 原值」貼上值
+Lo_, Hi_ = named('L1_LTotalFleetVDisc_Lo'), named('L1_LTotalFleetVDisc_Hi')
+RLo, RHi = named('L1_LReqFleet_Full_Lo'), named('L1_LReqFleet_Full_Hi')
+g322 = tk_row('Cap_In', 'C322:F322')
+G_MAP = {
+    7: named('L1_LTotalFleetVDisc'), 8: named('L1_LReqFleet_Full'), 11: named('L1_HoldFleet25'),
+    12: f'{Lo_:.3f}–{Hi_:.3f}', 13: f'{RLo:.3f}–{RHi:.3f}', 14: T['Cap_In']['C242'].value,
+    17: named('L1_HoldFleet25'), 18: tk_row('SRC_Demand', 'C11:C11')[0], 19: named('L1_LReqFleet_Full'),
+    20: RLo, 21: RHi,
+    30: named('L1_LPrice'), 31: named('L1_LTotal'), 33: named('L1_LTotalDisc'), 35: named('L1_LTotalFleetVDisc'), 37: named('L1_LTotalFleetV'),
+    42: g322[0], 45: g322[1],
+    70: tk_row('Cap_In', 'C70:C70')[0] + tk_row('Cap_In', 'C131:C131')[0],
+    76: tk_row('SRC_Demand', 'C8:C8')[0], 77: named('AL_SpendBasis'), 79: named('L1_LReqFleet_IdNoK'),
+    80: f"{named('L1_LReqFleet_IdNoK_Lo'):.3f}–{named('L1_LReqFleet_IdNoK_Hi'):.3f}",
+}
+n_g = 0
+for r in range(1, ft.max_row + 1):
+    v = ft.cell(r, 7).value
+    if v is None or r == 5:
+        continue
+    n_g += 1
+    if r not in G_MAP:
+        fails.append(f'1_公式樹 G{r} 有貼上值但沒有核對來源')
+    else:
+        check('1_公式樹 G 欄', same(v, G_MAP[r]), f'G{r} {v} → Tokenomics {G_MAP[r]}')
+for r in G_MAP:
+    check('1_公式樹 G 欄', ft.cell(r, 7).value is not None, f'G{r} 缺值')
+
+# 1d. 3_L逐世代 各世代 L_rel 對 Cap_In 第 322–324 列（S4 基準、S6 低端組合、S7 高端組合；S3 折現無世代起點＝各世代同值）
+w3 = L['3_L逐世代']
+for first, crow in ((28, 322), (36, 323), (40, 324)):
+    exp = tk_row('Cap_In', f'C{crow}:F{crow}')
+    for k in range(4):
+        check('3_L逐世代 L_rel', same(w3.cell(first + k, 17).value, exp[k]), f'第 {first+k} 列 {w3.cell(first+k,17).value} → Cap_In 第 {crow} 列 {exp[k]}')
+check('3_L逐世代 L_rel S3', same(w3.cell(24, 17).value, tk_row('Cap_In', 'E322:E322')[0]), 'S3 折現')
+
 # 2. 「差異」欄與錯誤值
 for name, W in (('L', L),):
     F = openpyxl.load_workbook(LW)

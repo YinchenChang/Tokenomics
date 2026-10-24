@@ -50,7 +50,7 @@ def get_engine() -> Engine:
 
 def _label(text: str) -> str:
     """去掉標籤尾端的 '　[IF_…]' 具名範圍標註。"""
-    return re.sub(r"\s*\[IF_\w+\]\s*$", "", text).strip("　 ")
+    return re.sub(r"\s*\[IF[A-Z]?_\w+\]\s*$", "", text).strip("　 ")
 
 
 def series(eng: Engine, name: str) -> dict:

@@ -6,7 +6,7 @@
 import pandas as pd
 import streamlit as st
 
-from app.common import fmt, get_engine, header_above, input_row, l1_lookup, name_label
+from app.common import fmt, fmt_unit, get_engine, header_above, input_row, l1_lookup, name_label
 
 # 頁首四張卡：判讀主口徑（交接檔 §2；名稱依 Excel）
 HEADLINE = ("L1_LTotalFleetVDisc", "L1_LReqFleet_Full", "L1_RevGW_PQ_VR200", "L1_M")
@@ -60,7 +60,8 @@ def render():
 
     st.divider()
     st.subheader("1. 每 GW 營收 P × Q（VR200，新建 1 GW）")
-    st.caption("P＝表列牌價 ×（1 − d）× m（× L 為壽命期）；Q＝付費產能 × 對外服務占比 ×（1 − 免費占比）× 實際利用率。"
+    st.caption("P＝表列牌價 ×（1 − d）× m；Q＝付費產能 × 對外服務占比 ×（1 − 免費占比）× 實際利用率 × 生產折減（L1_FleetProdRatio）。"
+               "壽命期年均列＝第一年 × L1_LTotalDisc（VR200 自身起點的折現 L），不是頁首的機隊主口徑 L1_LTotalFleetVDisc。"
                "免費占比 2026／2030 兩列是情境，不回流主序列。")
     st.dataframe(_l1_table(l1, PQ_CHAIN), width="stretch", hide_index=True)
     _details(l1, PQ_CHAIN, "pq")
@@ -76,7 +77,7 @@ def render():
     st.subheader("3. L（壽命期價格係數）與回本所需 L")
     st.dataframe(_l1_table(l1, L_ROWS), width="stretch", hide_index=True)
     gens = header_above(eng, "L1_LDiscGen")
-    st.markdown("**各世代折現 L（`L1_LDiscGen`，相對自身起點）**")
+    st.markdown(f"**各世代折現 L（`L1_LDiscGen`）**：{name_label(eng, 'L1_LDiscGen')[0]}")
     st.dataframe(pd.DataFrame([eng.get_name("L1_LDiscGen")], columns=gens, index=[name_label(eng, "L1_LDiscGen")[0]]).map(fmt),
                  width="stretch")
     _details(l1, L_ROWS, "l")
@@ -92,13 +93,20 @@ def render():
 
     st.divider()
     st.subheader("5. 承重輸入（信心低）")
-    st.dataframe(pd.DataFrame([input_row(eng, n) for n in LOAD_BEARING if n in eng.names]).astype(str),
+    lb = []
+    for n in LOAD_BEARING:
+        if n in eng.names:
+            r = input_row(eng, n)
+            for k in ("基準", "低", "高"):
+                r[k] = fmt_unit(r[k], r["單位"])          # 單位為 % 的格以百分比顯示（Excel 存小數）
+            lb.append(r)
+    st.dataframe(pd.DataFrame(lb).astype(str),
                  width="stretch", hide_index=True)
     st.caption("整列取自輸入頁（標籤、單位、基準、低、高、標記、來源）。改這些值一律改 Excel，網站不提供改值。")
 
     st.divider()
     st.subheader("6. 非 NVIDIA 晶片（相對 VR200）")
-    rows = [eng.row_values("NonNV", r, 10) for r in range(4, eng.max_row("NonNV") + 1)]
+    rows = [eng.row_values("NonNV", r, 12) for r in range(4, eng.max_row("NonNV") + 1)]
     rows = [r for r in rows if any(x != "" for x in r)]
     if rows:
         nn = pd.DataFrame(rows[1:], columns=[str(x) for x in rows[0]])

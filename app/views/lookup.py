@@ -47,9 +47,8 @@ def render():
     st.subheader("L1 全表（第 1 層常用推算值）")
     l1 = l1_rows(eng, str(eng.path))
     if q:
-        mask = pd.Series(False, index=l1.index)
-        for c in l1.columns:
-            mask |= l1[c].astype(str).str.contains(q.split()[0], case=False, regex=False)
-        l1 = l1[mask]
+        text = l1.astype(str).agg(" ".join, axis=1)
+        for word in q.split():                       # 與上表相同：全部關鍵字都要符合
+            l1 = l1[text.loc[l1.index].str.contains(word, case=False, regex=False)]
     st.dataframe(l1.astype(str), width="stretch", hide_index=True, height=min(38 + 35 * len(l1), 600))
     st.caption("L1 每列：基準值／低／高、單位、區間的定義、讀法、主要驅動、最弱輸入的標記，全部取自 Excel L1 頁。")

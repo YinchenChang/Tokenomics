@@ -2,6 +2,14 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 2026-10-24 網站恢復（工程類；Excel 不變，仍為 20261023_Tokenomics_v21.2.xlsx）
+
+- 分支 `claude/website-restore`。報告：`docs/reports/20261024_網站恢復.md`。CLAUDE.md 修訂十一。
+- `legacy/app/` → `app/`；新增 `app/workbook.py`：唯讀讀取 LibreOffice 重算後存下的值，取代公式引擎（引擎仍留在 `legacy/engine/`）。
+- 新頁：「回本判讀（m、L、P×Q）」（預設首頁）、「名稱查詢」；舊頁（總覽、Block 2–5、Alloc、問答、證據登錄、治理）照舊，總覽修正後續版本新增的非「世代 × 成本情境」名稱造成的錯誤。
+- 入口：`tokenomics.py`（Streamlit Community Cloud）、`run_local.bat`（Windows，首次自動建 `.venv`）；`requirements.txt` 加回 streamlit、pandas。
+- 測試：`tests/app/test_app_smoke.py` 改寫為不綁版本：11 頁渲染無例外；全部 1,817 個具名範圍與 LibreOffice 從頭重算逐格相同。Excel、builder、parity 期望值皆未改。
+
 ## 20261023_Tokenomics_v21.2.xlsx（取代 v21.1；**次版：計價倍數 AL_SpendBasis 改 1.8（0.85–2.3）＋四項說明修補；沒有新增或刪除契約名稱，44 個名稱的值改變**；依工作單 `docs/workorders/20261023_v21.2_計價倍數與說明修補.md` r0）
 
 - 分支 `claude/v21-2`（PR 與 SHA 見報告）。報告：`docs/reports/20261023_v21.2_計價倍數.md`；進度檔：`docs/reports/20261023_v21.2_進度.md`。**待合併（本單明定不自行合併，Project Instructions 第 6 條）。**

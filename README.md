@@ -9,8 +9,10 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 |---|---|
 | `model/` | 現行活頁簿（唯一一份）；舊版在 `model/archive/` |
 | `tests/parity/` | 數值檢查與情境檔：以 LibreOffice 重算現行活頁簿與每個情境，檢查錯誤值、防空轉、各版本期望值、具名範圍與 GOV_Errors |
-| `legacy/` | **網站暫停（CLAUDE.md 修訂八）**：公式引擎（`legacy/engine/`）、Streamlit 網站（`legacy/app/`）及其工具（`legacy/tools/`），以及早先停用的 v4 手抄公式；程式保留，不執行、不列入 CI |
-| `tests/legacy/` | 暫停的網站與引擎測試（`app/`、`test_functions.py`）及舊 v4 測試，不列入 CI |
+| `app/` | Streamlit 網站（唯讀；修訂十一） |
+| `tests/app/` | 網站檢查 |
+| `legacy/` | 暫停的公式引擎（`legacy/engine/`，修訂八）及其工具、早先停用的 v4 手抄公式；不執行 |
+| `tests/legacy/` | 暫停的引擎測試（`test_functions.py`）及舊 v4 測試，不列入 CI |
 | `docs/reports/` | 每輪報告（繁體中文） |
 | `CHANGELOG.md` | 每次同步的 Excel 版本、commit、變動摘要 |
 
@@ -48,9 +50,13 @@ Excel 的具名範圍分為兩類（見 Excel README 頁）：
 - **營收拆解與 m×L 回本條件（Andy 2026-10-22 04:41）**：每 GW 模型商營收 ＝ P × Q；P ＝ m × L ×（1 − d）×（表列牌價）；Q ＝ 實際用於服務的算力（分世代機隊）× 每單位算力產出的 token（分高中低層級）。以已知營收與 Q 反推實際的 m×L，再與回本所需的 m×L 比較（2025：營收 130.7 億；2026：市場傳聞 360 億，Interested-party）。L 的讀法待 Andy 確認（10-22：預設沿用 10-18 定義＝壽命期價格係數，表列牌價另為一因子）。判讀重點是比值「實際 m×L ÷ 所需 m×L」的年度趨勢，不是單年絕對值（Andy 2026-10-22 04:51）；趨勢只在各年使用同一成本口徑時成立（固定倍數才會約掉），序列須按成本口徑分列。成本口徑（Andy 2026-10-22 05:01）：年度總算力成本＝當年平均上線 GW × Σ（世代占比 × 該世代每 GW 年持有成本）；外部揭露的算力支出只作對照。**計算一律先從 Tokenomics 取數**（Andy 2026-10-22 05:15）：就算 Tokenomics 的數字有錯，也能知道錯在哪；Tokenomics 沒有的才外找，先依 DB_Evidence 規則登錄進 Tokenomics 再使用。2025 推論＋訓練支出合計 204 億（SRC_DEM_004＋006）與「平均 GW × 每 GW 持有成本」（約 1 GW × 93.5 億）不一致，不作為算力成本，只作對照，待修正（Andy 05:15）。**分層（Andy 2026-10-22 05:19）**：Tokenomics 只提供每 GW（分世代、分層級）的持有成本、產能與牌價；公司層級的機隊規模（如 OpenAI 2026 平均上線 GW）、營收與 m×L 比值序列放在 company-models 各家模型，經 Interface 取用。
 - **1 GW 模型商算力收支公式（Andy 2026-10-22 07:34；07:47 依預設補層級與世代）**：營收 ＝ P × Q；P ＝ 層級組合加權表列牌價 × m × L ×（1 − d）；Q ＝ 1 GW ×（1 − 訓練研發算力占比）×（1 − 免費算力占比）× 該世代、該層級組合的理論每 GW token 產能（`IF_TokGWPaidMix`）× 實際利用率 × 效率（生產折減）；成本 ＝ 持有 1 GW 的年成本（`IF_HoldEcon`，含資本回收，故 L 用折現版）。影響營收的變數：m、L、訓練占比、免費占比、利用率、效率，另加層級組合與硬體世代（層級組合對實收營收影響小，因單價與產能大致抵銷）。只用營收觀測時，這些變數只能辨認乘積＝「每上線 GW 營收」；判斷現況回本用「每上線 GW 營收 ÷ 每 GW 持有成本」，預測新 GW 才需拆開各變數。
 
-## 執行
+## 執行（網站：唯讀呈現現行活頁簿；CLAUDE.md 修訂十一）
 
-網站暫停（CLAUDE.md 修訂八）；`python tokenomics.py` 與 `run_local.bat` 只印出暫停訊息。恢復網站時，安裝 `requirements-legacy.txt`，並先由 Project 端決定是否恢復引擎。
+- Windows：雙擊 `run_local.bat`（第一次會自動建立 `.venv` 並安裝套件），瀏覽器開 http://localhost:8501 。
+- 其他：`pip install -r requirements.txt`，然後 `streamlit run tokenomics.py`。
+- Streamlit Community Cloud：主程式 `tokenomics.py`、分支 `master`、套件 `requirements.txt`。
+
+網站顯示的每個數字都是 `model/CURRENT` 活頁簿中 LibreOffice 重算後存下的值；網站不計算、不改輸入。頁面：回本判讀（m、L、每 GW 營收 P×Q、持有成本、承重輸入、非 NVIDIA）、名稱查詢（任一具名範圍與 L1 全表）、Interface Block 1–5、Alloc、問答、證據登錄、治理。
 
 匯出 SRC_／Interface CSV 並檢查 GOV_Errors（以 LibreOffice 重算 `model/CURRENT`）：`python3 tools/export_csv.py --out data/export`。
 
@@ -59,7 +65,8 @@ Excel 的具名範圍分為兩類（見 Excel README 頁）：
 ```bash
 sudo apt-get install -y libreoffice-calc      # 重算用
 pip install -r requirements-dev.txt
-python -m pytest tests/parity                  # 全套約 10–15 分鐘；超過 2 分鐘請背景執行
+python -m pytest tests/parity                  # 全套約 60 分鐘；超過 2 分鐘請背景執行
+python -m pytest tests/app                     # 網站：各頁渲染＋全部具名範圍與 LibreOffice 重算逐格相同（約 1 分鐘）
 ```
 
 數值檢查在本機執行，通過即可合併；CI（`.github/workflows/parity.yml`：單一 parity job＋governance）供事後對照，不阻擋合併。

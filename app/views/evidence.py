@@ -18,5 +18,5 @@ def render():
         show = show[show["判定"].isin(verdicts)]
     if tags:
         show = show[show["標記"].isin(tags)]
-    st.dataframe(show, use_container_width=True, hide_index=True, height=38 + 35 * len(show))
+    st.dataframe(show, width="stretch", hide_index=True, height=38 + 35 * len(show))
     st.caption(f"共 {len(df)} 筆；目前顯示 {len(show)} 筆。")

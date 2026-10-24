@@ -24,7 +24,7 @@ def render():
 
     st.subheader(f"{tier_map[tier]}｜成本情境：{case}")
     out = block3_table(eng, tier, case)
-    st.dataframe(out, use_container_width=True, height=_h(out))
+    st.dataframe(out, width="stretch", height=_h(out))
     rd = interface_series(eng, "IF_RDMult")
     st.caption(f"{rd['label']}：{fmt_unit(rd['values'][0], rd['unit'])}（研發計畫 GPU 小時＝最終訓練 GPU 小時 × 研發倍數）。")
 
@@ -34,7 +34,7 @@ def render():
     shown = share.copy().astype(object)
     for label in shown.index:
         shown.loc[label] = [f"{v:.4g}%" for v in share.loc[label]]
-    st.dataframe(shown, use_container_width=True, height=_h(shown))
+    st.dataframe(shown, width="stretch", height=_h(shown))
     st.caption("FLOPs 口徑＝後訓練計算量 ÷ 最終訓練計算量；GPU 小時口徑＝後訓練 GPU 小時 ÷ 最終訓練 GPU 小時。"
                "兩者的差距來自後訓練（尤其 RL）的有效 MFU 遠低於預訓練：同樣的 FLOPs 要用更多 GPU 小時。"
                "兩種口徑不可互換使用；外部以支出或 GPU 小時為口徑的比較，應對照 GPU 小時口徑。")
@@ -48,13 +48,13 @@ def render():
     st.caption("由上而下依 Excel Training 頁列序：訓練 FLOPs/token → 預訓練 FLOPs 與 GPU 小時 → RL（有效 MFU、與預訓練之比）→ "
                "最終訓練 → 後訓練占比 → 研發計畫。欄＝世代，表頭取自 TRN_Gen／TRN_Tier；本區僅供顯示，下游模型不得連結 TRN_ 名稱。")
     trn = trn_table(eng, tier)
-    st.dataframe(trn, use_container_width=True, height=_h(trn))
+    st.dataframe(trn, width="stretch", height=_h(trn))
 
     st.divider()
     st.subheader("Tech_Registry（唯讀）")
     st.info("技術開關、採用比例與倍數只能在 Excel（Project 端）修改並升版；本網站不提供開關。"
             "有效倍數＝1＋開關 × 採用比例 ×（所選倍數−1）；已在基準者恆為 1。")
     reg, hook = registry_tables(eng)
-    st.dataframe(reg.map(fmt), use_container_width=True, hide_index=True, height=_h(reg))
+    st.dataframe(reg.map(fmt), width="stretch", hide_index=True, height=_h(reg))
     st.markdown("**掛鉤彙總**（同一掛鉤多條目時取乘積；Perf、Perf_Batch、Training 連結此表）")
-    st.dataframe(hook.map(fmt), use_container_width=True, hide_index=True, height=_h(hook))
+    st.dataframe(hook.map(fmt), width="stretch", hide_index=True, height=_h(hook))

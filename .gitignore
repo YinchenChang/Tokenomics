@@ -11,3 +11,4 @@ tests/parity/_results.json
 
 # Claude settings
 .claude/
+.venv/

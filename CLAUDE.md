@@ -1,4 +1,6 @@
-# Tokenomics — Claude Code 工作規範（2026-10-23 修訂十，取代 repo 內現有 CLAUDE.md）
+# Tokenomics — Claude Code 工作規範（2026-10-24 修訂十一，取代 repo 內現有 CLAUDE.md）
+
+> 修訂十一（2026-10-24，Andy 要求恢復網站；引擎與否屬工程類，由 chat 端決定）：網站恢復為**唯讀呈現**：`app/` 移回 repo 根目錄，讀取 `model/` 現行活頁簿中 LibreOffice 重算後存下的值（`app/workbook.py`），**不恢復公式引擎**（pycel 仍留在 `legacy/engine/`）。理由：(1) 網站顯示的數字就是 Excel 的值，不可能與 Excel 漂移，因此不需恢復引擎 parity（修訂八量測全套約 170 分鐘）；(2) 載入約 5 秒（引擎約 1 分鐘）；(3) 代價是網站不能「改輸入、即時重算」，情境試算仍在 Excel／LibreOffice 做。檢查：`tests/app`（各頁渲染無例外；全部具名範圍與 LibreOffice 從頭重算逐格相同），約 1 分鐘，每次 Excel 換版合併前一併跑。本修訂不改任何數值、公式或 parity 門檻。
 
 > 修訂十（2026-10-23，Andy 同意權威歸屬）：第 4 節新增一條「合併後的下游同步通知」（R3）：掃描 company-models 全部非快照檔，不只快照檔。理由：資料權威歸屬確認後（下游契約 v0.24 第 6 節），AI半導體 等產業專案直接讀取 Tokenomics 的具名範圍；只看快照檔會漏掉實際在讀取的公式。本修訂只改通知範圍，不改任何數值、公式或驗收門檻。
 
@@ -31,7 +33,7 @@
   - 推論、推理、訓練、harness 都用同一組物理量表達。
   - 新技術一律以「作用在這些物理量上的倍數」寫入 `Tech_Registry`，不另開捷徑公式。
 - **實測數據的角色**：只用來校準效率係數（`Calibration` 頁），不取代 roofline 推導。
-- **介面必須露出推導鏈**：網站依序顯示各中間物理量，不能只顯示最終數字。（網站暫停期間不適用；恢復網站時恢復。）
+- **介面必須露出推導鏈**：網站依序顯示各中間物理量，不能只顯示最終數字。
 - **層級標籤**：每一個每 token 成本、單價或營收的輸出，都必須帶上對應的模型層級與 token 類型（新鮮輸入、快取輸入、思考、可見輸出）。沒有層級的單一混合數字不得作為輸出。
 
 ## 2. 目標目錄結構
@@ -39,14 +41,16 @@
 ```
 model/            現行 xlsx（唯一一份）；model/archive/ 放舊版；model/CURRENT 記錄現行檔名（一行）
 builder/          產生 Block 2、3 公式頁的程式（Excel 的建檔程式；chat 與 CC 共用同一份）
-legacy/           暫停的引擎與網站（修訂八）
+app/              網站（唯讀呈現現行活頁簿；修訂十一）
+legacy/           暫停的公式引擎（修訂八）與 v4 舊程式
 tests/parity/     以 LibreOffice 重算結果執行的數值檢查與情境檔
 CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
 ```
 
-### 引擎與網站（暫停）
+### 網站與引擎（修訂十一）
 
-- **引擎與網站（暫停）**：修訂八起停用。恢復網站時，先由 Project 端決定是否恢復引擎；恢復引擎即恢復與 LibreOffice 的逐格比對。
+- **網站**：`app/`，入口 `tokenomics.py`（Streamlit Community Cloud 主程式）或 `app/main.py`；Windows 本機雙擊 `run_local.bat`。只讀具名範圍與 L1、輸入頁的整列，不做任何計算、不寫回 Excel。
+- **引擎**：仍暫停（`legacy/engine/`）。只有在 Andy 需要「網站上改輸入、即時重算」時才由 Project 端評估恢復；恢復引擎即恢復與 LibreOffice 的逐格比對。
 
 ## 3. 一致性測試（數值檢查必須通過才可合併）
 
@@ -71,7 +75,7 @@ CHANGELOG.md      每次同步：Excel 版本、commit、變動摘要
    - `restore_log` unmatched 0；「Excel value kept over code default」只能出現工作單列明的格。
    - 冪等：以新版為底稿重建，兩邊都經 LibreOffice 重算存檔後比較，數值與公式文字不符 0（builder 直接輸出的科學記號寫法與 LibreOffice 存檔不同，不作為不一致）。
    - 與現行版逐格比較：差異必須全部落在工作單的「預期變動」範圍內。
-3. 如果具名範圍有增減，依 Excel 更新 `app/` 的欄位映射。（網站暫停期間不適用；`app/` 已移到 `legacy/app/`。）
+3. 如果具名範圍有增減或改名，依 Excel 更新 `app/` 的欄位映射，並跑 `python -m pytest tests/app`（約 1 分鐘；修訂十一）。
 4. 在 `CHANGELOG.md` 記錄 Excel 版本、commit 與變動摘要。
 4a-ter. **合併後的下游同步通知（修訂十，R3）**：掃描 company-models **全部非快照檔**（含 `markets/`：`chip_bridge`、`network`、`equipment`、`memory`、`overview`），找出實際讀取變動名稱的公式或程式；只出現在 `tokenomics_snapshot_*.json` 的名稱屬告知性質。涉及 AI半導體 讀取的名稱時，另由 chat 端發 `交流/` 訊息。
 4a-bis. **合併（修訂六）**：第 2 項驗收全部成立、報告已寫入 repo 並貼成 PR comment 後，CC 以 `gh api -X PUT repos/YinchenChang/Tokenomics/pulls/<n>/merge -f merge_method=merge -f sha=<最新 SHA>` 自行合併到 master，不等 Andy 確認。合併被權限或衝突擋下時，不繞過，在最終回覆與報告寫明「待合併」與原因。Andy 事後有異議可 revert；判斷類內容仍以工作單為界，工作單沒寫的不因可自行合併而放寬。

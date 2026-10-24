@@ -41,7 +41,7 @@ def render():
     chain = b5_chain(eng, tier, list(tier_map), task)
     chain["值"] = [fmt_unit(v, u) for v, u in zip(chain["值"], chain["單位"])]
     chain = chain[["步驟", "層級", "token 類型", "值", "單位", "項目（Excel 標籤）"]]      # 值與單位靠前，避免被長標籤擠出畫面
-    st.dataframe(chain, use_container_width=True, hide_index=True, height=_h(chain))
+    st.dataframe(chain, width="stretch", hide_index=True, height=_h(chain))
 
     st.divider()
     pf = scalar(eng, "IF_PFloor")

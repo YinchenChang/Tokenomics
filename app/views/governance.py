@@ -18,7 +18,7 @@ def render():
 
     st.subheader("L1 — 第 1 層常用推算值")
     df = l1_table(eng)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
     st.caption(f"共 {len(df)} 列；基準值、低、高皆為 Excel 即時公式。")
 
     st.subheader("Source — 第 0 層（SRC_*，A–W 欄）")
@@ -27,5 +27,5 @@ def render():
     t = tables[sheet]
     states = st.multiselect("狀態", sorted({str(x) for x in t["狀態"]}), key="src_state")
     show = t[t["狀態"].isin(states)] if states else t
-    st.dataframe(show, use_container_width=True, hide_index=True)
+    st.dataframe(show, width="stretch", hide_index=True)
     st.caption(f"{sheet}：共 {len(t)} 筆；目前顯示 {len(show)} 筆。")

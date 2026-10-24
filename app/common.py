@@ -1,4 +1,4 @@
-"""網站共用：載入引擎，並只經由具名範圍取 Excel 的資料。
+"""網站共用：讀取現行活頁簿（唯讀，見 app/workbook.py），並只經由具名範圍取 Excel 的資料。
 
 規則（CLAUDE.md 第 1、6 節）：不含任何數值、價格或參數；標籤、單位、世代與層級名稱全部來自 Excel。
 - IF_（非 IF_Hdr）：Interface 輸出，下游模型連結用。
@@ -20,7 +20,7 @@ import streamlit as st
 from openpyxl.utils import get_column_letter, range_boundaries
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from engine import Engine  # noqa: E402
+from app.workbook import Workbook as Engine  # noqa: E402  # 唯讀讀值（修訂十一）；沿用 Engine 名稱，頁面不必改
 
 # 欄位映射：Interface 具名範圍前綴（Block 2；依網站顯示順序）
 BLOCK2_METRICS = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
@@ -43,7 +43,7 @@ def is_downstream_name(name: str) -> bool:
     return name.startswith("IF_") and not name.startswith("IF_Hdr")
 
 
-@st.cache_resource(show_spinner="首次載入：以公式引擎建立並重算整份 Excel（約 1 分鐘）…")
+@st.cache_resource(show_spinner="載入現行活頁簿（LibreOffice 重算後存下的值，約 5 秒）…")
 def get_engine() -> Engine:
     return Engine()
 
@@ -524,3 +524,55 @@ def src_tables(eng: Engine) -> dict[str, pd.DataFrame]:
         if names:
             out[eng.name_ref(names[0])[0]] = _table_by_names(eng, eng.name_ref(names[0])[0], names, SRC_LAST_COL)
     return out
+
+
+# ── 2026-10-24 恢復網站：回本判讀頁與名稱查詢頁（唯讀；只讀具名範圍與 L1 表） ─────────────
+
+L1_COLS = ("L1_ID", "指標或問題", "條件", "基準值", "低", "高", "單位", "區間的定義", "讀法", "主要驅動", "最弱輸入的標記")
+
+
+@st.cache_data(show_spinner=False)
+def l1_rows(_eng: Engine, path_key: str) -> pd.DataFrame:
+    """L1 頁全表（第 4 列為表頭；A 欄為 L1_ID）。欄名取自 Excel 第 4 列。path_key 只用於快取失效。"""
+    header = [str(x) for x in _eng.row_values("L1", 4, len(L1_COLS))]
+    rows = []
+    for r in range(5, _eng.max_row("L1") + 1):
+        vals = _eng.row_values("L1", r, len(L1_COLS))
+        if str(vals[0]).startswith("L1_"):
+            rows.append(vals)
+    return pd.DataFrame(rows, columns=header)
+
+
+def l1_lookup(eng: Engine) -> dict[str, dict]:
+    df = l1_rows(eng, str(eng.path))
+    return {row[df.columns[0]]: dict(row) for _, row in df.iterrows()}
+
+
+def input_row(eng: Engine, name: str) -> dict:
+    """輸入頁（Cap_In、Alloc_In 等；A 標籤、B 單位、C 基準、D 低、E 高、F 標記、G 來源）的整列。"""
+    sheet, ref = eng.name_ref(name)
+    _, r, _, _ = range_boundaries(ref)
+    v = eng.row_values(sheet, r, 7)
+    return {"名稱": name, "標籤": v[0], "單位": v[1], "基準": v[2], "低": v[3], "高": v[4], "標記": v[5], "來源／決策": v[6],
+            "位置": f"{sheet}!{ref}"}
+
+
+def header_above(eng: Engine, name: str) -> list:
+    """多格具名範圍的欄名：往上找第一列在同一組欄全部有文字的表頭（例：世代名稱）。"""
+    sheet, ref = eng.name_ref(name)
+    c1, r1, c2, _ = range_boundaries(ref)
+    for r in range(r1 - 1, max(r1 - 40, 0), -1):
+        vals = eng.row_values(sheet, r, c2)[c1 - 1:c2]
+        if all(isinstance(x, str) and x for x in vals):
+            return vals
+    return [f"欄{i + 1}" for i in range(c2 - c1 + 1)]
+
+
+def name_label(eng: Engine, name: str) -> tuple[str, str]:
+    """任一具名範圍的 (標籤, 單位)：L1 頁取 B／G 欄，其他頁取 A／B 欄（與舊版 series 相同規則）。"""
+    sheet, ref = eng.name_ref(name)
+    _, r, _, _ = range_boundaries(ref)
+    if sheet == "L1":
+        v = eng.row_values("L1", r, 7)
+        return _label(str(v[1])), str(v[6])
+    return _label(str(eng.get(sheet, f"A{r}"))), str(eng.get(sheet, f"B{r}"))

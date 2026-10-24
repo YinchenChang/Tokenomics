@@ -38,6 +38,7 @@ import v1700                      # v17.0: L1 row LTotalFleetVDisc
 import v2010                      # v20.1: L1 PriceReqBE row (main-basis L)
 import v2100                      # v21.0: L1 PriceReqBE row text (L_total -> L1_LTotalFleetVDisc)
 import v2120                      # v21.2: L1 GapSpendBasis row text (C71／H71)
+import v2130                      # v21.3: SRC_HW_098／099 records, L1 I128:I131 token-ledger text
 import v2110                      # v21.1: SRC_DEM_089／090, Gov_Map rows (NonNV rows 10／11, Cap_In Q), L1 rows 145-148
 import v2000                      # v20.0: SRC_DEM_088, Gov_Map rows for the new blue inputs, L1 rows
 import v1910                      # v19.1: W1 second sources B2 (SRC_MOD_106, Arch!C17 link, GM201 H)
@@ -65,7 +66,7 @@ import v522                       # v5.22: X7 (L, m side-by-side outputs: Gov_Ma
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
-def _fm(): return v1910.formula_map(v1020.formula_map(v531.formula_map(v518.formula_map(ALL_FORMULA_MAP))))     # v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
+def _fm(): return v2130.formula_map(v1910.formula_map(v1020.formula_map(v531.formula_map(v518.formula_map(ALL_FORMULA_MAP)))))     # v21.3 W2: Cap_In D7／F47 -> SRC_PRC_049 (v2130.formula_map); v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
 
 SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]   # v5.13: +4
 SRC_LAST = 400                      # record rows 5..SRC_LAST (formula ranges)
@@ -125,7 +126,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb):      # v17.2: W1 second sources (Alt)
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb) + v2130.src_new_records(wb):      # v17.2: W1 second sources (Alt)
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -562,7 +563,7 @@ def _rows_l1(wb):
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     R = v527.l1_rows(R)             # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
-    return v2120.l1_patch(v2100.l1_patch(v2010.l1_patch(v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new() + v1600.l1_rows_new() + v1700.l1_rows_new() + v2000.l1_patch(v1800.l1_rows_new()) + v2000.l1_rows_new())) + v2110.l1_rows_new())   # v21.2 W1: L1 C71／H71 text (v2120.l1_patch); v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
+    return v2130.l1_patch(v2120.l1_patch(v2100.l1_patch(v2010.l1_patch(v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new() + v1600.l1_rows_new() + v1700.l1_rows_new() + v2000.l1_patch(v1800.l1_rows_new()) + v2000.l1_rows_new())) + v2110.l1_rows_new()))   # v21.3 W5: L1 I128:I131 token-ledger text (v2130.l1_patch); v21.2 W1: L1 C71／H71 text (v2120.l1_patch); v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
 
 def l1_sheet(wb):
     global _REV_ROW

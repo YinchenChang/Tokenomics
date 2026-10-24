@@ -51,6 +51,9 @@ for _old, _new in v1520.SNAP_MOVES:      # v15.2 B2: Cap_In A280 label renamed (
 import v1530
 for _old, _new in v1530.SNAP_MOVES:      # v15.3 r1: Cap_In A226/A228 marks relabelled (Assumed -> Derived); the Excel values follow the label back to the builder's key
     if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
+import v2130
+for _old, _new in v2130.SNAP_MOVES:      # v21.3 W2: Cap_In A47 relabelled (GPT-6 Sol -> GPT-6.1 Sol); the Excel values follow the label back to the builder's key
+    if _old in SNAP and _new not in SNAP: SNAP[_new] = SNAP.pop(_old)
 RETIRED = {k: SNAP.pop(k) for k in SNAP_RETIRED if k in SNAP}
 # ---- strip Block 2/3 content to recover the Block 1 base, then rebuild deterministically ----
 for n in ["Arch","Serving","Workload","Calib","Perf","Sens_Perf","Unit_Cost","Energy","NonNV",
@@ -212,6 +215,7 @@ V518_LOG += v1600.inputs_update(wb, v518._append_text)       # v16.0 W2: Cap_In 
 V518_LOG += v1700.inputs_update(wb, v518._append_text)       # v17.0 W2: Cap_In row 242 reads L1_LTotalFleetVDisc / L1_LReqFleet_IdNoK (after v1600; before gov_all)
 import v2120
 V518_LOG += v2120.inputs_update(wb)       # v21.2 W1 J5: Alloc_In C23:E23 0.85/0.73/1.17 -> 1.8/0.85/2.3 (old-value guards; after restore, before gov_all)
+V518_LOG += v2130.inputs_update(wb)       # v21.3 W1／W2: Spec_Rack F11 7.8 -> 7.5, Cap_In D7／F47 =SRC_PRC_007 -> =SRC_PRC_049 (old-value／old-formula guards; after restore, before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -405,6 +409,8 @@ V2110 = v2110.apply(wb, v518._append_text)       # v21.1: NonNV text, Alloc_In G
 print("v2110 v21.1:", V2110)
 V2120 = v2120.apply(wb, v518._append_text)       # v21.2: Alloc_In G23／SRC_DEM_006／Cap_In G28／NonNV L11 text, E403, Decisions SL59-01
 print("v2120 v21.2:", V2120)
+V2130 = v2130.apply(wb, v518._append_text)       # v21.3: SRC text／status, Cap_In A47／G7, Alloc_In G23, E404／E405, Decisions SL60-01
+print("v2130 v21.3:", V2130)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

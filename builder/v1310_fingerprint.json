@@ -1,5 +1,5 @@
 {
-"version": "20261023_Tokenomics_v21.2",
+"version": "20261024_Tokenomics_v21.3",
 "roots": 73,
 "leaves": [
 [
@@ -370,7 +370,7 @@
 [
 "Spec_Rack",
 "F11",
-7.8
+7.5
 ],
 [
 "Spec_Rack",
@@ -4104,11 +4104,6 @@
 ],
 [
 "SRC_Price",
-"C11",
-0.2
-],
-[
-"SRC_Price",
 "C12",
 10
 ],
@@ -4126,6 +4121,11 @@
 "SRC_Price",
 "C15",
 50
+],
+[
+"SRC_Price",
+"C53",
+0.1
 ],
 [
 "SRC_Demand",

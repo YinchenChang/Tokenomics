@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.27（2026-10-24；對應 Tokenomics v21.3）
+# Tokenomics 下游資料契約 v0.27（2026-10-24；對應 Tokenomics v21.4）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 

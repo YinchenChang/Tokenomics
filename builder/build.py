@@ -411,6 +411,9 @@ V2120 = v2120.apply(wb, v518._append_text)       # v21.2: Alloc_In G23／SRC_DEM
 print("v2120 v21.2:", V2120)
 V2130 = v2130.apply(wb, v518._append_text)       # v21.3: SRC text／status, Cap_In A47／G7, Alloc_In G23, E404／E405, Decisions SL60-01
 print("v2130 v21.3:", V2130)
+import v2140
+V2140 = v2140.apply(wb, v518._append_text)       # v21.4: L1 I128:I136／Cap_In H335／SRC_Price R53,V54／Decisions D332 text, E406, Decisions SL61-01
+print("v2140 v21.4:", V2140)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

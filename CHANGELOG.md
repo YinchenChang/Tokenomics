@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261024_Tokenomics_v21.4.xlsx（取代 v21.3；**次版、只改文字：token 帳讀法改 GW 路線、過時文字更正、CoreWeave 計價錨點登錄；所有契約名稱的值不變（GOV_Warnings 135 → 134 除外），不升契約版本**；依工作單 `docs/workorders/20261024_v21.4_token帳讀法與過時文字.md` r1）
+
+- 分支 `claude/v21-4`（PR 與 SHA 見報告）。報告：`docs/reports/20261024_v21.4_token帳讀法與過時文字.md`；進度檔：`docs/reports/20261024_v21.4_進度.md`。**本單不開 PR、不合併。**
+- Excel（CC 以 `builder/v2140.py` 自 v21.3 產生，經 LibreOffice 重算存檔；冪等）：W1 L1 I128:I131 第 (1) 段 token 帳折算改 GW 路線（2025 為 `L1_TokLedger_GW25` 約 1.52；2026 Q2 約 2.0–2.1，數值權威在 company-models OpenAI 模型），第 (3) 段 65.96 → 「v21.3 為 66.35」，I132 句末加註，I133 改寫（原文保留於「｜原：」後）；W2 過時 5.62（L1 I134／I135／I136、Cap_In H335）；W3 SRC_Price V54、R53（SRC_PRC_049 第二來源「免」）；W4 README B5／B73、Decisions D332 的「不變」範圍；W5 DB_Evidence E406、Decisions SL61-01、README 新列；區間端點與時效指紋重產（只有版本字串變）。
+- 數值差異只有 3 格：`SRC_Price!AE53` 1 → 0、`Checks!D87` 133 → 132、`Checks!D98`（`GOV_Warnings`）135 → 134；全部具名範圍的值不變（除 `GOV_Warnings` 與版本字串 `RNG_Version`／`RNG_Current`）。
+- 文件：下游契約 v0.27 不升版，首行「對應 Tokenomics」改 v21.4；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.4.json`。
+- 附帶：`builder/gov.py` 暫不套用 `v2130.GOV_MAP_UPD`（Gov_Map GM088 H／I／N；它在 v21.3 Excel 建置之後才加進 builder，v21.3 Excel 沒有，套用會讓 Gov_Map R92／AF92 與 SRC_Index 多出本單範圍外的差異），待 Project 判斷（見報告）。
+- 測試：新增 `tests/parity/test_v2140.py`；舊測試以 `tests/parity/v2140_allow.py` 扣除本單列明的格；`GOV_Warnings` 期望值 135 → 134。
+
 ## 20261024_Tokenomics_v21.3.xlsx（取代 v21.2；**次版：VR200 機架價低端 7.5、GPT-6.1 Sol 快取價 0.10、Azure 實付價加註、L1 token 帳說明修補；沒有新增或刪除契約名稱，契約快照內 230 個名稱的值改變**；依工作單 `docs/workorders/20261024_v21.3_機架價低端與Sol快取價.md` r0）
 
 - 分支 `claude/v21-3`（PR 與 SHA 見報告）。報告：`docs/reports/20261024_v21.3_機架價與Sol快取價.md`；進度檔：`docs/reports/20261024_v21.3_進度.md`。**待合併（本單明定不自行合併，Project Instructions 第 6 條）。**

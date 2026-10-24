@@ -15,7 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2130_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2140_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -188,7 +188,7 @@ def test_v2100_diffs_only_expected_vs_v201():
     assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "D86", "E118"], d["Checks"]      # v21.3：D86 同一格（W6，test_v2130 看守）      # v21.1：D86（SRC 範圍計數公式隨新紀錄延伸）      # 契約欄檢查的範圍 R6:R361 → R6:R378（builder 自動延伸）
     assert [t[0] for t in d["NonNV"] if t[0][0] == "M" and int(t[0][1:]) <= 9] == [f"M{r}" for r in range(5, 10)]      # v21.1：NonNV 其餘變動（A1、L5:L9、第 10–11 列）由 test_v2110 看守
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted(t[0] for t in d["L1"] if int(re.sub(r"[A-Z]+", "", t[0])) <= 144 and t[0] != "T4") == sorted([f"{c}{r93}" for c in "CIJK"] + ["C71", "H71", "K71"] + [f"I{r}" for r in range(128, 132)]), [t[0] for t in d["L1"]]      # v21.3：I128:I131（W5，test_v2130 看守）； v21.2：第 71 列 C／H／K（test_v2120 看守）      # v21.1：T4 表頭與第 145 列以後由 test_v2110 看守
+    assert sorted(t[0] for t in d["L1"] if int(re.sub(r"[A-Z]+", "", t[0])) <= 144 and t[0] != "T4") == sorted([f"{c}{r93}" for c in "CIJK"] + ["C71", "H71", "K71"] + [f"I{r}" for r in range(128, 137)]), [t[0] for t in d["L1"]]      # v21.4：I128:I136（W1／W2，test_v2140 看守）； v21.3：I128:I131（W5，test_v2130 看守）； v21.2：第 71 列 C／H／K（test_v2120 看守）      # v21.1：T4 表頭與第 145 列以後由 test_v2110 看守
     # Interface：既有列（≤ 361）的 A–Q 不變；R–Y 契約欄的變動只限因範圍延伸而改的格（無）；新列在 363 以後
     old_last = 361      # v20.1 Interface 最後一列（N 節）
     for coord, x, y in d["Interface"]:

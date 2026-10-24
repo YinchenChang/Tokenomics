@@ -192,9 +192,10 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
             changed.add(name)
     rng = {n for n in changed if n.startswith("RNG_")}
     other = changed - rng
-    assert other == CHANGED | LABEL_NAMES | INDEX_NAMES, (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES) - other))
+    V214 = {"GOV_Warnings", "GOV_Table"}      # v21.4 W3：SRC_PRC_049 第二來源「免」使 GOV_Warnings 135 → 134、GOV_Table 內的 D87（W1 WARN 計數）133 → 132（test_v2140 看守）
+    assert other == CHANGED | LABEL_NAMES | INDEX_NAMES | V214, (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
-    assert str(v.get_name("RNG_Version")).endswith("v21.3") and str(v.get_name("RNG_Current")).endswith("v21.3")
+    assert str(v.get_name("RNG_Version")).endswith("v21.4") and str(v.get_name("RNG_Current")).endswith("v21.4")      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"
     # 名稱沒有增減（SRC_ID 名稱除外：SRC_HW_098／099 與 099 的 _Lo／_Hi）
     new_names = set(wbf.defined_names) - set(pw.defined_names)
@@ -250,7 +251,7 @@ def test_v2130_text_w1_to_w5(wbf):
     l1 = wbf["L1"]
     for r in range(128, 132):
         t = l1[f"I{r}"].value
-        assert "L1_TokLedger_2026Q2 倍（約 3.0；v21.1 以前約 6.3）" in t and "實際營收約為本列 ÷ 3.0" in t and "6.26" not in t, r
+        assert "6.26" not in t, r      # v21.4：第 (1) 段改寫為 GW 路線（「L1_TokLedger_2026Q2 倍（約 3.0；v21.1 以前約 6.3）」與「÷ 3.0」不再存在；test_v2140 看守）
         assert "(2) 回本比較不在本版" in t       # 其餘文字不動
     for r in range(1, l1.max_row + 1):
         for c in range(1, l1.max_column + 1):
@@ -277,8 +278,8 @@ def test_v2130_records(wbf):
     for key in ("SRC_HW_098", "SRC_HW_099", "47.6", "50.26", "47.58", "鴻海董事長 47", "SRC_PRC_049", "L 觀測點不登錄"):
         assert key in t5, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261024_Tokenomics_v21.3（次版，底版 v21.2：") and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)
-    assert str(rm["A1"].value).startswith("Tokenomics v21.3")
+    assert str(rm["B5"].value).startswith("20261024_Tokenomics_v21.4（次版，底版 v21.3：") and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
+    assert str(rm["A1"].value).startswith("Tokenomics v21.4")
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.3 機架價低端 7.5 與 Sol 快取價 0.10"]
     assert len(rr) == 1 and "7.5" in rm.cell(rr[0], 2).value
 
@@ -289,7 +290,7 @@ def test_v2130_fingerprint_ranges_and_gov(lo, wbf):
     assert v.get_name("RNG_StaleFlag") == "一致"
     assert v.get_name("RNG_OutCount") == 0
     assert v.get("Alloc", "C410") == 0
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 135, 182)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 指紋記錄值（Alloc P 節：A＝頁、B＝格、D＝記錄值）：F11 與 SRC_PRC_049 為葉格；SRC_PRC_007（C11）不再是葉格
     al = wbf["Alloc"]
     rec = {(al.cell(r, 1).value, al.cell(r, 2).value): al.cell(r, 4).value for r in range(400, 1300) if al.cell(r, 1).value}
@@ -314,15 +315,15 @@ def test_v2130_diffs_only_expected_vs_v212():
     row = lambda coord: int(re.sub(r"[A-Z]+", "", coord))
     col = lambda coord: re.sub(r"\d+", "", coord)
     exact = {
-        "README": ["A1", "A73", "B5", "B73"],
+        "README": ["A1", "A73", "B5", "B73", "A74", "B74"],      # v21.4：B73 更正、第 74 列新增
         "Spec_Rack": ["F11"],
-        "Cap_In": ["A47", "D7", "F47", "G7"],
+        "Cap_In": ["A47", "D7", "F47", "G7", "H335"],      # v21.4 W2：H335
         "Alloc_In": ["G23"],
-        "L1": ["I128", "I129", "I130", "I131"],
+        "L1": [f"I{r}" for r in range(128, 137)],      # v21.4 W1／W2：I128:I136
         "Checks": ["D86"],
-        "Decisions": sorted(f"{c}332" for c in "ABCDEFGHIJ"),
-        "DB_Evidence": sorted(f"{c}{r}" for r in (328, 329) for c in "ABCDEFGHIJKLMNOPQR"),
-        "SRC_Price": sorted(["B10", "H10", "W10", "B12", "H12", "W12", "O11", "P11", "V11", "O53", "Q53", "V53", "W53"]),
+        "Decisions": sorted(f"{c}{r}" for r in (332, 333) for c in "ABCDEFGHIJ"),      # v21.4：D332 更正、SL61-01（第 333 列）
+        "DB_Evidence": sorted(f"{c}{r}" for r in (328, 329, 330) for c in "ABCDEFGHIJKLMNOPQR"),      # v21.4：E406（第 330 列）
+        "SRC_Price": sorted(["B10", "H10", "W10", "B12", "H12", "W12", "O11", "P11", "V11", "O53", "Q53", "V53", "W53", "R53", "V54"]),      # v21.4 W3：R53、V54
     }
     for sh, want in exact.items():
         assert got.get(sh) == sorted(want), (sh, sorted(set(got.get(sh, [])) ^ set(want)))

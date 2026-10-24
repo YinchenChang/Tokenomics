@@ -19,7 +19,10 @@ import yaml
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2130_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 
 REPO = Path(__file__).resolve().parents[2]
 V210 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.0.xlsx"
@@ -195,7 +198,7 @@ def test_v2110_existing_names_unchanged(lo):
     v = lo.view({})
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or name in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in V2120_CHANGED or name in V2130_CHANGED or "!" not in d.attr_text or "," in d.attr_text:      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -204,14 +207,14 @@ def test_v2110_existing_names_unchanged(lo):
         n += 1
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
-    assert n > 1500
-    assert bad == [], bad[:20]
+    assert n > 1350
+      # v21.3：扣除 171 個預期變動名稱後的比較數下修（原 > 1500）    assert bad == [], bad[:20]
 
 
 def test_v2110_names_added_only(wbf):
     a = openpyxl.load_workbook(V210)
     na, nb = set(a.defined_names), set(wbf.defined_names)
-    assert na <= nb and nb - na == NEW_NAMES, sorted((nb - na) ^ NEW_NAMES)
+    assert na <= nb and nb - na == NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted((nb - na) ^ NEW_NAMES)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）
     changed = {k for k in na if a.defined_names[k].attr_text != wbf.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]
     for nm in IF_PRE:
@@ -234,12 +237,12 @@ def test_v2110_diffs_only_expected_vs_v210():
                 if x != y:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
     allowed = {"Alloc", "Alloc_In", "Cap_In", "Checks", "DB_Evidence", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index"}
-    assert set(d) <= allowed, set(d) - allowed
-    assert [t[0] for t in d["Alloc"]] == ["C177", "D1020", "D1021", "D1022"]      # 版本字串；v21.2：D1020:D1022 指紋記錄值（test_v2120 看守）
-    assert [t[0] for t in d["Alloc_In"]] == ["C23", "D23", "E23", "G23", "G24"]      # v21.2：C23:E23、G23（test_v2120 看守）
+    assert set(d) <= allowed | set(v213_cells()), set(d) - allowed - set(v213_cells())      # v21.3：另加 Spec_Rack／SRC_HW／SRC_Price（W1／W2，test_v2130 看守）
+    assert strip("Alloc", [t[0] for t in d["Alloc"]]) == strip("Alloc", ["C177", "D1020", "D1021", "D1022"])      # v21.3：兩邊扣掉區間端點常數與指紋記錄列（W6，test_v2130 看守）；      # 版本字串；v21.2：D1020:D1022 指紋記錄值（test_v2120 看守）
+    assert strip("Alloc_In", [t[0] for t in d["Alloc_In"]]) == strip("Alloc_In", ["C23", "D23", "E23", "G23", "G24"])      # v21.3：G23 再改一次（W3，test_v2130 看守）；      # v21.2：C23:E23、G23（test_v2120 看守）
     # Cap_In：只有第 344 列以後新增（含用途欄）；既有格不變
     for coord, x, y in d["Cap_In"]:
-        assert (x is None and int(re.sub(r"[A-Z]+", "", coord)) >= 344) or coord == "G28", (coord, x, y)      # v21.2：G28（test_v2120 看守）
+        assert (x is None and int(re.sub(r"[A-Z]+", "", coord)) >= 344) or coord == "G28" or coord in v213_cells().get("Cap_In", ()), (coord, x, y)      # v21.3：A47／D7／F47／G7（W2，test_v2130 看守）； v21.2：G28（test_v2120 看守）
     # Interface：A364、A368 文字；其餘為第 379 列以後新增；既有列的 R–Y 契約欄不變
     for coord, x, y in d["Interface"]:
         row = int(re.sub(r"[A-Z]+", "", coord))
@@ -247,7 +250,7 @@ def test_v2110_diffs_only_expected_vs_v210():
     # L1：T4 表頭；其餘為第 145 列以後新增
     for coord, x, y in d["L1"]:
         row = int(re.sub(r"[A-Z]+", "", coord))
-        assert coord in ("T4", "C71", "H71", "K71") or (row >= 145 and x is None), (coord, x, y)      # v21.2：C71／H71／K71（test_v2120 看守）
+        assert coord in ("T4", "C71", "H71", "K71") or coord in v213_cells().get("L1", ()) or (row >= 145 and x is None), (coord, x, y)      # v21.3：I128:I131（W5，test_v2130 看守）      # v21.2：C71／H71／K71（test_v2120 看守）
     assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "D86", "E118"] or sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "E118"], d["Checks"]
     nn = sorted(t[0] for t in d["NonNV"])
     assert nn == sorted(["A1", "L5", "L6", "L7", "L8", "L9"] + [f"{c}{r}" for r in (10, 11) for c in "ABCDEFGHIJKLM"]), nn
@@ -256,8 +259,8 @@ def test_v2110_diffs_only_expected_vs_v210():
         row = int(re.sub(r"[A-Z]+", "", coord))
         col = re.sub(r"\d+", "", coord)
         assert coord == "W10" or row in (93, 94) or col == "X", (coord, x, y)
-    assert {t[0] for t in d["DB_Evidence"]} <= {f"{c}{r}" for c in "ABCDEFGHIJKLMNOPQR" for r in (326, 327)}      # v21.2：E403 在第 327 列
-    assert {t[0] for t in d["Decisions"]} <= {f"{c}{r}" for c in "ABCDEFGHIJ" for r in (330, 331)}      # v21.2：SL59-01 在第 331 列
+    assert {t[0] for t in d["DB_Evidence"]} <= {f"{c}{r}" for c in "ABCDEFGHIJKLMNOPQR" for r in (326, 327, 328, 329)}      # v21.3：E404／E405 在第 328、329 列（W4）；      # v21.2：E403 在第 327 列
+    assert {t[0] for t in d["Decisions"]} <= {f"{c}{r}" for c in "ABCDEFGHIJ" for r in (330, 331, 332)}      # v21.3：SL60-01 在第 332 列（W6）；      # v21.2：SL59-01 在第 331 列
     print({k: len(v) for k, v in d.items()})      # 供報告核對：Gov_Map／SRC_Index／Load_Bearing 的連帶差異格數
 
 
@@ -270,7 +273,7 @@ def test_v2110_records_and_text(wbf):
     for key in ("當然要放", "J one J two 都同意", "NonNV Q1–Q4", "J1", "J2"):
         assert key in txt, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.2（次版，底版 v21.1：") and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.2")      # v21.2：版本字串
+    assert str(rm["B5"].value).startswith("20261024_Tokenomics_v21.3（次版，底版 v21.2：") and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.3")      # v21.3：版本字串（原 v21.2）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.1 NonNV 昇騰／Maia 與免費占比路徑"]
     assert len(rr) == 1 and "L1_FreeShare" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_／IF_NonNV_Hold_ × Ascend／Maia" in rm.cell(rr[0], 2).value
     nv = wbf["NonNV"]

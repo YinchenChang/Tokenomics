@@ -96,7 +96,7 @@ def test_v1720_records():
         ws, r = rows[a["orig"]]
         assert ws[f"R{r}"].value == a["id"] and ws[f"S{r}"].value == "2026-10-20", a["orig"]
         wn, rn = rows[a["id"]]
-        assert wn.title == ws.title and wn[f"O{rn}"].value == "Alt" and wn[f"K{rn}"].value in (2, 3)
+        assert wn.title == ws.title and wn[f"O{rn}"].value == ("Active" if a["id"] == "SRC_PRC_049" else "Alt") and wn[f"K{rn}"].value in (2, 3)      # v21.3：SRC_PRC_049 為 Active（W2）
         assert [wn[f"{c}{rn}"].value for c in "BGH"] == [ws[f"{c}{r}"].value for c in "BGH"]      # 指標、口徑、適用對象沿用原紀錄
     for c in DATA["C1"]:
         ws, r = rows[c["id"]]
@@ -109,7 +109,7 @@ def test_v1720_records():
     assert ws[f"L{r}"].value == "利害關係方"
     for sid in Q_NEW:
         ws, r = rows[sid]
-        assert ws[f"O{r}"].value == "Alt"
+        assert ws[f"O{r}"].value == ("Active" if sid == "SRC_PRC_049" else "Alt")      # v21.3：SRC_PRC_049 Alt → Active（W2，Andy 2026-10-24 決定採官方頁短上下文 0.10 為主值；test_v2130 看守）
     for sid in ("SRC_DEM_004", "SRC_DEM_005", "SRC_DEM_006"):
         ws, r = rows[sid]
         assert ws[f"L{r}"].value == "利害關係方" and ws[f"R{r}"].value == "—" and ws[f"O{r}"].value == "Active"

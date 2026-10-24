@@ -15,6 +15,8 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 
 REPO = Path(__file__).resolve().parents[2]
 V160 = REPO / "model" / "archive" / "20261018_Tokenomics_v16.0.xlsx"
@@ -24,7 +26,7 @@ VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 V180_NEW = {f"L1_{k}{s}" for k in ["M_2025", "M_2026Q1", "M_2026Q2", "M_FY2026", "M", "M_API", "M_Sub", "M_Seat", "PxEff_2026", "PxList_2026", "TokGW_PaidCap_VR200", "TokGW_PaidPQ_VR200", "RevGW_PQ_VR200", "RevGW_PQ_VR200_FY", "RevGW_PQ_VR200_Life", "TokLedger", "TokLedger_2026Q2"] for s in ("", "_Lo", "_Hi")}      # v18.0：L1 新增 17 列 × 3 名稱（test_v1800 看守）
 from test_v1900 import NEW as V190_NEW
 from test_v1910 import NEW as V191_NEW      # v19.1：SRC_MOD_106 與 RNG_CHK_Verify* 4 個區間名稱（test_v1910 看守）      # v19.0：Interface N 節新增 25 個 IF_ 名稱（test_v1900 看守）
-PRE = {"L1_LTotalFleetVDisc": 0.75860, "L1_LTotalFleetVDisc_Lo": 0.47853,  # v19.1：0.47298 → 0.47853（Arch!C17 改值）
+PRE = {"L1_LTotalFleetVDisc": 0.75860, "L1_LTotalFleetVDisc_Lo": 0.479441891854564,  # v21.3：0.47853 → 0.47944（機架價低端 7.8 → 7.5，test_v2130 看守）； v19.1：0.47298 → 0.47853（Arch!C17 改值）
     "L1_LTotalFleetVDisc_Hi": 1.13827}      # 工作單 W1 的 chat 端事前計算（5 位）
 
 
@@ -204,7 +206,8 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     changed -= set(__import__("json").load(open(Path(__file__).resolve().parent / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"]) - VERSION_NAMES      # v19.1：Arch!C17 下游的預期變動名稱
     changed -= set(V172["changed"]) - VERSION_NAMES      # v17.2：同上
     changed -= {"IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"}      # v19.0：Interface 契約欄範圍隨 N 節新列延伸（既有列的值不變，由 test_v1900 看守）
-    changed -= V2120_CHANGED      # v21.2：AL_SpendBasis 0.85 → 1.8 的預期變動名稱（44 個；test_v2120 看守）
+    changed -= V2120_CHANGED | V2130_CHANGED      # v21.2：AL_SpendBasis 0.85 → 1.8 的預期變動名稱（44 個；test_v2120 看守）      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
+    changed -= {n for n in changed if n.startswith("RNG_")} - VERSION_NAMES      # v21.3：W6 區間端點（RNG_*_Lo／_Hi）隨機架價低端／Sol 快取價重新產生（test_v2130 看守）
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.357051772507014), ("L1_LTotalFleetV", 0.715894950036491),
                     ("L1_LReqFleet_IdNoK", 0.357051772507014), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.947804246237318), ("IF_AllocServeGW", 0.89809617101894)):

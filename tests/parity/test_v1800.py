@@ -17,7 +17,9 @@ import pytest
 import yaml
 
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
-PREWARM = {"test_v1800_new_values_match_precomputed": [{"SRC_MOD_106": 1024, **SB_OLD}]}
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
+PREWARM = {"test_v1800_new_values_match_precomputed": [{"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD}]}      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
@@ -73,7 +75,7 @@ def _close(got, want, tol):
 
 
 def test_v1800_new_values_match_precomputed(lo):
-    v = lo.view({"SRC_MOD_106": 1024, **SB_OLD})      # v21.2：另設回 AL_SpendBasis 0.85／0.73／1.17；v19.1：Arch!C17 改值（4224 → 2176）後 Luna 相關值變動；事前值在 C17 回 4224 時仍成立（SRC_MOD_106＝1024）
+    v = lo.view({"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD})      # v21.2：另設回 AL_SpendBasis 0.85／0.73／1.17；v19.1：Arch!C17 改值（4224 → 2176）後 Luna 相關值變動；事前值在 C17 回 4224 時仍成立（SRC_MOD_106＝1024）      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
     for n, trio in PRE.items():
         for suf, want in zip(("", "_Lo", "_Hi"), trio):
             got = v.get_name(n + suf)

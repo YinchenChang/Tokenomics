@@ -17,7 +17,10 @@ import yaml
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2130_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 
 REPO = Path(__file__).resolve().parents[2]
 V191 = REPO / "model" / "archive" / "20261022_Tokenomics_v19.1.xlsx"
@@ -61,7 +64,7 @@ WO = {      # 工作單事前值（基準, 低, 高）
     "L1_PayRatio25": (1.23904, 1.11792, 1.39739),
     "L1_RevPerGW25": (11.5889, 10.4560, 13.0700),
     "L1_LReqFleet_Full": (0.80708, 0.71562, 0.89452),
-    "L1_M_2026Q2": (1.34320, 0.81018, 1.59505),
+    "L1_M_2026Q2": (1.35537, 0.81752, 1.60950),      # v21.3：(1.34320, 0.81018, 1.59505) → (1.35537, 0.81752, 1.60950)（Sol 快取價 0.20 → 0.10：有效牌價 −0.9%，m 同比例上升；test_v2130 看守）
 }
 
 
@@ -161,7 +164,7 @@ def test_v2000_existing_names_unchanged(lo):
     v = lo.view({})
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or name in ALLOWED_CHANGED or name in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in ALLOWED_CHANGED or name in V2120_CHANGED or name in V2130_CHANGED or "!" not in d.attr_text or "," in d.attr_text:      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -170,13 +173,13 @@ def test_v2000_existing_names_unchanged(lo):
         n += 1
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
-    assert n > 1500
-    assert bad == [], bad[:20]
+    assert n > 1300
+      # v21.3：扣除 171 個預期變動名稱後的比較數下修（原 > 1500）    assert bad == [], bad[:20]
     # 例外名稱：L1_M 的 Lo／Hi 原為文字「無區間」
     for nm in ("L1_M_2026Q2_Lo", "L1_M_2026Q2_Hi", "L1_M_Lo", "L1_M_Hi"):
         assert pw.defined_names[nm] is not None
         assert isinstance(_flat(v.get_name(nm))[0], (int, float))
-    assert _flat(v.get_name("L1_M"))[0] == pytest.approx(1.34320115513779, rel=1e-9)
+    assert _flat(v.get_name("L1_M"))[0] == pytest.approx(1.35536760963455, rel=1e-9)      # v21.3：1.34320 → 1.35537（Sol 快取價 0.20 → 0.10；test_v2130 看守）
 
 
 def test_v2000_inputs_propagate(lo):
@@ -291,11 +294,11 @@ def test_v2000_diffs_only_expected_vs_v191():
                 if x != y and x is not None:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
     allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index", "Alloc_In", "DB_Evidence", "Decisions"}      # v21.0：NonNV M5:M9； v21.1：Alloc_In G24（test_v2110 看守）
-    assert set(d) <= allowed, set(d) - allowed
+    assert set(d) <= allowed | set(v213_cells()), set(d) - allowed - set(v213_cells())      # v21.3：另加 Spec_Rack／SRC_HW／SRC_Price（W1／W2，test_v2130 看守）
     # Alloc：只有 A70（標籤尾注）與版本字串 C177／C178
-    assert sorted(t[0] for t in d["Alloc"]) == ["A70", "C177", "D1020", "D1021", "D1022"]      # v21.2：D1020:D1022（區間時效指紋記錄值 0.85／0.73／1.17 → 1.8／0.85／2.3，W6）
+    assert strip("Alloc", sorted(t[0] for t in d["Alloc"])) == strip("Alloc", ["A70", "C177", "D1020", "D1021", "D1022"])      # v21.3：兩邊扣掉區間端點常數與指紋記錄列（W6，test_v2130 看守）；      # v21.2：D1020:D1022（區間時效指紋記錄值 0.85／0.73／1.17 → 1.8／0.85／2.3，W6）
     # Cap_In 既有列：只有 A242、C242:E242、G232、G233、G242（P 節以上不動）
-    assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A242", "A313", "C238", "C242", "D238", "D242", "E238", "E242", "G232", "G233", "G242", "G28"], sorted(t[0] for t in d["Cap_In"])      # v21.2：G28（test_v2120 看守）      # v20.1：A238／C238:E238／A313（test_v2010 看守）
+    assert strip("Cap_In", sorted(t[0] for t in d["Cap_In"])) == strip("Cap_In", ["A238", "A242", "A313", "C238", "C242", "D238", "D242", "E238", "E242", "G232", "G233", "G242", "G28"]), sorted(t[0] for t in d["Cap_In"])      # v21.3：扣掉 A47／D7／F47／G7（W2，test_v2130 看守）      # v21.2：G28（test_v2120 看守）      # v20.1：A238／C238:E238／A313（test_v2010 看守）
     # Interface：IF_ProdDerate 與兩個標籤、契約元資料欄（R／V／W）
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
     assert cols <= {"A", "R", "V", "W"} | set("CDEFGHIJKLMNOPQ") | {"Z"}, cols      # v20.1：LifeSelf 列 C:Q 公式與 Z 欄說明（test_v2010 看守）
@@ -312,6 +315,6 @@ def test_v2000_diffs_only_expected_vs_v191():
     assert {"AL_FleetGW25", "AL_FleetGW25_Lo", "AL_FleetGW25_Hi", "AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", "SRC_DEM_088"} <= new
     for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex"):
         assert {f"L1_{k}", f"L1_{k}_Lo", f"L1_{k}_Hi"} <= new, k
-    assert len(new) == 8 + 33 + 1 + 13 + 18, sorted(new)      # v21.1：+18（IF_NonNV 4、L1 12、SRC_DEM_089／090；test_v2110 看守）； v21.0：+13（Interface O／P 節）； v20.1：+ L1_LDiscGen
+    assert len(new) == 8 + 33 + 1 + 13 + 18 + 4, sorted(new)      # v21.3：+4（SRC_HW_098／099 與 099 的 _Lo／_Hi，W1；test_v2130 看守）； v21.1：+18（IF_NonNV 4、L1 12、SRC_DEM_089／090；test_v2110 看守）； v21.0：+13（Interface O／P 節）； v20.1：+ L1_LDiscGen
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

@@ -1,6 +1,8 @@
 # L 閱讀版的維護工具
 
-> **v18.0（Andy 2026-10-21）：m 閱讀版退役。** m 閱讀版不再使用、日後重做；原檔 `20261020_m閱讀版_v17.0.xlsx` 已移到 `docs/plan/_待刪除/`（Drive 上的 m 閱讀版由 chat 端移動）。`check_reading.py` 改為只核對 L 閱讀版（參數只收 Tokenomics 與 L 閱讀版）。m 的新定義與新名稱見 repo 根目錄 `README.md`「變現率 m 的定義」與下游契約 v0.20；重做 m 閱讀版時，`m_precursors_v17.0.csv`、`sens.py`、`sens.json`、`trace.py` 仍可參考（它們針對舊的成本鏈 m＝`L1_MFleet`，現為 token 帳診斷）。
+> **m 閱讀版恢復（v21.2 重做，2026-10-24）：** 依 Andy 2026-10-21 新定義（m＝實收單價 ÷ 有效牌價，只有收入面）重做為 `docs/plan/20261024_m閱讀版_v21.2.xlsx`（含必備的 `1A_需求公式樹`）。舊 m（成本鏈 `L1_MFleet`）現為 token 帳診斷，不是 m。v17.0 舊檔已刪除（歷史在 git）。
+> 建檔：`python3 build_reading_m.py <Tokenomics.xlsx> <輸出.xlsx>`（再用 LibreOffice 重算存檔）；核對：`python3 check_reading_m.py <Tokenomics.xlsx> <m閱讀版.xlsx>`（先自動重算；檢查有 1A、9_核對對照 每格等於 Tokenomics、L1_M* 名稱一致、無錯誤值；通過結束碼 0）。換版時重跑建檔程式即可，不必手改。
+> 先前的 v18.0 說明：m 閱讀版 10-21 退役；`check_reading.py` 仍只核對 L 閱讀版。
 
 `docs/plan/` 的 **L 閱讀版**是給 Andy 讀懂 L 推導用的 Excel。它只讀 Tokenomics，不改模型。
 
@@ -33,6 +35,7 @@
 
 ## 其他檔案
 
+- `build_reading_m.py`（＋`build_reading_m_part2.py`）：m 閱讀版建檔程式；`check_reading_m.py`：m 閱讀版核對。
 - `trace.py`：（舊 m 閱讀版用）從 L1_MFleet（Cap_In!C119）遞迴列出全部前置格（產生前置格清單用）。
 - `sens.py`、`sens.json`：（舊 m 閱讀版用）m 的 27 個輸入的單變數敏感度（在 v15.3 執行；m 的前置格到 v17.0 都沒有變，所以結果仍適用）。
 - `parity_lib.py`：從 `tests/parity` 複製來的 LibreOffice 重算函式。

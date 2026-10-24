@@ -402,7 +402,7 @@ def gm_update(ws):
     v5.12 value, so the update applies once and never overwrites a later Excel edit."""
     loc = {(ws[f"C{r}"].value, ws[f"D{r}"].value): r for r in range(5, ws.max_row + 1) if ws[f"C{r}"].value}
     n = 0
-    for sh, cell, fields in GOV_MAP_UPD + GOV_MAP_UPD_E:
+    for sh, cell, fields in GOV_MAP_UPD + GOV_MAP_UPD_E + v2130.GOV_MAP_UPD:
         r = loc.get((sh, cell))
         if r is None: continue
         for col, (old, new) in fields.items():

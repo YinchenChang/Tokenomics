@@ -88,6 +88,15 @@ def inputs_update(wb):
     return log
 
 
+# ================================================================== Gov_Map GM088 (Spec_Rack F11): source follows the new F11 (chat-side instruction 2026-10-24: engineering-type mapping update, original kept in the reason column)
+_GM_N_OLD = "v5.18 G4／I2：低 7.8＝MS BOM（零毛利下限；BOM 本身為分析師估計，區間保留其不確定）；原 6.7（SRC_HW_016）不再連結 ｜補充旗標（IF 全欄分段，非分段依據）：高"
+GOV_MAP_UPD = [("Spec_Rack", "F11", {
+    "H": ("SRC_HW_015", "SRC_HW_098"),
+    "I": ("Derived：MS BOM 7.8（零毛利下限；r3 I2）", "Derived：Bernstein 7.52 取整 7.5（v21.3 起；SRC_HW_098）｜原：MS BOM 7.8（零毛利下限；r3 I2；SRC_HW_015）"),
+    "N": (_GM_N_OLD, "v21.3：低端改為 7.5＝Bernstein 2026-10 下修 7.52 取整（SRC_HW_098；Andy 2026-10-24 決定 #1；Decisions SL60-01）｜原：" + _GM_N_OLD),
+})]
+
+
 # ================================================================== W1: new SRC records (gov.src_append: only while the ID is absent)
 def src_new_records(wb):
     r98 = v1720._rec(

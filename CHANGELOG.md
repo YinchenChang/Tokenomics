@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261024_Tokenomics_v21.3.xlsx（取代 v21.2；**次版：VR200 機架價低端 7.5、GPT-6.1 Sol 快取價 0.10、Azure 實付價加註、L1 token 帳說明修補；沒有新增或刪除契約名稱，契約快照內 230 個名稱的值改變**；依工作單 `docs/workorders/20261024_v21.3_機架價低端與Sol快取價.md` r0）
+
+- 分支 `claude/v21-3`（PR 與 SHA 見報告）。報告：`docs/reports/20261024_v21.3_機架價與Sol快取價.md`；進度檔：`docs/reports/20261024_v21.3_進度.md`。**待合併（本單明定不自行合併，Project Instructions 第 6 條）。**
+- Excel（CC 以 `builder/v2130.py` 自 v21.2 產生，經 LibreOffice 重算存檔；冪等）：W1 `Spec_Rack` F11 7.8 → 7.5（只在仍為舊值時才寫）；新增 `SRC_HW_098`（Bernstein 7.52，Active，連結 F11）、`SRC_HW_099`（Morgan Stanley 每 GW 資本支出對照，Alt）；SRC_HW_017 備註、SRC_HW_016 連結欄加註。W2 `Cap_In` D7／F47 改讀 `SRC_PRC_049`（builder 連結表 `gov.FORMULA_MAP` 經 `v2130.formula_map` 改寫）；SRC_PRC_049 Alt → Active（Evidence ID 補 E405）、SRC_PRC_007 Active → Superseded；現行標籤 GPT-6 Sol → GPT-6.1 Sol（Cap_In A47、SRC_Price 第 10、12 列；`SNAP_MOVES` 讓 restore 對得上）；Cap_In G7 加註。W3 `Alloc_In` G23 加 Azure 實付價 A 段 J3 前綴。W4 DB_Evidence E404、E405。W5 L1 I128:I131 token 帳倍數「約 6.26」→「約 3.0」。W6 Decisions SL60-01、README、區間端點與時效指紋重產。
+- 值改變的名稱：契約快照內 230 個（`IF_` 73、`IFW_` 23、`L1_` 67、`B4_` 7、`AL_` 3、`IDX_SrcID` 1、`RNG_` 56）；`L1_M` 1.3432 → 1.3554、`IF_PxEffMix`／`AL_PriceFleet`／`L1_PxEff_2026` 1.9607 → 1.9431、`IF_PriceCached_Sol` 0.16 → 0.08、`L1_HoldEconGW_VR200_Lo` 9.512 → 9.219、`L1_CapexGW_VR200_Lo` 43.49 → 42.21。`L1_RevGW_PQ_VR200*` 基準、`L1_LReqFleet_Full*`、`L1_TokLedger*`、`L1_MFleet` 基準的值不變。SRC 名稱新增 4 個（`SRC_HW_098`、`SRC_HW_099`、`_Lo`、`_Hi`）。
+- 文件：下游契約 v0.27（v21.3 版本段）；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.3.json`。
+- 連帶：`RNG_StaleFlag` 一致、`RNG_OutCount` 0、GOV 三項計數 0／135／182 不變（中途 137 與「區間過期」來自區間端點與指紋，重產後恢復）。
+- 測試：新增 `tests/parity/test_v2130.py`；既有測試期望值與版本字串更新見報告表 1。
+
 ## 2026-10-24 網站恢復（工程類；Excel 不變，仍為 20261023_Tokenomics_v21.2.xlsx）
 
 - 分支 `claude/website-restore`。報告：`docs/reports/20261024_網站恢復.md`。CLAUDE.md 修訂十一。

@@ -15,9 +15,11 @@ import pytest
 
 from conftest import model_path
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 
 # v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
-C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值仍成立；新值由 test_v2120 看守
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值仍成立；新值由 test_v2120 看守      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
 
 REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v19.1：併入 Arch!C17 下游的預期變動名稱； v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）
@@ -265,7 +267,7 @@ def test_v1500_other_contract_names_unchanged_from_v142(lo):
     prev = REPO / "model" / "archive" / "20261017_Tokenomics_v14.2.xlsx"
     pw = openpyxl.load_workbook(prev, data_only=True)
     v = lo.view(C17_OLD)
-    skip = {"CHK_VerifyTotal", "CHK_VerifyPass", "RNG_Version", "RNG_Current", "RNG_OutCount", "RNG_StaleFlag", "GOV_Info", "GOV_Table"} | V152_CHANGED      # v15.2：B2／B3 預期變動名單
+    skip = {"CHK_VerifyTotal", "CHK_VerifyPass", "RNG_Version", "RNG_Current", "RNG_OutCount", "RNG_StaleFlag", "GOV_Info", "GOV_Table"} | V152_CHANGED | _V2130_LABEL      # v15.2：B2／B3 預期變動名單      # v21.3：略過 IF_FrontModel_Sol／B4_MktModel（Cap_In A47 改名 GPT-6.1 Sol 的文字值；數值部分已由 R213_OLD 設回舊值，test_v2130 看守）
     n_ok = 0
     from openpyxl.utils import range_boundaries
     for n, d in pw.defined_names.items():

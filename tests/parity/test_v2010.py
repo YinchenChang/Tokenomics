@@ -15,7 +15,10 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2130_allow import v213_cells, strip, csv_value_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 from test_v2110 import NEW_NAMES as V2110_NEW_NAMES      # v21.1：+18 個新名稱（test_v2110 看守）
 
 REPO = Path(__file__).resolve().parents[2]
@@ -25,16 +28,16 @@ STEMS = ["RevGW_Luna", "RevGW_Sol", "RevGW_Astra", "RevGWFleet", "RevGWFront_Lun
 G_OF = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4]      # C..Q；Rubin Ultra（O–Q）取 VR200
 BASE_IDX = [1, 4, 7, 10, 13]      # D／G／J／M／P
 WO = {      # 工作單 W1 事前值（Hopper, GB200, GB300, VR200, Rubin Ultra；$B/GW/年）
-    "IFW_RevGW_Luna_LifeSelf": (5.561, 25.157, 31.079, 44.939, 60.539),
-    "IFW_RevGW_Sol_LifeSelf": (29.285, 127.347, 157.420, 237.351, 323.521),
-    "IFW_RevGW_Astra_LifeSelf": (26.901, 125.507, 137.890, 250.572, 356.347),
+    "IFW_RevGW_Luna_LifeSelf": (5.611, 25.385, 31.361, 45.346, 61.087),      # v21.3：(5.561, 25.157, 31.079, 44.939, 60.539) → 新值（Sol 快取價 0.20 → 0.10：m +0.9%，test_v2130 看守）
+    "IFW_RevGW_Sol_LifeSelf": (28.831, 125.373, 154.980, 233.672, 318.507),      # v21.3：(29.285, 127.347, 157.420, 237.351, 323.521) → 新值（同上）
+    "IFW_RevGW_Astra_LifeSelf": (27.144, 126.644, 139.139, 252.842, 359.575),      # v21.3：(26.901, 125.507, 137.890, 250.572, 356.347) → 新值（同上）
     "IFW_RevGWFleet_LifeSelf": (5.766, 26.213, 30.209, 50.638, 70.598),
-    "IFW_RevGWFront_Luna_LifeSelf": (5.561, 25.157, 31.079, 44.939, 60.539),
-    "IFW_RevGWFront_Sol_LifeSelf": (29.285, 127.347, 157.420, 237.351, 323.521),
-    "IFW_RevGWFront_Astra_LifeSelf": (25.919, 120.925, 132.856, 241.425, 343.339),
+    "IFW_RevGWFront_Luna_LifeSelf": (5.611, 25.385, 31.361, 45.346, 61.087),      # v21.3：同 IFW_RevGW_Luna_LifeSelf
+    "IFW_RevGWFront_Sol_LifeSelf": (28.831, 125.373, 154.980, 233.672, 318.507),      # v21.3：同 IFW_RevGW_Sol_LifeSelf
+    "IFW_RevGWFront_Astra_LifeSelf": (26.153, 122.021, 134.060, 243.612, 346.449),      # v21.3：(25.919, 120.925, 132.856, 241.425, 343.339) → 新值（同上）
     "IFW_RevGWFleetFront_LifeSelf": (5.637, 25.625, 29.531, 49.501, 69.014),
 }
-WO_PRICE = {"L1_PriceReqBE": 1.63424, "L1_PriceReqBE_Lo": 1.08913, "L1_PriceReqBE_Hi": 2.59072}
+WO_PRICE = {"L1_PriceReqBE": 1.63424, "L1_PriceReqBE_Lo": 1.08913, "L1_PriceReqBE_Hi": 2.58579}      # v21.3：Hi 2.59072 → 2.58579（機架價低端 7.8 → 7.5：L1_LTotalFleetVDisc_Lo 0.47853 → 0.47944，Hi ∝ 1 ÷ L 低端；test_v2130 看守）
 CHANGED_NAMES = {f"IFW_{s}_LifeSelf" for s in STEMS} | {"L1_PriceReqBE", "L1_PriceReqBE_Lo", "L1_PriceReqBE_Hi"}
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
 SKIP = ("RNG_", "IDX_", "GOV_", "IFC_")      # v21.0：IFC_ 契約欄範圍隨 O／P 節新列延伸
@@ -112,7 +115,7 @@ def test_v2010_w2_exact_conversion(lo):
     v = lo.view({})
     pairs = {"L1_PriceReqBE": ("L1_LTotal", "L1_LTotalFleetVDisc"), "L1_PriceReqBE_Lo": ("L1_LTotal_Hi", "L1_LTotalFleetVDisc_Hi"), "L1_PriceReqBE_Hi": ("L1_LTotal_Lo", "L1_LTotalFleetVDisc_Lo")}
     for nm, (a, b) in pairs.items():
-        want = old(nm) * old(a) / old(b)
+        want = old(nm) * old(a) / (_flat(v.get_name(b))[0] if nm == "L1_PriceReqBE_Hi" else old(b))      # v21.3：Hi 的分母 L1_LTotalFleetVDisc_Lo 隨機架價低端 7.5 變動（0.47853 → 0.47944），改讀現值；分子 L1_LTotal_Lo（v20.0 值）是舊 Hi 的換算基礎，不隨之改（test_v2130 看守）
         got = _flat(v.get_name(nm))[0]
         assert abs(got / want - 1) <= 1e-9, (nm, got, want)
     # 低 < 基準 < 高；L 取主口徑
@@ -127,6 +130,10 @@ def test_v2010_w3_judgement_and_unchanged_cells(lo):
     assert v.get("Cap_In", "D238").startswith("區間內") and v.get("Cap_In", "E238").startswith("區間外")      # 低端 0.479 內、高端 1.138 外（區間 0.3–1.0）
     pw = openpyxl.load_workbook(V200, data_only=True)
     for c in "CDE":
+        if ("Cap_In", f"{c}233") in csv_value_cells():      # v21.3：Cap_In D233 隨 L 低端變動（預期變動 CSV；舊值須等於 v20.0 值）
+            was, now = csv_value_cells()[("Cap_In", f"{c}233")]
+            assert abs(pw["Cap_In"][f"{c}233"].value / was - 1) <= 1e-9 and abs(v.get("Cap_In", f"{c}233") / now - 1) <= 1e-9
+            continue
         assert v.get("Cap_In", f"{c}233") == pw["Cap_In"][f"{c}233"].value      # C233 本身不改
     assert _flat(v.get_name("L1_LTotalV")) == [pw["Cap_In"][f"{c}313"].value for c in "CDEF"]      # 第 313 列數值不改
     assert _flat(v.get_name("L1_LTotalFleetVDisc"))[0] == pytest.approx(0.758597367273996, rel=1e-9)
@@ -180,7 +187,7 @@ def test_v2010_existing_names_unchanged(lo):
     v = lo.view({})
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or name in CHANGED_NAMES or name in V2120_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in CHANGED_NAMES or name in V2120_CHANGED or name in V2130_CHANGED or "!" not in d.attr_text or "," in d.attr_text:      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -189,8 +196,8 @@ def test_v2010_existing_names_unchanged(lo):
         n += 1
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
-    assert n > 1500
-    assert bad == [], bad[:20]
+    assert n > 1350
+      # v21.3：扣除 171 個預期變動名稱後的比較數下修（原 > 1500）    assert bad == [], bad[:20]
     # 被改的名稱確實改了
     for nm in CHANGED_NAMES:
         sh, rg = pw.defined_names[nm].attr_text.rsplit("!", 1)
@@ -268,18 +275,18 @@ def test_v2010_diffs_only_expected_vs_v200():
                 if x != y and (x is not None or ws.title == "Interface" and c == 26):
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
     allowed = {"Cap_In", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Index", "Alloc", "Checks", "NonNV", "Alloc_In", "SRC_Demand", "DB_Evidence"}      # v21.0：Checks D118／D119／E118（範圍延伸）、NonNV M5:M9（test_v2100 看守）； v21.1：Alloc_In G24、SRC_Demand W10（test_v2110 看守）
-    assert set(d) <= allowed, set(d) - allowed
+    assert set(d) <= allowed | set(v213_cells()), set(d) - allowed - set(v213_cells())      # v21.3：另加 Spec_Rack／SRC_HW／SRC_Price（W1／W2，test_v2130 看守）
     # Cap_In 既有格：只有 A238、C238:E238、A313
-    assert sorted(t[0] for t in d["Cap_In"]) == ["A238", "A313", "C238", "D238", "E238", "G28"], sorted(t[0] for t in d["Cap_In"])      # v21.2：G28（test_v2120 看守）
+    assert strip("Cap_In", sorted(t[0] for t in d["Cap_In"])) == strip("Cap_In", ["A238", "A313", "C238", "D238", "E238", "G28"]), sorted(t[0] for t in d["Cap_In"])      # v21.3：扣掉 A47／D7／F47／G7（W2，test_v2130 看守）      # v21.2：G28（test_v2120 看守）
     # L1 既有格：只有第 93 列的 B／C／D／E／F／H（以及指向它的說明欄不變）
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
-    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [71, r93], d["L1"][:3]      # v21.2：第 71 列 C／H（test_v2120 看守）      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
+    assert sorted({int(re.sub(r"[A-Z]+", "", t[0])) for t in d["L1"] if t[0] != "T4"}) == [71, r93, 128, 129, 130, 131], d["L1"][:3]      # v21.3：第 128–131 列 I（W5，test_v2130 看守）； v21.2：第 71 列 C／H（test_v2120 看守）      # v21.1：T4 表頭（增「情境」性質）由 test_v2110 看守
     assert {re.sub(r"\d+", "", t[0]) for t in d["L1"] if t[0] != "T4"} <= {"B", "C", "D", "E", "F", "H", "I", "J", "K"}      # v21.0：第 93 列 I／J／K（test_v2100 看守）
     # Interface：LifeSelf 列（C:Q 與 A）、第 320 列標題、K 節標題、契約元資料欄（R／V／W）、Z 欄說明
     cols = {re.sub(r"\d+", "", t[0]) for t in d["Interface"]}
     assert cols <= set("ACDEFGHIJKLMNOPQ") | {"R", "S", "T", "U", "V", "W", "Z"}, cols
     # 名稱：只新增 L1_LDiscGen
     na, nb = set(a.defined_names), set(b.defined_names)
-    assert na <= nb and nb - na == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")} | V2110_NEW_NAMES, sorted(nb - na)      # v21.0：+13（test_v2100 看守）
+    assert na <= nb and nb - na == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")} | V2110_NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted(nb - na)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）； v21.0：+13（test_v2100 看守）
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

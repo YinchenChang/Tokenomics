@@ -16,11 +16,14 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動（test_v2130 看守）
+from v2130_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 
 REPO = Path(__file__).resolve().parents[2]
 V211 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.1.xlsx"
 REVERT = {"Alloc_In!C23": 0.85, "Alloc_In!D23": 0.73, "Alloc_In!E23": 1.17}
-PREWARM = {"test_v2120_only_spend_basis_drives": [REVERT]}
+REVERT_ALL = {**REVERT, **R213}      # v21.3：另把 Spec_Rack F11 設回 7.8、SRC_PRC_049 設回 0.2，才能單獨看 AL_SpendBasis 的效果
+PREWARM = {"test_v2120_only_spend_basis_drives": [REVERT_ALL]}
 
 # 事前值（LibreOffice 對 v21.1 只改 C23:E23 重算；工作單第 0 節）：名稱 -> (v21.1 基準, v21.2 基準)
 CHANGED_BASE = {
@@ -30,7 +33,8 @@ CHANGED_BASE = {
     "L1_LReqFleet_IdNoK": (0.7561, 0.3571), "L1_LReqFleet": (2.0377, 0.9622), "L1_LReqFleet_Id": (0.7561, 0.3571),
     "L1_LReqFleet_VR200": (0.6923, 0.3269), "L1_GapSpendBasis": (0.85, 1.8), "L1_GapProduct": (1.9007, 4.025),
     "L1_GapUnexplained": (5.6159, 2.652), "L1_PriceRealFleet": (0.6084, 1.2884), "L1_TokPerPromptClose": (44128.7764, 18361.4448),
-    "L1_TokCeiling": (29132172730.5955, 13756859345.0035), "L1_MFleet_Px2026": (0.3103, 0.6571),
+    "L1_TokCeiling": (29132172730.5955, 13756859345.0035), "L1_MFleet_Px2026": (0.3103, 0.6631),      # v21.3：L1_MFleet_Px2026 v21.2 值 0.6571 → 0.6631（Sol 快取價 0.20 → 0.10：有效牌價 −0.9%；test_v2130 看守）
+
 }
 CHANGED = set("""AL_SpendBasis AL_SpendBasis_Hi AL_SpendBasis_Lo L1_GapProduct L1_GapProduct_Hi L1_GapProduct_Lo L1_GapSpendBasis L1_GapSpendBasis_Hi L1_GapSpendBasis_Lo
 L1_GapUnexplained L1_GapUnexplained_Hi L1_GapUnexplained_Lo L1_LReqFleet L1_LReqFleet_Hi L1_LReqFleet_Id L1_LReqFleet_IdNoK L1_LReqFleet_IdNoK_Hi L1_LReqFleet_IdNoK_Lo
@@ -112,9 +116,10 @@ def test_v2120_changed_set_is_exactly_expected(lo, pw, wbf):
         got = _flat(v.get_name(name))
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             changed.add(name)
-    assert changed == CHANGED, (sorted(changed - CHANGED), sorted(CHANGED - changed))
+    v213 = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {n for n in changed if n.startswith("RNG_")}      # v21.3：W1／W2 的預期變動名稱、改名連帶的文字名稱、SRC_Index 延伸、W6 區間端點（test_v2130 看守）
+    assert changed == CHANGED | v213, (sorted(changed - CHANGED - v213), sorted((CHANGED | v213) - changed))
     # 版本字串名稱改變（README B5 的版本主幹）
-    assert str(v.get_name("RNG_Version")).endswith("v21.2") and str(v.get_name("RNG_Current")).endswith("v21.2")
+    assert str(v.get_name("RNG_Version")).endswith("v21.3") and str(v.get_name("RNG_Current")).endswith("v21.3")      # v21.3：版本字串（原 v21.2）
 
 
 # ---------------------------------------------------------------- 3. 不變名稱
@@ -127,13 +132,15 @@ def test_v2120_unchanged_names(lo, pw, wbf):
         if not (name.startswith(KEEP_PREFIX) or name in KEEP_EXACT):
             continue
         assert name not in CHANGED, name
+        if name in _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX:
+            continue      # v21.3：這些名稱改由 test_v2130 看守（機架價低端／Sol 快取價的預期變動）
         assert name in pw.defined_names, name
         want = _arch_value(pw, pw.defined_names[name])
         got = _flat(v.get_name(name))
         n_keep += 1
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
-    assert n_keep > 300
+    assert n_keep > 150      # v21.3：扣除 171 個預期變動名稱後的比較數下修（原 > 300）
     assert bad == [], bad[:20]
     # 明確點名（第 0 節）
     for nm in ("L1_LReqFleet_Full", "L1_LReqFleet_Full_Lo", "L1_LReqFleet_Full_Hi", "L1_RevGW_PQ_VR200", "L1_RevGW_PQ_VR200_FY", "L1_RevGW_PQ_VR200_Life",
@@ -143,7 +150,7 @@ def test_v2120_unchanged_names(lo, pw, wbf):
 
 # ---------------------------------------------------------------- 4. 只有 AL_SpendBasis 驅動
 def test_v2120_only_spend_basis_drives(lo, pw, wbf):
-    h = lo.view(REVERT)
+    h = lo.view(REVERT_ALL)      # v21.3：另設回 F11 7.8／SRC_PRC_049 0.2
     for nm in sorted(CHANGED):
         want = _arch_value(pw, pw.defined_names[nm])
         got = _flat(h.get_name(nm))
@@ -159,7 +166,7 @@ G23_OLD = ("經濟口徑：依據的價格 ÷ 會計成本 1.16 × 會計 ÷ 經
 
 def test_v2120_text_w1_to_w4(wbf):
     g = wbf["Alloc_In"]["G23"].value
-    assert g.startswith("v21.2（2026-10-23 9a 查證 J5；Andy 21:58「按照預設」、22:02 同意建置）：基準 1.8、區間 0.85–2.3，Derived。")
+    assert "｜v21.2（2026-10-23 9a 查證 J5；Andy 21:58「按照預設」、22:02 同意建置）：基準 1.8、區間 0.85–2.3，Derived。" in g and g.startswith("v21.3（")      # v21.3：G23 前面加 v21.3 說明（W3，test_v2130 看守），v21.2 文字改為在其後
     assert "價格因子為殘差，必須約 1.37–2.18 才能重現支出路線（必須為真）" in g and "非實付價直接證據（OpenAI 在 Azure 的實付價找不到）" in g
     assert "高端 2.3≈Microsoft 帳上端" in g and "回本主口徑 L1_LReqFleet_Full、L1_RevGW_PQ_VR200、全部 IF_ 不受影響" in g
     assert g.endswith("｜原說明（v21.1 以前）：" + G23_OLD)
@@ -199,8 +206,8 @@ def test_v2120_records(wbf):
     assert len(er) == 1 and ev.cell(er[0] - 1, 1).value == "E402"
     assert ev.cell(er[0], 5).value == "Derived" and "非實付價直接證據" in ev.cell(er[0], 11).value and "1.8" in ev.cell(er[0], 3).value
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261023_Tokenomics_v21.2（次版，底版 v21.1：") and "v21.1（主版：" in str(rm["B5"].value)
-    assert str(rm["A1"].value).startswith("Tokenomics v21.2")
+    assert str(rm["B5"].value).startswith("20261024_Tokenomics_v21.3（次版，底版 v21.2：") and "以下為 v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value)      # v21.3：B5 前面加 v21.3 句，v21.2 句保留
+    assert str(rm["A1"].value).startswith("Tokenomics v21.3")      # v21.3：版本字串（原 v21.2）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.2 計價倍數 1.8 與說明修補"]
     assert len(rr) == 1 and "1.8" in rm.cell(rr[0], 2).value
 
@@ -239,4 +246,6 @@ def test_v2120_diffs_only_expected_vs_v211():
         "README": sorted(["A1", "A72", "B5", "B72"]),
         "SRC_Demand": ["W10"],
     }
+    for k, cells in v213_cells().items():      # v21.3：疊上 v21.2 → v21.3 的差異格（規則同 test_v2130）
+        want[k] = sorted(set(want.get(k, [])) | cells)
     assert got == want, {k: (sorted(set(got.get(k, [])) ^ set(want.get(k, [])))) for k in set(got) | set(want) if got.get(k) != want.get(k)}

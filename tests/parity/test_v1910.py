@@ -17,15 +17,17 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 
 REPO = Path(__file__).resolve().parents[2]
 V190 = REPO / "model" / "archive" / "20261022_Tokenomics_v19.0.xlsx"
 SC = {s["id"]: s["inputs"] for s in yaml.safe_load((Path(__file__).resolve().parent / "scenarios.yaml").read_text(encoding="utf-8"))["scenarios"]}
 F_REGISTRY = SC["f_registry_t07_t09_on"]
 CACHE_OFF = SC["d9_cache_cap_off"]
-C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD}      # 把新紀錄設回舊共用值 1024：C17＝4224，並把 Alloc_In C23:E23 設回 0.85／0.73／1.17（v21.2），應回到 v19.0
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD}      # 把新紀錄設回舊共用值 1024：C17＝4224，並把 Alloc_In C23:E23 設回 0.85／0.73／1.17（v21.2），應回到 v19.0      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
 PREWARM = {"test_v1910_stress_scenarios_no_error_values": [F_REGISTRY, CACHE_OFF], "test_v1910_changes_only_downstream_of_c17": [C17_OLD],
-           "test_v1910_direction": [SB_OLD, C17_OLD]}
+           "test_v1910_direction": [{**SB_OLD, **R213_OLD}, C17_OLD]}      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
 
 NEW = {"SRC_MOD_106", "RNG_CHK_VerifyFail_Lo", "RNG_CHK_VerifyFail_Hi", "RNG_CHK_VerifyPass_Lo", "RNG_CHK_VerifyPass_Hi"}      # 新增名稱（區間端點檔多納入 2 個 CHK_ 名稱）
 SKIP = ("RNG_", "IDX_", "GOV_", "IFC_")      # 區間端點（隨 Luna 值重算）、SRC_Index 範圍、治理計數另行檢查
@@ -64,7 +66,7 @@ KEY = [
     ("L1_MFleet", 0, 0.947804246237318),      # v21.2：0.4476 → 0.9478（AL_SpendBasis 0.85 → 1.8）
     ("L1_RevGW_PQ_VR200", 0, 49.5137840363362),
     ("L1_LTotalFleetVDisc", 0, 0.758597367273996),
-    ("L1_LTotalFleetVDisc_Lo", 0, 0.478526587147247),
+    ("L1_LTotalFleetVDisc_Lo", 0, 0.479441891854564),      # v21.3：0.478527 → 0.479442（機架價低端 7.8 → 7.5，test_v2130 看守）
     ("L1_TokLedger", 0, 2.65196815080688),      # v21.2：5.6159 → 2.6520
     ("IF_TokGWPaidMix", 0, 26017336543.4207),
     ("IF_LTotalFleetVDisc", 0, 0.758597367273996),
@@ -85,7 +87,7 @@ def test_v1910_changes_only_downstream_of_c17(lo):
     assert v.get("Arch", "C17") == 4224
     bad, n = [], 0
     for name, d in pw.defined_names.items():
-        if name.startswith(SKIP) or name in VERSION_NAMES or name in V20_CHANGED or "!" not in d.attr_text or "," in d.attr_text:
+        if name.startswith(SKIP) or name in VERSION_NAMES or name in V20_CHANGED or name in {"IF_FrontModel_Sol", "B4_MktModel", "SRC_PRC_049"} or "!" not in d.attr_text or "," in d.attr_text:
             continue
         sh, rg = d.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
@@ -95,12 +97,12 @@ def test_v1910_changes_only_downstream_of_c17(lo):
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
     assert n > 1400
-    assert bad == [], bad[:20]
+    assert bad == [], bad[:20]      # v21.3：略過 IF_FrontModel_Sol／B4_MktModel（Cap_In A47 改名 GPT-6.1 Sol）與 SRC_PRC_049（R213_OLD 把它設回 0.2 的副作用）
 
 
 def test_v1910_direction(lo):
     """Luna 跨度上限縮短（4224 → 2176）：Luna 每 GW token 增加、m 下降。"""
-    v, w = lo.view(SB_OLD), lo.view(C17_OLD)      # v21.2：兩邊都用舊計價倍數，只比 C17 的影響
+    v, w = lo.view({**SB_OLD, **R213_OLD}), lo.view(C17_OLD)      # v21.2：兩邊都用舊計價倍數，只比 C17 的影響      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
     assert _flat(v.get_name("IF_TokGW_Luna"))[0] > _flat(w.get_name("IF_TokGW_Luna"))[0]
     assert _flat(v.get_name("L1_MFleet"))[0] < _flat(w.get_name("L1_MFleet"))[0]
     assert _flat(v.get_name("L1_LReqFleet_IdNoK"))[0] == _flat(w.get_name("L1_LReqFleet_IdNoK"))[0]

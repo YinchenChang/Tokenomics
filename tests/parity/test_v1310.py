@@ -8,6 +8,8 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
+from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
+V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 import deadcells_lib
 
 REPO = Path(__file__).resolve().parents[2]
@@ -89,8 +91,8 @@ def test_v1310_existing_contract_names_unchanged(lo):
     只有 RNG_Version／RNG_Current 兩個版本字串可以不同（隨版本更新）。"""
     prev = openpyxl.load_workbook(V130_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱
-    assert len(keep) >= 300, len(keep)      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300； v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED and n not in V2130_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
+    assert len(keep) >= 250, len(keep)      # v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300； v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

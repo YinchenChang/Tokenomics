@@ -1,2 +1,5 @@
+# 網站（Streamlit Community Cloud 讀本檔）與數值檢查共用
+streamlit>=1.45
+pandas
 openpyxl
 pyyaml

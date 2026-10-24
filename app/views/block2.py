@@ -22,7 +22,7 @@ def render():
 
     df = block2_table(eng, tier, case)
     st.subheader(f"{tier_map[tier]}｜成本情境：{case}")
-    st.dataframe(df.map(fmt), use_container_width=True, height=_h(df))
+    st.dataframe(df.map(fmt), width="stretch", height=_h(df))
     st.caption("物理量（每架 tok/s、每 GW 產出、VR-eq、tokens/焦耳）不隨成本情境改變；\\$/M 隨成本情境改變。")
 
     metric = st.selectbox("圖：跨世代比較", list(df.index))
@@ -39,7 +39,7 @@ def render():
                "decode／prefill 每 GPU 產出 → prefill 占比 → 每架、每 GW 產出 → decode $/M → 能量閉合比。"
                "欄＝世代；本區僅供顯示，下游模型不得連結 DRV_ 名稱。")
     drv = drv_table(eng, tier, case)
-    st.dataframe(drv, use_container_width=True, height=_h(drv))
+    st.dataframe(drv, width="stretch", height=_h(drv))
     st.caption(f"decode \\$/M 列讀 Interface 的 IF_CostDec，跟隨上方成本情境選擇器（目前：{case}）；其餘為不隨成本情境改變的物理量。")
 
     st.divider()
@@ -52,7 +52,7 @@ def render():
         show = df.copy()
         for col in ("每用戶速度", "實測", "模型", "比值"):
             show[col] = show[col].map(fmt)
-        st.dataframe(show, use_container_width=True, hide_index=True, height=_h(show))
+        st.dataframe(show, width="stretch", hide_index=True, height=_h(show))
         notes = [f"{k}＝{v[0]}" + (f"（{v[1]}）" if v[1] not in (None, "") else "")
                  for k, v in meta.items() if k in ("每用戶速度", "實測", "模型", "比值") and v[0] != k]   # 只列與欄名不同的 Excel 標籤
         if notes:

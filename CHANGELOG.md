@@ -2,6 +2,14 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261025_Tokenomics_v21.6.xlsx（取代 v21.5；**次版：NonNV 持有比 TPU v7、Trainium3 改為每 kW 設備價推導值；契約名稱的值改變只有 `IF_NonNV_Hold_TPU`、`IF_NonNV_Hold_Trn`（各 3 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261025_v21.6_NonNV持有比TPU_Trn.md` r0）
+
+- 分支 `claude/v21-6`（PR 與 SHA 見報告）。報告：`docs/reports/20261025_v21.6_NonNV持有比.md`；進度檔：`docs/reports/20261025_v21.6_進度.md`。**不合併**（chat 端跑完全套 parity 與獨立核對後合併）。
+- Excel（CC 以 `builder/v2160.py` 自 v21.5 產生，經 LibreOffice 重算存檔；冪等）：W1 `NonNV` E6:G6（TPU v7 持有比）0.7／0.8／1.0 → 0.65／0.70／0.90、E7:G7（Trainium3 持有比）0.6／0.7／0.9 → 0.45／0.55／0.70（`builder/v2160.py` `inputs_update`：只在仍為舊值時才寫，不改 builder 預設值）；產出比 B:D 不改（待 PR #172 Q1）；L6／L7 說明改寫，原文逐字保留於「｜原：」之後；W2 `DB_Evidence` E409、`Decisions` SL63-01、`README` B5 開頭 v21.6 段。
+- 數值差異：NonNV E6:J7（輸入 6 格＋H:J 公式 6 格）、Interface C375:E376、Gov_Map 鏡像格 10 格（K396、L396、Q396、Q399、Q400、K402、L402、Q402、Q405、Q406）；清單見 `docs/workorders/20261025_v21.6_預期變動.csv`。其餘格不變。GOV 三項計數 0／134／182 不變。
+- 文件：下游契約 v0.27 不升版，首行「對應 Tokenomics」改 v21.6 並加 v21.6 段；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.6.json`；區間端點與時效指紋重產（只有版本字串變，`--check` 一致）。
+- 測試：新增 `tests/parity/test_v2160.py`；`v2150_allow.py` 改名 `v2160_allow.py` 並納入本單的差異格；舊測試的版本字串、列號與逐格期望值更新（見報告表 1）。
+
 ## 20261025_Tokenomics_v21.5.xlsx（取代 v21.4；**次版、只改文字與治理欄：計價倍數新舊約混合登錄（E407／E408）、Alloc_In G23 說明；Gov_Map GM088 補套用（r1，Project 2026-10-25 決定接受哨兵 IDX_SrcID 1 格改變）；所有契約名稱的值不變（版本字串與哨兵 IDX_SrcID 1 格除外），不升契約版本**；依工作單 `docs/workorders/20261025_v21.5_計價倍數新舊約與GM088.md` r0）
 
 - 分支 `claude/v21-5`（PR 與 SHA 見報告）。報告：`docs/reports/20261025_v21.5_計價倍數新舊約與GM088.md`；進度檔：`docs/reports/20261025_v21.5_進度.md`。**不合併**（chat 端跑完全套 parity 與獨立核對後合併）。

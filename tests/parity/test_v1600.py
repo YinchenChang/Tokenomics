@@ -208,7 +208,7 @@ def test_v1600_decisions_evidence_readme(wbf):
     assert "F1" in t3 and "F2" in t3 and "未回應前不改主口徑" in t3
     e = wbf["DB_Evidence"]
     ids = [e.cell(r, 1).value for r in range(5, e.max_row + 1)]
-    assert ids[-11] == "E398" and ids[-16:-11] == ["E393", "E394", "E395", "E396", "E397"] and ids[-10] == "E399" and ids[-9] == "E400" and ids[-8] == "E401" and ids[-7] == "E402" and ids[-6] == "E403" and ids[-5] == "E404" and ids[-4] == "E405" and ids[-3] == "E406" and ids[-2] == "E407" and ids[-1] == "E408"      # v21.5：DB_Evidence 新增 E407／E408（第 331、332 列）； v21.4：DB_Evidence 新增 E406（第 330 列）； v21.3：DB_Evidence 新增 E404／E405； v21.2：DB_Evidence 新增 E403； v21.1：DB_Evidence 新增 E402；      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
+    assert ids[-12] == "E398" and ids[-17:-12] == ["E393", "E394", "E395", "E396", "E397"] and ids[-11] == "E399" and ids[-10] == "E400" and ids[-9] == "E401" and ids[-8] == "E402" and ids[-7] == "E403" and ids[-6] == "E404" and ids[-5] == "E405" and ids[-4] == "E406" and ids[-3] == "E407" and ids[-2] == "E408" and ids[-1] == "E409"      # v21.6：DB_Evidence 新增 E409（第 333 列）；      # v21.5：DB_Evidence 新增 E407／E408（第 331、332 列）； v21.4：DB_Evidence 新增 E406（第 330 列）； v21.3：DB_Evidence 新增 E404／E405； v21.2：DB_Evidence 新增 E403； v21.1：DB_Evidence 新增 E402；      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
     assert "不新增外部來源" in e.cell(_row(e, "E398"), 4).value and "可撤回" in e.cell(_row(e, "E398"), 11).value
     rd = wbf["README"]
     assert any(rd.cell(r, 1).value == "v16.0 L 世代起點" for r in range(4, rd.max_row + 1))      # v17.0：README B5／A1 的版本字串已是 v17.0（test_v1700）；v16.0 列保留

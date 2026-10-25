@@ -1,0 +1,39 @@
+﻿工作表,儲存格／名稱,v21.5 值,v21.6 值（LibreOffice 重算）,說明
+Interface,C375,0.7,0.65,Interface 契約名稱格
+Interface,D375,0.8,0.7,Interface 契約名稱格
+Interface,E375,1,0.9,Interface 契約名稱格
+Interface,C376,0.6,0.45,Interface 契約名稱格
+Interface,D376,0.7,0.55,Interface 契約名稱格
+Interface,E376,0.9,0.7,Interface 契約名稱格
+NonNV,E6,0.7,0.65,輸入值（W1）
+NonNV,F6,0.8,0.7,輸入值（W1）
+NonNV,G6,1,0.9,輸入值（W1）
+NonNV,H6,1,0.875,公式：每 token 成本比／最佳／最差角落
+NonNV,I6,0.636363636363636,0.590909090909091,公式：每 token 成本比／最佳／最差角落
+NonNV,J6,1.66666666666667,1.5,公式：每 token 成本比／最佳／最差角落
+NonNV,E7,0.6,0.45,輸入值（W1）
+NonNV,F7,0.7,0.55,輸入值（W1）
+NonNV,G7,0.9,0.7,輸入值（W1）
+NonNV,H7,1.4,1.1,公式：每 token 成本比／最佳／最差角落
+NonNV,I7,0.75,0.5625,公式：每 token 成本比／最佳／最差角落
+NonNV,J7,3,2.33333333333333,公式：每 token 成本比／最佳／最差角落
+Gov_Map,K396,0.7,0.65,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,L396,1,0.9,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q396,0.8,0.7,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q399,0.7,0.65,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q400,1,0.9,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,K402,0.6,0.45,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,L402,0.9,0.7,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q402,0.7,0.55,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q405,0.6,0.45,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q406,0.9,0.7,Gov_Map 鏡像格（=NonNV 對應格）
+NonNV,L6,（說明文字）,（說明文字；原文逐字保留於「｜原：」之後）,W1 說明改寫
+NonNV,L7,（說明文字）,（說明文字；原文逐字保留於「｜原：」之後）,W1 說明改寫
+Gov_Map,N395:N406,（NonNV L6／L7 說明文字）,（同 NonNV L6／L7 新文字）,Gov_Map N 欄公式 =NonNV!$L$6／$L$7 的鏡像，文字隨 W1
+DB_Evidence,第 333 列 A:R,（無）,E409,W2 新增
+Decisions,第 335 列 A:J,（無）,SL63-01,W2 新增
+README,A1、B5,v21.5,v21.6,版本字串與 B5 開頭 v21.6 段
+Alloc,C177（C178 為公式）,20261025_Tokenomics_v21.5,20261025_Tokenomics_v21.6,版本字串（具名範圍 RNG_Version、RNG_Current）
+具名範圍 IF_NonNV_Hold_TPU,Interface!$C$375:$E$375,0.7／0.8／1,0.65／0.7／0.9,契約名稱值改變（3 格）
+具名範圍 IF_NonNV_Hold_Trn,Interface!$C$376:$E$376,0.6／0.7／0.9,0.45／0.55／0.7,契約名稱值改變（3 格）
+具名範圍 RNG_Version／RNG_Current,Alloc!$C$177／$C$178,20261025_Tokenomics_v21.5,20261025_Tokenomics_v21.6,版本字串

@@ -10,7 +10,7 @@
 1. **Q1 Fairwater 占比：沒有任何一手來源給出比例（不可分離），但定性證據偏向 f ≥ 0.4。**
    - 本段判斷區間 **f＝0.4–0.9，中心約 0.65**（Assumed，證據等級 Low–Medium）。f ≥ 0.4 的粗略機率約 70%（Assumed）。
    - 支持「高」的證據：OpenAI 自己寫明在 Fairwater 上訓練（F06）；Nadella 說 Wisconsin 提前上線使 Microsoft 得以「提前認列營收」，代表有付費的外部客戶承接，而 MAI 是內部單位（F05，推論；只能說明有外部付費客戶，不能分辨是 OpenAI 還是 Anthropic 等）；SemiAnalysis 稱 Wisconsin 完全供 OpenAI（F08，依規不單獨使用，只與 F05、F06 並用）。MAI 已揭露的最大預訓練只用 1.6 萬顆 GB200，約為兩站 GPU 的 3%、Wisconsin 的 9%，而且在 8–9 月（F10）。
-   - 支持「低」的證據：Microsoft 官方只說供 OpenAI、MAI、Copilot 與其他工作負載（F01，無比例，不得換算）；Hood 說新 GPU 先給第一方，再給 R&D 與產品創新，其餘才給 Azure（F04）；Nadella 說不想只當單一公司的託管商（F03）；Anthropic 的 Azure 合約含初始至多 1 GW、另加至多 1 GW，站點未揭露（可能分走部分容量）。
+   - 支持「低」的證據：Microsoft 官方只說供 OpenAI、MAI、Copilot 與其他工作負載（F01，無比例，不得換算）；Hood 說新 GPU 先給第一方，再給 R&D 與產品創新，其餘才給 Azure（F04）；Nadella 說不想只當單一公司的託管商（F03）；Anthropic 的 Azure 合約含至多 1 GW（Microsoft 稿：在 300 億美元 Azure 之外「另簽」至多 1 GW；NVIDIA 段落：「初期」至多 1 GW、用 Grace Blackwell／Vera Rubin；兩種說法應指同一個 1 GW，報導未明確對應，不可加總為 2 GW），站點未揭露（可能分走部分容量）。
 2. **換算（沿用 J7 算法，其他站低占比、Epoch 日期）：**
    - f＝0.4／0.65／0.9 → Q2 季平均 GW **2.17／2.26／2.35**，Q2 倍數 **0.999／0.959／0.921**；用早日期為 0.925／0.881／0.841。
    - 持平所需 f 仍為 **0.395**（營收 268 億時 0.507）。其他站改中占比時降到 0.278。
@@ -76,7 +76,7 @@ D2 推算式：Codex token／日＝ChatGPT 全部 token（TK：3.6B 則 × 4,000
   - f < 0.25（Microsoft 自用為主，比值略升）：約 10%。
 - **最強反向證據與處理：**
   1. **Hood 的第一方優先順序（F04）。** 這是 Microsoft 全機隊的分配，不是 Fairwater 專屬；Copilot 是推論工作負載，Fairwater 是為大型訓練設計的。只當作下修方向的定性證據，已反映在區間下緣 0.4。
-  2. **Anthropic 的 Azure 合約（初始至多 1 GW，另加至多 1 GW）。** 站點未揭露；若部分落在 Fairwater，OpenAI 的份額會比「OpenAI 對 MAI」二分法低。已搜尋，未找到站點資訊。
+  2. **Anthropic 的 Azure 合約（至多 1 GW（Microsoft 稿：在 300 億美元 Azure 之外「另簽」至多 1 GW；NVIDIA 段落：「初期」至多 1 GW、用 Grace Blackwell／Vera Rubin；兩種說法應指同一個 1 GW，報導未明確對應，不可加總為 2 GW））。** 站點未揭露；若部分落在 Fairwater，OpenAI 的份額會比「OpenAI 對 MAI」二分法低。已搜尋，未找到站點資訊。
   3. **Codex 推算的循環性。** D2 以 TK 的 ChatGPT token 量為底；若每則 token 實際高於 4,000（D3 方向），Codex 推算值會同比放大。所以 D2 與 D3 不是獨立因子，不能疊加為兩次閉合；組合已改為依同一每則 token 重推（r1）。
 - **方向檢查（第 10 條）：**
   - 不利於「下降」的選擇 2 個：其他站沿用低占比；D2 的時點比取 0.7（Codex 用量月增約 70%，季平均可能更低）。
@@ -139,5 +139,5 @@ D2 推算式：Codex token／日＝ChatGPT 全部 token（TK：3.6B 則 × 4,000
 1. **組合與循環性（實質）：** 組合中 D2 改依 D3 同一每則 token（6,000）重推，約 7.6 T／日；組合 1.09 → 1.02，加週活 1.11 → 1.04，k＝2 為 0.87。單一因子表保留 D2＝5.07（註明前提每則 4,000）。結論改為「單一因子成立，組合層面幾乎不變」。xlsx「token帳」頁第 30–35 列同步。
 2. **Hood（F04）：** 「R&D 的 AI 人才」改為「R&D 與產品創新」；標明為 roic.ai 轉載（二手）。
 3. **Codex 計費：** 「API key 按 API 計費」改歸 WorkOS（第三方），標為推論。
-4. **Anthropic、arXiv：** Anthropic 改為「初始至多 1 GW，另加至多 1 GW」；arXiv 2606.26959 份額改為「截至 06-11 前 28 天窗口」（README、證據原稿、xlsx 同步）。
+4. **Anthropic、arXiv：** Anthropic 改為「至多 1 GW（Microsoft 稿：在 300 億美元 Azure 之外「另簽」至多 1 GW；NVIDIA 段落：「初期」至多 1 GW、用 Grace Blackwell／Vera Rubin；兩種說法應指同一個 1 GW，報導未明確對應，不可加總為 2 GW）」；arXiv 2606.26959 份額改為「截至 06-11 前 28 天窗口」（README、證據原稿、xlsx 同步）。
 5. **F05：** 加註只能說明有外部付費客戶，不能分辨是 OpenAI 還是 Anthropic 等。

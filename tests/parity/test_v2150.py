@@ -14,12 +14,12 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2160_allow import NUM_DIFFS as V2160_NUM      # v21.6：工作單第 0 節清單（NonNV 持有比的數值差異）
+from v2170_allow import NUM_DIFFS as V2160_NUM      # v21.6：工作單第 0 節清單（NonNV 持有比的數值差異）
 
 REPO = Path(__file__).resolve().parents[2]
 V214 = REPO / "model" / "archive" / "20261024_Tokenomics_v21.4.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
-CHANGED_NAMES = VERSION_NAMES | {"IDX_SrcID", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn"}      # v21.6：NonNV 持有比（test_v2160 看守）；      # IDX_SrcID：SRC_Index!A980 SRC_HW_015 → SRC_HW_098（Gov_Map 哨兵／索引，不影響下游；Project 2026-10-25 決定 (a)）
+CHANGED_NAMES = VERSION_NAMES | {"IDX_SrcID", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"}      # v21.6：NonNV 持有比（test_v2160 看守）；      # IDX_SrcID：SRC_Index!A980 SRC_HW_015 → SRC_HW_098（Gov_Map 哨兵／索引，不影響下游；Project 2026-10-25 決定 (a)）
 
 
 def _flat(v):
@@ -119,7 +119,7 @@ def test_v2150_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.5（次版，底版 v21.4：" in b5 and "只改文字與治理欄；所有契約名稱的值不變（版本字串、哨兵 IDX_SrcID 1 格除外）；GOV 三項計數 0／134／182 不變。" in b5
-    assert "v21.4（次版，底版 v21.3：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.6")      # v21.6：版本字串（test_v2160 看守）
+    assert "v21.4（次版，底版 v21.3：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.7")      # v21.6：版本字串（test_v2160 看守）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.5 計價倍數新舊約混合登錄與 Gov_Map GM088"]
     assert rr == [75] and "只改文字與治理欄，所有契約名稱的值不變" in rm.cell(75, 2).value
 
@@ -145,7 +145,7 @@ def test_v2150_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.6") and str(v.get_name("RNG_Current")).endswith("v21.6")
+    assert str(v.get_name("RNG_Version")).endswith("v21.7") and str(v.get_name("RNG_Current")).endswith("v21.7")
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 
@@ -154,9 +154,10 @@ def test_v2150_gov_counts(lo):
 EXACT_CELLS = {
     "README": {"A1", "B5", "A75", "B75"}, "Alloc": {"C177"}, "Alloc_In": {"G23"},
     "Gov_Map": {"H92", "I92", "N92", "R92"},      # AF92、SRC_Index A980 只有值變（公式文字不變）
-    "Decisions": {f"{c}{r}" for r in (334, 335) for c in "ABCDEFGHIJ"},      # v21.6：SL63-01（第 335 列）
-    "DB_Evidence": {f"{c}{r}" for r in (331, 332, 333) for c in "ABCDEFGHIJKLMNOPQR"},      # v21.6：E409（第 333 列）
-    "NonNV": {"E6", "F6", "G6", "E7", "F7", "G7", "L6", "L7"},      # v21.6 W1（test_v2160 看守）
+    "Decisions": {f"{c}{r}" for r in (334, 335, 336) for c in "ABCDEFGHIJ"},      # v21.7：SL64-01（第 336 列）；v21.6：SL63-01（第 335 列）
+    "DB_Evidence": {f"{c}{r}" for r in (331, 332, 333, 334, 335) for c in "ABCDEFGHIJKLMNOPQR"},      # v21.7：E410／E411（第 334、335 列）；v21.6：E409（第 333 列）
+    "NonNV": {"E6", "F6", "G6", "E7", "F7", "G7", "L6", "L7"} | {f"{c}5" for c in "BCDEFG"} | {"L5", "L8", "L9", "A2"},      # v21.6 W1；v21.7 W1／W2
+    "Interface": {"A368"},      # v21.7 W2（test_v2160 看守）
 }
 
 

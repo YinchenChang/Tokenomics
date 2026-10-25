@@ -192,11 +192,11 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
             changed.add(name)
     rng = {n for n in changed if n.startswith("RNG_")}
     other = changed - rng
-    V214 = {"GOV_Warnings", "GOV_Table", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn"}      # v21.6：NonNV 持有比 TPU／Trn（test_v2160 看守）
+    V214 = {"GOV_Warnings", "GOV_Table", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"}      # v21.6：NonNV 持有比 TPU／Trn（test_v2160 看守）
     V214 |= set()      # v21.4 W3：SRC_PRC_049 第二來源「免」使 GOV_Warnings 135 → 134、GOV_Table 內的 D87（W1 WARN 計數）133 → 132（test_v2140 看守）
     assert other == CHANGED | LABEL_NAMES | INDEX_NAMES | V214, (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
-    assert str(v.get_name("RNG_Version")).endswith("v21.6") and str(v.get_name("RNG_Current")).endswith("v21.6")      # v21.4：版本字串（原 v21.3）
+    assert str(v.get_name("RNG_Version")).endswith("v21.7") and str(v.get_name("RNG_Current")).endswith("v21.7")      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"
     # 名稱沒有增減（SRC_ID 名稱除外：SRC_HW_098／099 與 099 的 _Lo／_Hi）
     new_names = set(wbf.defined_names) - set(pw.defined_names)
@@ -280,7 +280,7 @@ def test_v2130_records(wbf):
         assert key in t5, key
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
-    assert str(rm["A1"].value).startswith("Tokenomics v21.6")
+    assert str(rm["A1"].value).startswith("Tokenomics v21.7")
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.3 機架價低端 7.5 與 Sol 快取價 0.10"]
     assert len(rr) == 1 and "7.5" in rm.cell(rr[0], 2).value
 
@@ -322,9 +322,11 @@ def test_v2130_diffs_only_expected_vs_v212():
         "Alloc_In": ["G23"],
         "L1": [f"I{r}" for r in range(128, 137)],      # v21.4 W1／W2：I128:I136
         "Checks": ["D86"],
-        "Decisions": sorted(f"{c}{r}" for r in (332, 333, 334, 335) for c in "ABCDEFGHIJ"),      # v21.6：SL63-01（第 335 列）      # v21.4：D332 更正、SL61-01（第 333 列）；v21.5：SL62-01（第 334 列）
-        "DB_Evidence": sorted(f"{c}{r}" for r in (328, 329, 330, 331, 332, 333) for c in "ABCDEFGHIJKLMNOPQR"),      # v21.6：E409（第 333 列）
-        "NonNV": ["E6", "E7", "F6", "F7", "G6", "G7", "L6", "L7"],      # v21.6 W1（test_v2160 看守）      # v21.4：E406（第 330 列）；v21.5：E407／E408（第 331、332 列）
+        "Decisions": sorted(f"{c}{r}" for r in (332, 333, 334, 335, 336) for c in "ABCDEFGHIJ"),      # v21.7：SL64-01（第 336 列）；v21.6：SL63-01（第 335 列）      # v21.4：D332 更正、SL61-01（第 333 列）；v21.5：SL62-01（第 334 列）
+        "DB_Evidence": sorted(f"{c}{r}" for r in (328, 329, 330, 331, 332, 333, 334, 335) for c in "ABCDEFGHIJKLMNOPQR"),      # v21.7：E410／E411（第 334、335 列）；v21.6：E409（第 333 列）
+        "NonNV": sorted(["E6", "E7", "F6", "F7", "G6", "G7", "L6", "L7", "B5", "C5", "D5", "E5", "F5", "G5", "L5", "L8", "L9", "A2"]),      # v21.7 W1／W2（test_v2170 看守）
+        "Interface": ["A368"],      # v21.7 W2（test_v2170 看守）
+             # v21.6 W1（test_v2160 看守）      # v21.4：E406（第 330 列）；v21.5：E407／E408（第 331、332 列）
         "SRC_Price": sorted(["B10", "H10", "W10", "B12", "H12", "W12", "O11", "P11", "V11", "O53", "Q53", "V53", "W53", "R53", "V54"]),      # v21.4 W3：R53、V54
     }
     for sh, want in exact.items():

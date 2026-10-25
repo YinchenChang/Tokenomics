@@ -1550,6 +1550,7 @@ import v2130
 import v2140
 import v2150
 import v2160
+import v2170
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1656,7 +1657,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v2160.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v2170.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1731,7 +1732,7 @@ def readme(wb):
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v2160.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v2170.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -35745,6 +35746,187 @@ README_VERSION = (VERSION + "（次版，底版 v21.5：" + WO + "——NonNV �
 README_TITLE = V + v2150.README_TITLE[len(v2150.V):]
 ```
 
+## v2170.py
+
+```python
+# v21.7 (work order docs/workorders/20261025_v21.7_NonNV_AMD與Trn同源價.md r0, branch claude/v21-7): NonNV AMD row 5 derived values, Trainium3 holding ratio on the KGI same-source basis, stale-text fixes.
+# MINOR version: input values change (AMD B5:G5 six cells, Trainium3 F7), written only while they still hold the v21.6 value (like v2160.inputs_update); no new/removed contract names; contract v0.27 unchanged.
+#   W1  NonNV B5:D5 (AMD output ratio) 0.5／0.7／1.0 -> 0.70／0.80／1.15;  E5:G5 (AMD holding ratio) 0.8／0.9／1.0 -> 0.67／0.85／1.12;  F7 (Trainium3 holding ratio base) 0.55 -> 0.61.
+#   W2  Text (revision 9: the original wording is kept verbatim after "｜原："): NonNV L5, L7 (v21.7 sentence added after the v21.6 note), L8, L9, A2; Interface A368.
+#   W3  DB_Evidence E410／E411 (after E409), Decisions SL64-01, README B5 opening paragraph.
+# Contract names whose values change: IF_NonNV_Out_AMD, IF_NonNV_Hold_AMD (3 cells each), IF_NonNV_Hold_Trn (base cell D376) and the version strings. Everything else unchanged.
+# Excel-owned cells (DB_Evidence, Decisions) are written only while absent; the NonNV／Interface text cells are rewritten by the builder on every build, so the text fixes are re-applied deterministically. Idempotent.
+from openpyxl.utils import get_column_letter as L
+
+from common import put, F_CALC
+import v1410
+import v2110
+import v2160
+
+VERSION = "20261025_Tokenomics_v21.7"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-10-25"
+DASH = "—"
+V = "v21.7"
+WO = "工作單 docs/workorders/20261025_v21.7_NonNV_AMD與Trn同源價.md（r0）"
+DEC_ID = "SL64-01"
+EVD = "docs/evidence/20261025_NonNV_AMD/"
+DEC_BY = ("Andy 未回應，照工作單預設（2026-10-25 對話判斷題 9、10）：PR #174（NonNV C 段 AMD，獨立核對 r1 後合併）Q4、Q5 預設——AMD 產出比與持有比都換，持有比用 TK 買方取得價同口徑；"
+          "PR #174 獨立核對與 README §10——B 段 Trn3 持有比用 KGI 絕對價 ÷ TK 價屬輕度口徑混用，改用 KGI 同源比值，基準取中點 0.61；v21.6 代理回報的過時說明（Interface A368、NonNV A2、L5、L8、L9）。"
+          "TPU、Trn 產出比仍待 Q1，不改")
+
+# ---------------------------------------------------------------- W1 inputs (old-value guards)
+AMD_OUT_OLD, AMD_OUT_NEW = (0.5, 0.7, 1.0), (0.70, 0.80, 1.15)
+AMD_HOLD_OLD, AMD_HOLD_NEW = (0.8, 0.9, 1.0), (0.67, 0.85, 1.12)
+TRN_F7_OLD, TRN_F7_NEW = 0.55, 0.61
+
+
+def _same(c, o):
+    return c.value is not None and type(c.value) is not bool and c.value == o
+
+
+def inputs_update(wb):
+    log = []
+    ws = wb["NonNV"]
+    assert ws["A5"].value == "AMD MI455X（Helios）", ws["A5"].value
+    assert ws["A7"].value == "AWS Trainium3", ws["A7"].value
+    for cols, old, new, what in (("BCD", AMD_OUT_OLD, AMD_OUT_NEW, "output"), ("EFG", AMD_HOLD_OLD, AMD_HOLD_NEW, "holding")):
+        cells = [ws[f"{c}5"] for c in cols]
+        if all(_same(c, o) for c, o in zip(cells, old)):
+            for c, n in zip(cells, new):
+                c.value = n
+            log.append(f"NonNV!{cols[0]}5:{cols[-1]}5 (AMD {what}): {old} -> {new} (v21.7 W1)")
+    if _same(ws["F7"], TRN_F7_OLD):
+        ws["F7"].value = TRN_F7_NEW
+        log.append(f"NonNV!F7 (Trainium3 holding base): {TRN_F7_OLD} -> {TRN_F7_NEW} (v21.7 W1)")
+    return log
+
+
+# ---------------------------------------------------------------- W2 text (original kept verbatim after 原：)
+TAIL = v2110.ROWS_5_9_TAIL      # the v21.0 conventional-value tail
+L5_NOTE = ("產出比 v21.7 依每 kW 峰值算力比 1.066（MI455X MXFP4 40.3 PF、TBP 2,500 W、Helios 245 kW；高端以 225 kW 計，每 kW 比 1.16；有原生 FP4，兩種精度口徑相同）"
+           "× 效率 f 0.656／0.757／0.994（MLPerf v6.1 MI355X DeepSeek-R1 還原 × 轉換係數 t 0.891，Assumed）；"
+           "持有比依 TK 買方取得價同口徑（每架 $5.25M 下界／$7.3M＝AMD 自述隱含比 0.865 × VR200／$10.5M＝Futurum 同源比值 1.25 × VR200；Assumed）；"
+           "每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05；PR #174）")
+L7_ADD = ("v21.7：持有比基準 0.55 → 0.61，改用 KGI 同源比值（KGI 同報 VR200『超過 700 萬美元』、GB300 $3.9–4.0M，口徑較 TK 低約 9–20%；"
+          "Trn3 每架約 $1.6–1.8M → 0.593–0.631 取中點；PR #174 §10）")
+L89_NOTE = "TPU v7、Trainium3（v21.6）、AMD（v21.7）已以每 kW 法重推；本列尚無機架功率與價格資料，維持慣例值。"
+A2_OLD = "持有成本比預設接近 1，依 Block 1 結論：每 GW 持有成本幾乎不隨世代改變"
+A2_NEW = "持有成本比：TPU、Trn3、AMD、昇騰、Maia 依每 kW 設備價推導（v21.1、v21.6、v21.7）；Cerebras、OpenAI 客製仍為慣例值（Block 1『接近 1』）"
+A368_OLD = "（第 379–382 列；持有比依每 kW 設備價推導，既有五列為慣例值）"
+A368_NEW = ("（第 379–382 列）；持有比已推導：昇騰、Maia、TPU、Trn3、AMD，其餘為慣例值；產出比已推導：AMD、昇騰、Maia（TPU、Trn3 待精度口徑）")
+
+
+def text_fixes(wb):
+    ws = wb["NonNV"]
+    n = 0
+    # L5, L8, L9: replace the conventional-value tail with the note; original tail kept after 原：
+    for r, note in ((5, L5_NOTE), (8, L89_NOTE), (9, L89_NOTE)):
+        cell = ws[f"L{r}"]
+        cur = str(cell.value)
+        if "｜原：" in cur:
+            continue
+        assert cur.endswith(TAIL), (r, cur[-80:])
+        head = cur[:-len(TAIL)].rstrip("｜")
+        cell.value = head + "｜" + note + "｜原：" + TAIL
+        n += 1
+    # L7: v21.7 sentence added after the v21.6 note (before 原：)
+    cell = ws["L7"]
+    cur = str(cell.value)
+    if L7_ADD not in cur:
+        assert "持有比 v21.6 依每 kW 設備價推導" in cur and cur.count("｜原：") == 1, cur[-120:]
+        i = cur.index("｜原：")
+        cell.value = cur[:i] + "｜" + L7_ADD + cur[i:]
+        n += 1
+    # NonNV A2 subtitle
+    a2 = ws["A2"]
+    cur = str(a2.value)
+    if A2_NEW not in cur:
+        assert cur.endswith(A2_OLD), cur
+        a2.value = cur[:-len(A2_OLD)] + A2_NEW + "｜原：" + A2_OLD
+        n += 1
+    # Interface A368
+    wi = wb["Interface"]
+    t = str(wi["A368"].value)
+    if A368_NEW not in t:
+        assert t.endswith(A368_OLD) and v2110.P_TITLE_NEW in t, t[-120:]
+        wi["A368"].value = t[:-len(A368_OLD)] + A368_NEW + "｜原：" + A368_OLD
+        n += 1
+    return n
+
+
+# ---------------------------------------------------------------- W3 DB_Evidence E410／E411
+_OLD_AMD = "NonNV 第 5 列 AMD MI455X 產出比 0.5／0.7／1.0、持有比 0.8／0.9／1.0（慣例值）；每 token 成本比基準 1.29"
+E410 = [
+    "E410", DATE,
+    "NonNV C 段 AMD——產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用，v21.7 W1）；每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05；現值 1.29）",
+    "AMD 規格與自述（MI455X、Helios）、CLSA、Futurum；SemiAnalysis 只作佐證；NonNV C 段查證 " + EVD + "（PR #174）",
+    "Interested-party（AMD 規格與自述）＋Analogy（CLSA、Futurum；SemiAnalysis 只作佐證）",
+    "NonNV B5:G5；Interface 第 369、374 列（IF_NonNV_Out_AMD／IF_NonNV_Hold_AMD）",
+    _OLD_AMD,
+    "產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用）；每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05）",
+    "採用（PR #174 Q4、Q5 預設，" + V + " W1）", V,
+    "價格口徑：分析師絕對價與 TK 買方取得價不同口徑，持有比改用同口徑（每架 $5.25M 下界／$7.3M＝AMD 自述隱含比 0.865 × VR200／$10.5M＝Futurum 同源比值 1.25 × VR200）；"
+    "替代：同源比值全區間 1.12／1.23／1.35、只換產出比（成本比約 1.13）、兩錨點 f（產出比 0.74）｜" + WO,
+    "已處理", DASH, DASH, "IF_NonNV_Out_AMD、IF_NonNV_Hold_AMD（值改變）；其餘契約名稱不變", 3, "利害關係方",
+    "採用（產出比與持有比都換）｜" + V + " 新增列"]
+E411 = [
+    "E411", DATE,
+    "B 段 Trn3 持有比口徑修正——0.55 → 0.61（KGI 同源比值）",
+    "KGI 同報 VR200 與 GB300 機架價；NonNV B 段查證 docs/evidence/20261025_NonNV_TPU_Trainium/（PR #172）與 " + EVD + " README §10（PR #174）",
+    "Analogy（KGI 同源比值）",
+    "NonNV F7；Interface D376（IF_NonNV_Hold_Trn 基準）",
+    "NonNV 第 7 列 Trainium3 持有比基準 0.55（v21.6，KGI 絕對價 ÷ TK 價，輕度口徑混用）",
+    "持有比基準 0.61（低端 0.45、高端 0.70 不變）",
+    "採用（PR #174 §10 Project 預設：基準取中點 0.61，" + V + " W1）", V,
+    "KGI 同報 VR200『超過 700 萬美元』、GB300 $3.9–4.0M，口徑較 TK 低約 9–20%；Trn3 每架約 $1.6–1.8M → 0.593–0.631 取中點 0.61｜" + WO,
+    "已處理", DASH, DASH, "IF_NonNV_Hold_Trn（基準 1 格值改變）", 3, "利害關係方",
+    "採用（口徑修正）｜" + V + " 新增列"]
+
+
+def evidence_append(wb):
+    ws = wb["DB_Evidence"]
+    n = 0
+    for prev, row in (("E409", E410), ("E410", E411)):
+        if any(ws.cell(r, 1).value == row[0] for r in range(5, ws.max_row + 1)):
+            continue
+        r = max(rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")) + 1
+        assert ws.cell(r - 1, 1).value == prev, (ws.cell(r - 1, 1).value, prev)
+        for i, v in enumerate(row):
+            put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 4, 5, 6, 7, 8, 10, 14, 17))
+        n += 1
+    return n
+
+
+# ---------------------------------------------------------------- W3 Decisions
+def _decisions():
+    return [[DEC_ID, V, "v21.7 NonNV AMD 改為推導值、Trainium3 持有比改同源價、過時說明更新",
+             "W1：NonNV B5:D5（AMD 產出比）0.5／0.7／1.0 → 0.70／0.80／1.15；E5:G5（AMD 持有比）0.8／0.9／1.0 → 0.67／0.85／1.12（依每 kW 峰值算力比 × 效率 f，持有比依 TK 買方取得價同口徑；PR #174；Assumed）；"
+             "F7（Trainium3 持有比基準）0.55 → 0.61（KGI 同源比值，低端 0.45、高端 0.70 不變；PR #174 §10）。"
+             "W2：NonNV L5、L7、L8、L9、A2 與 Interface A368 說明更新，原文逐字保留於「｜原：」之後（修訂九）。W3：DB_Evidence E410／E411；README B5 加 v21.7 段。"
+             "契約名稱的值改變只有 IF_NonNV_Out_AMD、IF_NonNV_Hold_AMD（各 3 格）、IF_NonNV_Hold_Trn（基準 1 格）與版本字串；契約不升版（v0.27）。TPU、Trn 產出比仍待 Q1，不改。Andy 原話與依據：" + DEC_BY,
+             DATE, DEC_BY, "v21.7 已建",
+             "NonNV B5:G5、F7；NonNV L5／L7／L8／L9／A2；Interface 第 369、374、376 列與 A368；DB_Evidence E410／E411；README B5；Decisions SL64-01",
+             f"{WO} W1–W3", "否"]]
+
+
+def apply(wb, append_text):
+    log = {"text_fixes": text_fixes(wb)}
+    log["evidence"] = evidence_append(wb)
+    ws = wb["Decisions"]
+    if not any(ws.cell(r, 1).value == DEC_ID for r in range(5, ws.max_row + 1)):
+        log["decisions"] = v1410.decisions_append(wb, _decisions())
+    return log
+
+
+# ---------------------------------------------------------------- README
+_prev = v2160.README_VERSION.split("_Tokenomics_", 1)[1]
+README_VERSION = (VERSION + "（次版，底版 v21.6：" + WO + "——NonNV AMD 產出比 0.5／0.7／1.0 → 0.70／0.80／1.15、持有比 0.8／0.9／1.0 → 0.67／0.85／1.12（PR #174；Assumed）；"
+                  "Trainium3 持有比基準 0.55 → 0.61（KGI 同源比值）；"
+                  "契約名稱的值改變的只有 IF_NonNV_Out_AMD、IF_NonNV_Hold_AMD（各 3 格）、IF_NonNV_Hold_Trn（基準 1 格）與版本字串；其餘不變；GOV 三項計數 0／134／182 不變。"
+                  "NonNV L5／L7／L8／L9／A2 與 Interface A368 說明更新（原文保留於「｜原：」後）；DB_Evidence E410／E411；Decisions SL64-01。）以下為 " + _prev)
+README_TITLE = V + v2160.README_TITLE[len(v2160.V):]
+```
+
 ## gov_decisions.py
 
 ```python
@@ -37070,6 +37252,8 @@ import v2120
 V518_LOG += v2120.inputs_update(wb)       # v21.2 W1 J5: Alloc_In C23:E23 0.85/0.73/1.17 -> 1.8/0.85/2.3 (old-value guards; after restore, before gov_all)
 import v2160
 V518_LOG += v2160.inputs_update(wb)       # v21.6 W1: NonNV E6:G6 0.7/0.8/1.0 -> 0.65/0.70/0.90, E7:G7 0.6/0.7/0.9 -> 0.45/0.55/0.70 (old-value guards; after restore, before gov_all)
+import v2170
+V518_LOG += v2170.inputs_update(wb)       # v21.7 W1: NonNV B5:D5 0.5/0.7/1.0 -> 0.70/0.80/1.15, E5:G5 0.8/0.9/1.0 -> 0.67/0.85/1.12, F7 0.55 -> 0.61 (old-value guards; after restore, before gov_all)
 V518_LOG += v2130.inputs_update(wb)       # v21.3 W1／W2: Spec_Rack F11 7.8 -> 7.5, Cap_In D7／F47 =SRC_PRC_007 -> =SRC_PRC_049 (old-value／old-formula guards; after restore, before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
@@ -37274,6 +37458,8 @@ V2150 = v2150.apply(wb, v518._append_text)       # v21.5: DB_Evidence E407／E40
 print("v2150 v21.5:", V2150)
 V2160 = v2160.apply(wb, v518._append_text)       # v21.6: NonNV L6／L7 text, DB_Evidence E409, Decisions SL63-01
 print("v2160 v21.6:", V2160)
+V2170 = v2170.apply(wb, v518._append_text)       # v21.7: NonNV L5／L7／L8／L9／A2 and Interface A368 text, DB_Evidence E410／E411, Decisions SL64-01
+print("v2170 v21.7:", V2170)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

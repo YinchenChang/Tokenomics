@@ -79,7 +79,7 @@ def test_v2140_all_names_unchanged(lo, pw, wbf):
                 pairs = {(a, b) for a, b in zip(want, got) if not _eq(a, b)}
                 assert pairs == {(133, 132)}, pairs      # GOV_Table 範圍 Checks A74:D96 內只有 D87（W1 的 WARN 計數）；D98 是 GOV_Warnings 本身
     assert n > 1500, n
-    assert sorted(bad) == sorted({"GOV_Warnings", "GOV_Table"} | VERSION_NAMES), bad
+    assert sorted(bad) == sorted({"GOV_Warnings", "GOV_Table", "IDX_SrcID"} | VERSION_NAMES), bad      # v21.5：哨兵 IDX_SrcID（GM088，test_v2150 看守）
     assert set(wbf.defined_names) == set(pw.defined_names)      # 名稱沒有增減
 
 
@@ -190,7 +190,7 @@ def test_v2140_records(wbf):
 
 # ---------------------------------------------------------------- 6. 逐格比較 v21.3 → 現行（v21.4 的差異＋v21.5 的 W1／W2／W4 格，後者由 test_v2150 另行看守）
 EXACT_CELLS = {
-    "README": {"A1", "B5", "B73", "A74", "B74", "A75", "B75"}, "Cap_In": {"H335"}, "Alloc": {"C177"}, "Alloc_In": {"G23"},      # v21.5：A75／B75、G23
+    "README": {"A1", "B5", "B73", "A74", "B74", "A75", "B75"}, "Cap_In": {"H335"}, "Alloc": {"C177"}, "Alloc_In": {"G23"}, "Gov_Map": {"H92", "I92", "N92", "R92"},      # v21.5：A75／B75、G23
     "L1": {f"I{r}" for r in range(128, 137)},
     "Decisions": {"D332"} | {f"{c}{r}" for r in (333, 334) for c in "ABCDEFGHIJ"},
     "DB_Evidence": {f"{c}{r}" for r in (330, 331, 332) for c in "ABCDEFGHIJKLMNOPQR"},
@@ -214,9 +214,9 @@ def test_v2140_cell_diffs_only_expected():
                 if _num(p) and _num(q) and not _eq(p, q):
                     nd.append((ws.title, ws.cell(r, c).coordinate, p, q))
     assert fd == EXACT_CELLS, {k: sorted(fd.get(k, set()) ^ EXACT_CELLS.get(k, set())) for k in set(fd) | set(EXACT_CELLS) if fd.get(k, set()) != EXACT_CELLS.get(k, set())}
-    assert nd == [("Checks", "D87", 133, 132), ("Checks", "D98", 135, 134), ("SRC_Price", "AE53", 1, 0)], nd
+    assert sorted(nd) == [("Checks", "D87", 133, 132), ("Checks", "D98", 135, 134), ("Gov_Map", "AF92", 15, 98), ("Gov_Map", "R92", 7.8, 7.52), ("SRC_Price", "AE53", 1, 0)], nd      # v21.5：加 GM088 連動的 Gov_Map AF92、R92
     # 輸入值（藍字格）與公式文字不變：公式差異格都是文字格（非 "=" 開頭）
     for sh, cells in fd.items():
         for coord in cells:
             x, y = a[sh][coord].value, b[sh][coord].value
-            assert not (isinstance(x, str) and x.startswith("=")) and not (isinstance(y, str) and y.startswith("=")), (sh, coord)
+            assert sh == "Gov_Map" or (not (isinstance(x, str) and x.startswith("=")) and not (isinstance(y, str) and y.startswith("="))), (sh, coord)      # v21.5：Gov_Map H92／R92 是 builder 連結 SRC 的公式（GM088）

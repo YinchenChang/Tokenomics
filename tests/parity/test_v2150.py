@@ -1,10 +1,10 @@
 """v21.5 專屬測試（工作單 docs/workorders/20261025_v21.5_計價倍數新舊約與GM088.md r0）。只改文字與治理欄；讀 LibreOffice 重算後的值。
 
-  1. 全部具名範圍（1,821 個）的值與封存 v21.4 相同，只有版本字串 RNG_Version／RNG_Current 例外；名稱沒有增減。
+  1. 全部具名範圍（1,821 個）的值與封存 v21.4 相同，只有版本字串 RNG_Version／RNG_Current 與哨兵 IDX_SrcID（1 格）例外；名稱沒有增減。
   2. W1：DB_Evidence E407、E408（接 E406）；W2：Alloc_In G23 加 v21.5 段（C23:E23 值不變）；W4：Decisions SL62-01、README B5 開頭與第 75 列。
-  3. W3 保留現狀：Gov_Map H92 仍為 SRC_HW_015（加回 v2130.GOV_MAP_UPD 會使 IDX_SrcID 改變，觸發停止條件）；預期變動 CSV 存在。
+  3. W3 已套用（r1）：Gov_Map H92＝SRC_HW_098、R92＝7.52、AF92＝98、SRC_Index A980＝SRC_HW_098；Spec_Rack F11 仍為 7.5；預期變動 CSV 存在。
   4. GOV 三項計數 0／134／182；RNG_StaleFlag 一致；全部公式格無錯誤值。
-  5. 逐格比較 v21.4 → v21.5：數值差異 0 格；文字／公式差異只落在工作單列明的格與版本字串。
+  5. 逐格比較 v21.4 → v21.5：數值差異只有 Gov_Map R92、AF92；文字／公式差異只落在工作單列明的格與版本字串。
 """
 import csv
 from pathlib import Path
@@ -18,6 +18,7 @@ from conftest import model_path
 REPO = Path(__file__).resolve().parents[2]
 V214 = REPO / "model" / "archive" / "20261024_Tokenomics_v21.4.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
+CHANGED_NAMES = VERSION_NAMES | {"IDX_SrcID"}      # IDX_SrcID：SRC_Index!A980 SRC_HW_015 → SRC_HW_098（Gov_Map 哨兵／索引，不影響下游；Project 2026-10-25 決定 (a)）
 
 
 def _flat(v):
@@ -73,7 +74,7 @@ def test_v2150_all_names_unchanged(lo, pw, wbf):
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
     assert n > 1500, n
-    assert sorted(bad) == sorted(VERSION_NAMES), bad
+    assert sorted(bad) == sorted(CHANGED_NAMES), bad
     assert set(wbf.defined_names) == set(pw.defined_names)      # 名稱沒有增減
 
 
@@ -116,22 +117,26 @@ def test_v2150_decisions_readme(wbf):
         assert key in txt, key
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
-    assert b5.startswith("20261025_Tokenomics_v21.5（次版，底版 v21.4：") and "只改文字與治理欄；所有契約名稱的值不變（版本字串除外）；GOV 三項計數 0／134／182 不變。" in b5
+    assert b5.startswith("20261025_Tokenomics_v21.5（次版，底版 v21.4：") and "只改文字與治理欄；所有契約名稱的值不變（版本字串、哨兵 IDX_SrcID 1 格除外）；GOV 三項計數 0／134／182 不變。" in b5
     assert "v21.4（次版，底版 v21.3：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.5")
-    rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.5 計價倍數新舊約混合登錄（Gov_Map GM088 暫緩）"]
+    rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.5 計價倍數新舊約混合登錄與 Gov_Map GM088"]
     assert rr == [75] and "只改文字與治理欄，所有契約名稱的值不變" in rm.cell(75, 2).value
 
 
-# ---------------------------------------------------------------- 3. W3 保留現狀
-def test_v2150_w3_held(wbf, lo):
+# ---------------------------------------------------------------- 3. W3 已套用（r1）
+def test_v2150_w3_applied(wbf, lo):
     gm = wbf["Gov_Map"]
     rows = [r for r in range(5, gm.max_row + 1) if gm.cell(r, 3).value == "Spec_Rack" and gm.cell(r, 4).value == "F11"]
     assert rows == [92]
-    assert gm["H92"].value == "SRC_HW_015" and gm["I92"].value == "Derived：MS BOM 7.8（零毛利下限；r3 I2）"      # 未套用 v2130.GOV_MAP_UPD
+    assert gm["H92"].value == "SRC_HW_098"
+    assert gm["I92"].value == "Derived：Bernstein 7.52 取整 7.5（v21.3 起；SRC_HW_098）｜原：MS BOM 7.8（零毛利下限；r3 I2；SRC_HW_015）"
+    assert gm["N92"].value.startswith("v21.3：低端改為 7.5＝Bernstein 2026-10 下修 7.52 取整（SRC_HW_098；Andy 2026-10-24 決定 #1；Decisions SL60-01）｜原：v5.18 G4／I2")
+    v = lo.view({})
+    assert abs(v.get("Gov_Map", "R92") - 7.52) < 1e-9 and v.get("Gov_Map", "AF92") == 98 and v.get("SRC_Index", "A980") == "SRC_HW_098"
+    assert wbf["Spec_Rack"]["F11"].value == 7.5      # 輸入值（取整後）不改
     csv_path = REPO / "docs" / "workorders" / "20261025_v21.5_預期變動.csv"
     rows = list(csv.reader(open(csv_path, encoding="utf-8-sig")))
     assert {(r[0], r[1]) for r in rows[1:]} >= {("Gov_Map", "H92"), ("Gov_Map", "R92"), ("Gov_Map", "AF92"), ("SRC_Index", "A980"), ("具名範圍 IDX_SrcID", "SRC_Index!A5:A1588")}
-    assert wbf["Spec_Rack"]["F11"].value == 7.5      # 輸入值不改
 
 
 # ---------------------------------------------------------------- 4. GOV
@@ -147,6 +152,7 @@ def test_v2150_gov_counts(lo):
 # ---------------------------------------------------------------- 5. 逐格比較 v21.4 → v21.5
 EXACT_CELLS = {
     "README": {"A1", "B5", "A75", "B75"}, "Alloc": {"C177"}, "Alloc_In": {"G23"},
+    "Gov_Map": {"H92", "I92", "N92", "R92"},      # AF92、SRC_Index A980 只有值變（公式文字不變）
     "Decisions": {f"{c}334" for c in "ABCDEFGHIJ"},
     "DB_Evidence": {f"{c}{r}" for r in (331, 332) for c in "ABCDEFGHIJKLMNOPQR"},
 }
@@ -168,8 +174,8 @@ def test_v2150_cell_diffs_only_expected():
                 if _num(p) and _num(q) and not _eq(p, q):
                     nd.append((ws.title, ws.cell(r, c).coordinate, p, q))
     assert fd == EXACT_CELLS, {k: sorted(fd.get(k, set()) ^ EXACT_CELLS.get(k, set())) for k in set(fd) | set(EXACT_CELLS) if fd.get(k, set()) != EXACT_CELLS.get(k, set())}
-    assert nd == [], nd      # 數值差異 0 格
+    assert sorted(nd) == [("Gov_Map", "AF92", 15, 98), ("Gov_Map", "R92", 7.8, 7.52)], nd      # 數值差異只有 GM088 連動的兩格
     for sh, cells in fd.items():
         for coord in cells:
             x, y = a[sh][coord].value, b[sh][coord].value
-            assert not (isinstance(x, str) and x.startswith("=")) or sh in ("README", "Alloc"), (sh, coord)
+            assert not (isinstance(x, str) and x.startswith("=")) or sh in ("README", "Alloc", "Gov_Map"), (sh, coord)

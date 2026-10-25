@@ -16,7 +16,7 @@ from conftest import model_path
 
 REPO = Path(__file__).resolve().parents[2]
 V212 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.2.xlsx"
-SHEETS = {"README", "Spec_Rack", "Cap_In", "Alloc_In", "Alloc", "L1", "Checks", "Decisions", "DB_Evidence", "SRC_Price", "SRC_HW", "SRC_Index"}
+SHEETS = {"Gov_Map", "README", "Spec_Rack", "Cap_In", "Alloc_In", "Alloc", "L1", "Checks", "Decisions", "DB_Evidence", "SRC_Price", "SRC_HW", "SRC_Index"}
 _row = lambda coord: int(re.sub(r"[A-Z]+", "", coord))
 _col = lambda coord: re.sub(r"\d+", "", coord)
 _num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
@@ -38,6 +38,7 @@ def v213_cells() -> dict:
     exact = {
         "README": {"A1", "A73", "B5", "B73", "A74", "B74", "A75", "B75"}, "Spec_Rack": {"F11"}, "Cap_In": {"A47", "D7", "F47", "G7", "H335"}, "Alloc_In": {"G23"},
         "L1": {f"I{r}" for r in range(128, 137)}, "Checks": {"D86"},
+        "Gov_Map": {"H92", "I92", "N92", "R92"},      # v21.5 W3：GM088（Spec_Rack F11）
         "Decisions": {f"{c}{r}" for r in (332, 333, 334) for c in "ABCDEFGHIJ"},
         "DB_Evidence": {f"{c}{r}" for r in (328, 329, 330, 331, 332) for c in "ABCDEFGHIJKLMNOPQR"},
         "SRC_Price": {"B10", "H10", "W10", "B12", "H12", "W12", "O11", "P11", "V11", "O53", "Q53", "V53", "W53", "R53", "V54"},

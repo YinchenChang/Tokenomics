@@ -26,6 +26,7 @@ wi['F35'] = 'GW'
 wi['G35'] = 'Derived（貼上值）'
 wi['H35'] = 'Cap_In!C331:E331（AL_FleetGW25）'
 wi['I35'] = '低端 1.0、高端 1.25 是持有成本端點的 GW；本列為 v21.4 新增，只為讓說明句的 GW 數字由公式帶出'
+_I35 = True
 for suf, col in (('', 'C'), ('_Lo', 'D'), ('_Hi', 'E')):
     wb.defined_names['IN_GW' + suf] = DefinedName('IN_GW' + suf, attr_text=f"'2_輸入'!${col}$35")
 
@@ -67,6 +68,7 @@ A(wi, 'I8', [('2.3', num('IN_SB_Lo', '0.0#')), ('0.85', num('IN_SB_Hi', '0.0#'))
              ('0.85', num('IN_SB_Hi', '0.0#')), ('2.3', num('IN_SB_Lo', '0.0#'))])
 A(wi, 'I14', [('−0.09', numn('IN_gpre_Lo', '0.00')), ('−0.30', numn('IN_gpre_Hi', '0.00'))])
 A(wi, 'I34', [('1.0', GWL), ('1.25', GWH)])
+A(wi, 'I35', [('1.0', GWL), ('1.25', GWH)])
 A(w4, 'B20', [('−9%', pct('IN_gpre'))])
 
 # 三、版本標籤與修訂紀錄

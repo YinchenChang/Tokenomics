@@ -73,8 +73,8 @@ I('nb_payback', 'Nebius Q2 新約回本期', 1 + 10 / 12, '年', IP, '同上「p
 I('ir_tcv', 'IREN–Microsoft 合約總值', 9.7, '$B', IP, 'IREN 新聞稿 2025-11-03「approximately $9.7 billion」（含 20% 預付）')
 I('ir_yrs', 'IREN–Microsoft 合約年數', 5, '年', IP, '同上「five-year term」')
 I('ir_mw', 'IREN Childress Horizon 1–4 關鍵 IT', 200, 'MW-IT', IP + '／Assumed（全數對應本合約）', '同上「200MW of critical IT load (Horizon 1–4)」；對應關係原文未明寫（TK Decisions D139 同註）')
-I('ir_newlo', 'IREN 近期 3 年約 每 MW(IT) 營收（下限）', 20, '$M/MW-IT·年', IP, 'IREN FY26 結果新聞稿 2026-08-27「Recent 3-year contracts >$20m revenue per MW (IT)」')
-I('ir_newhi', 'IREN 洽談中 每 MW(IT)', 25, '$M/MW-IT·年', IP, '同上「Active discussions at ~$25m per MW (IT)」')
+I('ir_newlo', 'IREN 近期 3 年約 每 MW(IT) 營收（下限）', 20, '$M/MW-IT·年', 'Interested-party（數字）；IREN 原文只寫 per MW (IT)，未寫 annual／ACV；年額讀法為 Derived', 'IREN FY26 結果新聞稿 2026-08-27「Recent 3-year contracts >$20m revenue per MW (IT)」；原文只寫 per MW (IT)，未寫 annual／ACV；年額讀法為 Derived（見 IREN 頁 E、F 節交叉檢查）')
+I('ir_newhi', 'IREN 洽談中 每 MW(IT)', 25, '$M/MW-IT·年', 'Interested-party（數字）；IREN 原文只寫 per MW (IT)，未寫 annual／ACV；年額讀法為 Derived', '同上「Active discussions at ~$25m per MW (IT)」；原文只寫 per MW (IT)，未寫 annual／ACV；年額讀法為 Derived（見 IREN 頁 E、F 節交叉檢查）')
 I('ir_payback', 'IREN 近期合約回本期（GPU 與附屬設備）', 2, '年', IP, '同上「~2 year payback」；註 3：GPU 與附屬設備資本支出 ÷（合約營收 − 直接成本）')
 I('ir_q4rev', 'IREN Q4 FY26 AI Cloud 營收', 70.5, '$M/季', IP, 'IREN FY26 結果新聞稿 2026-08-27（季度數未查核）')
 I('ir_q4cor', 'IREN Q4 FY26 AI Cloud cost of revenue', 9.2, '$M/季', IP, '同上')
@@ -82,7 +82,7 @@ I('ir_dell', 'IREN 向 Dell 採購 GB300 設備', 5.8, '$B', IP, 'IREN 新聞稿
 # ---- WhiteFiber ----
 I('wf_cloud', 'WhiteFiber Q2 2026 雲端服務營收', 23.806, '$M/季', V + '（10-Q）', 'WhiteFiber 10-Q 2026-06-30 損益表')
 I('wf_term', '其中 Initial Customer 終止費（一次性）', 12.3, '$M', V + '（10-Q）', '同上「fixed termination fee of $12.3 million that was recognized as revenue」')
-I('wf_ice', 'WhiteFiber 冰島已簽約 IT 負載', 5.5, 'MW-IT', IP + '（10-Q MD&A）', '同上「executed contracts for 5.5 MW IT load」；亞特蘭大 2026-02 起另租容量，MW 未揭露')
+I('wf_ice', 'WhiteFiber 冰島已簽約 IT 負載', 5.5, 'MW-IT', IP + '（10-Q MD&A）', '同上「executed contracts for 5.5 MW IT load」；營收附註「The Company’s cloud services revenue has been generated from Iceland」（加拿大自 2026-03 起「immaterial」）→ 分母即冰島；5.5 為已簽約 IT 負載，非實際使用')
 contracts = [
     ('wfc1', 'Baseten 1,392 B300（36 個月，2026-11 起）', 165.2, 3, 1392, 'gb300', 'GB300'),
     ('wfc2', '冰島 576 B300（5 年，2026-12 起；另有營收分成）', 87.5, 5, 576, 'gb300', 'GB300'),
@@ -101,8 +101,12 @@ I('dg_rack', 'Data Gravity：GB300 NVL72 採購單價（不含 CDU）', 5.0, '$M
 I('dg_dep', 'Data Gravity：GB300 NVL72 部署後合計', 5.68, '$M/架', 'Analogy', '同上「closer to $5.7 million」（不含 DC 建造、叢集核心交換、儲存）')
 I('th_lo', 'Tom\'s Hardware：GB300 NVL72 每架（媒體估計）低', 6.0, '$M/架', 'Analogy（媒體）', '同上轉述「$6–6.5M」；TK SRC_HW_007（Alt）')
 I('th_hi', 'Tom\'s Hardware：每架 高', 6.5, '$M/架', 'Analogy（媒體）', '同上')
-I('dg_oplo', 'Data Gravity：每架年營運成本 低（含機房租金約 31.8 萬）', 0.240, '$M/架·年', 'Analogy', '同上「$240–410K」')
-I('dg_ophi', 'Data Gravity：每架年營運成本 高', 0.410, '$M/架·年', 'Analogy', '同上')
+I('dg_oplo', 'Data Gravity：每架年營運成本 低（不含約 31.8 萬託管費（原文另加））', 0.240, '$M/架·年', 'Analogy', '同上「$240–410K」')
+I('dg_ophi', 'Data Gravity：每架年營運成本 高（不含託管費）', 0.410, '$M/架·年', 'Analogy', '同上')
+# ---- r1：IREN 年額讀法交叉檢查（放在最後，避免既有列號移動） ----
+I('ir_arr26', 'IREN 2026 容量的 Contracted ARR', 4.0, '$B/年', IP, 'IREN FY26 結果新聞稿 2026-08-27「$4bn Contracted ARR for 2026 Capacity」；註 1 ARR＝GPU 時價 × 8,760')
+I('ir_gw26', 'IREN 2026 年目標累計交付', 0.3, 'GW-IT', IP, '同上「Targeting cumulative delivery of approximately 0.3GW (IT)」（2026）')
+I('ir_newterm', 'IREN 近期合約年期（合約總額讀法的除數）', 3, '年', IP, '同上「Recent 3-year contracts」')
 
 for c, w in zip('ABCDEF', [16, 62, 14, 14, 30, 90]):
     inp.column_dimensions[c].width = w
@@ -200,13 +204,22 @@ put(ir, 16, ['D. 回本期隱含 GPU 資本支出（註 3 定義）', '值', '÷
 put(ir, 17, ['回本 × (20 − 隱含營運費用)', '=%s*(B8-B13)' % R('ir_payback'), '=B17/%s' % R('tk_capexit'), '', '$B/GW；GPU 與附屬設備'])
 put(ir, 18, ['回本 × (25 − 隱含營運費用)', '=%s*(B9-B14)' % R('ir_payback'), '=B18/%s' % R('tk_capexit'), '', ''])
 put(ir, 19, ['對照：Dell 採購 ÷ 200 MW-IT（2025-11）', '=%s/(%s/1000)' % (R('ir_dell'), R('ir_mw')), '=B19/%s' % R('tk_capexit'), '', 'TK SRC_DC_014＝29.0'])
+put(ir, 21, ['E. r1 年額讀法交叉檢查：2026 Contracted ARR 扣 Microsoft', '值', '', '', '說明（Derived）'], True)
+put(ir, 22, ['Microsoft 以外的 ARR', '=%s-B4' % R('ir_arr26'), '', '', '$B/年；4.0 − Microsoft 年額 1.94'])
+put(ir, 23, ['Microsoft 以外的 GW', '=%s-%s/1000' % (R('ir_gw26'), R('ir_mw')), '', '', 'GW-IT；0.3 − 0.2'])
+put(ir, 24, ['Microsoft 以外 每 IT GW 年營收', '=B22/B23', '=B24/%s' % R('tk_gb300'), '', '$B/GW·年；與「>$20m per MW (IT)」一致 → 支持年額讀法'])
+put(ir, 26, ['F. r1 GPU 時價合理性（以 TK GB300 每 GW GPU 數換算）', '$／GPU·時', '', '', ''], True)
+put(ir, 27, ['年額讀法：20 $M/MW·年', '=B8*1E9/(%s*8760)' % R('tk_gpu_gb300'), '', '', '$B/GW ÷ GPU 數 ÷ 8,760'])
+put(ir, 28, ['合約總額讀法：20 $M/MW ÷ 3 年', '=B8/%s*1E9/(%s*8760)' % (R('ir_newterm'), R('tk_gpu_gb300')), '', '', '低於 Microsoft 長約（下列）且低於 WhiteFiber B300 合約，不合理'])
+put(ir, 29, ['對照：Microsoft 合約', '=B5*1E9/(%s*8760)' % R('tk_gpu_gb300'), '', '', ''])
+put(ir, 30, ['對照：WhiteFiber Baseten B300', "=WhiteFiber!D10*1E9/(%s*8760)" % R('tk_gpu_gb300'), '', '', ''])
 
 # ================= WhiteFiber =================
 wf = sheet('WhiteFiber', widths=(66, 14, 14, 14, 14, 14, 14))
 put(wf, 1, ['WhiteFiber（WYFI）：雲端分部；MW 以 IT 負載揭露（冰島 5.5 MW-IT）'], True)
 put(wf, 3, ['A. 機隊平均：2026 Q2', '值', '', '', '說明'], True)
 put(wf, 4, ['經常性雲端營收（扣終止費）', '=%s-%s' % (R('wf_cloud'), R('wf_term')), '', '', '$M/季'])
-put(wf, 5, ['每 IT GW 年營收（÷ 冰島 5.5 MW）', '=B4*4/%s' % R('wf_ice'), '', '', '$M/MW·年＝$B/GW·年；亞特蘭大等未計入 MW → 偏上界'])
+put(wf, 5, ['每 IT GW 年營收（÷ 冰島 5.5 MW）', '=B4*4/%s' % R('wf_ice'), '', '', '$M/MW·年＝$B/GW·年；10-Q：雲端營收來自冰島（加拿大不重大）→ 分母即冰島；5.5 為已簽約 IT 負載，若未滿載則每實際使用 MW 營收更高 → 偏下界'])
 put(wf, 6, ['÷ TK 持有成本 Hopper', '=B5/%s' % R('tk_hop'), '', '', '機隊 H100／H200／B200 為主'])
 put(wf, 7, ['÷ TK 持有成本 GB200', '=B5/%s' % R('tk_gb200'), '', '', ''])
 put(wf, 9, ['B. 合約層（GPU 數 ÷ TK 每 GW GPU 數換算 IT GW；Analogy）', '年營收 $M', 'IT MW', '$B/GW·年', 'TK 持有成本', '比值', '世代'], True)
@@ -242,7 +255,7 @@ put(gp, 16, ['TK IF_OpexGW GB300 基準（低 1.21／高 3.00）', '=%s' % R('tk
 put(gp, 17, ['IREN 直接成本率 × 單價 20', '=IREN!B13', '=B17/%s' % R('tk_opex'), '', 'Derived；直接成本率 13% 來自 Q4 FY26 混合機隊'])
 put(gp, 18, ['IREN 直接成本率 × 單價 25', '=IREN!B14', '=B18/%s' % R('tk_opex'), '', ''])
 put(gp, 19, ['CoreWeave Q2 cost of revenue × 4 ÷ Q2 平均 active GW（線性）', '=%s*4/CoreWeave!B5' % R('cw_q2cor'), '=B19/%s' % R('tk_opex'), '', '含機房租金（託管）→ 應對 TK opex＋廠房資本成本，不可直接比'])
-put(gp, 20, ['Data Gravity 每架年營運 0.24 × 6,764 架', '=%s*%s/1000' % (R('dg_oplo'), R('tk_racks_gb300')), '=B20/%s' % R('tk_opex'), '', '範圍口徑未明（文中託管租金約 0.318／架落在區間內）；只作量級'])
+put(gp, 20, ['Data Gravity 每架年營運 0.24 × 6,764 架', '=%s*%s/1000' % (R('dg_oplo'), R('tk_racks_gb300')), '=B20/%s' % R('tk_opex'), '', '不含約 31.8 萬託管費（原文另加，約 $196/kW·月）→ 與 TK opex（不含廠房資本成本）同口徑可比'])
 put(gp, 21, ['Data Gravity 每架年營運 0.41 × 6,764 架', '=%s*%s/1000' % (R('dg_ophi'), R('tk_racks_gb300')), '=B21/%s' % R('tk_opex'), '', ''])
 
 # ================= 彙總 =================
@@ -260,8 +273,8 @@ rows = [
     ('Nebius', 'Q2 2026 四筆大單 $20–25M/MW', '新約邊際', '同上', '=Nebius!D25', '=Nebius!D26', 'Interested-party', '÷GB300；÷VR200 為 1.64–2.04'),
     ('Nebius', 'Q3 短期 $40–50M/MW', '短約邊際', '同上', '=Nebius!D27', '=Nebius!D28', 'Interested-party', '÷GB300；≤6 個月'),
     ('IREN', 'Microsoft 合約（2025-11）', '長約（簽約時）', 'MW-IT（公司標明）', '=IREN!C5', '=IREN!C5', 'Interested-party；MW 對應 Assumed', '÷GB300'),
-    ('IREN', '近期 3 年約 >$20M／洽談 ~$25M per MW(IT)', '新約邊際', 'MW-IT（公司標明）', '=IREN!C8', '=IREN!C9', 'Interested-party', '÷GB300；÷VR200 為 1.64–2.04'),
-    ('WhiteFiber', 'Q2 2026 經常性雲端 ÷ 冰島 5.5 MW-IT', '機隊平均（偏上界）', 'IT（公司揭露 IT 負載）', '=MIN(WhiteFiber!B6:B7)', '=MAX(WhiteFiber!B6:B7)', '營收 Verified（10-Q）；MW Interested-party', '÷GB200／Hopper'),
+    ('IREN', '近期 3 年約 >$20M／洽談 ~$25M per MW(IT)（年額讀法 Derived）', '新約邊際', 'MW-IT（公司標明）', '=IREN!C8', '=IREN!C9', 'Interested-party', '÷GB300；÷VR200 為 1.64–2.04'),
+    ('WhiteFiber', 'Q2 2026 經常性雲端 ÷ 冰島 5.5 MW-IT（已簽約）', '機隊平均（偏下界）', 'IT（公司揭露 IT 負載）', '=MIN(WhiteFiber!B6:B7)', '=MAX(WhiteFiber!B6:B7)', '營收 Verified（10-Q）；MW Interested-party', '÷GB200／Hopper'),
     ('WhiteFiber', 'Blackwell 新約（B300／GB200）', '新約邊際', 'GPU 數 × TK 密度（Analogy）', '=WhiteFiber!B%d' % WF_ROWS['bw_min'], '=WhiteFiber!B%d' % WF_ROWS['bw_max'], '合約 Verified（10-Q）；換算 Analogy', '同世代 TK 持有成本'),
     ('WhiteFiber', '存量世代續約（B200、H100）', '存量續約', '同上', '=WhiteFiber!B%d' % WF_ROWS['old_min'], '=WhiteFiber!B%d' % WF_ROWS['old_max'], '同上', ''),
     ('WhiteFiber', 'VR200 576 顆（2027 Q2 起）', '新約邊際', '同上', '=WhiteFiber!B%d' % WF_ROWS['vr'], '=WhiteFiber!B%d' % WF_ROWS['vr'], '同上', ''),
@@ -270,7 +283,7 @@ for i, row in enumerate(rows):
     put(sm, 4 + i, list(row))
 n = 4 + len(rows)
 put(sm, n + 1, ['組別', '', '', '', '低', '高', '', ''], True)
-put(sm, n + 2, ['機隊平均（不含漲價列、不含 WhiteFiber 上界）', '', '', '', '=MIN(E4,E6,E7)', '=MAX(F4,F6,F7)', 'Derived', 'CoreWeave Q1／Q2、Nebius Q4'])
+put(sm, n + 2, ['機隊平均（不含漲價列）', '', '', '', '=MIN(E4,E6,E7,E13)', '=MAX(F4,F6,F7,F13)', 'Derived', 'CoreWeave Q1／Q2、Nebius Q4、WhiteFiber Q2'])
 put(sm, n + 3, ['新約邊際（Nebius、IREN、WhiteFiber Blackwell；不含短約）', '', '', '', '=MIN(E9,E12,E14)', '=MAX(F9,F12,F14)', 'Derived', ''])
 put(sm, n + 4, ['AL_SpendBasis 基準', '', '', '', '=%s' % R('sb'), '=%s' % R('sb'), 'Assumed', '區間 0.85–2.3'])
 

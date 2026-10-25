@@ -3,7 +3,7 @@
 分支 `claude/evidence-lessor-anchor2`　基準 master `3ac70ac`（CURRENT v21.4）　工作單 `docs/workorders/20261025_計價倍數第二出租方錨點.md`
 檔案：`第二出租方錨點.xlsx`（審閱檔；換算全用公式，共 213 格；LibreOffice 重算錯誤 0；每家一頁＋彙總頁，CoreWeave 並排）、`證據原稿.md`、`script/build_xlsx.py`（產生審閱檔）。未改 `model/`、`builder/`、`tests/`。模式：LIGHT。
 承接：CoreWeave 10-Q 錨點（PR #163）。TK 數值取自 v21.4（持有成本 Hopper 9.70／GB200 8.83／GB300 10.89／VR200 12.23 $B/GW·年）。
-狀態：尚待未參與代理獨立核對。
+狀態：已經未參與代理獨立核對（數字與重算全部符合）；r1 修正見文末。
 
 ## 結論先行
 
@@ -12,8 +12,8 @@
      - CoreWeave Q2 2026 為 0.76–1.28（PR #163）。
      - CoreWeave Q1 2026 為 0.83–1.32（新增點）。
      - Nebius Q4 2025 為 0.65–0.83。
-     - WhiteFiber Q2 2026 為 0.86–0.95（偏上界）。
-   - **2026 年新約的邊際價：1.84–2.30（÷GB300）。** 涵蓋 1.8。
+     - WhiteFiber Q2 2026 為 0.86–0.95（分母為冰島已簽約 IT 負載，偏下界）。
+   - **新約 1.36–2.30（Nebius、IREN 自報 1.84–2.30；WhiteFiber 10-Q 新約 1.36–1.86）。** 涵蓋 1.8。
      - 兩家互相獨立的公司各自揭露同一價位：Nebius Q2 四筆大單每 MW 年合約值 2,000–2,500 萬美元；IREN「近期 3 年約 >$20m per MW (IT)」、洽談中約 2,500 萬。
      - 若對 VR200 為 1.64–2.04。
      - WhiteFiber 的 Blackwell 新約（10-Q 揭露總值，再以 TK 密度換算）為 1.36–1.86。
@@ -31,6 +31,9 @@
    - Nebius 1 年 10 個月，隱含資本支出 33–42 $B/GW，對照 TK GB300 IT＋廠房 44.9。
    - IREN 約 2 年，隱含 GPU 資本支出 35–43，對照 TK IT 32.2。
    - Nebius 註 (1) 寫明 ACV＝「Annual contract value」。
+   - **IREN 原文只寫 per MW (IT)，未寫 annual／ACV；年額讀法為 Derived。** 佐證兩項（xlsx「IREN」頁 E、F 節）：
+     - 同一份 FY26 新聞稿「$4bn Contracted ARR for 2026 Capacity」、2026 目標 0.3 GW (IT)。扣掉 Microsoft（200 MW、年 1.94B），其餘約 0.1 GW 對 2.06B → **每 MW 約 2,060 萬美元／年**，與「>$20m」一致（÷GB300 1.89）。
+     - GPU 時價：年額讀法約 **$4.69／GPU·時**（接近 WhiteFiber Baseten B300 的 $4.52）；合約總額讀法（÷3 年）約 **$1.56**，低於 2025 年 Microsoft 長約的 $2.27，不合理。
    - 以上表示單價是年額。
 3. **Nebius MW 定義（一手全文，20-F 與股東信）：**
    - contracted＝以已簽約土地與電力承諾取得的容量。
@@ -55,8 +58,8 @@
    - **營運費用（不含折舊，$B/GW·年）：** 公開點 1.6–3.3，TK 基準 1.98（1.21–3.00）。
      - IREN 直接成本率 13% × 新約單價＝2.6–3.3；
      - CoreWeave cost of revenue ÷ active GW＝2.8（含機房租金，不可直接比）；
-     - Data Gravity 每架年營運換算 1.6–2.8。
-     - 方向偏高，但口徑差異大。
+     - Data Gravity 每架年營運換算 1.6–2.8（不含約 31.8 萬／架·年的託管費，原文另加，約 $196/kW·月），所以與 TK opex（不含廠房資本成本）同口徑可比，落在 TK 區間內。
+     - IREN 偏高；CoreWeave 口徑不同；Data Gravity 與 TK 相符。
 
 ## Facts & Data
 
@@ -69,14 +72,14 @@
 | Nebius Q4 2025 | core AI cloud（占集團約 94%）；股東信（Interested-party） | 年底 ~170 MW active（IT 設備耗用，公司定義）；9 月底未揭露 | (1) 12 月 ARR ÷ 年底 MW；(2) 9 月底依 ARR 比例 75 MW（Assumed）線性；(3) 9 月底取上界 100 MW | Hopper 為主，B200／GB200，B300／GB300 剛開始 | 6.35–7.35 | 0.65–0.83（÷Hopper／GB200）；若為實際耗電 0.46–0.75 |
 | Nebius 合約 | ACV per MW（營收認列口徑，不含預付）；Interested-party | MW 未定義（以 IT 計；若為設施，比值 ×1.2–1.3） | 不適用 | 新約 Blackwell／Vera Rubin，2026 下半年至 2027 上線 | 2026 base 12；Q2 大單 20–25；短約 40–50 | 1.10–1.36；1.84–2.30；3.67–4.59（÷GB300） |
 | IREN | AI cloud；機隊 MW 未揭露，只能做合約層 | 「MW (IT)」公司標明 | 不適用 | Microsoft 為 GB300；近期約為較早訂購的 GPU | Microsoft 9.70；近期 >20、洽談約 25 | 0.89；1.84–2.30（÷GB300） |
-| WhiteFiber Q2 2026 | 雲端分部扣終止費 12.3＝11.5 百萬／季；Verified（10-Q） | 冰島 5.5 MW-IT 已簽約；亞特蘭大 MW 未揭露 → 偏上界 | 季營收 × 4 | H100／H200／B200 | 8.37 | 0.86–0.95（÷Hopper／GB200） |
+| WhiteFiber Q2 2026 | 雲端分部扣終止費 12.3＝11.5 百萬／季；Verified（10-Q） | 冰島 5.5 MW-IT 已簽約；10-Q 營收附註「cloud services revenue has been generated from Iceland」（加拿大不重大）→ 分母即冰島；已簽約非實際使用 → 偏下界 | 季營收 × 4 | H100／H200／B200 | 8.37 | 0.86–0.95（÷Hopper／GB200） |
 | WhiteFiber 合約 | 10-Q 合約總值；GPU 數 ÷ TK 每 GW GPU 數（B300 以 GB300、B200 以 GB200 近似，Analogy） | 由 GPU 換算 IT | 不適用 | B300、GB200、VR200、B200、H100 | 8.8–20.3 | Blackwell 新約 1.36–1.86；VR200 1.49；B200／H100 續約 0.91–1.34 |
 
 ### 彙總（xlsx「彙總」頁）
 
 | 組別 | 低 | 高 |
 |---|---|---|
-| 機隊平均（CoreWeave Q1／Q2、Nebius Q4；不含漲價、不含 WhiteFiber 上界） | 0.65 | 1.32 |
+| 機隊平均（CoreWeave Q1／Q2、Nebius Q4、WhiteFiber Q2；不含漲價） | 0.65 | 1.32 |
 | 新約邊際（Nebius、IREN、WhiteFiber Blackwell；不含短約） | 1.36 | 2.30 |
 | AL_SpendBasis | 1.8（0.85–2.3） | |
 
@@ -84,7 +87,7 @@
 - **Verified：** CoreWeave 營收（10-Q）；WhiteFiber 雲端營收、終止費與合約總值（10-Q）。
 - **Interested-party：**
   - Nebius 季度營收、ARR、MW、ACV、回本期（股東信；誘因：支撐募資與股價，Q2 同時發 5 GW 目標）；
-  - IREN 每 MW 單價、回本期、成本（新聞稿與法說；誘因同上，並在洽談新約）；
+  - IREN 每 MW 單價、回本期、成本、Contracted ARR（新聞稿與法說；誘因同上，並在洽談新約）；IREN 單價的年額讀法為 Derived；
   - CoreWeave active power（8-K）。
 - **Assumed：**
   - Nebius 9 月底 active MW 依 ARR 比例；
@@ -117,9 +120,9 @@
     - Nebius 機隊比值採「可用容量」讀法，不採實際耗電（後者更低）；
     - 新約 MW 以 IT 計（若為設施則更高）；
     - 新約比值以 GB300 為主（若為 B300 HGX 則更高）。
-  - 有利於「比值低於 1.8」的選擇 2 個：
-    - CoreWeave 與 Nebius 的季平均都用線性（爬坡未計費會低估單價）；
-    - WhiteFiber 機隊以冰島 MW 為分母（偏上界，但仍低於 1）。
+  - 有利於「比值低於 1.8」的選擇 1 個：
+    - CoreWeave 與 Nebius 的季平均都用線性（爬坡未計費會低估單價）。
+  - 中性（r1 改列）：WhiteFiber 機隊以冰島已簽約 MW 為分母；10-Q 確認營收來自冰島，已簽約可能未滿載，偏下界。
   - 中性：新約單價取公司區間端點，不取中點。
   - 都沒有收窄 Andy 留下的選項。
 - **覆蓋檢查（第 11 條）：**
@@ -138,7 +141,7 @@
 - **實務意涵：**
   - DB_Evidence 可記兩筆：
     - 「機隊平均 0.65–1.32（三家），弱反對 1.8」；
-    - 「2026 新約 1.84–2.30（兩家）、WhiteFiber 1.36–1.86，支持 1.8 作為新增容量價」。
+    - 「2026 新約 1.36–2.30（Nebius、IREN 自報 1.84–2.30；WhiteFiber 10-Q 新約下緣 1.36），支持 1.8 作為新增容量價」。
   - 1.8 的含義可改寫為「新舊約混合」。
 
 ## 已搜尋，未找到 ／ 不存在或不可分離
@@ -148,7 +151,7 @@
 - Nebius 新約 MW 的 IT／設施口徑。
 - CoreWeave active power 的 IT／設施定義。已查 10-K、兩季 10-Q、三季新聞稿、Q2 法說；Q1 法說付費牆。
 - IREN 營運中 AI cloud MW 與 GPU 數（FY26 新聞稿、簡報、Q4 法說）；Microsoft 合約的 GPU 數。
-- WhiteFiber 亞特蘭大、巴黎、安大略的 MW。
+- WhiteFiber 亞特蘭大、安大略的 MW（亞特蘭大不影響 Q2 機隊比值：10-Q 稱雲端營收來自冰島）。
 - GB300 每架或每 GW 的公司揭露營運費用。
 
 **不存在或不可分離：**
@@ -157,12 +160,13 @@
 - Lambda、Crusoe：未上市，無 MW 與雲端營收拆分（只有 Sacra 等第三方估計）。
 - OpenAI 2026 年支出中的新約與舊約占比。
 - Nebius Q2 2026 ARR 30 億美元：無對應 MW，不能換算。
+- WhiteFiber 巴黎地區 5 年合約：總值「in excess of $160 million」，GPU 數未揭露，不能換算每 GW 單價。
 
 ## 待 Project 判斷（附預設）
 
 | 編號 | 事項 | 建議預設 |
 |---|---|---|
-| L1 | `AL_SpendBasis` 1.8 | 不改值；DB_Evidence 記兩筆（機隊平均 0.65–1.32 弱反對；2026 新約 1.84–2.30 支持），說明改為「新舊約混合；機隊平均約 1，新約約 2」 |
+| L1 | `AL_SpendBasis` 1.8 | 不改值；DB_Evidence 記兩筆（機隊平均 0.65–1.32 弱反對；2026 新約 1.36–2.30 支持，其中 Nebius、IREN 自報 1.84–2.30、WhiteFiber 10-Q 下緣 1.36），說明改為「新舊約混合；機隊平均約 1，新約約 1.4–2.3」 |
 | L2 | Nebius active power 口徑 | 視為 IT 側可用容量（與 TK IT GW 同口徑）；「實際耗電」讀法只作敏感度（× 0.7–0.9） |
 | L3 | CoreWeave J2 | 維持「未定義」，比值保留 IT／設施兩算；下次 Q3 2026 10-Q／法說（11 月）再查 |
 | L4 | 新約比值的分母世代 | 以 GB300 為基準、VR200 為敏感度（1.64–2.04） |
@@ -182,7 +186,22 @@
   - 2025 Q4 實際 7.0–7.35 可作為爬坡折減的對照。
 - **MAG 模型：** k 若代表 2026 年新增容量的外租價，可對照 1.8–2.3；若代表存量平均，對照約 1。
 
+## 核對限制
+- 獨立核對時，Nebius 20-F 三種 MW 定義的全文與 WhiteFiber 10-Q 合約段，WebFetch 被截斷，未能逐字核到；Q3 2025 股東信的短版定義已核到。本段的引文來自 SEC 原文全文下載（`證據原稿.md`），可再以全文檢索複核。
+
 ## 本段限制
 - 網頁多由工具摘述（標「摘述」）；SEC 原文為一手全文檢索。
 - 比值以單一世代持有成本為分母；機隊實際為混合世代，所以給區間。
 - 未登入付費牆；未使用 SemiAnalysis。
+
+## r1（獨立核對後）
+獨立核對：數字與重算全部符合；以下依核對意見修正（xlsx 公式 213 → 221 格，LibreOffice 重算錯誤 0）。
+1. **IREN 年額讀法（必修）：** README 第 2 點、證據原稿、xlsx「輸入」E49:E50 寫明「IREN 原文只寫 per MW (IT)，未寫 annual／ACV；年額讀法為 Derived」。新增佐證：xlsx「IREN」頁 E 節（2026 Contracted ARR 4.0B 扣 Microsoft 1.94B ÷ 0.1 GW＝20.6 $B/GW·年，÷GB300 1.89）與 F 節（年額讀法 $4.69／GPU·時、合約總額讀法 $1.56；對照 Microsoft $2.27、WhiteFiber Baseten $4.52）。新輸入列在「輸入」頁最後三列（ir_arr26、ir_gw26、ir_newterm），既有列號不動。
+2. **Data Gravity 營運費用（必修）：** 每架年營運 $240–410K 不含託管費；託管約 $318K／年為原文另加（約 $196/kW·月）。「輸入」B83、B84 與「GB300單價與營運費用」E20 改寫；README 第 5 點說明與 TK opex 同口徑可比（1.6–2.8，落在 TK 1.21–3.00 內）。
+3. **結論第 1 點標題** 改為「新約 1.36–2.30（Nebius、IREN 自報 1.84–2.30；WhiteFiber 10-Q 新約 1.36–1.86）」，與彙總頁一致；L1 預設與「實務意涵」同步帶出下緣 1.36。
+4. **WhiteFiber：**
+   - 機隊比值的理由改為 10-Q 營收附註「The Company’s cloud services revenue has been generated from Iceland」（加拿大自 2026-03 起「immaterial」）→ 分母即冰島 5.5 MW-IT。
+   - 刪去「亞特蘭大 MW 未計入 → 偏上界」；因 5.5 為已簽約 IT 負載，改寫為「偏下界」。
+   - 彙總頁機隊平均組改為納入 WhiteFiber（區間不變，0.65–1.32）。方向檢查的對應項改列中性。
+   - 巴黎地區 5 年合約（>$160M、GPU 數未揭露）列入「不存在或不可分離」。
+5. **新增「核對限制」一節。**

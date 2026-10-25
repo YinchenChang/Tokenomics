@@ -19,7 +19,7 @@ import yaml
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2140_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2150_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -259,8 +259,8 @@ def test_v2110_diffs_only_expected_vs_v210():
         row = int(re.sub(r"[A-Z]+", "", coord))
         col = re.sub(r"\d+", "", coord)
         assert coord == "W10" or row in (93, 94) or col == "X", (coord, x, y)
-    assert {t[0] for t in d["DB_Evidence"]} <= {f"{c}{r}" for c in "ABCDEFGHIJKLMNOPQR" for r in (326, 327, 328, 329, 330)}      # v21.4：E406 在第 330 列（W5）； v21.3：E404／E405 在第 328、329 列（W4）；      # v21.2：E403 在第 327 列
-    assert {t[0] for t in d["Decisions"]} <= {f"{c}{r}" for c in "ABCDEFGHIJ" for r in (330, 331, 332, 333)}      # v21.4：SL61-01 在第 333 列（W5）； v21.3：SL60-01 在第 332 列（W6）；      # v21.2：SL59-01 在第 331 列
+    assert {t[0] for t in d["DB_Evidence"]} <= {f"{c}{r}" for c in "ABCDEFGHIJKLMNOPQR" for r in (326, 327, 328, 329, 330, 331, 332)}      # v21.5：E407／E408 在第 331、332 列； v21.4：E406 在第 330 列（W5）； v21.3：E404／E405 在第 328、329 列（W4）；      # v21.2：E403 在第 327 列
+    assert {t[0] for t in d["Decisions"]} <= {f"{c}{r}" for c in "ABCDEFGHIJ" for r in (330, 331, 332, 333, 334)}      # v21.5：SL62-01 在第 334 列； v21.4：SL61-01 在第 333 列（W5）； v21.3：SL60-01 在第 332 列（W6）；      # v21.2：SL59-01 在第 331 列
     print({k: len(v) for k, v in d.items()})      # 供報告核對：Gov_Map／SRC_Index／Load_Bearing 的連帶差異格數
 
 
@@ -273,7 +273,7 @@ def test_v2110_records_and_text(wbf):
     for key in ("當然要放", "J one J two 都同意", "NonNV Q1–Q4", "J1", "J2"):
         assert key in txt, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261024_Tokenomics_v21.4（次版，底版 v21.3：") and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.4")      # v21.4：版本字串（原 v21.3）
+    assert str(rm["B5"].value).startswith("20261025_Tokenomics_v21.5（次版，底版 v21.4：") and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.5")      # v21.4：版本字串（原 v21.3）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.1 NonNV 昇騰／Maia 與免費占比路徑"]
     assert len(rr) == 1 and "L1_FreeShare" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_／IF_NonNV_Hold_ × Ascend／Maia" in rm.cell(rr[0], 2).value
     nv = wbf["NonNV"]

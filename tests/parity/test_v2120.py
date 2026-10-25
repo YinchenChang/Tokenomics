@@ -17,7 +17,7 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動（test_v2130 看守）
-from v2140_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2150_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 
 REPO = Path(__file__).resolve().parents[2]
 V211 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.1.xlsx"
@@ -119,7 +119,7 @@ def test_v2120_changed_set_is_exactly_expected(lo, pw, wbf):
     v213 = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"GOV_Warnings", "GOV_Table"} | {n for n in changed if n.startswith("RNG_")}      # v21.4：GOV_Warnings／GOV_Table（SRC_PRC_049 第二來源「免」，test_v2140 看守）；      # v21.3：W1／W2 的預期變動名稱、改名連帶的文字名稱、SRC_Index 延伸、W6 區間端點（test_v2130 看守）
     assert changed == CHANGED | v213, (sorted(changed - CHANGED - v213), sorted((CHANGED | v213) - changed))
     # 版本字串名稱改變（README B5 的版本主幹）
-    assert str(v.get_name("RNG_Version")).endswith("v21.4") and str(v.get_name("RNG_Current")).endswith("v21.4")      # v21.3：版本字串（原 v21.2）
+    assert str(v.get_name("RNG_Version")).endswith("v21.5") and str(v.get_name("RNG_Current")).endswith("v21.5")      # v21.3：版本字串（原 v21.2）
 
 
 # ---------------------------------------------------------------- 3. 不變名稱
@@ -166,7 +166,7 @@ G23_OLD = ("經濟口徑：依據的價格 ÷ 會計成本 1.16 × 會計 ÷ 經
 
 def test_v2120_text_w1_to_w4(wbf):
     g = wbf["Alloc_In"]["G23"].value
-    assert "｜v21.2（2026-10-23 9a 查證 J5；Andy 21:58「按照預設」、22:02 同意建置）：基準 1.8、區間 0.85–2.3，Derived。" in g and g.startswith("v21.3（")      # v21.3：G23 前面加 v21.3 說明（W3，test_v2130 看守），v21.2 文字改為在其後
+    assert "｜v21.2（2026-10-23 9a 查證 J5；Andy 21:58「按照預設」、22:02 同意建置）：基準 1.8、區間 0.85–2.3，Derived。" in g and g.startswith("v21.5：") and "｜v21.3（" in g      # v21.3：G23 前面加 v21.3 說明（W3，test_v2130 看守），v21.2 文字改為在其後
     assert "價格因子為殘差，必須約 1.37–2.18 才能重現支出路線（必須為真）" in g and "非實付價直接證據（OpenAI 在 Azure 的實付價找不到）" in g
     assert "高端 2.3≈Microsoft 帳上端" in g and "回本主口徑 L1_LReqFleet_Full、L1_RevGW_PQ_VR200、全部 IF_ 不受影響" in g
     assert g.endswith("｜原說明（v21.1 以前）：" + G23_OLD)
@@ -206,8 +206,8 @@ def test_v2120_records(wbf):
     assert len(er) == 1 and ev.cell(er[0] - 1, 1).value == "E402"
     assert ev.cell(er[0], 5).value == "Derived" and "非實付價直接證據" in ev.cell(er[0], 11).value and "1.8" in ev.cell(er[0], 3).value
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261024_Tokenomics_v21.4（次版，底版 v21.3：") and "以下為 v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value)      # v21.3：B5 前面加 v21.3 句，v21.2 句保留
-    assert str(rm["A1"].value).startswith("Tokenomics v21.4")      # v21.3：版本字串（原 v21.2）
+    assert str(rm["B5"].value).startswith("20261025_Tokenomics_v21.5（次版，底版 v21.4：") and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "以下為 v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value)      # v21.3：B5 前面加 v21.3 句，v21.2 句保留
+    assert str(rm["A1"].value).startswith("Tokenomics v21.5")      # v21.3：版本字串（原 v21.2）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.2 計價倍數 1.8 與說明修補"]
     assert len(rr) == 1 and "1.8" in rm.cell(rr[0], 2).value
 

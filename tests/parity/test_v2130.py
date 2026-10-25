@@ -195,7 +195,7 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
     V214 = {"GOV_Warnings", "GOV_Table"}      # v21.4 W3：SRC_PRC_049 第二來源「免」使 GOV_Warnings 135 → 134、GOV_Table 內的 D87（W1 WARN 計數）133 → 132（test_v2140 看守）
     assert other == CHANGED | LABEL_NAMES | INDEX_NAMES | V214, (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
-    assert str(v.get_name("RNG_Version")).endswith("v21.4") and str(v.get_name("RNG_Current")).endswith("v21.4")      # v21.4：版本字串（原 v21.3）
+    assert str(v.get_name("RNG_Version")).endswith("v21.5") and str(v.get_name("RNG_Current")).endswith("v21.5")      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"
     # 名稱沒有增減（SRC_ID 名稱除外：SRC_HW_098／099 與 099 的 _Lo／_Hi）
     new_names = set(wbf.defined_names) - set(pw.defined_names)
@@ -242,7 +242,7 @@ def test_v2130_text_w1_to_w5(wbf):
     # W3：G23 前綴、原文逐字在後；C23:E23／F23 不改
     ai = wbf["Alloc_In"]
     g = ai["G23"].value
-    assert g.startswith("v21.3（2026-10-24 Azure 實付價 A 段 J3，PR #159；Andy 14:50「同意用預設建議」）：獨立價格錨點約 4 組，重心 1.0–1.5；")
+    assert g.startswith("v21.5：") and "｜v21.3（2026-10-24 Azure 實付價 A 段 J3，PR #159；Andy 14:50「同意用預設建議」）：獨立價格錨點約 4 組，重心 1.0–1.5；" in g      # v21.5：G23 前面再加 v21.5 段（test_v2150 看守）
     assert "2024 A100 $1.30／小時（原文 per server，採每顆為推論，單位未證實）約 1.31 倍" in g
     assert "1.8 為跨供應商混合殘差，未被推翻，維持基準 1.8、區間 0.85–2.3。｜v21.2（2026-10-23 9a 查證 J5" in g
     assert g.endswith("｜原說明（v21.1 以前）：" + G23_OLD_TAIL)
@@ -278,8 +278,8 @@ def test_v2130_records(wbf):
     for key in ("SRC_HW_098", "SRC_HW_099", "47.6", "50.26", "47.58", "鴻海董事長 47", "SRC_PRC_049", "L 觀測點不登錄"):
         assert key in t5, key
     rm = wbf["README"]
-    assert str(rm["B5"].value).startswith("20261024_Tokenomics_v21.4（次版，底版 v21.3：") and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
-    assert str(rm["A1"].value).startswith("Tokenomics v21.4")
+    assert str(rm["B5"].value).startswith("20261025_Tokenomics_v21.5（次版，底版 v21.4：") and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
+    assert str(rm["A1"].value).startswith("Tokenomics v21.5")
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.3 機架價低端 7.5 與 Sol 快取價 0.10"]
     assert len(rr) == 1 and "7.5" in rm.cell(rr[0], 2).value
 
@@ -315,14 +315,14 @@ def test_v2130_diffs_only_expected_vs_v212():
     row = lambda coord: int(re.sub(r"[A-Z]+", "", coord))
     col = lambda coord: re.sub(r"\d+", "", coord)
     exact = {
-        "README": ["A1", "A73", "B5", "B73", "A74", "B74"],      # v21.4：B73 更正、第 74 列新增
+        "README": ["A1", "A73", "B5", "B73", "A74", "B74", "A75", "B75"],      # v21.4：B73 更正、第 74 列新增；v21.5：第 75 列新增
         "Spec_Rack": ["F11"],
         "Cap_In": ["A47", "D7", "F47", "G7", "H335"],      # v21.4 W2：H335
         "Alloc_In": ["G23"],
         "L1": [f"I{r}" for r in range(128, 137)],      # v21.4 W1／W2：I128:I136
         "Checks": ["D86"],
-        "Decisions": sorted(f"{c}{r}" for r in (332, 333) for c in "ABCDEFGHIJ"),      # v21.4：D332 更正、SL61-01（第 333 列）
-        "DB_Evidence": sorted(f"{c}{r}" for r in (328, 329, 330) for c in "ABCDEFGHIJKLMNOPQR"),      # v21.4：E406（第 330 列）
+        "Decisions": sorted(f"{c}{r}" for r in (332, 333, 334) for c in "ABCDEFGHIJ"),      # v21.4：D332 更正、SL61-01（第 333 列）；v21.5：SL62-01（第 334 列）
+        "DB_Evidence": sorted(f"{c}{r}" for r in (328, 329, 330, 331, 332) for c in "ABCDEFGHIJKLMNOPQR"),      # v21.4：E406（第 330 列）；v21.5：E407／E408（第 331、332 列）
         "SRC_Price": sorted(["B10", "H10", "W10", "B12", "H12", "W12", "O11", "P11", "V11", "O53", "Q53", "V53", "W53", "R53", "V54"]),      # v21.4 W3：R53、V54
     }
     for sh, want in exact.items():

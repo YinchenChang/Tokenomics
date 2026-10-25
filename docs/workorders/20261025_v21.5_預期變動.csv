@@ -1,0 +1,8 @@
+﻿工作表,儲存格／名稱,v21.4 值,只加回 v2130.GOV_MAP_UPD 後的值（LibreOffice 重算）,說明
+Gov_Map,H92,SRC_HW_015,SRC_HW_098,判斷欄（v2130.GOV_MAP_UPD，GM088）
+Gov_Map,I92,Derived：MS BOM 7.8（零毛利下限；r3 I2）,Derived：Bernstein 7.52 取整 7.5（v21.3 起；SRC_HW_098）｜原：MS BOM 7.8（零毛利下限；r3 I2；SRC_HW_015）,判斷欄，原文保留
+Gov_Map,N92,v5.18 G4／I2：低 7.8＝MS BOM…,v21.3：低端改為 7.5＝Bernstein 2026-10 下修 7.52 取整（SRC_HW_098；…）｜原：v5.18 G4／I2…,判斷欄，原文保留
+Gov_Map,R92,7.8,7.52,公式 =連結 H92 的 SRC 值（來源值 7.52；Spec_Rack F11 輸入值 7.5 為取整，不改）
+Gov_Map,AF92,15,98,"公式 MATCH(H92, IDX_SrcID)：SRC_HW_015 → SRC_HW_098 的 SRC_Index 列位置"
+SRC_Index,A980,SRC_HW_015,SRC_HW_098,SRC_Index 該列的 ID 堆疊位置隨 H92 連動
+具名範圍 IDX_SrcID,SRC_Index!A5:A1588,（A980＝SRC_HW_015）,（A980＝SRC_HW_098）,"**具名範圍值改變**（1 格）：觸發工作單 W3 停止條件；GOV_Errors／Warnings／Info 不變（0／134／182）；其餘 1,820 個名稱不變"

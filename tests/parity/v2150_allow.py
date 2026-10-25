@@ -1,10 +1,10 @@
-"""v21.3＋v21.4 看守的「v21.2 → 現行版逐格差異」集合，供舊版逐格差異測試（*_diffs_only_expected_*）放寬用。
+"""v21.3＋v21.4＋v21.5 看守的「v21.2 → 現行版逐格差異」集合，供舊版逐格差異測試（*_diffs_only_expected_*）放寬用。
 
 只放寬到兩張工作單列明的格：docs/workorders/20261024_v21.3_機架價低端與Sol快取價.md 的 W1–W6，
 以及 docs/workorders/20261024_v21.4_token帳讀法與過時文字.md 的 W1–W6（v21.4 新增的格見 `exact` 內標註）；
 規則與 test_v2130／test_v2140 的逐格差異測試相同（那裡是權威，這裡重複驗證一次，寬於工作單即斷言失敗）。
 舊測試的做法：實際差異與預期清單兩邊都扣掉本集合（`strip`），其餘比較不變。
-（v21.4 起沿用 v213_cells 的函式名稱；內容已含 v21.4 的差異格。）
+（v21.4 起沿用 v213_cells 的函式名稱；內容已含 v21.4、v21.5 的差異格；v21.5：docs/workorders/20261025_v21.5_計價倍數新舊約與GM088.md 的 W1、W2、W4。）
 """
 import re
 from functools import lru_cache
@@ -36,10 +36,10 @@ def v213_cells() -> dict:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
     assert set(d) <= SHEETS, set(d) - SHEETS
     exact = {
-        "README": {"A1", "A73", "B5", "B73", "A74", "B74"}, "Spec_Rack": {"F11"}, "Cap_In": {"A47", "D7", "F47", "G7", "H335"}, "Alloc_In": {"G23"},
+        "README": {"A1", "A73", "B5", "B73", "A74", "B74", "A75", "B75"}, "Spec_Rack": {"F11"}, "Cap_In": {"A47", "D7", "F47", "G7", "H335"}, "Alloc_In": {"G23"},
         "L1": {f"I{r}" for r in range(128, 137)}, "Checks": {"D86"},
-        "Decisions": {f"{c}{r}" for r in (332, 333) for c in "ABCDEFGHIJ"},
-        "DB_Evidence": {f"{c}{r}" for r in (328, 329, 330) for c in "ABCDEFGHIJKLMNOPQR"},
+        "Decisions": {f"{c}{r}" for r in (332, 333, 334) for c in "ABCDEFGHIJ"},
+        "DB_Evidence": {f"{c}{r}" for r in (328, 329, 330, 331, 332) for c in "ABCDEFGHIJKLMNOPQR"},
         "SRC_Price": {"B10", "H10", "W10", "B12", "H12", "W12", "O11", "P11", "V11", "O53", "Q53", "V53", "W53", "R53", "V54"},
     }
     out = {}

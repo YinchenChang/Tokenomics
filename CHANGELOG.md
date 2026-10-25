@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261025_Tokenomics_v21.5.xlsx（取代 v21.4；**次版、只改文字與治理欄：計價倍數新舊約混合登錄（E407／E408）、Alloc_In G23 說明；Gov_Map GM088 補套用經試算觸發停止條件，本版保留現狀；所有契約名稱的值不變（版本字串除外），不升契約版本**；依工作單 `docs/workorders/20261025_v21.5_計價倍數新舊約與GM088.md` r0）
+
+- 分支 `claude/v21-5`（PR 與 SHA 見報告）。報告：`docs/reports/20261025_v21.5_計價倍數新舊約與GM088.md`；進度檔：`docs/reports/20261025_v21.5_進度.md`。**不合併**（chat 端跑完全套 parity 與獨立核對後合併）。
+- Excel（CC 以 `builder/v2150.py` 自 v21.4 產生，經 LibreOffice 重算存檔；冪等）：W1 `DB_Evidence` E407（出租方存量機隊每 GW 年營收 ÷ Tokenomics 持有成本 0.65–1.32，弱反對 `AL_SpendBasis` 1.8）、E408（2026 新約 1.36–2.30，支持 1.8 作為新增容量價；PR #170 L5、L6 記於說明欄末）；W2 `Alloc_In` G23 加 v21.5 段（C23:E23 不改）；W4 `Decisions` SL62-01、`README` B5 開頭與第 75 列。
+- W3（Gov_Map GM088，v21.4 報告 P1）：試加回 `v2130.GOV_MAP_UPD` 的實測變動為 Gov_Map H92／I92／N92／R92（7.8 → 7.52）／AF92（15 → 98）與 SRC_Index!A980（SRC_HW_015 → SRC_HW_098），其中 SRC_Index!A980 使具名範圍 `IDX_SrcID` 的值改變（1 格），觸發工作單停止條件；本版不套用（`builder/gov.py` 保持現狀，註解可還原），清單見 `docs/workorders/20261025_v21.5_預期變動.csv`，列待 Project 判斷。GOV 三項計數 0／134／182 不變。
+- 數值差異 0 格；全部具名範圍的值不變（除版本字串 `RNG_Version`／`RNG_Current`）。
+- 文件：下游契約 v0.27 不升版，首行「對應 Tokenomics」改 v21.5；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.5.json`；區間端點與時效指紋重產（只有版本字串變）。
+- 測試：新增 `tests/parity/test_v2150.py`；`v2140_allow.py` 改名 `v2150_allow.py` 並納入本單的差異格；舊測試的版本字串與列號期望值更新（見報告表 1）。
+
 ## 20261024_Tokenomics_v21.4.xlsx（取代 v21.3；**次版、只改文字：token 帳讀法改 GW 路線、過時文字更正、CoreWeave 計價錨點登錄；所有契約名稱的值不變（GOV_Warnings 135 → 134 除外），不升契約版本**；依工作單 `docs/workorders/20261024_v21.4_token帳讀法與過時文字.md` r1）
 
 - 分支 `claude/v21-4`（PR 與 SHA 見報告）。報告：`docs/reports/20261024_v21.4_token帳讀法與過時文字.md`；進度檔：`docs/reports/20261024_v21.4_進度.md`。**本單不開 PR、不合併。**

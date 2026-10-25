@@ -35803,18 +35803,17 @@ def inputs_update(wb):
 
 # ---------------------------------------------------------------- W2 text (original kept verbatim after 原：)
 TAIL = v2110.ROWS_5_9_TAIL      # the v21.0 conventional-value tail
-L5_NOTE = ("產出比 v21.7 依每 kW 峰值算力比 1.066（MI455X MXFP4 40.3 PF、TBP 2,500 W、Helios 245 kW；有原生 FP4，兩種精度口徑相同）"
+L5_NOTE = ("產出比 v21.7 依每 kW 峰值算力比 1.066（MI455X MXFP4 40.3 PF、TBP 2,500 W、Helios 245 kW；高端以 225 kW 計，每 kW 比 1.16；有原生 FP4，兩種精度口徑相同）"
            "× 效率 f 0.656／0.757／0.994（MLPerf v6.1 MI355X DeepSeek-R1 還原 × 轉換係數 t 0.891，Assumed）；"
            "持有比依 TK 買方取得價同口徑（每架 $5.25M 下界／$7.3M＝AMD 自述隱含比 0.865 × VR200／$10.5M＝Futurum 同源比值 1.25 × VR200；Assumed）；"
-           "每 token 成本比基準約 1.05（PR #174）")
+           "每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05；PR #174）")
 L7_ADD = ("v21.7：持有比基準 0.55 → 0.61，改用 KGI 同源比值（KGI 同報 VR200『超過 700 萬美元』、GB300 $3.9–4.0M，口徑較 TK 低約 9–20%；"
           "Trn3 每架約 $1.6–1.8M → 0.593–0.631 取中點；PR #174 §10）")
 L89_NOTE = "TPU v7、Trainium3（v21.6）、AMD（v21.7）已以每 kW 法重推；本列尚無機架功率與價格資料，維持慣例值。"
 A2_OLD = "持有成本比預設接近 1，依 Block 1 結論：每 GW 持有成本幾乎不隨世代改變"
 A2_NEW = "持有成本比：TPU、Trn3、AMD、昇騰、Maia 依每 kW 設備價推導（v21.1、v21.6、v21.7）；Cerebras、OpenAI 客製仍為慣例值（Block 1『接近 1』）"
 A368_OLD = "（第 379–382 列；持有比依每 kW 設備價推導，既有五列為慣例值）"
-A368_NEW = ("（第 379–382 列）；持有比依每 kW 設備價推導：昇騰、Maia（v21.1）、TPU、Trn3（v21.6）、AMD（v21.7）；Cerebras、OpenAI 客製為慣例值；"
-            "產出比：AMD、昇騰、Maia 已推導，TPU、Trn3 待精度口徑判斷")
+A368_NEW = ("（第 379–382 列）；持有比已推導：昇騰、Maia、TPU、Trn3、AMD，其餘為慣例值；產出比已推導：AMD、昇騰、Maia（TPU、Trn3 待精度口徑）")
 
 
 def text_fixes(wb):
@@ -35859,12 +35858,12 @@ def text_fixes(wb):
 _OLD_AMD = "NonNV 第 5 列 AMD MI455X 產出比 0.5／0.7／1.0、持有比 0.8／0.9／1.0（慣例值）；每 token 成本比基準 1.29"
 E410 = [
     "E410", DATE,
-    "NonNV C 段 AMD——產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用，v21.7 W1）；每 token 成本比基準約 1.05（現值 1.29）",
+    "NonNV C 段 AMD——產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用，v21.7 W1）；每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05；現值 1.29）",
     "AMD 規格與自述（MI455X、Helios）、CLSA、Futurum；SemiAnalysis 只作佐證；NonNV C 段查證 " + EVD + "（PR #174）",
     "Interested-party（AMD 規格與自述）＋Analogy（CLSA、Futurum；SemiAnalysis 只作佐證）",
     "NonNV B5:G5；Interface 第 369、374 列（IF_NonNV_Out_AMD／IF_NonNV_Hold_AMD）",
     _OLD_AMD,
-    "產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用）；每 token 成本比基準約 1.05",
+    "產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用）；每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05）",
     "採用（PR #174 Q4、Q5 預設，" + V + " W1）", V,
     "價格口徑：分析師絕對價與 TK 買方取得價不同口徑，持有比改用同口徑（每架 $5.25M 下界／$7.3M＝AMD 自述隱含比 0.865 × VR200／$10.5M＝Futurum 同源比值 1.25 × VR200）；"
     "替代：同源比值全區間 1.12／1.23／1.35、只換產出比（成本比約 1.13）、兩錨點 f（產出比 0.74）｜" + WO,

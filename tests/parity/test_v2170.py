@@ -110,7 +110,7 @@ def test_v2170_nonnv_rows(lo, wbf, pw):
     l5 = nn["L5"].value
     assert l5.startswith("MI355X 在 V4-Pro 上 26 天內吞吐提升 110 倍（S20 所屬部落格），軟體成熟度為主要不確定｜產出比 v21.7 依每 kW 峰值算力比 1.066")
     for key in ("MI455X MXFP4 40.3 PF、TBP 2,500 W、Helios 245 kW", "效率 f 0.656／0.757／0.994", "轉換係數 t 0.891，Assumed", "每架 $5.25M 下界／$7.3M＝AMD 自述隱含比 0.865 × VR200",
-                "$10.5M＝Futurum 同源比值 1.25 × VR200", "每 token 成本比基準約 1.05（PR #174）"):
+                "$10.5M＝Futurum 同源比值 1.25 × VR200", "每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05；PR #174）", "高端以 225 kW 計，每 kW 比 1.16"):
         assert key in l5, key
     assert l5.endswith("｜原：" + TAIL) and l5.count("｜原：") == 1
     # L7：v21.6 說明保留，後加 v21.7 句，原文尾句保留
@@ -125,7 +125,7 @@ def test_v2170_nonnv_rows(lo, wbf, pw):
     assert a2.startswith("每 GW 產出比與每 GW 持有成本比皆相對 VR200（同層級、同 SLO）。持有成本比：TPU、Trn3、AMD、昇騰、Maia 依每 kW 設備價推導（v21.1、v21.6、v21.7）；Cerebras、OpenAI 客製仍為慣例值（Block 1『接近 1』）")
     assert a2.endswith("｜原：" + A2_OLD) and a2.count("｜原：") == 1
     a368 = wbf["Interface"]["A368"].value
-    assert a368.startswith("P. 非 NVIDIA 比例（v21.0 R5；") and "（第 379–382 列）；持有比依每 kW 設備價推導：昇騰、Maia（v21.1）、TPU、Trn3（v21.6）、AMD（v21.7）；Cerebras、OpenAI 客製為慣例值；產出比：AMD、昇騰、Maia 已推導，TPU、Trn3 待精度口徑判斷" in a368
+    assert a368.startswith("P. 非 NVIDIA 比例（v21.0 R5；") and "（第 379–382 列）；持有比已推導：昇騰、Maia、TPU、Trn3、AMD，其餘為慣例值；產出比已推導：AMD、昇騰、Maia（TPU、Trn3 待精度口徑）" in a368
     assert a368.endswith("｜原：" + A368_OLD) and a368.count("｜原：") == 1
 
 
@@ -146,7 +146,7 @@ def test_v2170_evidence_decisions_readme(wbf):
     assert "docs/evidence/20261025_NonNV_AMD/" in ev.cell(r, 4).value and "PR #174" in ev.cell(r, 4).value
     assert ev.cell(r, 5).value == "Interested-party（AMD 規格與自述）＋Analogy（CLSA、Futurum；SemiAnalysis 只作佐證）"
     t = " ".join(str(ev.cell(r, c).value) for c in range(1, 19))
-    for key in ("產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用，v21.7 W1）", "每 token 成本比基準約 1.05（現值 1.29）", "分析師絕對價與 TK 買方取得價不同口徑",
+    for key in ("產出比 0.70／0.80／1.15、持有比 0.67／0.85／1.12（採用，v21.7 W1）", "每 token 成本比基準約 1.06（取整後輸入值 0.85／0.80；查證原始值 0.847／0.807＝1.05；現值 1.29）", "分析師絕對價與 TK 買方取得價不同口徑",
                 "同源比值全區間 1.12／1.23／1.35", "只換產出比（成本比約 1.13）", "兩錨點 f（產出比 0.74）"):
         assert key in t, key
     r2 = 335

@@ -14,12 +14,12 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2170_allow import NUM_DIFFS      # 工作單第 0 節清單（數值差異）；舊版逐格比較測試也用它扣除
+from v2170_allow import NUM_DIFFS, NUM_DIFFS_V2160      # 工作單第 0 節清單（數值差異）；舊版逐格比較測試也用它扣除
 
 REPO = Path(__file__).resolve().parents[2]
 V215 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.5.xlsx"
 VERSION_NAMES = {"RNG_Version", "RNG_Current"}
-CHANGED_NAMES = VERSION_NAMES | {"IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn"}
+CHANGED_NAMES = VERSION_NAMES | {"IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"}      # v21.7：AMD 產出比／持有比（test_v2170 看守）
 TAIL = "持有比為慣例值（Block 1『接近 1』），未推導；找到 TPU v7、Trainium3 機架功率後以每 kW 設備價法重推（Andy 2026-10-23 Q2）。"
 
 
@@ -79,25 +79,26 @@ def test_v2160_names_changed_only_expected(lo, pw, wbf):
     assert sorted(bad) == sorted(CHANGED_NAMES), bad
     assert set(wbf.defined_names) == set(pw.defined_names)      # 名稱沒有增減
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_TPU"))] == [0.65, 0.70, 0.90]
-    assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_Trn"))] == [0.45, 0.55, 0.70]
-    assert str(v.get_name("RNG_Version")).endswith("v21.6") and str(v.get_name("RNG_Current")).endswith("v21.6")
+    assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_Trn"))] == [0.45, 0.61, 0.70]      # v21.7：Trn3 持有比基準 0.55 → 0.61（test_v2170 看守）
+    assert str(v.get_name("RNG_Version")).endswith("v21.7") and str(v.get_name("RNG_Current")).endswith("v21.7")
 
 
 # ---------------------------------------------------------------- 2. W1 NonNV
 def test_v2160_nonnv_rows(lo, wbf, pw):
     nn = wbf["NonNV"]
     assert nn["A6"].value == "Google TPU v7 Ironwood" and nn["A7"].value == "AWS Trainium3"
-    assert [nn[f"{c}6"].value for c in "EFG"] == [0.65, 0.7, 0.9] and [nn[f"{c}7"].value for c in "EFG"] == [0.45, 0.55, 0.7]
+    assert [nn[f"{c}6"].value for c in "EFG"] == [0.65, 0.7, 0.9] and [nn[f"{c}7"].value for c in "EFG"] == [0.45, 0.61, 0.7]      # v21.7：F7 0.55 → 0.61
+
     assert [nn[f"{c}6"].value for c in "BCD"] == [0.6, 0.8, 1.1] and [nn[f"{c}7"].value for c in "BCD"] == [0.3, 0.5, 0.8]      # 產出比不改（待 PR #172 Q1）
     for r in (6, 7):
         assert (nn[f"H{r}"].value, nn[f"I{r}"].value, nn[f"J{r}"].value) == (f"=F{r}/C{r}", f"=E{r}/D{r}", f"=G{r}/B{r}") and nn[f"K{r}"].value == "Assumed"
     v = lo.view({})
     assert abs(v.get("NonNV", "H6") - 0.7 / 0.8) < 1e-12 and abs(v.get("NonNV", "I6") - 0.65 / 1.1) < 1e-12 and abs(v.get("NonNV", "J6") - 0.9 / 0.6) < 1e-12
-    assert abs(v.get("NonNV", "H7") - 0.55 / 0.5) < 1e-12 and abs(v.get("NonNV", "I7") - 0.45 / 0.8) < 1e-12 and abs(v.get("NonNV", "J7") - 0.7 / 0.3) < 1e-12
+    assert abs(v.get("NonNV", "H7") - 0.61 / 0.5) < 1e-12 and abs(v.get("NonNV", "I7") - 0.45 / 0.8) < 1e-12 and abs(v.get("NonNV", "J7") - 0.7 / 0.3) < 1e-12
     pn = pw["NonNV"]
     p5 = openpyxl.load_workbook(V215)["NonNV"]
-    for r in range(5, 12):      # 其他列（5、8–11）的值與 v21.5 相同
-        if r in (6, 7):
+    for r in range(5, 12):      # 其他列（8–11）的值與 v21.5 相同（v21.7：第 5 列 AMD 改，test_v2170 看守）
+        if r in (5, 6, 7):
             continue
         for c in "BCDEFGHIJ":
             assert _eq(pn[f"{c}{r}"].value, v.get("NonNV", f"{c}{r}")), (c, r)
@@ -107,16 +108,16 @@ def test_v2160_nonnv_rows(lo, wbf, pw):
         assert "產出比仍為慣例值，待精度口徑判斷（PR #172 Q1：各晶片最高原生精度時 TPU 0.25／0.35／0.40、Trn3 0.06／0.14／0.25；FP8 對齊時 TPU 0.48／0.66／0.84、Trn3 0.13／0.28／0.50）" in l
         assert l.endswith("｜原：" + TAIL) and l.count("｜原：") == 1      # 修訂九：原文逐字保留
     assert nn["L6"].value.startswith("自用為主，無公開同口徑實測｜") and nn["L7"].value.startswith("OpenAI v0.5 以 2GW Trainium 合約為輸入｜")
-    for r in (5, 8, 9):      # 其他列說明不動
-        assert nn[f"L{r}"].value == p5[f"L{r}"].value
+    for r in (5, 8, 9):      # v21.7：L5／L8／L9 說明更新（test_v2170 看守），v21.5 的原文逐字保留於「｜原：」之後
+        assert nn[f"L{r}"].value.startswith(p5[f"L{r}"].value[:-len(TAIL)].rstrip("｜")) and nn[f"L{r}"].value.endswith("｜原：" + TAIL)
 
 
 def test_v2160_interface_gov_mirrors(lo):
     v = lo.view({})
     got = {f"{c}{r}": v.get("Interface", f"{c}{r}") for r in (375, 376) for c in "CDE"}
-    assert got == {"C375": 0.65, "D375": 0.7, "E375": 0.9, "C376": 0.45, "D376": 0.55, "E376": 0.7}
+    assert got == {"C375": 0.65, "D375": 0.7, "E375": 0.9, "C376": 0.45, "D376": 0.61, "E376": 0.7}      # v21.7：D376 0.55 → 0.61
     gm = {c: v.get("Gov_Map", c) for c in ("K396", "L396", "Q396", "Q399", "Q400", "K402", "L402", "Q402", "Q405", "Q406")}
-    assert gm == {"K396": 0.65, "L396": 0.9, "Q396": 0.7, "Q399": 0.65, "Q400": 0.9, "K402": 0.45, "L402": 0.7, "Q402": 0.55, "Q405": 0.45, "Q406": 0.7}
+    assert gm == {"K396": 0.65, "L396": 0.9, "Q396": 0.7, "Q399": 0.65, "Q400": 0.9, "K402": 0.45, "L402": 0.7, "Q402": 0.61, "Q405": 0.45, "Q406": 0.7}
 
 
 # ---------------------------------------------------------------- 3. W2 記錄與文字
@@ -140,8 +141,8 @@ def test_v2160_evidence_decisions_readme(wbf):
         assert key in txt, key
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
-    assert b5.startswith("20261025_Tokenomics_v21.6（次版，底版 v21.5：") and "契約名稱的值改變的只有 IF_NonNV_Hold_TPU、IF_NonNV_Hold_Trn（各 3 格）與版本字串" in b5
-    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.6")
+    assert "以下為 v21.6（次版，底版 v21.5：" in b5 and "契約名稱的值改變的只有 IF_NonNV_Hold_TPU、IF_NonNV_Hold_Trn（各 3 格）與版本字串" in b5      # v21.7：v21.6 段在 v21.7 段之後（test_v2170 看守）
+    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.7")
     assert (REPO / "docs" / "workorders" / "20261025_v21.6_預期變動.csv").exists()
 
 
@@ -157,11 +158,12 @@ def test_v2160_gov_counts(lo):
 # ---------------------------------------------------------------- 5. 逐格比較 v21.5 → v21.6
 EXACT_CELLS = {
     "README": {"A1", "B5"}, "Alloc": {"C177"},
-    "NonNV": {"E6", "F6", "G6", "E7", "F7", "G7", "L6", "L7"},
-    "Decisions": {f"{c}335" for c in "ABCDEFGHIJ"},
-    "DB_Evidence": {f"{c}333" for c in "ABCDEFGHIJKLMNOPQR"},
+    "NonNV": {"E6", "F6", "G6", "E7", "F7", "G7", "L6", "L7"} | {f"{c}5" for c in "BCDEFG"} | {"L5", "L8", "L9", "A2"},      # v21.7 W1／W2（test_v2170 看守）
+    "Interface": {"A368"},      # v21.7 W2
+    "Decisions": {f"{c}{r}" for r in (335, 336) for c in "ABCDEFGHIJ"},      # v21.7：SL64-01（第 336 列）
+    "DB_Evidence": {f"{c}{r}" for r in (333, 334, 335) for c in "ABCDEFGHIJKLMNOPQR"},      # v21.7：E410／E411（第 334、335 列）
 }
-TEXT_MIRRORS = {("Gov_Map", f"N{r}") for r in range(395, 407)}      # NonNV L6／L7 說明的鏡像（Gov_Map N 欄公式 =NonNV!$L$6／$L$7，文字隨 W1 改寫）
+TEXT_MIRRORS = {("Gov_Map", f"N{r}") for r in range(389, 419)}      # NonNV L6／L7 說明的鏡像（Gov_Map N 欄公式 =NonNV!$L$6／$L$7，文字隨 W1 改寫）
 
 
 def test_v2160_cell_diffs_only_expected():
@@ -192,4 +194,4 @@ def test_v2160_cell_diffs_only_expected():
     # 預期變動 CSV 列出全部數值差異格
     rows = list(csv.reader(open(REPO / "docs" / "workorders" / "20261025_v21.6_預期變動.csv", encoding="utf-8-sig")))
     listed = {(r[0], r[1]) for r in rows[1:]}
-    assert NUM_DIFFS <= listed, sorted(NUM_DIFFS - listed)
+    assert NUM_DIFFS_V2160 <= listed, sorted(NUM_DIFFS_V2160 - listed)      # v21.7 的格由 test_v2170 與其 CSV 看守

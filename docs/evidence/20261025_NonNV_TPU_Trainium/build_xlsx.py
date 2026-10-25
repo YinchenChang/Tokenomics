@@ -131,8 +131,8 @@ add("C3", "每 pod 晶片數", "顆", same(9216), "T01", "Verified（官方）",
 add("C4", "每顆所攤 pod 功率", "kW", ["={C2}*1000/{C3}"] * 3, "Derived", "Derived", "基準 1.085；旁證 T04（100 萬顆↔超過 1 GW）")
 add("C5", "每 kW 峰值算力", "PF/kW", ["={C1}/{C4}"] * 3, "Derived", "Derived", "", fmt="0.000")
 add("C6", "÷ VR200 每 kW 峰值算力", "—", ["={C5}/{A5}"] * 3, "Derived", "Derived", "", fmt="0.0000")
-add("C7", "有效效率因子 f（TPU）", "—", ["={B_H_f@E}", f"=AVERAGE({ref('B_G2_f','E')},{ref('B_G3_f','E')})", "={B_G2_f@E}"],
-    "低＝Hopper 還原值；基準＝GB200／GB300 還原值平均（T05：InferenceX FP8 實測每顆 9,364 vs B200 8,903 tok/s，峰值 4.61 vs 4.5 PF，每 FLOP 效率與 Blackwell 同級）；高＝GB200 還原值", "Derived（第三方實測錨定）／Analogy", "")
+add("C7", "有效效率因子 f（TPU）", "—", ["={B_H_f@E}", f"=AVERAGE({ref('B_H_f','E')},AVERAGE({ref('B_G2_f','E')},{ref('B_G3_f','E')}))", "={B_G2_f@E}"],
+    "低＝Hopper 還原值 0.744；基準＝Hopper 還原值與 GB200／GB300 還原值平均（0.97）的中間（r1，Project 決定方案 (a)）；高＝GB200 還原值 1.04，以 T05 InferenceX 佐證（單一來源 SemiAnalysis，依規則只作佐證，不單獨作依據）", "Assumed（區間）", "r1：原基準 0.97 實質只靠 InferenceX，已改")
 add("C8", "方法一：產出比 ＝ C6 × C7", "—", ["={C6}*{C7}"] * 3, "Derived", "Derived", "", fmt="0.0000")
 add("C9", "TPU v7 實測吞吐（20 tok/s/user，FP8）", "tok/s/chip", same(9364), "T05", "第三方實測（SemiAnalysis InferenceX）", "")
 add("C10", "B200 同條件實測吞吐（FP8）", "tok/s/GPU", same(8903), "T05", "第三方實測", "HGX B200；模型 GB200 為 NVL72，以此近似")
@@ -140,8 +140,8 @@ add("C11", "TPU ÷ B200 每顆 FP8 實測比", "—", ["={C9}/{C10}"] * 3, "Deri
 add("C12", "GB200 VR-eq 三層平均（模型，NVFP4）", "—", ["={B_G2_vm@E}"] * 3, "模型", "Derived", "")
 add("C13", "GB200 每顆所攤功率（模型）", "kW", ["={B_G2_kwg@E}"] * 3, "模型", "Derived", "")
 add("C14", "B200 由 FP8 改 NVFP4 的實際吞吐倍數 u", "x", [2.0, 1.75, 1.5], "低端產出（u＝2.0）＝TK 引擎的算力綁定假設（GB200 峰值 FP4 為 FP8 的 2 倍）；基準 1.75、高端 1.5＝實務上 FP4 增益常低於 2 倍（Assumed）", "Assumed（區間）", "u 越大，TPU（只能 FP8）相對越吃虧")
-add("C15", "方法二（實測錨定）：產出比 ＝ C12 ×（C13 ÷ C4）× C11 ÷ C14", "—", ["={C12}*({C13}/{C4})*{C11}/{C14}"] * 3, "Derived", "Derived", "與方法一共用每顆功率 C4，但效率改由第三方實測錨定，非同源於模型 Hopper", fmt="0.0000")
-add("C16", "TPU v7 每 GW 產出比（原始）", "—", [f"=MIN({ref('C8','D')},{ref('C15','D')})", f"=AVERAGE({ref('C8','E')},{ref('C15','E')})", f"=MAX({ref('C8','F')},{ref('C15','F')})"], "Derived", "Derived（含 Assumed）", "低＝兩法低端取小；基準＝兩法平均；高＝兩法高端取大（同 A 段昇騰）", fmt="0.0000")
+add("C15", "方法二（實測錨定）：產出比 ＝ C12 ×（C13 ÷ C4）× C11 ÷ C14", "—", ["={C12}*({C13}/{C4})*{C11}/{C14}"] * 3, "Derived", "對照（不進建議值）", "r1：效率全靠 T05 InferenceX（單一來源），依規則降為對照、不進平均；與方法一共用每顆功率 C4", fmt="0.0000")
+add("C16", "TPU v7 每 GW 產出比（原始）", "—", ["={C8}"] * 3, "Derived", "Derived（含 Assumed）", "r1：只取方法一；方法二（C15）為對照，基準 0.52 高於本列，表示本列可能偏保守", fmt="0.0000")
 add("C17", "每顆取得價（含機架）", "$K", [21, 25, 35], "低 T07（Broadcom $21B 訂單 ÷ 約 1 GW≈100 萬顆）；基準 T06（SemiAnalysis：$10B≈40 萬顆成品機架）；高 T08（$35B 融資 ÷ 1 GW，可能含網路與融資費用）", "Interested-party／第三方估計（區間）", "Google 自用也向 Broadcom 購買，Broadcom 毛利已含在內")
 add("C18", "每 GW 顆數（以基準功率）", "顆", [f"={{A7}}*1000/$E${R['C4']}"] * 3, "Derived", "Derived", "VR200 為 291,744")
 add("C19", "每 GW IT 設備資本支出", "$B", ["={C18}*{C17}/1000000*{A10}"] * 3, "Derived", "Derived", "乘 VR200 同一網路加成（高端可能重複計算，見 C17）")
@@ -153,9 +153,13 @@ add("C23", "交叉：SemiAnalysis TCO/chip-hr（內部 $1.03／—／外部 $1.6
 # ---- D. Trainium3
 sec("D. AWS Trainium3（Teton3 Max 液冷機架，72 顆；UltraServer＝2 架 144 顆）")
 add("D1", "每顆 FP8 dense 峰值（MXFP4 同速）", "PF", same(2.517), "T09", "Interested-party（AWS）", "FP4 無額外算力，故以 FP8 值為最高原生精度")
-add("D2", "晶片 TDP", "kW", [1.0, 0.85, 0.70], "低端產出 1.0＝AWS 副總裁 2024『likely 1kW』（T11）；高端 0.70＝KGI 2026-07（T10）；基準 0.85＝中點（Assumed）", "Interested-party／賣方研究（區間）", "Naddod 500 W（T12）品質低、與兩來源不符，不採用")
+add("D2", "晶片 TDP", "kW", [1.0, 0.85, 0.70], "低端產出 1.0＝DCD 依 AWS 副總裁液冷說法（『晶片超過 1,000 W 才需液冷』）推論約 1 kW（T11；副總裁未給瓦數）；高端 0.70＝KGI 2026-07（T10）；基準 0.85＝中點（Assumed）", "Derived／二手（1.0）；賣方研究（0.70）", "旁證：AWS 另有氣冷 Teton3 PDS 32 顆版，晶片功率不會遠超 1 kW。Naddod 500 W（T12）品質低、與兩來源不符，不採用")
 add("D3", "每機架晶片數", "顆", same(72), "T10（18 托盤×4）", "Verified（供應鏈）／Interested-party", "")
-add("D4", "機架功率 ＝ D2 × D3 × A23", "kW", ["={D2}*{D3}*{A23}"] * 3, "Derived（Analogy：VR200 機架÷晶片倍數）", "Derived／Assumed", "88／107／126 kW；上限旁證：電源 3 層×6×8.5＝153 kW（5+1 約 127.5），500 kW 電源櫃供兩架（T10）")
+add("D3a", "TK 機架÷晶片倍數：GB200（132 kW ÷ 72×1.2 kW）", "x", same("=132/(72*1.2)"), "Spec_Rack!D9、D6、D33", "Derived（模型）", "")
+add("D3b", "TK 機架÷晶片倍數：GB300（136 ÷ 72×1.4）", "x", same("=136/(72*1.4)"), "Spec_Rack!E9、E6、E33", "Derived（模型）", "")
+add("D3c", "TK 機架÷晶片倍數：VR200 Max-Q（188 ÷ 72×1.8）", "x", same("=188/(72*1.8)"), "Spec_Rack!F8、F6、F33", "Derived（模型）", "")
+add("D3r", "Trn3 機架÷晶片倍數（採用）", "x", ["={A23}", f"=AVERAGE({ref('D3a','E')},{ref('D3b','E')},{ref('D3c','E')},{ref('A23','E')})", "={D3b}"], "低端產出＝VR200 Max-P 1.75；基準＝TK 四值平均；高端產出＝GB300 1.35", "Analogy（區間）", "r1：原為單值 1.75。Trn3 機架另含 18 CPU、20 交換晶片（T10），倍數落在 TK 各世代區間內的假設")
+add("D4", "機架功率 ＝ D2 × D3 × D3r", "kW", ["={D2}*{D3}*{D3r}"] * 3, "Derived（Analogy：TK 機架÷晶片倍數）", "Derived／Assumed", "上限旁證：電源 3 層×6×8.5＝153 kW（5+1 約 127.5），500 kW 電源櫃供兩架（T10）")
 add("D5", "每顆所攤機架功率", "kW", ["={D4}/{D3}"] * 3, "Derived", "Derived", "")
 add("D6", "每 kW 峰值算力", "PF/kW", ["={D1}/{D5}"] * 3, "Derived", "Derived", "", fmt="0.000")
 add("D7", "÷ VR200 每 kW 峰值算力", "—", ["={D6}/{A5}"] * 3, "Derived", "Derived", "", fmt="0.0000")
@@ -172,18 +176,19 @@ add("D17", "交叉：Trn3 每 FP8 PF 資本支出 ÷ GB300", "—", [f"=({{D12}}
 
 # ---- E. 精度對齊旁證
 sec("E. 精度對齊旁證（不進建議值）：若 VR200 也只以 FP8 服務")
-add("E1", "TPU v7 方法一，VR200 改 FP8（比值 × A1÷A21）", "—", [f"={{C8}}*{ref('A1','E')}/{ref('A21','E')}"] * 3, "Derived", "Derived", "f 仍取 C7；嚴格而言 f 須用 FP8 口徑重新還原（Hopper 會減半），此列只示意量級", fmt="0.0000")
+add("E1", "TPU v7 方法一，VR200 改 FP8（比值 × A1÷A21）", "—", [f"={{C8}}*{ref('A1','E')}/{ref('A21','E')}"] * 3, "Derived", "Derived", "只用方法一（與 C16 一致）；f 仍取 C7；嚴格而言 f 須用 FP8 口徑重新還原（Hopper 會減半），此列只示意量級", fmt="0.0000")
 add("E2", "Trainium3，VR200 改 FP8", "—", [f"={{D9}}*{ref('A1','E')}/{ref('A21','E')}"] * 3, "Derived", "Derived", "同上", fmt="0.0000")
 
 # ---- F. 敏感度
 sec("F. 敏感度（一次動一個參數，其餘取基準；D＝參數低值對應結果，F＝高值）")
 add("F1", "TPU：方法一，f 取 低/基準/高", "產出比", [f"={ref('C6','E')}*{ref('C7','D')}", f"={ref('C8','E')}", f"={ref('C6','E')}*{ref('C7','F')}"], "Derived", "Derived", "", fmt="0.0000")
 add("F2", "TPU：方法一，每顆功率 1.5625（冷卻上限 100 kW÷64）／1.085／0.99（若 10 MW 含 PUE 1.1）", "產出比", [f"={ref('C1','E')}/1.5625/{ref('A5','E')}*{ref('C7','E')}", f"={ref('C8','E')}", f"={ref('C1','E')}/(10000/1.1/9216)/{ref('A5','E')}*{ref('C7','E')}"], "T03／T02", "Derived", "", fmt="0.0000")
-add("F3", "TPU：方法二，u＝2.0／1.75／1.5", "產出比", [f"={ref('C12','E')}*({ref('C13','E')}/{ref('C4','E')})*{ref('C11','E')}/{ref('C14','D')}", f"={ref('C15','E')}", f"={ref('C12','E')}*({ref('C13','E')}/{ref('C4','E')})*{ref('C11','E')}/{ref('C14','F')}"], "Derived", "Derived", "", fmt="0.0000")
+add("F3", "TPU：方法二（對照），u＝2.0／1.75／1.5", "產出比", [f"={ref('C12','E')}*({ref('C13','E')}/{ref('C4','E')})*{ref('C11','E')}/{ref('C14','D')}", f"={ref('C15','E')}", f"={ref('C12','E')}*({ref('C13','E')}/{ref('C4','E')})*{ref('C11','E')}/{ref('C14','F')}"], "Derived", "Derived", "", fmt="0.0000")
 add("F4", "TPU：持有比，每顆功率 1.30／1.085／1.03 kW（價格取基準）", "持有比", [f"=1-{ref('A20','E')}*(1-({ref('A7','E')}*1000/{ref('C4','D')}*{ref('C17','E')}/1E6*{ref('A10','E')})/{ref('A9','E')})", f"={ref('C21','E')}", f"=1-{ref('A20','E')}*(1-({ref('A7','E')}*1000/{ref('C4','F')}*{ref('C17','E')}/1E6*{ref('A10','E')})/{ref('A9','E')})"], "Derived", "Derived", "功率↑→每 GW 顆數↓→資本支出↓", fmt="0.0000")
 add("F5", "Trn3：f 0.50／0.80／1.04", "產出比", [f"={ref('D7','E')}*{ref('D8','D')}", f"={ref('D9','E')}", f"={ref('D7','E')}*{ref('D8','F')}"], "Derived", "Derived", "", fmt="0.0000")
 add("F6", "Trn3：晶片 TDP 1.0／0.85／0.70 kW", "產出比", [f"={ref('D7','D')}*{ref('D8','E')}", f"={ref('D9','E')}", f"={ref('D7','F')}*{ref('D8','E')}"], "Derived", "Derived", "", fmt="0.0000")
 add("F7", "Trn3：機架功率改用電源裝置 127.5 kW（5+1）", "產出比", [f"={ref('D1','E')}/(127.5/72)/{ref('A5','E')}*{ref('D8','E')}", f"={ref('D9','E')}", f"={ref('D9','E')}"], "T10", "Derived", "只有 D 欄有意義", fmt="0.0000")
+add("F9", "Trn3：機架倍數 1.75／基準／1.35（TDP 取基準）", "產出比", [f"={ref('D1','E')}/({ref('D2','E')}*{ref('D3r','D')})/{ref('A5','E')}*{ref('D8','E')}", f"={ref('D9','E')}", f"={ref('D1','E')}/({ref('D2','E')}*{ref('D3r','F')})/{ref('A5','E')}*{ref('D8','E')}"], "Derived", "Derived", "r1 新增", fmt="0.0000")
 add("F8", "Trn3：持有比，晶片 TDP 1.0／0.85／0.70 kW（價格取基準）", "持有比", [f"=1-{ref('A20','E')}*(1-({ref('A7','E')}*1000/{ref('D4','D')}*{ref('D10','E')}/1000*{ref('A10','E')})/{ref('A9','E')})", f"={ref('D14','E')}", f"=1-{ref('A20','E')}*(1-({ref('A7','E')}*1000/{ref('D4','F')}*{ref('D10','E')}/1000*{ref('A10','E')})/{ref('A9','E')})"], "Derived", "Derived", "", fmt="0.0000")
 
 for col, w in zip("ABCDEFGHI", [8, 56, 10, 12, 12, 12, 50, 28, 60]):
@@ -230,10 +235,10 @@ sv["A7"] = "建議輸入值（若寫入 NonNV 第 6、7 列）"
 sv["A7"].font = BOLD
 sv["A8"] = "Google TPU v7 Ironwood"
 sv["A9"] = "AWS Trainium3"
-inp = {8: (0.25, 0.45, 0.65, 0.65, 0.70, 0.90), 9: (0.06, 0.12, 0.19, 0.40, 0.50, 0.65)}
+inp = {8: (0.25, 0.35, 0.40, 0.65, 0.70, 0.90), 9: (0.06, 0.14, 0.25, 0.45, 0.55, 0.70)}
 note = {
-    8: "每 kW 法：pod 9,216 顆約 10 MW（Google）→ 每顆 1.085 kW；FP8 4.61 PF、無 FP4，每 kW 峰值約 VR200 的 0.38；效率以 InferenceX FP8 實測（每 FLOP 與 B200 同級）錨定。持有比依每顆 $21–35K（Broadcom 訂單／SemiAnalysis／融資額）推導。證據：docs/evidence/20261025_NonNV_TPU_Trainium。",
-    9: "每 kW 法：晶片 TDP 0.7–1.0 kW（KGI／AWS 主管）× 72 顆 × 機架倍數 1.75 → 機架約 88–126 kW；FP8＝MXFP4 2.52 PF，每 kW 峰值約 VR200 的 0.15；無第三方實測，效率因子 Assumed。持有比依 T3 Max 機架 $1.0–2.2M（KGI）推導。",
+    8: "每 kW 法：pod 9,216 顆約 10 MW（Google）→ 每顆 1.085 kW；FP8 4.61 PF、無 FP4，每 kW 峰值約 VR200 的 0.38；效率因子 Assumed（Hopper 與 Blackwell 還原值之間；InferenceX FP8 實測只作高端佐證）。持有比依每顆 $21–35K（Broadcom 訂單／SemiAnalysis／融資額）推導。證據：docs/evidence/20261025_NonNV_TPU_Trainium。",
+    9: "每 kW 法：晶片 TDP 0.7–1.0 kW（KGI／DCD 依 AWS 副總裁液冷說法推論）× 72 顆 × TK 機架倍數 1.35–1.75 → 機架約 68–126 kW；FP8＝MXFP4 2.52 PF，每 kW 峰值約 VR200 的 0.18；無第三方實測，效率因子 Assumed。持有比依 T3 Max 機架 $1.0–2.2M（KGI）推導。",
 }
 for r in (8, 9):
     for j, v in enumerate(inp[r]):

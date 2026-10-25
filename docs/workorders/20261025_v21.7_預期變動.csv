@@ -1,0 +1,41 @@
+﻿工作表,儲存格／名稱,v21.6 值,v21.7 值（LibreOffice 重算）,說明
+Gov_Map,K389,0.5,0.7,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,L389,1,1.15,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q389,0.7,0.8,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,K390,0.8,0.67,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,L390,1,1.12,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q390,0.9,0.85,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q391,0.5,0.7,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q392,1,1.15,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q393,0.8,0.67,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q394,1,1.12,Gov_Map 鏡像格（=NonNV 對應格）
+Gov_Map,Q402,0.55,0.61,Gov_Map 鏡像格（=NonNV 對應格）
+Interface,C369,0.5,0.7,Interface 契約名稱格
+Interface,D369,0.7,0.8,Interface 契約名稱格
+Interface,E369,1,1.15,Interface 契約名稱格
+Interface,C374,0.8,0.67,Interface 契約名稱格
+Interface,D374,0.9,0.85,Interface 契約名稱格
+Interface,E374,1,1.12,Interface 契約名稱格
+Interface,D376,0.55,0.61,Interface 契約名稱格
+NonNV,B5,0.5,0.7,W1 輸入（藍字格）
+NonNV,C5,0.7,0.8,W1 輸入（藍字格）
+NonNV,D5,1,1.15,W1 輸入（藍字格）
+NonNV,E5,0.8,0.67,W1 輸入（藍字格）
+NonNV,F5,0.9,0.85,W1 輸入（藍字格）
+NonNV,G5,1,1.12,W1 輸入（藍字格）
+NonNV,H5,1.285714286,1.0625,公式格（隨輸入）
+NonNV,I5,0.8,0.5826086957,公式格（隨輸入）
+NonNV,J5,2,1.6,公式格（隨輸入）
+NonNV,F7,0.55,0.61,W1 輸入（藍字格）
+NonNV,H7,1.1,1.22,公式格（隨輸入）
+NonNV,L5、L7、L8、L9、A2,（說明文字）,（說明文字；原文逐字保留於「｜原：」之後）,W2 說明更新（L7 在 v21.6 說明後加 v21.7 句）
+Interface,A368,（標題文字）,（標題文字；原文逐字保留於「｜原：」之後）,W2 說明更新
+Gov_Map,N389:N394、N401:N418,（NonNV L5／L7／L8／L9 說明文字）,（同 NonNV 新文字）,Gov_Map N 欄公式 =NonNV!$L$5／$L$7／$L$8／$L$9 的鏡像，文字隨 W2
+DB_Evidence,第 334、335 列 A:R,（無）,E410、E411,W3 新增
+Decisions,第 336 列 A:J,（無）,SL64-01,W3 新增
+README,A1、B5,v21.6,v21.7,版本字串與 B5 開頭 v21.7 段
+Alloc,C177（C178 為公式）,20261025_Tokenomics_v21.6,20261025_Tokenomics_v21.7,版本字串（具名範圍 RNG_Version、RNG_Current）
+具名範圍 IF_NonNV_Out_AMD,Interface!$C$369:$E$369,0.5／0.7／1,0.7／0.8／1.15,契約名稱值改變（3 格）
+具名範圍 IF_NonNV_Hold_AMD,Interface!$C$374:$E$374,0.8／0.9／1,0.67／0.85／1.12,契約名稱值改變（3 格）
+具名範圍 IF_NonNV_Hold_Trn,Interface!$C$376:$E$376,0.45／0.55／0.7,0.45／0.61／0.7,契約名稱值改變（基準 1 格）
+具名範圍 RNG_Version／RNG_Current,Alloc!$C$177／$C$178,20261025_Tokenomics_v21.6,20261025_Tokenomics_v21.7,版本字串

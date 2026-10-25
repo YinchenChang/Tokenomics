@@ -15,7 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2160_allow import NUM_DIFFS as V2160_NUM      # v21.6：NonNV 持有比的數值差異清單（test_v2160 看守）
+from v2170_allow import NUM_DIFFS as V2160_NUM      # v21.6：NonNV 持有比的數值差異清單（test_v2160 看守）
 
 REPO = Path(__file__).resolve().parents[2]
 V213 = REPO / "model" / "archive" / "20261024_Tokenomics_v21.3.xlsx"

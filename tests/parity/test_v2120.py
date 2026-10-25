@@ -17,7 +17,7 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動（test_v2130 看守）
-from v2160_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2170_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 
 REPO = Path(__file__).resolve().parents[2]
 V211 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.1.xlsx"

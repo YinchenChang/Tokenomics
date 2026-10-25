@@ -135,6 +135,12 @@ for k, (sw, nm, el) in enumerate(top, 1):
     if o[0] != nm or abs(o[1] - sw) > 1e-9:
         fails.append(f'1_總覽 前 8 名第 {k} 項 {o} ≠ 5_敏感度 {nm} {sw}')
 
+# (f) 說明句數字檢查（v21.4）：盤點表 text_inventory_m.csv
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from text_check import check_text_numbers
+n_cur, n_inv = check_text_numbers(RF, W, Path(__file__).resolve().parent / 'text_inventory_m.csv', fails)
+print(f'說明句數字檢查：盤點 {n_inv} 格，其中現行值（須為公式）{n_cur} 格')
+
 # (d) 錯誤值
 for wsx in W.worksheets:
     for row in wsx.iter_rows():

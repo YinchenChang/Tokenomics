@@ -151,6 +151,8 @@ for k, nm, a, g2, g3, v in bench:
             [f"={ref('B_V_f','E')}*({{M_{k}_a}}/{ref('M_pk','E')})/({{M_{k}_v}}/{ref('A1','E')})"] * 3, "Derived", "Derived（MLPerf Preview）", "VR200 為 Preview；TK 的 GB300÷VR200 每顆 0.38、MLPerf 0.51，故此錨點偏高（M06）", fmt="0.000")
 add("M_DSavg", "DeepSeek-R1 三錨點平均 f（MI355X）", "—",
     [f"=AVERAGE({ref('M_DS_f2','E')},{ref('M_DS_f3','E')},{ref('M_DS_fv','E')})"] * 3, "Derived", "Derived（MLPerf）", "最像 TK 前沿負載（大型 MoE 推理）", fmt="0.000")
+add("M_G23avg", "DeepSeek-R1 只用 GB200、GB300 兩錨點平均 f（MI355X）", "—",
+    [f"=AVERAGE({ref('M_DS_f2','E')},{ref('M_DS_f3','E')})"] * 3, "Derived", "Derived（MLPerf）", "r1：排除已知偏高的 VR200 Preview 錨點（Q3 替代）", fmt="0.000")
 add("M_ALLavg", "全部九個還原值平均 f（MI355X）", "—",
     [f"=AVERAGE({','.join(ref(f'M_{k}_{s}','E') for k,_,_,_,_,v in bench for s in (['f2','f3','fv'] if v else ['f2','f3']))})"] * 3, "Derived", "Derived（MLPerf）", "含較小模型（gpt-oss、Llama2-70b），只作敏感度", fmt="0.000")
 add("M_rg", "MI355X ridge point", "FLOP/byte", ["={M_pk}*1000/{M_bw}"] * 3, "Derived", "Derived", "1,258")
@@ -181,15 +183,18 @@ add("C8", "(a) MI455X 每 GW 產出比（原始）＝ C6r × C7", "—", ["={C6r
 
 # ---- D. 持有比
 sec("D. 持有成本比（每 kW 設備價推導，同 A、B 段）")
-add("D2", "Helios 每架取得價", "$M", [5.0, 5.25, 8.4], "低 M10（CLSA $5.0M）；基準 M09（Futurum $5.0–5.5M 中點）；高＝TK VR200 同價（涵蓋 AMD tokens/$ 隱含 D9 的 $7.1–7.4M 與口徑不明）", "第三方估計／Assumed（區間）", "Futurum 同源 Rubin 價 $3.5–4M 與 TK $8.4M 口徑不同，見 D7 與 Q4")
+add("D7a", "Futurum 同源比值 Helios ÷ Rubin（5.0/4.0、5.25/3.75、5.5/3.5）", "x", ["=5/4", "=5.25/3.75", "=5.5/3.5"], "M09", "第三方估計", "同一來源相除，口徑差抵銷")
+add("D9", "AMD 自述隱含 Helios ÷ VR200 每架價（每顆 +10%／+12.5%／+15% ÷ 每美元 +30%）", "x", ["=1.10/1.30", "=1.125/1.30", "=1.15/1.30"], "M07", "Interested-party（AMD）", "AMD 假設的 VR200 價未揭露；比值乘 TK $8.4M", fmt="0.000")
+add("D1abs", "分析師絕對價（CLSA $5.0M／Futurum 中點 $5.25M／Futurum 上緣 $5.5M）", "$M", [5.0, 5.25, 5.5], "M10、M09", "第三方估計", "r1：與 TK $8.4M（買方取得價，MS BOM×1.075）口徑不同；Futurum 同源 Rubin 只 $3.5–4M（TK 口徑的 0.42–0.48）")
+add("D2", "Helios 每架取得價（TK 買方取得價口徑）", "$M", ["={D1abs@E}", f"={ref('D9','E')}*{ref('A8','E')}", f"={ref('D7a','D')}*{ref('A8','E')}"], "低＝Futurum 絕對價 $5.25M（口徑混用、下界）；基準＝AMD 自述隱含比 0.865 × TK $8.4M；高＝Futurum 同源比值 1.25 × TK $8.4M", "Interested-party／第三方估計（區間）", "r1（Project 決定）：r0 為 $5.0／5.25／8.4M（絕對價 ÷ TK 價，口徑混用）")
 add("D3", "每 GW 機架數（以基準功率）", "架", [f"={{A7}}*1000/$E${R['C4']}"] * 3, "Derived", "Derived", "VR200 為 4,052")
 add("D4", "每 GW IT 設備資本支出", "$B", ["={D3}*{D2}/1000*{A10}"] * 3, "Derived", "Derived", "乘 VR200 同一網路加成")
 add("D5", "k ＝ ÷ VR200 每 GW IT 資本支出", "—", ["={D4}/{A9}"] * 3, "Derived", "Derived", "", fmt="0.000")
 add("D6", "MI455X 每 GW 持有成本比（原始）", "—", ["=1-{A20}*(1-{D5})"] * 3, "Derived", "Derived（含 Assumed）", "", fmt="0.0000")
-add("D7a", "替代：Futurum 同源比值 Helios ÷ Rubin（5.0/4.0、5.25/3.75、5.5/3.5）", "x", ["=5/4", "=5.25/3.75", "=5.5/3.5"], "M09", "第三方估計", "")
-add("D7", "替代：同源比值 × TK VR200 $8.4M → 持有比", "—", [f"=1-{ref('A20','E')}*(1-{ref('D3','E')}*{{D7a}}*{ref('A8','E')}/1000*{ref('A10','E')}/{ref('A9','E')})"] * 3, "Derived", "Derived", "不進建議值（Q4 替代 a）", fmt="0.0000")
-add("D9", "交叉：AMD 自述隱含 Helios ÷ VR200 每架價（每顆 +10–15% ÷ 每美元 +30%）", "x", ["=1.10/1.30", "=1.125/1.30", "=1.15/1.30"], "M07", "Interested-party（AMD）", "AMD 假設的 VR200 價未揭露；乘 TK $8.4M ＝ $7.1–7.4M", fmt="0.000")
-add("D10", "交叉：以 D9 × $8.4M 為價 → 持有比", "—", [f"=1-{ref('A20','E')}*(1-{ref('D3','E')}*{{D9}}*{ref('A8','E')}/1000*{ref('A10','E')}/{ref('A9','E')})"] * 3, "Derived", "Derived", "不進建議值（Q4 替代 b）", fmt="0.0000")
+add("D7", "替代：Futurum 同源比值全區間 × TK $8.4M → 持有比", "—", [f"=1-{ref('A20','E')}*(1-{ref('D3','E')}*{{D7a}}*{ref('A8','E')}/1000*{ref('A10','E')}/{ref('A9','E')})"] * 3, "Derived", "Derived", "不進建議值（Q4 替代）", fmt="0.0000")
+add("D10", "替代：AMD 自述隱含比全區間 × $8.4M → 持有比", "—", [f"=1-{ref('A20','E')}*(1-{ref('D3','E')}*{{D9}}*{ref('A8','E')}/1000*{ref('A10','E')}/{ref('A9','E')})"] * 3, "Derived", "Derived", "不進建議值", fmt="0.0000")
+add("D11", "對照：r0 口徑——分析師絕對價 ÷ TK 價 → 持有比", "—", [f"=1-{ref('A20','E')}*(1-{ref('D3','E')}*{{D1abs}}/1000*{ref('A10','E')}/{ref('A9','E')})"] * 3, "Derived", "Derived", "口徑混用，只作下界對照（Q4 替代）", fmt="0.0000")
+add("D12", "旁證：Helios ÷ VR200 每架 HBM 容量", "x", same("=31/20.7"), "StorageReview（31 TB vs 20.7 TB）；Spec_Rack!F14、F16（VR200 BOM 以記憶體為最大項，自購記憶體 $6.7M）", "Derived", "反向證據：HBM 多 50%，BOM 推理不支持 Helios 明顯較便宜", fmt="0.00")
 
 # ---- E. FP8 對齊
 sec("E. 精度口徑 (b)：FP8 對齊（VR200 也以 FP8 計）")
@@ -203,8 +208,9 @@ add("F1", "f 取 低／基準／高（功率取基準 245）", "產出比", [f"=
 add("F2", "機架功率 245／235／225（f 取基準）", "產出比", [f"={ref('C1','E')}/(245/72)/{ref('A5','E')}*{ref('C7','E')}", f"={ref('C1','E')}/(235/72)/{ref('A5','E')}*{ref('C7','E')}", f"={ref('C1','E')}/(225/72)/{ref('A5','E')}*{ref('C7','E')}"], "M03", "Derived", "", fmt="0.0000")
 add("F3", "f 不乘 t（MI455X 保有 MI355X 每峰值效率）：DS 三錨點平均", "產出比", [f"={ref('C6r','E')}*{ref('M_DS_f3','E')}", f"={ref('C6r','E')}*{ref('M_DSavg','E')}", f"={ref('C6r','E')}*{ref('M_DS_fv','E')}"], "Derived", "Derived", "Q3 替代 a", fmt="0.0000")
 add("F4", "f＝全部九個還原值平均 × t", "產出比", [f"={ref('C6r','E')}*{ref('M_ALLavg','E')}*{ref('C7t','E')}"] * 3, "Derived", "Derived", "Q3 替代 b", fmt="0.0000")
+add("F8", "f＝DS-R1 兩錨點（GB200、GB300）平均 × t", "產出比", [f"={ref('C6r','E')}*{ref('M_G23avg','E')}*{ref('C7t','E')}"] * 3, "Derived", "Derived", "r1 新增；Q3 替代", fmt="0.0000")
 add("F5", "低端再扣首代機架級風險 × 0.8", "產出比", [f"={ref('C8','D')}*0.8"] * 3, "Derived", "Assumed", "Q3 替代 c", fmt="0.0000")
-add("F6", "每架價格 $5.0／5.25／8.4M（功率取基準）", "持有比", [f"={ref('D6','D')}", f"={ref('D6','E')}", f"={ref('D6','F')}"], "Derived", "Derived", "", fmt="0.0000")
+add("F6", "每架價格 $5.25／7.27／10.5M（功率取基準）", "持有比", [f"={ref('D6','D')}", f"={ref('D6','E')}", f"={ref('D6','F')}"], "Derived", "Derived", "", fmt="0.0000")
 add("F7", "機架功率對持有比：245／235／225 kW（價格取基準）", "持有比", [f"=1-{ref('A20','E')}*(1-({ref('A7','E')}*1000/{p}*{ref('D2','E')}/1000*{ref('A10','E')})/{ref('A9','E')})" for p in (245, 235, 225)], "Derived", "Derived", "功率↓→每 GW 架數↑→資本支出↑", fmt="0.0000")
 
 for col, w in zip("ABCDEFGHI", [10, 58, 10, 12, 12, 12, 50, 28, 60]):
@@ -222,7 +228,7 @@ ws.freeze_panes = "D5"
 sv = wb.create_sheet("建議值", 0)
 sv["A1"] = "建議值 — NonNV 第 5 列（AMD MI455X／Helios）以每 kW 方法重推｜C 段唯讀查證，未寫入 model/；與 B 段 TPU／Trn3、A 段 Maia／昇騰並排"
 sv["A1"].font = BOLD
-sv["A2"] = ("第 4–5 列＝推導頁公式的原始結果（(a) 最高原生精度、(b) FP8 對齊）；第 8 列＝建議輸入值（產出比四捨五入至 0.05；持有比保留兩位）；第 11 列＝TK v21.6 現值。"
+sv["A2"] = ("第 4–5 列＝推導頁公式的原始結果（(a) 最高原生精度、(b) FP8 對齊）；第 8 列＝建議輸入值（r1；產出比四捨五入至 0.05；持有比保留兩位）；第 11 列＝TK v21.6 現值。"
             "H＝F÷C（每 token 成本比）、I＝E÷D（最佳角落）、J＝G÷B（最差角落），同 NonNV。")
 sv["A2"].alignment = WRAP
 cols = ["候選", "產出比 低", "產出比 基準", "產出比 高", "持有比 低", "持有比 基準", "持有比 高", "每 token 成本比 基準", "最佳角落", "最差角落", "標記", "說明"]
@@ -250,13 +256,13 @@ for r, o in ((4, "C8"), (5, "E1")):
 sv["A7"] = "建議輸入值（若寫入 NonNV 第 5 列）"
 sv["A7"].font = BOLD
 sv["A8"] = "AMD MI455X（Helios）"
-for j, v in enumerate((0.70, 0.80, 1.15, 0.65, 0.67, 0.95)):
+for j, v in enumerate((0.70, 0.80, 1.15, 0.67, 0.85, 1.12)):
     sv.cell(8, 2 + j, v).font = BLUE
 ratio_cols(8)
 sv["K8"] = "Assumed"
 sv["L8"] = ("每 kW 法：Helios 72 顆、機架 225–245 kW（AMD 數字經媒體；245 亦為散熱上限）→ 每顆 3.40 kW；MXFP4 40.27 PF（FP8 20.13），兩種精度口徑每 kW 峰值皆為 VR200 的 1.07；"
             "效率因子由 MLPerf v6.1 MI355X DeepSeek-R1 對 TK GB200／GB300／VR200 錨點還原（0.74–0.99），再乘算力÷頻寬轉換 0.89（Analogy）。"
-            "持有比依每架 $5.0／5.25／8.4M（CLSA／Futurum／VR200 同價）推導。證據：docs/evidence/20261025_NonNV_AMD。")
+            "持有比依 TK 買方取得價口徑：每架 $5.25M（Futurum 絕對價，口徑混用、下界）／$7.3M（AMD 自述隱含比 0.865 × VR200）／$10.5M（Futurum 同源比值 1.25 × VR200）推導（r1）。證據：docs/evidence/20261025_NonNV_AMD。")
 sv["L8"].alignment = WRAP
 sv["A10"] = "TK v21.6 現值（NonNV 第 5 列；慣例值、未推導）"
 sv["A10"].font = BOLD
@@ -275,8 +281,8 @@ for i, h in enumerate(["候選", "每 kW 峰值 ÷ VR200（基準）", "產出�
     c.fill = HDR
 side = [
     ("AMD MI455X（本提案）", f"=推導!E{R['C6r']}", "=C8", "=F8", 'TEXT(B8,"0.00")&"–"&TEXT(D8,"0.00")', 'TEXT(E8,"0.00")&"–"&TEXT(G8,"0.00")', "本表"),
-    ("Google TPU v7（B 段）", 0.383, 0.35, 0.70, "0.25–0.40", "0.65–0.90", "B 段（PR #172）建議值；持有比已寫入 v21.6"),
-    ("AWS Trainium3（B 段）", 0.176, 0.14, 0.55, "0.06–0.25", "0.45–0.70", "B 段（PR #172）建議值；持有比已寫入 v21.6"),
+    ("Google TPU v7（B 段）", 0.383, 0.35, 0.70, "0.25–0.40", "0.65–0.90", "B 段（PR #172）建議值；持有比已寫入 v21.6（買方取得價，無口徑混用）"),
+    ("AWS Trainium3（B 段）", 0.176, 0.14, 0.55, "0.06–0.25", "0.45–0.70", "B 段（PR #172）建議值；持有比已寫入 v21.6。r1 註：KGI 絕對價 ÷ TK 價為口徑混用，同源比值時約 0.59–0.63（README §10）"),
     ("Microsoft Maia 200（A 段）", 0.676, 0.55, 0.50, "0.25–0.75", "0.40–0.60", "A 段推導 D6；NonNV 第 11 列"),
     ("華為昇騰 910C（A 段）", 0.093, 0.08, 0.55, "0.05–0.15", "0.45–0.70", "A 段推導 C6；NonNV 第 10 列"),
 ]

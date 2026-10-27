@@ -9,7 +9,7 @@
 
 輸出（commit 回分支）：
   data/price_track/YYYY-MM.csv   全部模型快照（id、名稱、建立日、輸入／輸出／快取讀取單價、上下文長度）
-  tools/price_track/out/YYYY-MM.xlsx 與 .md  觀察清單（原廠前沿模型）與上月比較；API（Sonnet）寫一段繁中摘要
+  tools/price_track/out/YYYY-MM.xlsx 與 .md  觀察清單（主要原廠，依 id 前綴；含舊型號，排除 :free 免費變體）與上月比較；API（Sonnet）寫一段繁中摘要
 """
 import csv
 import datetime as dt
@@ -22,7 +22,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 HERE = os.path.dirname(os.path.abspath(__file__))
 API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 UA = "Tokenomics price tracking (github.com/YinchenChang/Tokenomics)"
-# 觀察清單：原廠前綴（OpenRouter id 的前段）。只用來挑出前沿模型做比較表；快照保留全部模型。
+# 觀察清單：主要原廠前綴（OpenRouter id 的前段）。依前綴篩選，含各廠舊型號；排除 :free 免費變體。快照保留全部模型。
+# 摘要費用單價：Sonnet 5.5 一般 API 每百萬 token 輸入 US$2／輸出 US$10（[Verified] platform.claude.com 價目頁，2026-10-27 查）。
 WATCH = ["openai/", "anthropic/", "google/", "deepseek/", "x-ai/", "qwen/", "moonshotai/", "z-ai/", "minimax/", "meta-llama/", "mistralai/"]
 
 
@@ -85,28 +86,34 @@ def main():
         w.writeheader()
         w.writerows(rows)
     prev_month, prev = load_prev(month)
-    watch = [r for r in rows if any((r["id"] or "").startswith(p) for p in WATCH) and r["out_per_m"] is not None]
+    def in_watch(i, out):
+        return any((i or "").startswith(p) for p in WATCH) and not (i or "").endswith(":free") and out not in (None, "", "None")
+    watch = [r for r in rows if in_watch(r["id"], r["out_per_m"])]
     lines = []
     for r in watch:
         p = prev.get(r["id"])
         status = "新上架" if prev and not p else ("" if not prev else "")
         chg_in = chg_out = None
         if p:
+            changed = False
             for k, tgt in (("in_per_m", "chg_in"), ("out_per_m", "chg_out")):
-                try:
-                    old, new = float(p[k]), float(r[k])
-                    val = round(new / old - 1, 4) if old > 0 else None
-                except (TypeError, ValueError):
-                    val = None
+                o, n = p.get(k), r[k]
+                o = None if o in (None, "", "None") else float(o)
+                val = None
+                if o is not None and n is not None and o > 0:
+                    val = round(n / o - 1, 4)
+                if o != n:          # 任何改變都算調價（含免費→付費、改為動態定價）；比例只在兩邊皆為正數時計算
+                    changed = True
                 if tgt == "chg_in":
                     chg_in = val
                 else:
                     chg_out = val
-            if (chg_in or 0) != 0 or (chg_out or 0) != 0:
+            if changed:
                 status = "調價"
         r.update({"status": status, "chg_in": chg_in, "chg_out": chg_out})
         lines.append(r)
-    gone = [i for i in prev if any(i.startswith(p) for p in WATCH) and i not in {r["id"] for r in rows}] if prev else []
+    now_ids = {r["id"] for r in rows}
+    gone = [i for i, pr in prev.items() if in_watch(i, pr.get("out_per_m")) and i not in now_ids] if prev else []   # 與觀察清單同口徑
 
     from openpyxl import Workbook
     from openpyxl.styles import Font

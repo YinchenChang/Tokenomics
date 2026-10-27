@@ -1,1 +1,1 @@
-此檔沒有任何完整網址，所以我沒有列出任何主張。檔內只提到網域名稱（techstrong.ai、wheresyoured.at、sec.gov、epoch.ai），沒有可照抄的完整 URL，檔尾也沒有來源清單或編號對照。
+此檔只寫出網站域名（techstrong.ai、wheresyoured.at、sec.gov、epoch.ai），沒有任何完整網址，其餘數字都是對內部 xlsx 的核對。依規則「沒有網址的主張不列」，因此輸出 0 筆。

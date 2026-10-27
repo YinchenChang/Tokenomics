@@ -1,1 +1,1 @@
-此檔沒有任何來源網址，沒有可列的主張。檔內只有 xlsx 路徑 `model/20261023_Tokenomics_v20.1.xlsx`、`openai_token_revenue.json` 這類檔名，以及「tbsnews URL」「lambdafin URL」的字樣，卻沒有寫出完整網址，檔尾也沒有來源清單或編號對照。依規則，沒有網址的主張不列，因此輸出為空。
+此檔沒有任何完整的來源網址。檔中只提到「lambdafin URL」「tbsnews URL」「arXiv 頁」「DOI」這類文字，沒有可照抄的完整網址，檔尾也沒有來源清單或編號對照表。依規則，沒有網址的主張不列，所以輸出 0 筆。

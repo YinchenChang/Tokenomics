@@ -1,1 +1,1 @@
-此檔沒有任何 http(s) 來源網址。檔內只有檔案路徑（如 `docs/workorders/...`）和來源名稱（Epoch、Oracle、Nadella X 貼文、TechNews 等），沒有可照抄的完整網址，也沒有檔尾的網址清單或 SRC 編號對照。依規則「沒有網址的主張不列」，輸出 0 筆。
+本檔沒有任何來源網址（URL）。檔內只提到來源名稱，如 Epoch、Bloomberg Law、The Information、Nadella X 貼文、TechNews，檔尾也沒有來源清單或腳註。依規則「沒有網址的主張不列」，所以沒有可輸出的 JSON Lines 紀錄。

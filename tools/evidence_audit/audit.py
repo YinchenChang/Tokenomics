@@ -78,24 +78,40 @@ def run_batch(items, system, max_tokens=16000):
 
 
 def parse_json_array(text):
-    m = re.search(r"\[.*\]", text or "", re.S)
-    try:
-        return json.loads(m.group(0)) if m else []
-    except json.JSONDecodeError:
-        return []
+    """JSON Lines 逐行解析（截斷或單行壞掉時，其他行照樣保留）；整段是陣列時也接受。"""
+    out = []
+    for line in (text or "").splitlines():
+        line = line.strip().rstrip(",")
+        if line.startswith("{") and line.endswith("}"):
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
+    if not out:
+        m = re.search(r"\[.*\]", text or "", re.S)
+        try:
+            out = json.loads(m.group(0)) if m else []
+        except json.JSONDecodeError:
+            out = []
+    return out
 
 
 # ---------- 抽取 ----------
 SYS_EXTRACT = """你從研究證據檔（Markdown）抽出「可回查的主張」：每一個附有來源網址、且含具體數字或直接引述的句子或表格列。
-只輸出 JSON 陣列：[{"claim":主張（一句話，繁體中文）,"value":原檔寫的數字或引述（照抄）,"unit":單位,
-"line":證據檔中的原句或表格列（照抄，200 字內）,"url":來源網址（照抄完整網址）,"tag":原檔標記如 [Verified]/[Interested-party]/[Derived]，沒有寫 null}]。
+輸出格式：JSON Lines——每筆主張一行、一個 JSON 物件，不要包成陣列、不要其他文字：
+{"claim":主張（一句話，繁體中文）,"value":原檔寫的數字或引述（照抄）,"unit":單位,"line":證據檔中的原句或表格列（照抄，150 字內）,"url":來源網址（照抄完整網址）,"tag":原檔標記如 [Verified]/[Interested-party]/[Derived]，沒有寫 null}
+若網址集中列在檔尾或另一節（例如來源清單、腳註、SRC 編號對照），依編號把網址對回主張。
 同一網址支撐多個主張時分開列。沒有網址的主張不列。不要推論、不要合併。"""
 
 
 def extract_claims(files):
     items = {f"f{i}": f"檔案：{os.path.relpath(p, ROOT)}\n\n{open(p, encoding='utf-8').read()[:120000]}"
              for i, p in enumerate(files)}
-    res, cost = run_batch(items, SYS_EXTRACT)
+    res, cost = run_batch(items, SYS_EXTRACT, max_tokens=32000)
+    os.makedirs(f"{HERE}/out/raw", exist_ok=True)       # 原始輸出存檔（除錯用）
+    for i, p in enumerate(files):
+        open(f"{HERE}/out/raw/extract_{os.path.basename(os.path.dirname(p))}_{os.path.basename(p)}.txt", "w",
+             encoding="utf-8").write(res.get(f"f{i}", ""))
     claims = []
     for i, p in enumerate(files):
         for c in parse_json_array(res.get(f"f{i}", "")):
@@ -165,7 +181,8 @@ SYS_VERIFY = """你是獨立核對者。給你一份來源原文，以及研究�
 - 數字要逐位比對（單位、年度、季度、年化或全年、含不含某項）；四捨五入差異算相符，但在 note 說明。
 - 若原文是記者轉述或推論、而主張寫成公司本人說，判「口徑不同」。
 - 標記 [Verified] 但原文只是利害關係人說法，在 note 指出。
-只輸出 JSON 陣列：[{"id":主張編號,"verdict":判定,"source_snippet":原文中最相關的片段（15 字以內）,"note":理由（繁體中文，50 字內）}]。"""
+輸出格式：JSON Lines——每筆一行：{"id":主張編號,"verdict":判定,"source_snippet":原文中最相關的片段（15 字以內）,"note":理由（繁體中文，50 字內）}；不要其他文字。
+若原文是網頁文字版、數字可能只在圖表圖片中，判「原文找不到」並在 note 寫「可能在圖片中」。"""
 
 
 def verify(claims, texts):

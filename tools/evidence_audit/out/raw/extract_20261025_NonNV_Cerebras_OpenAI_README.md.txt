@@ -1,0 +1,1 @@
+此檔沒有任何來源網址。內文只有來源名稱（The Register、Next Platform、SemiAnalysis、S-1 等）和資料夾路徑，沒有 http(s) 網址，檔尾也沒有來源清單或編號對照。依「沒有網址的主張不列」的規則，本次輸出 0 筆。

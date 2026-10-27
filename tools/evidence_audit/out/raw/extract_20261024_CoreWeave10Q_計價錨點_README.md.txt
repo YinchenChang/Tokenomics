@@ -1,0 +1,1 @@
+此檔沒有任何 http(s) 網址，來源只寫了 Drive 路徑「Tokenomics/inbox/CoreWeave 2026 Q2 10-Q.pdf」和「8-K 原文」，檔尾也沒有來源清單或編號對照。依規則，沒有網址的主張不列，所以沒有可輸出的 JSON Lines。

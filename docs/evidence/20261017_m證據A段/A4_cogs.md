@@ -196,3 +196,10 @@ OpenAI 的營收組成中，行動版約占 19%（$2.48B／$13.07B），比 Duol
 | Duolingo 營業成本 | 營收的 27.2%，以金流費用為主 | https://www.sec.gov/Archives/edgar/data/1562088/000156208825000042/duol-20241231.htm | 2025-02 | Analogy | 按總額認列，金流費用列入營業成本 |
 | 2026-04 修約 | 分成總額上限 $38B，到 2030 年；Microsoft 不再付分潤 | https://www.outlookbusiness.com/corporate/openai-microsoft-deal-gets-38-bn-revenue-cap-amid-ipo-talks | 2026-05-12 | Interested-party（The Information 消息人士） | 2026 年起總額與淨額差異消失 |
 | **算力占營業成本（最佳估計）** | **$4.8–5.2B（64–70%）** | 本文綜合 | 2026-10-17 | Derived | 情境 A 為 83–87%，情境 C 為 48–52% |
+
+
+## 更正（2026-10-27 證據引述回查）
+
+> 來源：API 自動回查（`tools/evidence_audit/`，報告 `docs/reports/20261027_證據引述回查.md`）＋未參與代理人工複核。原文保留不改，以本節為準。
+
+- **2025 年營收 $13B 的出處**：是 **Reuters（2026-02-20）引匿名知情人士**，不是 The Information；該文引用 The Information 的只有推論成本與毛利率。數字與審計營收 $13.07B 一致，結論不變；同源計數應把這筆算作 Reuters 來源。

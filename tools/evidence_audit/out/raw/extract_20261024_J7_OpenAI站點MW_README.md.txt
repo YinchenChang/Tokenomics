@@ -1,0 +1,1 @@
+本檔沒有任何來源網址（URL）。檔內只提到來源名稱，如 Epoch、Bloomberg Law、The Information、Nadella X 貼文、TechNews，檔尾也沒有來源清單或腳註。依規則「沒有網址的主張不列」，所以沒有可輸出的 JSON Lines 紀錄。

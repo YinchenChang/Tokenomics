@@ -1,0 +1,31 @@
+# 證據引述回查（API 版，2026-10-27 起；說明見 tools/evidence_audit/README.md）
+# push 到 claude/evidence-audit 且有請求或程式變更時執行；結果 commit 回同一分支。參考用，不影響模型與 parity。
+name: evidence-audit
+on:
+  push:
+    branches: [claude/evidence-audit]
+    paths: ["tools/evidence_audit/requests/*.json", "tools/evidence_audit/audit.py", ".github/workflows/evidence-audit.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: evidence-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.12"}
+      - run: pip install openpyxl && (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils) >/dev/null
+      - name: Audit
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 tools/evidence_audit/audit.py
+      - name: Commit outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A tools/evidence_audit
+          git diff --cached --quiet || (git commit -m "evidence-audit: 回查結果 $(date -u +%F)" && git pull -q --rebase && git push)

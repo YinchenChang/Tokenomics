@@ -1,0 +1,5 @@
+{
+  "scope": ["docs/evidence/*"],
+  "max_urls": 2000,
+  "_note": "全量回查：docs/evidence/ 全部資料夾（含試點三個，供完整清單）；試點 r1 估計全量約 US$5–8"
+}

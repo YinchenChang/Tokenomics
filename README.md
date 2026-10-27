@@ -16,6 +16,14 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 | `docs/reports/` | 每輪報告（繁體中文） |
 | `CHANGELOG.md` | 每次同步的 Excel 版本、commit、變動摘要 |
 
+## 兩個管道的分工（Andy 2026-10-27，固定規格）
+
+- **本 repo＝機器層**：程式、模型建版、數值檢查、公開數據、網站。權威版本在這裡。Andy 不需要看 repo。
+- **Drive＝Andy 的閱讀層**（`02-Projects/02-算力收支/Tokenomics/`）與私人、跨專案資料。
+- **每次合併後必做**：凡合併產生 Andy 要讀的產出（現行 Excel、閱讀版、報告、HTML 解說），把**帶版本號的閱讀副本**複製到 Drive 固定位置：模型 → `Tokenomics/模型/`、閱讀版 → `Tokenomics/閱讀版/`、報告與證據 → `Tokenomics/證據研究/`。檔名與 repo 相同；舊版副本移 `Tokenomics/_待刪除/`。Drive 那份是閱讀副本，不是權威；兩者不一致時以 repo 為準。
+- 不再寄信到工作信箱（Andy 2026-10-27 取消）。
+- 個人情境、先驗、校準紀錄只放 Drive，不進本 repo（公開 repo）。
+
 ## 具名範圍與下游連結
 
 Excel 的具名範圍分為兩類（見 Excel README 頁）：

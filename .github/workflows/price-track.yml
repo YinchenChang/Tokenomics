@@ -1,0 +1,42 @@
+# token 牌價每月追蹤（API 版，2026-10-27 起；說明見 tools/price_track/track.py 開頭）
+# 每月 2 日 09:17（台北）在預設分支執行；結果 commit 到固定分支 price-track（不寫 master）。
+# 也可 push 到 claude/price-track 測試。參考用，不影響模型與 parity。
+name: price-track
+on:
+  schedule:
+    - cron: "17 1 2 * *"
+  push:
+    branches: [claude/price-track]
+    paths: ["tools/price_track/track.py", ".github/workflows/price-track.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: price-track
+  cancel-in-progress: false
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.12"}
+      - run: pip install openpyxl
+      - name: Bring previous snapshots from price-track branch
+        run: git fetch origin price-track && git checkout origin/price-track -- data/price_track || echo "首月：尚無 price-track 分支"
+      - name: Track
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 tools/price_track/track.py
+      - name: Commit to price-track branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/pt && cp -r data/price_track tools/price_track/out /tmp/pt/
+          git fetch origin price-track && git checkout -B price-track origin/price-track || git checkout --orphan price-track
+          git rm -rq --cached . >/dev/null 2>&1 || true
+          mkdir -p data tools/price_track && rm -rf data/price_track tools/price_track/out
+          cp -r /tmp/pt/price_track data/ && cp -r /tmp/pt/out tools/price_track/
+          git add data/price_track tools/price_track/out
+          git commit -m "price-track: $(date -u +%Y-%m) 牌價快照" && git push origin price-track

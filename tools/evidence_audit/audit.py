@@ -61,8 +61,9 @@ def run_batch(items, system, max_tokens=16000):
         while b["processing_status"] != "ended" and time.time() - t0 < POLL_MAX_MIN * 60:
             time.sleep(30)
             b = json.loads(api(f"messages/batches/{b['id']}"))
-        if b["processing_status"] != "ended":
-            print("批次逾時，取已完成部分")
+        if b["processing_status"] != "ended":       # 未結束的批次取不到結果；該批主張判為「未判定」
+            print("批次逾時，未取得結果：", b["id"])
+            continue
         for line in api(f"messages/batches/{b['id']}/results").splitlines():
             r = json.loads(line)
             res = r["result"]
@@ -115,9 +116,14 @@ def extract_claims(files):
     claims = []
     for i, p in enumerate(files):
         for c in parse_json_array(res.get(f"f{i}", "")):
-            if isinstance(c, dict) and str(c.get("url", "")).startswith("http"):
+            if not isinstance(c, dict):
+                continue
+            u = str(c.get("url", "")).strip().rstrip(".,;）)」")
+            if u and not u.startswith("http") and re.match(r"^[\w.-]+\.[a-z]{2,}(/|$)", u):
+                u = "https://" + u          # 證據檔常省略 https://（2026-10-27 PR 核對指出這類主張曾被整筆丟棄）
+            if u.startswith("http"):
                 c["file"] = os.path.relpath(p, ROOT)
-                c["url"] = c["url"].strip().rstrip(".,;）)」")
+                c["url"] = u
                 claims.append(c)
     return claims, cost
 

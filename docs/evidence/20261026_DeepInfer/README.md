@@ -163,3 +163,11 @@ k＝1 重算後與模型快取值逐位相同（LibreOffice 口徑確認）。k�
 - [eesel：DeepSeek V4.1 Flash pricing](https://www.eesel.ai/blog/deepseek-v4-1-flash-pricing)
 - [TechNode：V4 Pro 請求轉給 V4.1 Flash](https://technode.com/2026/09/10/deepseek-formally-launches-v4-1-flash-routes-v4-pro-requests-to-flash/)
 - [SiliconFlow：DeepSeek V4.1 Flash architecture and pricing](https://www.siliconflow.com/zh-tw/blog/deepseek-v4-1-flash-api-migration)
+
+
+## 更正（2026-10-27 證據引述回查）
+
+> 來源：API 自動回查（`tools/evidence_audit/`，報告 `docs/reports/20261027_證據引述回查.md`）＋未參與代理人工複核。原文保留不改，以本節為準。
+
+- **V4-Pro 去留（第 122、142 行）**：TechNode（9/10）稱 9/14 起 V4-Pro 請求轉給 V4.1 Flash；SiliconFlow（9/28）**引用 DeepSeek 當時的文件**，說 v4-pro 在 9/14 後繼續提供，並提到發表時原寫淘汰。這是政策前後改變，不是兩個來源同時矛盾；D3 前提較可能是「V4-Pro 繼續提供」，仍待 DeepSeek 官方頁確認。
+- **S4 V4.1 Flash 谷價（0.003／0.15／0.60）**：歸屬為 DeepSeek 直連 API，原文無誤；補註 SiliconFlow 文中註明這是 DeepSeek 直連價格（截至 2026-09-18），不適用於 SiliconFlow 自己的部署。

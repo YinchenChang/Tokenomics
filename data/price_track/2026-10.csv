@@ -184,7 +184,7 @@ moonshotai/kimi-k2-thinking,MoonshotAI: Kimi K2 Thinking,2025-11-06,0.6,2.5,0.15
 moonshotai/kimi-k2.5,MoonshotAI: Kimi K2.5,2026-01-27,0.5,2.5,0.15,262144
 moonshotai/kimi-k2.6,MoonshotAI: Kimi K2.6,2026-04-20,0.65,3.41,0.15,262144
 moonshotai/kimi-k2.7-code,MoonshotAI: Kimi K2.7 Code,2026-06-12,0.56,3.1,0.15,262144
-moonshotai/kimi-k3,MoonshotAI: Kimi K3,2026-07-16,0.189,11.5,0.179,1048576
+moonshotai/kimi-k3,MoonshotAI: Kimi K3,2026-07-16,0.179,11.5,0.169,1048576
 moonshotai/kimi-k3.1-pro,MoonshotAI: Kimi K3.1 Pro,2026-10-23,2.0,10.0,0.2,1048576
 moonshotai/kimi-k3:batch,MoonshotAI: Kimi K3 (batch),2026-07-16,2.28,11.4,0.228,1048576
 morph/morph-v3-fast,Morph: Morph V3 Fast,2025-07-07,0.8,1.2,,262144
@@ -452,7 +452,7 @@ z-ai/glm-5v-turbo,Z.ai: GLM 5V Turbo,2026-04-01,1.2,4.0,0.24,202752
 ~deepseek/deepseek-v4-flash-latest,DeepSeek: DeepSeek V4 Flash Latest,2026-08-01,0.0475,0.1568,0.028,1048576
 ~google/gemini-flash-latest,Google: Gemini Flash Latest,2026-04-27,0.75,3.75,0.075,1048576
 ~google/gemini-pro-latest,Google: Gemini Pro Latest,2026-04-27,2.0,10.0,0.1,1048576
-~moonshotai/kimi-latest,MoonshotAI: Kimi Latest,2026-04-27,0.1795,10.5634,0.17,1048576
+~moonshotai/kimi-latest,MoonshotAI: Kimi Latest,2026-04-27,0.179,11.5,0.169,1048576
 ~openai/gpt-astra-latest,OpenAI: GPT Astra Latest,2026-09-11,10.0,50.0,1.0,1050000
 ~openai/gpt-luna-latest,OpenAI: GPT Luna Latest,2026-09-11,0.1,0.5,0.01,1050000
 ~openai/gpt-mini-latest,OpenAI: GPT Mini Latest,2026-04-27,0.75,4.5,0.075,400000
@@ -460,5 +460,5 @@ z-ai/glm-5v-turbo,Z.ai: GLM 5V Turbo,2026-04-01,1.2,4.0,0.24,202752
 ~openai/gpt-terra-latest,OpenAI: GPT Terra Latest,2026-09-11,1.0,5.0,0.05,1050000
 ~unbiased/pareto-latest,Pareto Latest,2026-10-13,0.8,3.2,0.03,1048576
 ~x-ai/grok-latest,xAI: Grok Latest,2026-07-08,2.0,6.0,0.5,500000
-~z-ai/glm-flash-latest,Z.ai: GLM Flash Latest,2026-08-27,0.0285,0.08,0.0285,1048576
+~z-ai/glm-flash-latest,Z.ai: GLM Flash Latest,2026-08-27,0.0285,0.0923,0.0285,1048576
 ~z-ai/glm-latest,Z.ai: GLM Latest,2026-08-19,0.0699,1.4,0.0689,1048576

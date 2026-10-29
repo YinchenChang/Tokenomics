@@ -10,10 +10,10 @@
 1. **f 區間不改：仍為 0.4–0.9，中心 0.65（Assumed）。**
    - FY27 Q1 新聞稿、10-Q、法說逐字稿（兩份轉載）都沒有提到 Fairwater、Atlanta、Wisconsin、GW 或 MW。
    - 沒有任何說法給出 Fairwater 的客戶、用途或分配比例；也沒有 RPO 中 OpenAI 的占比。
-   - 12 則相關說法逐句判定：偏高 0、偏低 1（弱，全機隊）、中性 6、不可換算 2、無相關說法或未找到 3（xlsx「C段判定」B4:B9）。
+   - 12 則相關說法逐句判定：偏高 0、偏低 1（弱，全機隊）、中性 6、不可換算 2、其他 3：無相關說法 1、已搜尋未找到 1、連帶記錄 1（xlsx「C段判定」B4:B9）。
    - 唯一帶方向的是 Nadella「we have one pool」（容量依需求訊號在全機隊調度）。它是全機隊說法，與 B 段 F03 同類，已反映在區間下緣 0.4。不足以改區間。
 2. **Q2 季平均 GW 與倍數維持 B 段值：** f＝0.4／0.65／0.9 → **2.17／2.26／2.35 GW**，倍數 **0.999／0.959／0.921**（晚日期；早日期 0.925／0.881／0.841）；持平所需 f 仍為 0.395。xlsx「C段判定」B13:D16 直接引用「Fairwater」頁，與 B 段 README 的差值為 0。
-3. **新的一手數字（不可換算成 f）：** 10-Q 依關係人規定（ASC 850）揭露（是否為首次，未確認）：**當季來自 OpenAI 的營收 100 億美元（含分潤）**，約占總營收 10.8%，年化 400 億。它沒有拆分 Azure 消費與分潤，也沒有站點；是全公司營收，不是 Fairwater 容量。只記錄，供 OpenAI 模型成本面對照（見 C1）。
+3. **新的一手數字（不可換算成 f）：** 10-Q 依關係人規定（ASC 850）揭露（非首次：先前各季 10-Q 已有 OpenAI 相關揭露，見 om.co 2026-05 報導；獨立核對 10-29）：**當季來自 OpenAI 的營收 100 億美元（含分潤）**，約占總營收 10.8%，年化 400 億。它沒有拆分 Azure 消費與分潤，也沒有站點；是全公司營收，不是 Fairwater 容量。只記錄，供 OpenAI 模型成本面對照（見 C1）。
 4. **OpenAI 同期揭露（10-21～10-29）：無。** API 每分鐘 token、Codex 絕對量、ChatGPT 每日訊息數、每則 token 都已搜尋，未找到。10-26 的 Signals 資料只有份額。**token 帳不變：起點 2.10；B 段各因子結果（D2 1.77、週活 2.12、組合 1.02／1.04）照舊。**
 5. **連帶（只記錄）：** capex 452 億（含融資租賃 74 億；二手逐字稿）、PP&E 現金 394 億（10-Q）、Q2 capex 逾 500 億、曆年約 1,700 億；第三方 GPU 容量交付延到下半財年；需求仍超過供給；Azure 成長 48%（Q2 指引 49–50%）；當季新增 24 座資料中心（無 GW）；尚未起租租賃 3,646 億；商業 RPO 6,770 億。
 
@@ -31,8 +31,8 @@
 | C06 | Nadella 開場（逐字稿轉載，二手） | 新增 24 座資料中心；Vera Rubin 上架；無 MW／GW | Interested-party：Microsoft CEO（展示執行力） | 中性（全公司，不得當 Fairwater） |
 | C07 | Nadella 答 Morgan Stanley（二手） | 「we have one pool」；依需求訊號動態分配 | Interested-party：Microsoft（淡化專屬） | 偏低（弱；全機隊） |
 | C08 | Hood 開場與展望（二手） | 需求超過供給；第三方 GPU-as-a-Service 延到下半年；capex 452 億 | Interested-party：Microsoft CFO | 中性（第三方容量非 Fairwater） |
-| C09 | Hood 答問（二手） | 更多配額放進 Foundry；CPU 閒置容量變現 | Interested-party：Microsoft CFO | 中性（Foundry 是推論服務） |
-| C10 | Borges 提問（二手） | OpenAI 占當季營收 11%；回答談模型路由 | 分析師引 10-Q | 不可換算 |
+| C09 | Hood 答問（二手） | 更多配額放進 Foundry；CPU 閒置容量變現 | Interested-party：Microsoft CFO | 中性（判讀：Foundry 屬推論服務，非原文） |
+| C10 | Borges 提問（二手） | OpenAI 占當季營收 11%；回答談模型路由 | 分析師（疑引 10-Q，推論；管理層未確認） | 不可換算 |
 | C11 | Nadella 談 MAI（二手） | MAI-Base-2 預訓練完成；無 GPU 數、站點 | Interested-party：Microsoft（展示自研） | 中性（已在 B 段 F10） |
 | C12 | Nadella 答 Borges（二手） | 希望 Anthropic 與 OpenAI 競爭每個工作負載 | Interested-party：Microsoft | 中性（非容量） |
 
@@ -49,7 +49,7 @@
 | 項目 | 結果 | token 帳 |
 |---|---|---|
 | D1 API 每分鐘 token | 已搜尋，未找到；最新仍為 03-31 逾 150 億／分 | 不變（A 段 1.87） |
-| D2 Codex 絕對量 | 已搜尋，未找到；最新明確週活仍為 06-02 逾 500 萬 | 不變（B 段 1.77） |
+| D2 Codex 絕對量 | 已搜尋，未找到；06-02 逾 500 萬為定義明確的最新週活；07 月有 7–8M weekly users 的二手報導（FourWeekMBA） | 不變（B 段 1.77） |
 | ChatGPT 每日訊息數 | 已搜尋，未找到；Signals（10-26）只有份額，樣本每月 100 萬則 | 不變（週活版 2.12） |
 | D3 每則 token | 已搜尋，未找到 | 不變（A 段 1.90） |
 
@@ -113,3 +113,9 @@ OpenAI 營收占比 10.8%（Derived；與 Borges「11%」一致）；Azure 年�
 - 逐字稿為兩份轉載互相核對，非官方檔；引號內為原文短句，其餘為改寫。
 - 新聞稿與 10-Q 讀自 company-models 的抽取檔，未另行從 SEC EDGAR 下載比對。
 - f 的區間是判斷，不是來源值。
+
+
+## 獨立核對（未參與代理，2026-10-29）
+- 來源：新聞稿、10-Q（company-models 抽取檔）、兩份逐字稿轉載逐句核對，引述與數字全部符合；逐字稿與 10-Q 確無 Fairwater／Atlanta／Wisconsin／GW／MW；10-21～10-29 OpenAI 無新用量數字成立。官方逐字稿截至核對時尚未上線。
+- 數字：LibreOffice 重算錯誤 0；與 B 段 xlsx 數值格逐格差 0；README 數字全部重現。
+- 判定：可合併、無必改項；建議 4 處措辭已改（Codex 週活背景句、C10 改推論語氣、100 億非首次揭露、「其他 3」細分）。

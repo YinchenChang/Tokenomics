@@ -90,6 +90,7 @@ IN_MAP = {  # 閱讀版列: (來源列表 [C,D,E])
     31: lambda: tk3('Cap_In', 'C70:E70', (0, 1, 2)),
     32: lambda: tk3('Cap_In', 'C131:E131', (0, 1, 2)),
     34: lambda: [named('L1_HoldFleet25'), named('L1_HoldFleet25_Lo'), named('L1_HoldFleet25_Hi')],
+    35: lambda: tk3('Cap_In', 'C331:E331', (0, 1, 2)),   # v21.4 新增 IN_GW（說明句的 GW 端點）
 }
 for k, r in enumerate((18, 19, 20, 21)):  # 服務起點：Tokenomics 列 300 基準、301 較早、302 較晚；低端組合取較晚
     IN_MAP[r] = (lambda k=k: [tk_row('Cap_In', 'C300:F300')[k], tk_row('Cap_In', 'C302:F302')[k], tk_row('Cap_In', 'C301:F301')[k]])
@@ -98,7 +99,7 @@ for k, r in enumerate((22, 23, 24, 25)):
 for k, r in enumerate((26, 27, 28, 29)):
     IN_MAP[r] = (lambda k=k: [tk_row('Alloc', 'C153:F153')[k]] * 3)
 n_in = 0
-for r in range(6, 36):
+for r in range(6, 36):   # 第 35 列 IN_GW 為 v21.4 新增
     if wi.cell(r, 1).value is None or wi.cell(r, 3).value is None:
         continue  # 節標題列
     if r not in IN_MAP:
@@ -108,7 +109,7 @@ for r in range(6, 36):
     for col, e in zip((3, 4, 5), exp):
         n_in += 1
         check('2_輸入', same(wi.cell(r, col).value, e), f'{wi.cell(r,1).value} 第 {r} 列 {"CDE"[col-3]} 欄 {wi.cell(r,col).value} → Tokenomics {e}')
-check('2_輸入 格數', n_in == 75, f'核對格數 {n_in}（應為 75：第 6–32 列 72 格＋IN_Hold 3 格）')
+check('2_輸入 格數', n_in == 78, f'核對格數 {n_in}（應為 78：第 6–32 列 72 格＋IN_Hold 3 格＋IN_GW 3 格）')
 
 # 1c. 1_公式樹 G 欄全部「Tokenomics 原值」貼上值
 Lo_, Hi_ = named('L1_LTotalFleetVDisc_Lo'), named('L1_LTotalFleetVDisc_Hi')
@@ -159,6 +160,12 @@ for name, W in (('L', L),):
                 f = c.value
                 if isinstance(f, str) and f.startswith('=') and re.search(r'/[A-Z]+\d+-1', f) and isinstance(v, (int, float)) and abs(v) > 1e-9:
                     fails.append(f'{name} 差異 {wsf.title}!{c.coordinate} {v}')
+
+# 3. 說明句數字檢查（v21.4）：盤點表 text_inventory_L.csv
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from text_check import check_text_numbers
+n_cur, n_inv = check_text_numbers(openpyxl.load_workbook(LW), L, Path(__file__).resolve().parent / 'text_inventory_L.csv', fails)
+print(f'說明句數字檢查：盤點 {n_inv} 格，其中現行值（須為公式）{n_cur} 格')
 
 print('通過' if not fails else f'未通過 {len(fails)} 項')
 for x in fails[:50]:

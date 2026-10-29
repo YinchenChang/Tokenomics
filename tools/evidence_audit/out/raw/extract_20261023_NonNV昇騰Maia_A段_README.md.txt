@@ -1,0 +1,1 @@
+此檔沒有任何完整來源網址（只有 blogs.microsoft.com、hpcwire.com、flopper.io 等網域名稱和 arXiv 編號，網址在 xlsx 證據頁），所以依規則沒有可列的主張，輸出為空。

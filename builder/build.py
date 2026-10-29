@@ -215,6 +215,10 @@ V518_LOG += v1600.inputs_update(wb, v518._append_text)       # v16.0 W2: Cap_In 
 V518_LOG += v1700.inputs_update(wb, v518._append_text)       # v17.0 W2: Cap_In row 242 reads L1_LTotalFleetVDisc / L1_LReqFleet_IdNoK (after v1600; before gov_all)
 import v2120
 V518_LOG += v2120.inputs_update(wb)       # v21.2 W1 J5: Alloc_In C23:E23 0.85/0.73/1.17 -> 1.8/0.85/2.3 (old-value guards; after restore, before gov_all)
+import v2160
+V518_LOG += v2160.inputs_update(wb)       # v21.6 W1: NonNV E6:G6 0.7/0.8/1.0 -> 0.65/0.70/0.90, E7:G7 0.6/0.7/0.9 -> 0.45/0.55/0.70 (old-value guards; after restore, before gov_all)
+import v2170
+V518_LOG += v2170.inputs_update(wb)       # v21.7 W1: NonNV B5:D5 0.5/0.7/1.0 -> 0.70/0.80/1.15, E5:G5 0.8/0.9/1.0 -> 0.67/0.85/1.12, F7 0.55 -> 0.61 (old-value guards; after restore, before gov_all)
 V518_LOG += v2130.inputs_update(wb)       # v21.3 W1／W2: Spec_Rack F11 7.8 -> 7.5, Cap_In D7／F47 =SRC_PRC_007 -> =SRC_PRC_049 (old-value／old-formula guards; after restore, before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
@@ -414,6 +418,13 @@ print("v2130 v21.3:", V2130)
 import v2140
 V2140 = v2140.apply(wb, v518._append_text)       # v21.4: L1 I128:I136／Cap_In H335／SRC_Price R53,V54／Decisions D332 text, E406, Decisions SL61-01
 print("v2140 v21.4:", V2140)
+import v2150
+V2150 = v2150.apply(wb, v518._append_text)       # v21.5: DB_Evidence E407／E408, Alloc_In G23 text, Decisions SL62-01
+print("v2150 v21.5:", V2150)
+V2160 = v2160.apply(wb, v518._append_text)       # v21.6: NonNV L6／L7 text, DB_Evidence E409, Decisions SL63-01
+print("v2160 v21.6:", V2160)
+V2170 = v2170.apply(wb, v518._append_text)       # v21.7: NonNV L5／L7／L8／L9／A2 and Interface A368 text, DB_Evidence E410／E411, Decisions SL64-01
+print("v2170 v21.7:", V2170)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

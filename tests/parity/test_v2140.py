@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2170_allow import NUM_DIFFS as V2160_NUM      # v21.6：NonNV 持有比的數值差異清單（test_v2160 看守）
 
 REPO = Path(__file__).resolve().parents[2]
 V213 = REPO / "model" / "archive" / "20261024_Tokenomics_v21.3.xlsx"
@@ -79,7 +80,7 @@ def test_v2140_all_names_unchanged(lo, pw, wbf):
                 pairs = {(a, b) for a, b in zip(want, got) if not _eq(a, b)}
                 assert pairs == {(133, 132)}, pairs      # GOV_Table 範圍 Checks A74:D96 內只有 D87（W1 的 WARN 計數）；D98 是 GOV_Warnings 本身
     assert n > 1500, n
-    assert sorted(bad) == sorted({"GOV_Warnings", "GOV_Table"} | VERSION_NAMES), bad
+    assert sorted(bad) == sorted({"GOV_Warnings", "GOV_Table", "IDX_SrcID", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"} | VERSION_NAMES), bad      # v21.6：NonNV 持有比（test_v2160 看守）      # v21.5：哨兵 IDX_SrcID（GM088，test_v2150 看守）
     assert set(wbf.defined_names) == set(pw.defined_names)      # 名稱沒有增減
 
 
@@ -157,7 +158,7 @@ def test_v2140_gov_counts(lo, wbf):
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)
     assert v.get("Checks", "D98") == 134 and v.get("Checks", "D87") == 132
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.4") and str(v.get_name("RNG_Current")).endswith("v21.4")
+    assert str(v.get_name("RNG_Version")).endswith("v21.7") and str(v.get_name("RNG_Current")).endswith("v21.7")      # v21.5：版本字串（test_v2150 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 
@@ -182,18 +183,20 @@ def test_v2140_records(wbf):
     assert (al["C23"].value, al["D23"].value, al["E23"].value) == (1.8, 0.85, 2.3)      # 值不改
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
-    assert b5.startswith("20261024_Tokenomics_v21.4（次版，底版 v21.3：") and "只改文字；所有契約名稱的值不變；GOV_Warnings 135 → 134（W3）" in b5
-    assert "v21.3（次版，底版 v21.2：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.4")
+    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and "v21.4（次版，底版 v21.3：" in b5 and "只改文字；所有契約名稱的值不變；GOV_Warnings 135 → 134（W3）" in b5
+    assert "v21.3（次版，底版 v21.2：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.7")
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.4 token 帳讀法與過時文字"]
     assert len(rr) == 1 and rr[0] == 74 and "只改文字，所有契約名稱的值不變" in rm.cell(rr[0], 2).value
 
 
-# ---------------------------------------------------------------- 6. 逐格比較 v21.3 → v21.4
+# ---------------------------------------------------------------- 6. 逐格比較 v21.3 → 現行（v21.4 的差異＋v21.5 的 W1／W2／W4 格，後者由 test_v2150 另行看守）
 EXACT_CELLS = {
-    "README": {"A1", "B5", "B73", "A74", "B74"}, "Cap_In": {"H335"}, "Alloc": {"C177"},
+    "README": {"A1", "B5", "B73", "A74", "B74", "A75", "B75"}, "Cap_In": {"H335"}, "Alloc": {"C177"}, "Alloc_In": {"G23"}, "Gov_Map": {"H92", "I92", "N92", "R92"},      # v21.5：A75／B75、G23
     "L1": {f"I{r}" for r in range(128, 137)},
-    "Decisions": {"D332"} | {f"{c}333" for c in "ABCDEFGHIJ"},
-    "DB_Evidence": {f"{c}330" for c in "ABCDEFGHIJKLMNOPQR"},
+    "Decisions": {"D332"} | {f"{c}{r}" for r in (333, 334, 335, 336) for c in "ABCDEFGHIJ"},      # v21.7：SL64-01（第 336 列）；v21.6：SL63-01（第 335 列）
+    "DB_Evidence": {f"{c}{r}" for r in (330, 331, 332, 333, 334, 335) for c in "ABCDEFGHIJKLMNOPQR"},      # v21.7：E410／E411（第 334、335 列）；v21.6：E409（第 333 列）
+    "NonNV": {"E6", "F6", "G6", "E7", "F7", "G7", "L6", "L7"} | {f"{c}5" for c in "BCDEFG"} | {"L5", "L8", "L9", "A2"},      # v21.6 W1；v21.7 W1／W2
+    "Interface": {"A368"},      # v21.7 W2
     "SRC_Price": {"R53", "V54"},
 }
 
@@ -214,9 +217,10 @@ def test_v2140_cell_diffs_only_expected():
                 if _num(p) and _num(q) and not _eq(p, q):
                     nd.append((ws.title, ws.cell(r, c).coordinate, p, q))
     assert fd == EXACT_CELLS, {k: sorted(fd.get(k, set()) ^ EXACT_CELLS.get(k, set())) for k in set(fd) | set(EXACT_CELLS) if fd.get(k, set()) != EXACT_CELLS.get(k, set())}
-    assert nd == [("Checks", "D87", 133, 132), ("Checks", "D98", 135, 134), ("SRC_Price", "AE53", 1, 0)], nd
+    nd = [t for t in nd if (t[0], t[1]) not in V2160_NUM]      # v21.6：NonNV 持有比的數值差異由 test_v2160 看守
+    assert sorted(nd) == [("Checks", "D87", 133, 132), ("Checks", "D98", 135, 134), ("Gov_Map", "AF92", 15, 98), ("Gov_Map", "R92", 7.8, 7.52), ("SRC_Price", "AE53", 1, 0)], nd      # v21.5：加 GM088 連動的 Gov_Map AF92、R92
     # 輸入值（藍字格）與公式文字不變：公式差異格都是文字格（非 "=" 開頭）
     for sh, cells in fd.items():
         for coord in cells:
             x, y = a[sh][coord].value, b[sh][coord].value
-            assert not (isinstance(x, str) and x.startswith("=")) and not (isinstance(y, str) and y.startswith("=")), (sh, coord)
+            assert sh == "Gov_Map" or (not (isinstance(x, str) and x.startswith("=")) and not (isinstance(y, str) and y.startswith("="))), (sh, coord)      # v21.5：Gov_Map H92／R92 是 builder 連結 SRC 的公式（GM088）

@@ -1,0 +1,1 @@
+此檔只寫出網站域名（techstrong.ai、wheresyoured.at、sec.gov、epoch.ai），沒有任何完整網址，其餘數字都是對內部 xlsx 的核對。依規則「沒有網址的主張不列」，因此輸出 0 筆。

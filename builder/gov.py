@@ -402,7 +402,7 @@ def gm_update(ws):
     v5.12 value, so the update applies once and never overwrites a later Excel edit."""
     loc = {(ws[f"C{r}"].value, ws[f"D{r}"].value): r for r in range(5, ws.max_row + 1) if ws[f"C{r}"].value}
     n = 0
-    for sh, cell, fields in GOV_MAP_UPD + GOV_MAP_UPD_E:      # v21.4: v2130.GOV_MAP_UPD (GM088 H／I／N) is held back: it was added to the builder after the v21.3 Excel was built (873be0d after 350d440), so v21.3 never carried it; applying it now would change Gov_Map R92／AF92 and SRC_Index outside work order v21.4. Pending Project decision (report 待判斷): re-enable by appending `+ v2130.GOV_MAP_UPD`
+    for sh, cell, fields in GOV_MAP_UPD + GOV_MAP_UPD_E + v2130.GOV_MAP_UPD:      # v21.5 W3: v2130.GOV_MAP_UPD (GM088 H／I／N) applied (held back in v21.4; Project decision 2026-10-25: accept IDX_SrcID sentinel change, docs/workorders/20261025_v21.5_預期變動.csv); old-value guards keep it idempotent
         r = loc.get((sh, cell))
         if r is None: continue
         for col, (old, new) in fields.items():

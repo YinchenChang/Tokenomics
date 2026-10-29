@@ -61,3 +61,10 @@
 - [techstrong.ai：OpenAI 2025 查核財報](https://techstrong.ai/articles/openais-fast-growing-revenues-outpaced-by-massive-scale-of-losses-ahead-of-expected-ipo/)
 - [Epoch AI：OpenAI 2024 算力支出](https://epoch.ai/data-insights/openai-compute-spend)
 - Drive `02-算力收支/Tokenomics/證據研究/20261017_推論支出調和分析.md`
+
+
+## 更正（2026-10-27 證據引述回查）
+
+> 來源：API 自動回查（`tools/evidence_audit/`）＋未參與代理人工複核（`docs/evidence/20261027_證據引述回查_人工複核_r1.md`）。原文保留不改，以本節為準。
+
+- **（R9）C6「Epoch：2024 研發算力約 50 億」**：Epoch 原文為 reportedly，50 億是報導的訓練 30 億加 Epoch 自訂研究算力兩年攤提 20 億，不是 OpenAI 投資人文件的原數。只影響文字。

@@ -2,6 +2,31 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261025_Tokenomics_v21.7.xlsx（取代 v21.6；**次版：NonNV AMD 產出比與持有比改為推導值、Trainium3 持有比基準改 KGI 同源價、過時說明更新；契約名稱的值改變只有 `IF_NonNV_Out_AMD`、`IF_NonNV_Hold_AMD`（各 3 格）、`IF_NonNV_Hold_Trn`（基準 1 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261025_v21.7_NonNV_AMD與Trn同源價.md` r0）
+
+- 分支 `claude/v21-7`（PR 與 SHA 見報告）。報告：`docs/reports/20261025_v21.7_NonNV_AMD與Trn同源價.md`；進度檔：`docs/reports/20261025_v21.7_進度.md`。**不合併**（chat 端跑完全套 parity 與獨立核對後合併）。
+- Excel（CC 以 `builder/v2170.py` 自 v21.6 產生，經 LibreOffice 重算存檔；冪等）：W1 `NonNV` B5:D5（AMD 產出比）0.5／0.7／1.0 → 0.70／0.80／1.15、E5:G5（AMD 持有比）0.8／0.9／1.0 → 0.67／0.85／1.12、F7（Trainium3 持有比基準）0.55 → 0.61（`builder/v2170.py` `inputs_update`：只在仍為舊值時才寫，不改 builder 預設值）；W2 `NonNV` L5／L7／L8／L9／A2 與 `Interface` A368 說明更新，原文逐字保留於「｜原：」之後；W3 `DB_Evidence` E410／E411、`Decisions` SL64-01、`README` B5 開頭 v21.7 段。
+- 數值差異：NonNV B5:J5、F7、H7（輸入 7 格＋公式 4 格）、Interface C369:E369、C374:E374、D376、Gov_Map 鏡像格 11 格（K389、L389、Q389、K390、L390、Q390、Q391、Q392、Q393、Q394、Q402）；清單見 `docs/workorders/20261025_v21.7_預期變動.csv`。其餘格不變。GOV 三項計數 0／134／182 不變。
+- 文件：下游契約 v0.27 不升版，首行「對應 Tokenomics」改 v21.7 並加 v21.7 段；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.7.json`；區間端點與時效指紋版本字串重產（`--check` 一致）。
+- 測試：新增 `tests/parity/test_v2170.py`；`v2160_allow.py` 改名 `v2170_allow.py` 並納入本單的差異格；舊測試的版本字串、列號與逐格期望值更新（見報告表 1）。
+
+## 20261025_Tokenomics_v21.6.xlsx（取代 v21.5；**次版：NonNV 持有比 TPU v7、Trainium3 改為每 kW 設備價推導值；契約名稱的值改變只有 `IF_NonNV_Hold_TPU`、`IF_NonNV_Hold_Trn`（各 3 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261025_v21.6_NonNV持有比TPU_Trn.md` r0）
+
+- 分支 `claude/v21-6`（PR 與 SHA 見報告）。報告：`docs/reports/20261025_v21.6_NonNV持有比.md`；進度檔：`docs/reports/20261025_v21.6_進度.md`。**不合併**（chat 端跑完全套 parity 與獨立核對後合併）。
+- Excel（CC 以 `builder/v2160.py` 自 v21.5 產生，經 LibreOffice 重算存檔；冪等）：W1 `NonNV` E6:G6（TPU v7 持有比）0.7／0.8／1.0 → 0.65／0.70／0.90、E7:G7（Trainium3 持有比）0.6／0.7／0.9 → 0.45／0.55／0.70（`builder/v2160.py` `inputs_update`：只在仍為舊值時才寫，不改 builder 預設值）；產出比 B:D 不改（待 PR #172 Q1）；L6／L7 說明改寫，原文逐字保留於「｜原：」之後；W2 `DB_Evidence` E409、`Decisions` SL63-01、`README` B5 開頭 v21.6 段。
+- 數值差異：NonNV E6:J7（輸入 6 格＋H:J 公式 6 格）、Interface C375:E376、Gov_Map 鏡像格 10 格（K396、L396、Q396、Q399、Q400、K402、L402、Q402、Q405、Q406）；清單見 `docs/workorders/20261025_v21.6_預期變動.csv`。其餘格不變。GOV 三項計數 0／134／182 不變。
+- 文件：下游契約 v0.27 不升版，首行「對應 Tokenomics」改 v21.6 並加 v21.6 段；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.6.json`；區間端點與時效指紋重產（只有版本字串變，`--check` 一致）。
+- 測試：新增 `tests/parity/test_v2160.py`；`v2150_allow.py` 改名 `v2160_allow.py` 並納入本單的差異格；舊測試的版本字串、列號與逐格期望值更新（見報告表 1）。
+
+## 20261025_Tokenomics_v21.5.xlsx（取代 v21.4；**次版、只改文字與治理欄：計價倍數新舊約混合登錄（E407／E408）、Alloc_In G23 說明；Gov_Map GM088 補套用（r1，Project 2026-10-25 決定接受哨兵 IDX_SrcID 1 格改變）；所有契約名稱的值不變（版本字串與哨兵 IDX_SrcID 1 格除外），不升契約版本**；依工作單 `docs/workorders/20261025_v21.5_計價倍數新舊約與GM088.md` r0）
+
+- 分支 `claude/v21-5`（PR 與 SHA 見報告）。報告：`docs/reports/20261025_v21.5_計價倍數新舊約與GM088.md`；進度檔：`docs/reports/20261025_v21.5_進度.md`。**不合併**（chat 端跑完全套 parity 與獨立核對後合併）。
+- Excel（CC 以 `builder/v2150.py` 自 v21.4 產生，經 LibreOffice 重算存檔；冪等）：W1 `DB_Evidence` E407（出租方存量機隊每 GW 年營收 ÷ Tokenomics 持有成本 0.65–1.32，弱反對 `AL_SpendBasis` 1.8）、E408（2026 新約 1.36–2.30，支持 1.8 作為新增容量價；PR #170 L5、L6 記於說明欄末）；W2 `Alloc_In` G23 加 v21.5 段（C23:E23 不改）；W4 `Decisions` SL62-01、`README` B5 開頭與第 75 列。
+- W3（Gov_Map GM088，v21.4 報告 P1；r1 已套用）：`builder/gov.py` 加回 `v2130.GOV_MAP_UPD`。變動格：Gov_Map H92（SRC_HW_015 → SRC_HW_098）、I92、N92（加 v21.3 說明並保留原文）、R92（7.8 → 7.52，連結來源值；Spec_Rack F11 7.5 為取整後輸入值，不改）、AF92（15 → 98）、SRC_Index!A980（SRC_HW_015 → SRC_HW_098）；具名範圍 `IDX_SrcID` 因此 1 格改變（Gov_Map 哨兵／索引，不影響下游；r0 曾依停止條件暫緩，Project 決定 (a)）。清單見 `docs/workorders/20261025_v21.5_預期變動.csv`。GOV 三項計數 0／134／182 不變。
+- 數值差異 2 格（Gov_Map R92、AF92）；全部具名範圍的值不變（除版本字串 `RNG_Version`／`RNG_Current` 與哨兵 `IDX_SrcID` 1 格）。
+- 文件：下游契約 v0.27 不升版，首行「對應 Tokenomics」改 v21.5；`docs/builder/Tokenomics_builder_v5.md` 重產；契約快照 `contract_snapshot_v21.5.json`；區間端點與時效指紋重產（只有版本字串變）。
+- 測試：新增 `tests/parity/test_v2150.py`；`v2140_allow.py` 改名 `v2150_allow.py` 並納入本單的差異格；舊測試的版本字串與列號期望值更新（見報告表 1）。
+
 ## 20261024_Tokenomics_v21.4.xlsx（取代 v21.3；**次版、只改文字：token 帳讀法改 GW 路線、過時文字更正、CoreWeave 計價錨點登錄；所有契約名稱的值不變（GOV_Warnings 135 → 134 除外），不升契約版本**；依工作單 `docs/workorders/20261024_v21.4_token帳讀法與過時文字.md` r1）
 
 - 分支 `claude/v21-4`（PR 與 SHA 見報告）。報告：`docs/reports/20261024_v21.4_token帳讀法與過時文字.md`；進度檔：`docs/reports/20261024_v21.4_進度.md`。**本單不開 PR、不合併。**

@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261102_Tokenomics_v21.8.xlsx（取代 v21.7；**次版：高成本情境 IT 折舊年限 4 → 5（SRC_DC_008，E467）、MiniMax M3 快取價 0.06 接入候選表（SRC_PRC_051，E428）、SRC 等級與出處升級（值不變）、DB_Evidence E412–E558；契約名稱值改變者全部在高成本欄，基準與低成本欄不變；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261102_v21.8_財報季與月度證據.md` r0）
+
+- 分支 `claude/v21-8`（PR 與 SHA 見報告）。報告：`docs/reports/20261102_v21.8_財報季與月度證據.md`；進度檔：`docs/reports/20261102_v21.8_進度.md`。**不合併**。
+- Excel（CC 以 `builder/v2180.py` 自 v21.7 產生，經 LibreOffice 重算存檔；冪等）：W1 `SRC_DC!C12` 4 → 5（只在仍為舊值時才寫）與其出處、等級、日期、審查日、Evidence、備註；`Inputs!H23` 說明（原文保留於「｜原：」後）；`Cap_In!F58` 空白 → `=SRC_PRC_051`、M58 說明；Sensitivity N4／O4／A72「7 年對 4 年」→「7 年對 5 年」。W2 依草稿第 2 節第 1–2 點升級 SRC 等級與出處 64 筆（逐筆核對 SRC_ID、現值、列標籤；原文保留於 W 欄）、第二來源 5 筆、備註 5 筆、SRC_DC_004 指標更正（修訂九）、新增紀錄 44 筆（SRC_PRC_051–077、SRC_HW_100–102、SRC_DC_023–027、SRC_DEM_091／092、SRC_MOD_107、SRC_PERF_086／087）。W3 DB_Evidence 115 列（`builder/v2180_evidence.json`，由 `tools/gen_v2180_data.py` 自候選 CSV 產生）、E014 結案、Decisions SL65-01、README B5。
+- 工作單指定的新紀錄編號 SRC_PRC_050 已被占用（gpt-6.1-sol 長上下文快取，v17.2），改用 SRC_PRC_051（列報告待 Project 判斷）。
+- 數值差異：預期變動 CSV 1,273 格中 1,241 格改變且值與預檢相同（其餘 32 格為區間過期旗標，重產區間後回到原值）；CSV 以外的數值差異全部是第 3 節的治理連帶（SRC 等級、缺第二來源旗標、SRC_Index 延長、審查日鏡像、Checks 計數）與區間端點重產，逐項見報告表 2。GOV 0／134／182 → 0／129／183。
+- 文件：下游契約 v0.27 不升版，首行改 v21.8 並加 v21.8 段；builder md 重產；契約快照 `contract_snapshot_v21.8.json`；區間端點 `v1300_ranges.json` 與時效指紋重產（`--check` 一致）。
+- 測試：新增 `tests/parity/test_v2180.py`；舊測試期望值更新（見報告表 1）。
+
 ## 20261025_Tokenomics_v21.7.xlsx（取代 v21.6；**次版：NonNV AMD 產出比與持有比改為推導值、Trainium3 持有比基準改 KGI 同源價、過時說明更新；契約名稱的值改變只有 `IF_NonNV_Out_AMD`、`IF_NonNV_Hold_AMD`（各 3 格）、`IF_NonNV_Hold_Trn`（基準 1 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261025_v21.7_NonNV_AMD與Trn同源價.md` r0）
 
 - 分支 `claude/v21-7`（PR 與 SHA 見報告）。報告：`docs/reports/20261025_v21.7_NonNV_AMD與Trn同源價.md`；進度檔：`docs/reports/20261025_v21.7_進度.md`。**不合併**（chat 端跑完全套 parity 與獨立核對後合併）。

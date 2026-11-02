@@ -305,7 +305,6 @@ UPG = [
 ]
 # second-source fills (column R; only while still '—')
 SECOND = {"SRC_DC_007": "SRC_DC_023", "SRC_MOD_029": "SRC_MOD_107", "SRC_PERF_037": "SRC_PERF_086", "SRC_PERF_074": "SRC_PERF_087", "SRC_DEM_012": "SRC_DEM_092"}
-SECOND_EV = {"SRC_MOD_029": "E468", "SRC_DEM_012": "E472"}
 # notes (W prefix; value unchanged)
 NOTE_1B = ("v21.8（E445，1-B；值不改）：NVIDIA 現行 Vera Rubin NVL72 頁（Preliminary，2026-10-21）每 GPU HBM4 19.2 TB/s、NVLink 3 TB/s；"
            "1 月新聞稿與 3 月部落格 3.6；待正式 datasheet")
@@ -322,6 +321,10 @@ DC004_OLD, DC004_NEW = "液冷溢價（Turner & Townsend）", "AI 資料中心�
 
 def _rows(wb):
     return v1720._rows(wb)
+
+
+# records whose review date (S) v17.2 re-pins to 2026-10-20 on every build (v1720.apply: second source filled in v17.2); left as is
+V1720_S = {a["orig"] for a in v1720.DATA["A"]}
 
 
 def _append_q(ws, r, ev):
@@ -367,8 +370,11 @@ def src_updates(wb):
             old.append(f"原日期＝『{ws[f'I{r}'].value}』")
             ws[f"I{r}"].value = date
         ws[f"J{r}"].value = src
-        ws[f"S{r}"].value = REVIEW_EV
-        _append_q(ws, r, ev)
+        if sid in V1720_S:
+            old.append(f"審查 {REVIEW_EV}（S 欄由 v17.2 第二來源規則固定為 {v1720.DATE}，不改）")
+        else:
+            ws[f"S{r}"].value = REVIEW_EV
+        # the Evidence ID is recorded in the W note only: older modules assert column Q of some of these records (e.g. v2130 SRC_PRC_049 Q＝E405)
         w = str(ws[f"W{r}"].value)
         ws[f"W{r}"].value = w + head + "：" + "；".join(old) + (f"；{extra}" if extra else "")
         n += 1
@@ -381,8 +387,6 @@ def src_updates(wb):
         assert cur in (None, DASH), (sid, cur)
         ws[f"R{r}"].value = sec
         ws[f"S{r}"].value = REVIEW_EV if sid != "SRC_DC_007" else DATE
-        if sid in SECOND_EV:
-            _append_q(ws, r, SECOND_EV[sid])
         n += 1
     # --- notes (W prefix)
     for sid, note in NOTES.items():
@@ -399,7 +403,6 @@ def src_updates(wb):
         ws[f"B{r}"].value = DC004_NEW
         ws[f"W{r}"].value = (str(ws[f"W{r}"].value) + f"｜{V} 更正（修訂九；Decisions {DEC_ID}）：原 B 欄（指標）＝『{DC004_OLD}』；"
                              "E452：Turner & Townsend 原文為 AI 對傳統資料中心的建造溢價，未標液冷；液冷溢價另見 SRC_DC_024（JLL 10%）")
-        _append_q(ws, r, "E452")
         n += 1
     # --- SRC_PRC_051 (Active): second source exemption (C1 convention for official price lists) and review date
     ws, r = rows[NEW_PRC]

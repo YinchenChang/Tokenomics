@@ -1551,6 +1551,7 @@ import v2140
 import v2150
 import v2160
 import v2170
+import v2180
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1657,7 +1658,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v2170.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v2180.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1732,7 +1733,7 @@ def readme(wb):
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v2170.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v2180.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -35927,6 +35928,532 @@ README_VERSION = (VERSION + "（次版，底版 v21.6：" + WO + "——NonNV AM
 README_TITLE = V + v2160.README_TITLE[len(v2160.V):]
 ```
 
+## v2180.py
+
+```python
+# v21.8 (work order docs/workorders/20261102_v21.8_財報季與月度證據.md r0, branch claude/v21-8): 2026Q3 earnings-season evidence + monthly evidence 20261101.
+# MINOR version: one SRC Active value changes (SRC_DC_008 Nebius GPU depreciation 4 -> 5, read by Inputs!F23 = high-cost case only) and one new SRC record is
+# linked to the candidate table (Cap_In!F58 MiniMax M3 cached input 0.06). Contract v0.27 unchanged; no IF_／L1_ name added or removed (new SRC_* record names only).
+#   W1  SRC_DC!C12 4 -> 5 (old-value guard, inputs_update: after restore, before gov_all) and its source／grade／date／review／Evidence／note fields (apply);
+#       Inputs!H23 text (original kept after "｜原："); Cap_In!F58 blank -> =SRC_PRC_051 (formula_map); Cap_In!M58 text; Sensitivity N4／O4／A72 "7 年對 4 年" -> "7 年對 5 年".
+#       NOTE: the work order names the new MiniMax record SRC_PRC_050, but that ID already exists (v17.2: gpt-6.1-sol long-context cached input 0.20, Alt);
+#       the next free ID SRC_PRC_051 is used and the conflict is listed in the report (待 Project 判斷).
+#   W2  Grade／source upgrades with unchanged values (draft workorder_draft.md section 2 points 1–2; each record asserts SRC_ID, value and label first);
+#       second-source fills; notes 1-B／1-H／1-K／1-L; SRC_DC_004 label correction (revision 9, original kept in W); new records (src_new_records, appended by gov.src_append).
+#   W3  DB_Evidence E412–E475, E476–E507, E540–E558 (115 rows from builder/v2180_evidence.json, generated by tools/gen_v2180_data.py); E014 closed (E419);
+#       Decisions SL65-01; README B5 opening paragraph.
+# Every write to an Excel-owned cell is guarded (old value / old text / already-applied test), so the module is idempotent.
+import json
+import os
+
+from openpyxl.utils import get_column_letter as L
+
+from common import put, F_CALC
+import v1410
+import v1720
+import v2170
+
+VERSION = "20261102_Tokenomics_v21.8"      # single source of the version string: README!B5 and README!A1 (finish.readme)
+DATE = "2026-11-02"
+REVIEW_EV = "2026-11-01"                    # review date of the 20261101 monthly evidence (draft section 2 point 1)
+DASH = "—"
+V = "v21.8"
+WO = "工作單 docs/workorders/20261102_v21.8_財報季與月度證據.md（r0）"
+DEC_ID = "SL65-01"
+EVD_M = "docs/evidence/20261101/"
+EVD_Q = "docs/evidence/20261102_財報季/"
+C1_TEXT = v1720.C1_TEXT
+DEC_BY = ("Andy 未回應的判斷題照預設（Project Instructions；可撤回）；chat 端 2026-11-02 逐項定案（工作單第 1 節）。"
+          "證據：" + EVD_M + "（E412–E475，PR #189）、" + EVD_Q + "（E476–E507、E540–E558）")
+EVID = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "v2180_evidence.json"), encoding="utf-8"))
+
+# ---------------------------------------------------------------- W1 SRC_DC_008 (Nebius) 4 -> 5
+DC008_OLD, DC008_NEW = 4, 5
+
+
+def inputs_update(wb):
+    log = []
+    ws = wb["SRC_DC"]
+    assert ws["A12"].value == "SRC_DC_008" and ws["B12"].value == "Nebius GPU 折舊年限", (ws["A12"].value, ws["B12"].value)
+    c = ws["C12"]
+    if c.value is not None and type(c.value) is not bool and c.value == DC008_OLD:
+        c.value = DC008_NEW
+        log.append(f"SRC_DC!C12 (SRC_DC_008 Nebius GPU depreciation, read by Inputs!F23): {DC008_OLD} -> {DC008_NEW} (v21.8 W1, E467)")
+    return log
+
+
+# ---------------------------------------------------------------- W1 Cap_In!F58 link (builder-owned: gov.FORMULA_MAP rewrites links on every build)
+NEW_PRC = "SRC_PRC_051"
+FM = {"Cap_In!F58": "=" + NEW_PRC}
+
+
+def formula_map(fm):
+    fm = dict(fm)
+    for k, f in FM.items():
+        assert fm.get(k) in (None, f), (k, fm.get(k))
+    fm.update(FM)
+    return fm
+
+
+# ---------------------------------------------------------------- W2 new SRC records
+JLL_URL = "https://www.jll.com/content/dam/jllcom/en/global/documents/reports/research-reports/26-research-global-data-center-outlook-new.pdf"
+MINIMAX_URL = "https://platform.minimax.io/docs/guides/pricing"
+CW_URL = "https://www.coreweave.com/pricing"
+VERDA_URL = "https://verda.com/pricing"
+NEBIUS_URL = "https://www.nebius.com/prices"
+HOST_URL = "https://www.prnewswire.com/news-releases/ai-data-center-leases-stretch-to-20-years-as-power-becomes-the-asset-302894559.html"
+OAI_URL = "https://developers.openai.com/api/docs/pricing"
+HAIKU_URL = "https://www.anthropic.com/news/claude-haiku-5-5"
+ZAI_URL = "https://docs.z.ai/guides/overview/pricing"
+WING_URL = "https://www.wing.vc/content/how-much-does-an-nvidia-nvl72-cost"
+TF_URL = "https://www.trendforce.com/presscenter/news/20260828-13204.html"
+VESTED_URL = "https://vestedfinance.com/blog/us-stocks/why-is-nvidia-raising-prices-in-its-best-quarter-ever/"
+SRCNOTE = f"（{V}；{WO}）"
+NOLINK = "—（未連結模型格；只作對照）"
+
+
+def _r(i, sheet, metric, val, lo, hi, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note, ev, status="Alt"):
+    rec = v1720._rec(i, sheet, metric, val, lo, hi, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note + SRCNOTE)
+    rec.update(status=status, s="U-V2180", ev=ev)
+    return rec
+
+
+def _price(i, metric, val, unit, basis, applies, date, src, grade, stance_note, use, note, ev, status="Alt", stance="利害關係方", hand="一手（已讀）"):
+    return _r(i, "SRC_Price", metric, val, None, None, unit, basis, applies, date, src, grade, stance, stance_note, hand, use, note, ev, status)
+
+
+# SRC_Price tier columns X (價格層), AA (可中斷性), AB (計價單位) for the new price records (v5.29 columns; existing records stay blank)
+PRICE_TIER = {}
+
+
+def _tier(i, tier, unit, interrupt=None):
+    PRICE_TIER[i] = (tier, interrupt, unit)
+
+
+def src_new_records(wb):
+    recs = []
+    # 1-G MiniMax M3 cached input (Active, linked to Cap_In!F58)
+    recs.append(_price(NEW_PRC, "MiniMax M3 快取輸入", 0.06, "$/M", "≤512K 輸入；Standard（標 Permanent 50% off，原 0.12）", "MiniMax M3", REVIEW_EV,
+                       MINIMAX_URL + "（2026-11-01 讀取；頁面未標日）", 1, "MiniMax 官方牌價", "Cap_In!F58｜直接",
+                       "1-G（E428）：原以新鮮價 0.3 代入；>512K 層 0.12；工作單原寫 SRC_PRC_050，該編號 v17.2 起已為 gpt-6.1-sol 長上下文快取，改用下一個空號 051",
+                       "E428", status="Active", hand="一手（已讀）"))
+    _tier(NEW_PRC, "隨需牌價（token）", "token")
+    # E430 CoreWeave
+    for i, m, v, b, intr in (("SRC_PRC_052", "CoreWeave HGX H200 8-GPU 執行個體隨需牌價", 50.44, "隨需；NA（＝6.305 $/GPU-hr）", None),
+                             ("SRC_PRC_053", "CoreWeave HGX B200 8-GPU 執行個體 spot 價", 34.11, "spot；NA（EU 34.87）", "是"),
+                             ("SRC_PRC_054", "CoreWeave HGX B300 8-GPU 執行個體 spot 價", 35.84, "spot；NA（EU 36.70；隨需 Contact sales）", "是"),
+                             ("SRC_PRC_055", "CoreWeave HGX H100 8-GPU 執行個體 spot 價", 19.71, "spot；NA（隨需 49.24）", "是"),
+                             ("SRC_PRC_056", "CoreWeave HGX H200 8-GPU 執行個體 spot 價", 20.93, "spot；NA", "是")):
+        recs.append(_price(i, m, v, "$/hr", b, m.split(" ")[1] + " " + m.split(" ")[2] + "（CoreWeave）", REVIEW_EV, CW_URL + "（2026-11-01 讀取；未標日）", 1,
+                           "CoreWeave 牌價（賣方自訂價）", NOLINK, "E430：承諾用量另有「up to 60% discounts」；B200 隨需 68.80 與 2026-10-15 A 段相同", "E430"))
+        _tier(i, "spot" if intr else "隨需", "GPU-hr", intr)
+    # E431 Verda
+    for i, g, v in (("SRC_PRC_057", "GB300 SXM6 288GB", 13.05), ("SRC_PRC_058", "B300", 11.35), ("SRC_PRC_059", "B200", 8.869),
+                    ("SRC_PRC_060", "H200", 6.25), ("SRC_PRC_061", "H100", 4.793)):
+        recs.append(_price(i, f"Verda {g} 隨需牌價", v, "$/GPU-hr", "隨需（spot 各為半價）", f"{g}（Verda）", REVIEW_EV, VERDA_URL + "（2026-11-01 讀取；© Verda 2026，未標日）", 1,
+                           "Verda（前 DataCrunch）牌價（賣方自訂價）", NOLINK, "E431：預留折扣 1 月 2%、3 月 3%、6 月 4%、1 年 8%、2 年 25%（折扣率，非牌價）；GB200 未列", "E431"))
+        _tier(i, "隨需", "GPU-hr")
+    # E432 Nebius
+    for i, g, v in (("SRC_PRC_062", "HGX B300", 9.50), ("SRC_PRC_063", "HGX H200", 5.40)):
+        recs.append(_price(i, f"Nebius {g} 隨需牌價", v, "$/GPU-hr", "隨需", f"{g}（Nebius）", REVIEW_EV, NEBIUS_URL + "（2026-11-01 讀取；© 2026，未標日）", 1,
+                           "Nebius 牌價（賣方自訂價）", NOLINK, "E432：B200 8.50、H100 4.50 與 2026-10-15 A 段相同；GB200／GB300 NVL72 Contact us；預留無數字", "E432"))
+        _tier(i, "隨需", "GPU-hr")
+    # E434 Host Digital colocation
+    for i, s, v, d in (("SRC_PRC_064", "第一站 43 MW-IT／$1.25B／15 年", 1.94, "2026-09-30"), ("SRC_PRC_065", "第二站 16 MW-IT／$391M／12 年", 2.04, "2026-08-31")):
+        recs.append(_price(i, f"Host Digital colocation 每 MW-IT 年化租金（{s}）", v, "US$M/MW-IT/年", "colocation（不含 GPU）；合約總額 ÷ 年期 ÷ MW（Derived）", "Host Digital", d,
+                           HOST_URL + "（付費新聞稿）", 2, "出租方付費宣傳稿", NOLINK,
+                           "E434：小案且來源品質低，只作 colocation 層級量級對照（對 IREN 雲服務含 GPU 9.70）；9–10 月無其他含金額＋MW＋年期的新長約", "E434",
+                           hand="一手（付費新聞稿）"))
+        _tier(i, "長約（colocation）", "MW-year")
+    # E415 gpt-6.1-terra
+    for i, k, v in (("SRC_PRC_066", "新鮮輸入", 1.00), ("SRC_PRC_067", "快取輸入", 0.05), ("SRC_PRC_068", "輸出（含思考）", 5.00)):
+        recs.append(_price(i, f"gpt-6.1-terra {k}", v, "$/M", "Standard", "gpt-6.1-terra", "2026-10-26", OAI_URL + "（2026-11-01 讀取）", 1,
+                           "OpenAI 牌價（牌價本身即事實，誤報誘因低）", "—（未連結模型格；是否入 Cap_In F 節併 1-C，12-01 月度）",
+                           "E415：2026-10-26 發布的新中階層級（介於 Luna 與 Sol）；能力指數 v5.0 未查得", "E415"))
+        _tier(i, "隨需牌價（token）", "token")
+    # E421 Claude Haiku 5.5
+    for i, k, v in (("SRC_PRC_069", "輸入（≤100K 提示）", 0.10), ("SRC_PRC_070", "輸出（≤100K 提示）", 0.50)):
+        recs.append(_price(i, f"Claude Haiku 5.5 {k}", v, "$/M", "Standard；≤100K 提示（>100K：0.50／2.50）", "Claude Haiku 5.5", "2026-10-07", HAIKU_URL, 1,
+                           "Anthropic 牌價（賣方自訂價）", "—（未連結模型格；是否入 Cap_In F 節併 1-C，12-01 月度）", "E421：快取價未列；能力指數未查", "E421"))
+        _tier(i, "隨需牌價（token）", "token")
+    # E425 GLM-5.3-FlashX
+    for i, k, v in (("SRC_PRC_071", "輸入", 0.37), ("SRC_PRC_072", "快取輸入", 0.075), ("SRC_PRC_073", "輸出", 1.25)):
+        recs.append(_price(i, f"GLM-5.3-FlashX {k}", v, "$/M", "—", "GLM-5.3-FlashX", REVIEW_EV, ZAI_URL + "（2026-11-01 讀取；未標日）", 1,
+                           "Z.ai 官方牌價", NOLINK, "E425：GLM-5.3／GLM-5.3-Flash 牌價未變；FlashX 為首次登錄；快取儲存 Limited-time Free", "E425"))
+        _tier(i, "隨需牌價（token）", "token")
+    # E483 SpaceX realised pricing multiple (Derived)
+    recs.append(_price("SRC_PRC_074", "SpaceX 已實現每瓦年營收 ÷ GB300 經濟持有成本（粗估）", None, "× 持有成本", "已實現（2026Q3 SI 營收 × 4 ÷ nameplate 1.7 GW；全部機隊 15.1、只算出租一半上限約 30 $/W·年，÷ GB300 10.89；Derived）",
+                       "SpaceX（xAI）出租與自用機隊", "2026-09-30", "SpaceX 10-Q 2026Q3（營收分解、Nameplate compute 表）＋法說逐字稿（Elon Musk）；" + EVD_Q, 1,
+                       "出租方自揭；換算 Derived", "—（AL_SpendBasis 的已實現對照；不連結模型格）",
+                       "E483：營收含 Grok／X 訂閱、API 與資料授權，不是純出租；季中產能爬坡使分母偏大；只作 E482（現貨上緣 4.6–5.2）的已實現對照", "E483",
+                       stance="Derived", hand="一手（10-Q 已讀）"))
+    recs[-1].update(lo=1.4, hi=2.8)
+    _tier("SRC_PRC_074", "混合（已實現）", "MW-year")
+    # E544–E546 colocation
+    for i, m, v, d, url, note, ev, app in (
+            ("SRC_PRC_075", "Applied Digital Delta Forge 2 colocation 每 MW-IT 年化基期租金", 1.65, "2026-06-08", "https://ir.applieddigital.com/news-events/press-releases/detail/154/",
+             "E544：210 MW critical IT、15 年 take-or-pay、基期合約收入約 $5.2B（5,200 ÷ 15 ÷ 210，Derived）；承租方未具名 hyperscaler", "E544", "Applied Digital（Delta Forge 2）"),
+            ("SRC_PRC_076", "Galaxy Helios colocation 每 MW-IT 年化實收租金（CoreWeave 承租）", 2.38, "2026-10-27", "https://finviz.com/news/408549/galaxy-announces-third-quarter-2026-financial-results",
+             "E545：Q3 data center leasing revenue $79.1M × 4 ÷ 133 MW（Derived）；第一個已實收的 colocation 每 MW 年租金", "E545", "Galaxy（Helios）"),
+            ("SRC_PRC_077", "Digital Realty >1 MW 批發託管簽約年化租金（每 MW）", 3.30, "2026-10-29", "https://finviz.com/news/412047/digital-realty-reports-third-quarter-2026-results",
+             "E546：$474.2M ÷ 143.6 MW（＝$275/kW·月 × 12；Derived）；turnkey 口徑含較多設施服務，高於 powered-shell 長約", "E546", "Digital Realty")):
+        recs.append(_price(i, m, v, "US$M/MW-IT/年", "colocation（不含 GPU）；Derived", app, d, url + "（新聞稿）", 1, "出租方自揭", NOLINK,
+                           note + "；不是 GPU 出租價，不能直接用於 AL_SpendBasis", ev, hand="一手（新聞稿已讀）"))
+        _tier(i, "長約（colocation）", "MW-year")
+    # 1-D GB300 rack price high-end support (E450, E550)
+    recs.append(_r("SRC_HW_100", "SRC_HW", "GB300 NVL72 機架價格（採購單，just under $5.0M，無 in-rack CDU）", 5.0, None, None, "$M/架",
+                   "採購單說法（上限：just under 5.0；不含 in-rack CDU）；媒體估計 6–6.5", "GB300 NVL72", "2026-08", WING_URL + "（Aug 2026）", 2, "中立",
+                   "創投研究文章；採購單說法無原件", "二手（已讀）", "—（未連結模型格；Spec_Rack!E13 高端 5.0 的佐證，1-D）",
+                   "E450：高端已涵蓋（Spec_Rack!E11 低 4.0、E12 基準 4.3、E13 高 5.0）；與 SRC_HW_010（Data Gravity 經 wing.vc，5）同一原文脈絡", "E450"))
+    recs.append(_r("SRC_HW_101", "SRC_HW", "NVIDIA AI 伺服器系統漲價幅度（2027 年初起出貨）", None, 0.15, 0.17, "% 漲幅",
+                   "Grace Blackwell 與 Vera Rubin 系統；2027 年初起出貨生效；原因記憶體成本", "GB300／VR200 機架", "2026-08-22",
+                   "Bloomberg 報導（經 Korea JoongAng Daily 2026-08-23、hwbusters 2026-08-23 轉述）；The Information 稱 ODM 主要系統約 17%", 2, "利害關係方",
+                   "NVIDIA 定價（經媒體轉述）", "二手（已讀）", "—（未連結模型格；Spec_Rack!E13 高端 5.0 的佐證，1-D）",
+                   "E550：4.3 × 1.15–1.17＝4.95–5.03（Derived）落在高端 5.0；只適用 2027 起出貨（VR200／2027 世代口徑）", "E550"))
+    # E552 TrendForce VR / GB300 ASP ratio
+    recs.append(_r("SRC_HW_102", "SRC_HW", "Vera Rubin 系統 ASP ÷ GB300 系統 ASP（TrendForce）", 2, None, None, "倍",
+                   "「the ASP of the Vera Rubin systems is expected to be roughly double that of GB300」", "VR200／GB300 NVL72", "2026-08-28", TF_URL, 1, "中立",
+                   "研究機構自家新聞稿", "一手（已讀）", "—（未連結模型格；Spec_Rack VR200 區間的比值檢查）",
+                   "E552：以 GB300 4.0 計約 8.0，落在 VR200 區間 7.5–9.09（不改值）", "E552"))
+    # Q3-3 Alphabet 6 years (second source of SRC_DC_007)
+    recs.append(_r("SRC_DC_023", "SRC_DC", "Alphabet 伺服器與網路設備耐用年限", 6, None, None, "年",
+                   "會計年限；servers and networking equipment「generally have useful lives of six years」（2026Q3 技術基礎設施投資約 65%）", "Alphabet", "2026-10-28",
+                   "Alphabet 2026Q3 法說逐字稿（CFO Anat Ashkenazi 開場發言）；" + EVD_Q, 1, "利害關係方",
+                   "公司自定會計政策：延長年限可提高帳面獲利", "一手（逐字稿已讀）", "—（SRC_DC_007 的第二來源；Inputs!E23 基準 6 的 hyperscaler 一手依據；不直接連結）",
+                   "Q3-3（E476）：Inputs!H23 所稱「主要 hyperscaler 6 年」的一手來源；資料中心 7–40 年（E505）", "E476"))
+    # 1-I JLL liquid-cooling premium (Alt, comparison only)
+    recs.append(_r("SRC_DC_024", "SRC_DC", "液冷設施建造成本溢價（JLL）", 0.10, None, None, "%",
+                   "液冷設施對氣冷 shell & core 的建造成本溢價（「Liquid-cooled facilities have a 10% cost premium」）", "液冷設施", "2026-01",
+                   "JLL Global Data Center Outlook 2026（原報告）｜" + JLL_URL, 1, "中立", "JLL：不動產顧問（產業研究）", "一手（已讀）",
+                   "—（SRC_DC_004 的對照；不連結模型格）", "1-I（E451、E452）：SRC_DC_004 的 7–10% 為 Turner & Townsend 的 AI 對傳統 DC 建造溢價，本筆才是液冷溢價", "E451"))
+    # E553 NVIDIA content per GW
+    for i, g, v in (("SRC_DC_025", "Hopper", 18), ("SRC_DC_026", "Blackwell", 25), ("SRC_DC_027", "Vera Rubin", 40)):
+        recs.append(_r(i, "SRC_DC", f"每 GW 中 NVIDIA 自身內容（{g}）", v, None, None, "$B/GW", "GW 口徑未明；NVIDIA 2026-08 法說（經二手摘要，非逐字稿）", g, "2026-08-26",
+                       "Vested Finance 摘要（2026-08-27）｜" + VESTED_URL, 2, "利害關係方", "NVIDIA 管理層：有放大市場規模的誘因；二手摘要待逐字稿", "二手（已讀）",
+                       "—（未連結模型格；SRC_DC_011（35）的對照，Checks!C5）", "E553：VR 約 40 與 E453 BG2「40 plus」一致", "E553"))
+    # Q3-4 Google API tokens
+    recs.append(_r("SRC_DEM_091", "SRC_Demand", "Google 第一方模型 API 處理量", 32, None, None, "B tok/min",
+                   "第一方模型 API（不含 Gemini App 與 Search）；時點值；季增 40%、年增逾 4 倍", "Google", "2026-10-28",
+                   "Alphabet 2026Q3 法說逐字稿（CEO Sundar Pichai 開場）、新聞稿、簡報；" + EVD_Q, 1, "利害關係方", "公司自揭用量（有展示成長的誘因）",
+                   "一手（逐字稿已讀）", "—（與 SRC_DEM_011 OpenAI API 15 B tok/min 並列的第二錨點；不連結模型格）",
+                   "Q3-4（E488）：32B × 1,440＝46.1 兆／日（Derived）；只作產業 token 帳對照，不改每 GW 參數", "E488"))
+    # second sources (draft section 2 point 2)
+    recs.append(_r("SRC_MOD_107", "SRC_Model", "DeepSeek V4-Flash 預訓練 token", 32, None, None, "T", "「more than 32 trillion tokens」（下限）", "DeepSeek V4-Flash",
+                   "2026-07-31", "DataNorth 2026-07-31｜https://datanorth.ai/news/deepseek-releases-deepseek-v4-flash-0731；NYU Shanghai RITS 同述", 2, "中立",
+                   "媒體轉述 DeepSeek 自揭（非獨立量測）", "二手（已讀）", "—（SRC_MOD_029 的第二來源；不連結模型格）",
+                   "E468：兩篇第二來源皆轉述 DeepSeek 自揭；Epoch 模型頁訓練資料量 Unknown", "E468"))
+    recs.append(_r("SRC_PERF_086", "SRC_Perf", "Llama 3 有效訓練時間比（goodput）", 0.9, None, None, "%", "「higher than 90% effective training time」（下限）", "Llama 3 405B",
+                   "2024-09-08", "MLOps Newsletter 2024-09-08｜https://mlops.substack.com/p/scaling-and-reliability-challenges", 2, "中立", "技術電子報轉述 Meta 論文",
+                   "二手（已讀）", "—（SRC_PERF_037 的第二來源；不連結模型格）", "E469：另記 54 天 466 次中斷（419 次非預期）", "E469"))
+    recs.append(_r("SRC_PERF_087", "SRC_Perf", "SGLang on GB200 NVL72：decode 每 GPU（DeepSeek-R1 類，FP8 attn＋NVFP4 MoE，2K ISL，48 EP ranks）", 13386, None, None,
+                   "tok/s/GPU（decode）", "框架團隊自測；同世代不同框架與量化（對 SRC_PERF_074 vLLM 10,100）", "GB200 NVL72", "2025-09-25",
+                   "https://lmsys.org/blog/2025-09-25-gb200-part-2", 1, "利害關係方", "框架團隊自測", "一手（已讀）",
+                   "—（SRC_PERF_074 的第二來源；不連結模型格）", "E470：另 9,087（BF16＋FP8）、7,583（2025-06-16 part 1）；1-L：不改 CAL_BatchEtaD，排入下次 η 校準", "E470"))
+    recs.append(_r("SRC_DEM_092", "SRC_Demand", "ChatGPT 每日提示數", 2.627, None, None, "B 則/日", "2025-06 月均（Table 1）；正文「more than 2.5 billion messages per day」",
+                   "ChatGPT", "2025-06", "NBER WP 34255《How People Use ChatGPT》｜https://www.nber.org/system/files/working_papers/w34255/w34255.pdf", 1, "利害關係方",
+                   "OpenAI 共同作者（同為 OpenAI 數據，另一份文件）", "一手（已讀）", "—（SRC_DEM_012 的第二來源；不連結模型格）",
+                   "E472：2024-06 451M／日；高於現值 2.5 約 5%；2026 年每日訊息數仍無新揭露", "E472"))
+    return recs
+
+
+# ---------------------------------------------------------------- W2 grade／source upgrades (values unchanged)
+H100 = "https://www.nvidia.com/en-us/data-center/h100/（2026-11-01 讀取；頁面 meta 更新 2026-07-01）"
+BWU = "NVIDIA 技術部落格 Inside NVIDIA Blackwell Ultra（2025-08-22；2025-09-24 更正）表 2｜https://developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-the-ai-factory-era/"
+GB200 = "https://www.nvidia.com/en-us/data-center/gb200-nvl72/（2026-11-01 讀取）"
+CLAUDE = "Anthropic 官方定價頁 https://platform.claude.com/docs/en/about-claude/pricing（2026-11-01 直接讀取；docs.claude.com 302 轉址）"
+V3ARX = "arXiv 2412.19437 v2（DeepSeek-V3 Technical Report；2026-11-01 已讀）｜https://arxiv.org/pdf/2412.19437"
+V3CFG = "HF config.json：deepseek-ai/DeepSeek-V3、DeepSeek-R1（2026-11-01 讀取）｜https://huggingface.co/deepseek-ai/DeepSeek-V3/blob/main/config.json"
+V4P = "HF DeepSeek-V4-Pro 模型卡與 config.json（2026-11-01 讀取）｜https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro；HF blog deepseekv4（2026-04-24）"
+V4F = "HF DeepSeek-V4-Flash 模型卡與 config.json（2026-11-01 讀取）｜https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash"
+DCD = "DCD 轉述 GTC 2025（NVIDIA 一手頁：已搜尋，未找到）｜https://www.datacenterdynamics.com/en/news/nvidias-rubin-ultra-nvl576-rack-expected-to-be-600kw-coming-second-half-of-2027/"
+FORBES = "Forbes 2025-09-22 轉述黃仁勳 2025-08 對投資人說法（CNBC 原文：已搜尋，未找到）｜https://www.forbes.com/sites/antoniopequenoiv/2025/09/22/nvidiaopenai-deal-chipmaker-investing-100-billion-in-chatgpt-maker/"
+ONE = "一手（已讀）"
+# (SRC_ID, expected value (C, or (D, E) when C is blank), label substring, new grade or None, new source, new hand or None, new date or None, Evidence ID, extra note)
+UPG = [
+    ("SRC_PRC_001", 42, "CoreWeave GB200 4-GPU", 1, "CoreWeave 官方價目 https://www.coreweave.com/pricing（2026-11-01 讀取；GB200 NVL72 4-GPU 隨需 $42.00/hr，NA 與 EU）", ONE, None, "E429", None),
+    ("SRC_PRC_012", 10, "Claude Fable 5.1 輸入", 1, CLAUDE, ONE, None, "E417", None),
+    ("SRC_PRC_013", 0.25, "Claude Fable 5.1 快取讀取", 1, CLAUDE, ONE, None, "E417", None),
+    ("SRC_PRC_014", 50, "Claude Fable 5.1 輸出", 1, CLAUDE, ONE, None, "E417", None),
+    ("SRC_PRC_015", 5, "Claude Opus 5 輸入", 1, CLAUDE, ONE, None, "E418", "官方頁另列快取 0.50（Cap_In F50 現值）"),
+    ("SRC_PRC_016", 25, "Claude Opus 5 輸出", 1, CLAUDE, ONE, None, "E418", None),
+    ("SRC_PRC_017", 4, "Claude Opus 5.5 輸入", 1, CLAUDE, ONE, None, "E419", "官方頁另列快取 0.20（Cap_In F51 現值）"),
+    ("SRC_PRC_018", 20, "Claude Opus 5.5 輸出", 1, CLAUDE, ONE, None, "E419", None),
+    ("SRC_PRC_019", 1.25, "快取寫入倍數（5 分鐘）", 1, CLAUDE, ONE, None, "E420", None),
+    ("SRC_PRC_020", 2, "快取寫入倍數（1 小時）", 1, CLAUDE, ONE, None, "E420", None),
+    ("SRC_PRC_038", 2, "Qwen3.8-Max 輸入（國際站）", 1, "Alibaba Model Studio 官方頁 https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max（Last updated 2026-10-11）", ONE, "2026-10-11", "E427", None),
+    ("SRC_PRC_039", 0.25, "Qwen3.8-Max 快取輸入（國際站）", 1, "Alibaba Model Studio 官方頁 https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max（Last updated 2026-10-11；隱式快取）", ONE, "2026-10-11", "E427", None),
+    ("SRC_PRC_040", 6, "Qwen3.8-Max 輸出（國際站）", 1, "Alibaba Model Studio 官方頁 https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max（Last updated 2026-10-11）", ONE, "2026-10-11", "E427", None),
+    ("SRC_PRC_043", 0.3, "MiniMax M3 輸入", 1, "MiniMax 官方頁 " + MINIMAX_URL + "（2026-11-01 讀取；Standard ≤512K，標 Permanent 50% off）", ONE, None, "E428", None),
+    ("SRC_PRC_044", 1.2, "MiniMax M3 輸出", 1, "MiniMax 官方頁 " + MINIMAX_URL + "（2026-11-01 讀取；Standard ≤512K，標 Permanent 50% off）", ONE, None, "E428", None),
+    ("SRC_PRC_049", 0.1, "gpt-6.1-sol 快取輸入（短上下文）", 1, "OpenAI 官方牌價頁 " + OAI_URL + "（2026-11-01 直接讀取）", ONE, None, "E413", None),
+    ("SRC_HW_019", 0.989, "H100 BF16 dense 峰值", 1, H100, ONE, None, "E442", "頁面只印稀疏 1,979 TFLOPS；dense＝1,979 ÷ 2（Derived）"),
+    ("SRC_HW_020", 80, "H100 HBM 容量", 1, H100, ONE, None, "E442", None),
+    ("SRC_HW_021", 3.35, "H100 HBM 頻寬", 1, H100, ONE, None, "E442", None),
+    ("SRC_HW_056", 700, "H100 SXM GPU 功率", 1, H100, ONE, None, "E442", "Up to 700W（configurable）"),
+    ("SRC_HW_023", 8, "GB200 HBM 頻寬", 1, BWU, ONE, "2025-08-22", "E443", None),
+    ("SRC_HW_026", 288, "B300 HBM 容量", 1, BWU, ONE, "2025-08-22", "E443", None),
+    ("SRC_HW_057", 1200, "GB200 中 Blackwell GPU 功率", 1, BWU, ONE, "2025-08-22", "E443", None),
+    ("SRC_HW_058", 1400, "GB300 中 Blackwell Ultra GPU 功率", 1, BWU, ONE, "2025-08-22", "E443", None),
+    ("SRC_HW_059", 8, "B300 HBM 頻寬", 1, BWU, ONE, "2025-08-22", "E443", None),
+    ("SRC_HW_048", 0.9, "NVLink 5 頻寬", 1, BWU, ONE, "2025-08-22", "E443", "原文 1.8 TB/s bidirectional per GPU；0.9＝÷ 2（單向口徑，Derived）"),
+    ("SRC_HW_041", 13.4, "GB200 NVL72 HBM 總容量", 1, GB200, ONE, None, "E444", None),
+    ("SRC_HW_042", 2.5, "GB200／GB300 BF16 dense 峰值", 1, GB200, ONE, None, "E444", "全架 FP16/BF16 360 PFLOPS（稀疏）÷ 2 ÷ 72＝2.5（Derived）"),
+    ("SRC_HW_060", 400, "InfiniBand NDR 單埠頻寬", 1, "NVIDIA ConnectX-7 datasheet（4073150 Jul25）｜https://www.nvidia.com/en-us/networking/infiniband-adapters/", ONE, "2025-07", "E448", None),
+    ("SRC_HW_031", 15000, "Rubin Ultra NVL576 FP4 峰值", 2, DCD, "二手（已讀）", "2025-03", "E447", None),
+    ("SRC_HW_044", 4600, "Rubin Ultra NVL576 HBM 總頻寬", 2, DCD, "二手（已讀）", "2025-03", "E447", None),
+    ("SRC_HW_051", 3, "GB200 NVL72 機架價格（Barron's）", 2, "HSBC 估計（2024-05-13）經 Barron's Tae Kim X 貼文；Wccftech 2024-05-15 轉述｜https://wccftech.com/nvidia-blackwell-gpus-cost-up-to-35000-usd-ai-servers-3-million-gearing-for-next-gold-rush/", "二手（已讀）", "2024-05", "E449", None),
+    ("SRC_DC_003", 11.3, "全球平均資料中心建造成本（JLL 2026）", 1, "JLL Global Data Center Outlook 2026（原報告）｜" + JLL_URL, ONE, "2026-01", "E451", "MW 口徑結案：單租戶 50 MW 氣冷 shell & core，不含土地與 IT 設備"),
+    ("SRC_DC_001", (0.04, 0.08), "1,024 GPU 叢集網路", 1, "hedgehog.cloud（2026-06-08）｜https://hedgehog.cloud/blog/network-capex-is-the-smallest-line-on-your-ai-cluster-bom-and-the-one-that-determines-what-every-other-dollar-can-earn", ONE, "2026-06-08", "E454", "出處刪除 J.P. Morgan（原文未引 JPM）；跨加速器 3–15%（H100 10.6%、GB300 5.8%）"),
+    ("SRC_DC_010", (50, 60), "每 GW 建置成本（黃仁勳）", 2, FORBES, "二手（已讀）", None, "E453", "後續口徑：BG2 podcast 2026-10-15「now 40 plus per gigawatt」（NVIDIA 部分）"),
+    ("SRC_DC_011", 35, "每 GW 中 NVIDIA 晶片與系統", 2, FORBES, "二手（已讀）", None, "E453", None),
+    ("SRC_DC_007", 6, "CoreWeave GPU 折舊年限", 1, "CoreWeave Form 10-K FY2025（SEC EDGAR）：Technology equipment 6 years；2023-01-01 起 5 → 6 年", ONE, None, "E466", None),
+    ("SRC_MOD_020", 671, "DeepSeek-V3／R1 總參數", 1, V3ARX, ONE, None, "E457", None),
+    ("SRC_MOD_021", 37, "DeepSeek-V3／R1 啟用參數", 1, V3ARX, ONE, None, "E457", None),
+    ("SRC_MOD_039", 14.8, "DeepSeek-V3 預訓練 token", 1, V3ARX, ONE, None, "E457", None),
+    ("SRC_MOD_040", 2.664, "DeepSeek-V3 預訓練 H800 GPU 小時", 1, V3ARX, ONE, None, "E457", None),
+    ("SRC_MOD_041", 2.788, "DeepSeek-V3 全部 H800 GPU 小時", 1, V3ARX, ONE, None, "E457", None),
+    ("SRC_MOD_042", 4096, "DeepSeek-V3 預訓練序列長", 1, V3ARX, ONE, None, "E457", None),
+    ("SRC_MOD_022", 61, "DeepSeek-V3／R1 層數", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_023", 7168, "DeepSeek-V3／R1 d_model", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_024", 256, "DeepSeek-V3／R1 routed experts", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_025", 8, "DeepSeek-V3／R1 每 token 啟用 experts", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_026", 1, "DeepSeek-V3／R1 shared experts", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_027", 129280, "DeepSeek-V3／R1 vocab", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_028", 576, "DeepSeek-V3／R1 MLA KV 維度", 1, V3CFG, ONE, None, "E456", "kv_lora_rank 512＋qk_rope_head_dim 64"),
+    ("SRC_MOD_049", 128, "DeepSeek-V3／R1 注意力 heads", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_050", 192, "DeepSeek-V3／R1 qk head 維度", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_051", 128, "DeepSeek-V3／R1 v head 維度", 1, V3CFG, ONE, None, "E456", None),
+    ("SRC_MOD_001", 1600, "DeepSeek V4-Pro 總參數", 1, V4P, ONE, None, "E458", None),
+    ("SRC_MOD_003", 61, "DeepSeek V4-Pro 層數", 1, V4P, ONE, None, "E458", None),
+    ("SRC_MOD_004", 7168, "DeepSeek V4-Pro d_model", 1, V4P, ONE, None, "E458", None),
+    ("SRC_MOD_008", 128, "DeepSeek V4-Pro query heads", 1, V4P, ONE, None, "E458", None),
+    ("SRC_MOD_018", 1024, "DeepSeek V4 CSA top-k 壓縮塊數", 1, V4P, ONE, None, "E458", None),
+    ("SRC_MOD_019", 4, "DeepSeek V4 CSA 壓縮塊長度", 1, V4P, ONE, None, "E458", "config 以 compress_ratios＝4 呈現；字面 block length 見 HF blog"),
+    ("SRC_MOD_005", 284, "DeepSeek V4-Flash 總參數", 1, V4F, ONE, None, "E459", None),
+    ("SRC_PERF_023", 20, "DeepSeek 線上每用戶 decode 速度", 1, "DeepSeek open-infra-index Day 6（2025-02-28；2026-11-01 已讀；原文 20–22 tok/s）｜https://github.com/deepseek-ai/open-infra-index", ONE, None, "E460",
+     "「待取得原文」結案；原文為 20–22，是否改區間屬判斷類（v21.8 只改等級）"),
+    ("SRC_PERF_036", (0.38, 0.43), "Llama 3 405B 預訓練 BF16 MFU", None, "arXiv 2407.21783 v3（Table 4；2026-11-01 已讀）｜https://arxiv.org/html/2407.21783v3", None, None, "E469", "Table 4：43%（8,192 GPU）、41%（16,384，DP 128）、38%（16,384，CP 16）"),
+    ("SRC_PERF_037", 0.9, "Llama 3 有效訓練時間比", None, "arXiv 2407.21783 v3（2026-11-01 已讀）｜https://arxiv.org/html/2407.21783v3", None, None, "E469", "原文「higher than 90% effective training time」"),
+    ("SRC_PERF_074", 10100, "vLLM WideEP on GB200", None, "https://vllm.ai/blog/2026-02-03-dsr1-gb200-part1（網址更正；2026-11-01 讀取）", None, None, "E470", None),
+]
+# second-source fills (column R; only while still '—')
+SECOND = {"SRC_DC_007": "SRC_DC_023", "SRC_MOD_029": "SRC_MOD_107", "SRC_PERF_037": "SRC_PERF_086", "SRC_PERF_074": "SRC_PERF_087", "SRC_DEM_012": "SRC_DEM_092"}
+# notes (W prefix; value unchanged)
+NOTE_1B = ("v21.8（E445，1-B；值不改）：NVIDIA 現行 Vera Rubin NVL72 頁（Preliminary，2026-10-21）每 GPU HBM4 19.2 TB/s、NVLink 3 TB/s；"
+           "1 月新聞稿與 3 月部落格 3.6；待正式 datasheet")
+NOTES = {
+    "SRC_HW_030": NOTE_1B, "SRC_HW_049": NOTE_1B,
+    "SRC_PRC_028": "v21.8（E424，1-H）：官方頁寫明尖峰時段 excluding Chinese public holidays；35 hr/週為未扣中國法定假日的上限，扣除後年化尖峰時數約低 4–5%；Cap_In!C17 不改",
+    "SRC_DEM_071": "v21.8（E463，1-K；不改）：Sacra chat 頁稱 2025 年 API 約 27%（研究頁另寫 enterprise >50%，自家兩頁不一致；15–20% 僅見 Luminix 引 Sacra）；區間 0.15–0.20 不放寬",
+    "SRC_PERF_074": "v21.8（E470，1-L；不改）：第二來源 SGLang GB200 NVL72 decode 13,386 tok/s/GPU（SRC_PERF_087；FP8 attn＋NVFP4 MoE，不同框架與量化），高於 vLLM 約 33%；排入下次 η 校準（Calib J 節複本列重解）",
+}
+DC008 = dict(J="Nebius Group 20-F FY2025（2026-04-30）＋6-K Q2 2026", K=1, N="一手", I="2026-04", S=DATE,
+             W="v21.8（E467，1-A）：2026-01-01 起 GPU 4 → 5 年（會計估計變更）；FY2025 仍 4 年")
+DC004_OLD, DC004_NEW = "液冷溢價（Turner & Townsend）", "AI 資料中心對傳統建造溢價（Turner & Townsend）"
+
+
+def _rows(wb):
+    return v1720._rows(wb)
+
+
+# records whose review date (S) v17.2 re-pins to 2026-10-20 on every build (v1720.apply: second source filled in v17.2); left as is
+V1720_S = {a["orig"] for a in v1720.DATA["A"]}
+
+
+def _append_q(ws, r, ev):
+    q = ws[f"Q{r}"].value
+    q = "" if q in (None, DASH) else str(q)
+    if ev in q.split("；"):
+        return 0
+    ws[f"Q{r}"].value = (q + "；" + ev) if q else ev
+    return 1
+
+
+def src_updates(wb):
+    rows = _rows(wb)
+    n = 0
+    # --- 1-A SRC_DC_008 fields (C12 itself is written by inputs_update)
+    ws, r = rows["SRC_DC_008"]
+    if not str(ws[f"W{r}"].value).startswith(DC008["W"]):
+        assert ws[f"C{r}"].value == DC008_NEW, ws[f"C{r}"].value
+        orig = f"原出處＝『{ws[f'J{r}'].value}』；原等級＝{ws[f'K{r}'].value}；原一手／二手＝『{ws[f'N{r}'].value}』；原日期＝『{ws[f'I{r}'].value}』；原值＝4"
+        ws[f"W{r}"].value = DC008["W"] + f"｜{V} 更新（修訂九；Decisions {DEC_ID}）：{orig}｜" + str(ws[f"W{r}"].value)
+        for col in ("J", "K", "N", "I", "S"):
+            ws[f"{col}{r}"].value = DC008[col]
+        n += 1 + _append_q(ws, r, "E467")
+    # --- grade／source upgrades
+    for sid, val, lab, grade, src, hand, date, ev, extra in UPG:
+        ws, r = rows[sid]
+        head = f"｜{V} 升級（{ev}；值不變；修訂九；Decisions {DEC_ID}）"
+        if head in str(ws[f"W{r}"].value):
+            continue
+        assert lab in str(ws[f"B{r}"].value), (sid, ws[f"B{r}"].value)
+        if isinstance(val, tuple):
+            assert ws[f"C{r}"].value is None and (ws[f"D{r}"].value, ws[f"E{r}"].value) == val, (sid, ws[f"D{r}"].value, ws[f"E{r}"].value)
+        else:
+            assert ws[f"C{r}"].value == val, (sid, ws[f"C{r}"].value, val)
+        old = [f"原出處＝『{ws[f'J{r}'].value}』"]
+        if grade is not None and ws[f"K{r}"].value != grade:
+            old.append(f"等級 {ws[f'K{r}'].value} → {grade}")
+            ws[f"K{r}"].value = grade
+        if hand is not None and ws[f"N{r}"].value != hand:
+            old.append(f"原一手／二手＝『{ws[f'N{r}'].value}』")
+            ws[f"N{r}"].value = hand
+        if date is not None and str(ws[f"I{r}"].value) != date:
+            old.append(f"原日期＝『{ws[f'I{r}'].value}』")
+            ws[f"I{r}"].value = date
+        ws[f"J{r}"].value = src
+        if sid in V1720_S:
+            old.append(f"審查 {REVIEW_EV}（S 欄由 v17.2 第二來源規則固定為 {v1720.DATE}，不改）")
+        else:
+            ws[f"S{r}"].value = REVIEW_EV
+        # the Evidence ID is recorded in the W note only: older modules assert column Q of some of these records (e.g. v2130 SRC_PRC_049 Q＝E405)
+        w = str(ws[f"W{r}"].value)
+        ws[f"W{r}"].value = w + head + "：" + "；".join(old) + (f"；{extra}" if extra else "")
+        n += 1
+    # --- second-source fills
+    for sid, sec in SECOND.items():
+        ws, r = rows[sid]
+        cur = ws[f"R{r}"].value
+        if cur == sec:
+            continue
+        assert cur in (None, DASH), (sid, cur)
+        ws[f"R{r}"].value = sec
+        ws[f"S{r}"].value = REVIEW_EV if sid != "SRC_DC_007" else DATE
+        n += 1
+    # --- notes (W prefix)
+    for sid, note in NOTES.items():
+        ws, r = rows[sid]
+        w = str(ws[f"W{r}"].value)
+        if w.startswith(note):
+            continue
+        ws[f"W{r}"].value = note + "｜" + w
+        n += 1
+    # --- 1-I SRC_DC_004 label correction (revision 9: original kept in W, Decisions SL65-01)
+    ws, r = rows["SRC_DC_004"]
+    if ws[f"B{r}"].value != DC004_NEW:
+        assert ws[f"B{r}"].value == DC004_OLD, ws[f"B{r}"].value
+        ws[f"B{r}"].value = DC004_NEW
+        ws[f"W{r}"].value = (str(ws[f"W{r}"].value) + f"｜{V} 更正（修訂九；Decisions {DEC_ID}）：原 B 欄（指標）＝『{DC004_OLD}』；"
+                             "E452：Turner & Townsend 原文為 AI 對傳統資料中心的建造溢價，未標液冷；液冷溢價另見 SRC_DC_024（JLL 10%）")
+        n += 1
+    # --- SRC_PRC_051 (Active): second source exemption (C1 convention for official price lists) and review date
+    ws, r = rows[NEW_PRC]
+    if ws[f"R{r}"].value in (None, DASH):
+        ws[f"R{r}"].value = C1_TEXT
+        ws[f"S{r}"].value = DATE
+        n += 1
+    # --- SRC_Price tier columns for the new price records
+    for sid, (tier, intr, unit) in PRICE_TIER.items():
+        ws, r = rows[sid]
+        if ws[f"X{r}"].value is None:
+            put(ws, f"X{r}", tier, F_CALC)
+            if intr:
+                put(ws, f"AA{r}", intr, F_CALC)
+            put(ws, f"AB{r}", unit, F_CALC)
+            n += 1
+    return n
+
+
+# ---------------------------------------------------------------- W1 text (Excel-owned Inputs／Sensitivity; builder-owned Cap_In M58)
+H23_OLD = "CoreWeave 與主要 hyperscaler 6 年；Nebius 4 年、Lambda 5 年（S15）。高成本情境取 4"
+H23_NEW = ("基準 6：CoreWeave（10-K FY2025）、Alphabet（2026Q3 CFO）；低成本同基準；高成本 5：Nebius（2026 起，20-F）、Lambda 5（S15）。"
+           "v21.8 起高成本由 4 改 5：2026Q3 四家 hyperscaler 10-Q 皆無 4 年｜原：" + H23_OLD)
+M58_OLD, M58_NEW = "快取價未取得", "快取 0.06（E428）"
+SENS_OLD, SENS_NEW = "（7 年對 4 年）", "（7 年對 5 年）"
+SENS_CELLS = ("N4", "O4", "A72")
+
+
+def text_fixes(wb):
+    n = 0
+    ws = wb["Inputs"]
+    assert ws["A23"].value == "IT 設備折舊年限"
+    if ws["H23"].value != H23_NEW:
+        assert ws["H23"].value == H23_OLD, ws["H23"].value
+        ws["H23"].value = H23_NEW; n += 1
+    ci = wb["Cap_In"]
+    assert ci["A58"].value == "MiniMax M3", ci["A58"].value
+    m = str(ci["M58"].value)
+    if M58_NEW not in m:
+        assert m.count(M58_OLD) == 1, m
+        ci["M58"].value = m.replace(M58_OLD, M58_NEW); n += 1
+    se = wb["Sensitivity"]
+    assert se["N37"].value == 7 and se["O37"].value == "=Inputs!$F$23", (se["N37"].value, se["O37"].value)
+    for ref in SENS_CELLS:
+        t = str(se[ref].value)
+        if SENS_NEW in t:
+            continue
+        assert t.count(SENS_OLD) == 1, (ref, t)
+        se[ref].value = t.replace(SENS_OLD, SENS_NEW); n += 1
+    return n
+
+
+# ---------------------------------------------------------------- W3 DB_Evidence
+def evidence_append(wb):
+    ws = wb["DB_Evidence"]
+    have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
+    n = 0
+    prev = "E411"
+    for row in EVID:
+        if row[0] in have:
+            prev = row[0]
+            continue
+        r = max(rr for rr in range(5, ws.max_row + 1) if ws.cell(rr, 1).value not in (None, "")) + 1
+        assert ws.cell(r - 1, 1).value == prev, (ws.cell(r - 1, 1).value, prev)
+        for i, v in enumerate(row):
+            put(ws, f"{L(i + 1)}{r}", v, F_CALC, wrap=i in (2, 3, 4, 5, 6, 7, 8, 10, 14, 17))
+        prev = row[0]; n += 1
+    # E014 closed by E419 (status column L; the old status is kept in the note column K)
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value == "E014":
+            if ws.cell(r, 12).value == "待判定":
+                ws.cell(r, 12).value = "已處理"
+                ws.cell(r, 11).value = (str(ws.cell(r, 11).value) + f"｜{V}：E419 官方頁直接讀取 Claude Opus 5.5 $4／$0.20／$20，結案（原狀態：待判定；{WO}）")
+                n += 1
+            break
+    return n
+
+
+# ---------------------------------------------------------------- W3 Decisions
+TABLE = ("1-A 採用 E467：SRC_DC_008 4 → 5（Inputs!F23 高成本情境；縮窄 1）；1-B 不改值 E445，SRC_HW_030／049 備註登錄；1-C 本版不改 E438／E462／E507（A 段排 12-01 月度）；"
+         "1-D 不改值 E450／E550（GB300 高端 Spec_Rack!E13 已是 5.0），新增 Alt SRC_HW_100／101；1-E、1-F 延一月 E455／E464；"
+         "1-G 採用 E428：新增 MiniMax M3 快取輸入 0.06（SRC_PRC_051；工作單原寫 SRC_PRC_050，該編號已被 gpt-6.1-sol 長上下文快取占用），Cap_In!F58＝SRC_PRC_051；"
+         "1-H 只補 SRC_PRC_028 備註 E424；1-I 採用 E452：SRC_DC_004 指標名更正為「AI 資料中心對傳統建造溢價（Turner & Townsend）」（修訂九：原字樣保留於 W 欄），新增 Alt SRC_DC_024（JLL 液冷溢價 10%）；"
+         "1-J 併 1-C（E415、E421）；1-K 不改 E463（備註）；1-L 不改 E470（備註；排入下次 η 校準）；"
+         "Q3-1 並列 E482（AL_SpendBasis 1.8 不改；DB_Evidence 登錄為短約現貨上緣錨點）；Q3-2 不新增 NonNV 列 E494（事件觸發清單）；"
+         "Q3-3 採用 E476（值不變）：新增 SRC_DC_023（Alphabet 6 年）填入 SRC_DC_007 第二來源，Inputs!H23 說明改寫；Q3-4 採用 E488：新增 Alt SRC_DEM_091（Google API 32 B tok/min）。"
+         "方向計數：縮窄 1、放寬 0、改基準 0、不變其餘。")
+
+
+def _decisions():
+    return [[DEC_ID, V, "v21.8 2026Q3 財報季證據與月度證據 20261101 同步：高成本折舊 4 → 5、MiniMax 快取價、SRC 等級升級",
+             "第 1 節定案：" + TABLE + "｜第 2 節：Inputs!H23 說明改寫（原文保留於「｜原：」後）；Cap_In!F58 空白 → =SRC_PRC_051、M58 說明；Sensitivity N4／O4／A72「7 年對 4 年」→「7 年對 5 年」（高成本欄讀 Inputs!F23）。"
+             "｜第 3 節：依 docs/evidence/20261101/workorder_draft.md 第 2 節第 1–2 點升級 SRC 等級與出處（值不變；逐筆先核對 SRC_ID、現值、列標籤；原出處、等級、一手／二手、日期逐字保留於 W 欄，修訂九）；"
+             "第二來源 SRC_DC_007←023、SRC_MOD_029←107、SRC_PERF_037←086、SRC_PERF_074←087、SRC_DEM_012←092；新增 Alt／對照紀錄 SRC_PRC_052–077、SRC_HW_100–102、SRC_DC_023–027、SRC_DEM_091／092、SRC_MOD_107、SRC_PERF_086／087（不連結模型格）；"
+             "DB_Evidence E412–E475、E476–E507、E540–E558 共 115 列（E508–E539 保留空號）；E014 結案（E419）。"
+             "｜契約不改（v0.27）：契約名稱值改變者全部在高成本欄（IF_HoldEcon、IF_DeprLifeIT、IF_FullCost_*、IF_Amort* 等 C:Q 中的 E、H、K、N、Q 欄，以及 L1_*_Hi／對應 _Lo 毛利名稱）；基準與低成本欄不變。Andy 原話與依據：" + DEC_BY,
+             DATE, DEC_BY, "v21.8 已建",
+             "SRC_DC!C12（SRC_DC_008）與其欄位；Inputs!F23（經 SRC_DC_008）、H23；Cap_In!F58、M58；Sensitivity N4／O4／A72；SRC_* 等級／出處／第二來源／備註；新增 SRC 紀錄；DB_Evidence E412–E558；Decisions SL65-01；README B5",
+             f"{WO} 第 1–3 節", "否"]]
+
+
+def apply(wb, append_text):
+    log = {"src_updates": src_updates(wb), "text_fixes": text_fixes(wb)}
+    log["evidence"] = evidence_append(wb)
+    ws = wb["Decisions"]
+    if not any(ws.cell(r, 1).value == DEC_ID for r in range(5, ws.max_row + 1)):
+        log["decisions"] = v1410.decisions_append(wb, _decisions())
+    return log
+
+
+# ---------------------------------------------------------------- README
+_prev = v2170.README_VERSION.split("_Tokenomics_", 1)[1]
+README_VERSION = (VERSION + "（次版，底版 v21.7：" + WO + "——v21.8：契約名稱值改變者全部在高成本欄（IF_HoldEcon、IF_DeprLifeIT、IF_FullCost_*、IF_Amort* 等 C:Q 中的 E、H、K、N、Q 欄，"
+                  "以及 L1_*_Hi／對應 _Lo 毛利名稱）；基準與低成本欄不變。來源：SRC_DC_008 Nebius GPU 折舊 4 → 5 年（E467，2026-01-01 起；Inputs!F23 高成本情境）；"
+                  "Cap_In!F58 MiniMax M3 快取 0.06（SRC_PRC_051，E428；只影響 Price_Frontier 候選表）；SRC 等級與出處升級（值不變）、新增 Alt／對照紀錄、DB_Evidence E412–E558（115 列）；Decisions SL65-01。）以下為 " + _prev)
+README_TITLE = V + v2170.README_TITLE[len(v2170.V):]
+```
+
 ## gov_decisions.py
 
 ```python
@@ -36295,6 +36822,7 @@ import v2010                      # v20.1: L1 PriceReqBE row (main-basis L)
 import v2100                      # v21.0: L1 PriceReqBE row text (L_total -> L1_LTotalFleetVDisc)
 import v2120                      # v21.2: L1 GapSpendBasis row text (C71／H71)
 import v2130                      # v21.3: SRC_HW_098／099 records, L1 I128:I131 token-ledger text
+import v2180                      # v21.8: new SRC records (SRC_PRC_051–077, SRC_HW_100–102, SRC_DC_023–027, SRC_DEM_091／092, SRC_MOD_107, SRC_PERF_086／087), Cap_In!F58 link
 import v2110                      # v21.1: SRC_DEM_089／090, Gov_Map rows (NonNV rows 10／11, Cap_In Q), L1 rows 145-148
 import v2000                      # v20.0: SRC_DEM_088, Gov_Map rows for the new blue inputs, L1 rows
 import v1910                      # v19.1: W1 second sources B2 (SRC_MOD_106, Arch!C17 link, GM201 H)
@@ -36322,7 +36850,7 @@ import v522                       # v5.22: X7 (L, m side-by-side outputs: Gov_Ma
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
-def _fm(): return v2130.formula_map(v1910.formula_map(v1020.formula_map(v531.formula_map(v518.formula_map(ALL_FORMULA_MAP)))))     # v21.3 W2: Cap_In D7／F47 -> SRC_PRC_049 (v2130.formula_map); v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
+def _fm(): return v2180.formula_map(v2130.formula_map(v1910.formula_map(v1020.formula_map(v531.formula_map(v518.formula_map(ALL_FORMULA_MAP))))))     # v21.8 W1: Cap_In F58 -> SRC_PRC_051 (v2180.formula_map); v21.3 W2: Cap_In D7／F47 -> SRC_PRC_049 (v2130.formula_map); v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
 
 SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]   # v5.13: +4
 SRC_LAST = 400                      # record rows 5..SRC_LAST (formula ranges)
@@ -36382,7 +36910,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb) + v2130.src_new_records(wb):      # v17.2: W1 second sources (Alt)
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb) + v2130.src_new_records(wb) + v2180.src_new_records(wb):      # v17.2: W1 second sources (Alt); v21.8: v2180 records
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -37255,6 +37783,8 @@ V518_LOG += v2160.inputs_update(wb)       # v21.6 W1: NonNV E6:G6 0.7/0.8/1.0 ->
 import v2170
 V518_LOG += v2170.inputs_update(wb)       # v21.7 W1: NonNV B5:D5 0.5/0.7/1.0 -> 0.70/0.80/1.15, E5:G5 0.8/0.9/1.0 -> 0.67/0.85/1.12, F7 0.55 -> 0.61 (old-value guards; after restore, before gov_all)
 V518_LOG += v2130.inputs_update(wb)       # v21.3 W1／W2: Spec_Rack F11 7.8 -> 7.5, Cap_In D7／F47 =SRC_PRC_007 -> =SRC_PRC_049 (old-value／old-formula guards; after restore, before gov_all)
+import v2180
+V518_LOG += v2180.inputs_update(wb)       # v21.8 W1: SRC_DC!C12 (SRC_DC_008, read by Inputs!F23) 4 -> 5 (old-value guard; after restore, before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -37460,6 +37990,8 @@ V2160 = v2160.apply(wb, v518._append_text)       # v21.6: NonNV L6／L7 text, DB
 print("v2160 v21.6:", V2160)
 V2170 = v2170.apply(wb, v518._append_text)       # v21.7: NonNV L5／L7／L8／L9／A2 and Interface A368 text, DB_Evidence E410／E411, Decisions SL64-01
 print("v2170 v21.7:", V2170)
+V2180 = v2180.apply(wb, v518._append_text)       # v21.8: SRC upgrades／notes／second sources, Inputs H23, Cap_In M58, Sensitivity labels, DB_Evidence E412–E558, E014, Decisions SL65-01
+print("v2180 v21.8:", V2180)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

@@ -19,6 +19,7 @@ import yaml
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2180_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
 from v2180_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
@@ -214,7 +215,7 @@ def test_v2110_existing_names_unchanged(lo):
 def test_v2110_names_added_only(wbf):
     a = openpyxl.load_workbook(V210)
     na, nb = set(a.defined_names), set(wbf.defined_names)
-    assert na <= nb and nb - na == NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted((nb - na) ^ NEW_NAMES)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）
+    assert na <= nb and nb - na == NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"} | v218_added(), sorted((nb - na) ^ NEW_NAMES)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）
     changed = {k for k in na if a.defined_names[k].attr_text != wbf.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]
     for nm in IF_PRE:
@@ -273,7 +274,7 @@ def test_v2110_records_and_text(wbf):
     for key in ("當然要放", "J one J two 都同意", "NonNV Q1–Q4", "J1", "J2"):
         assert key in txt, key
     rm = wbf["README"]
-    assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.7")      # v21.4：版本字串（原 v21.3）
+    assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.8")      # v21.4：版本字串（原 v21.3）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.1 NonNV 昇騰／Maia 與免費占比路徑"]
     assert len(rr) == 1 and "L1_FreeShare" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_／IF_NonNV_Hold_ × Ascend／Maia" in rm.cell(rr[0], 2).value
     nv = wbf["NonNV"]
@@ -309,7 +310,7 @@ def test_v2110_records_and_text(wbf):
 def test_v2110_sources_and_evidence(wbf):
     sd = wbf["SRC_Demand"]
     ids = {sd.cell(r, 1).value: r for r in range(5, sd.max_row + 1)}
-    assert max(k for k in ids if str(k).startswith("SRC_DEM_")) == "SRC_DEM_090"
+    assert max(k for k in ids if str(k).startswith("SRC_DEM_")) == "SRC_DEM_092"      # v21.8：SRC_DEM_091／092 新增（test_v2180 看守）
     for sid, val, yr in (("SRC_DEM_089", 0.34, 2026), ("SRC_DEM_090", 0.06, 2030)):
         r = ids[sid]
         assert sd[f"C{r}"].value == val and sd[f"F{r}"].value == "比例" and str(yr) in sd[f"B{r}"].value

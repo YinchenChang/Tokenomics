@@ -138,3 +138,9 @@ NUM_DIFFS_V2170 = {      # v21.7 工作單第 0 節清單（數值差異；對 v
     ("Interface", c) for c in ("C369", "D369", "E369", "C374", "D374", "E374", "D376")} | {
     ("Gov_Map", c) for c in ("K389", "L389", "Q389", "K390", "L390", "Q390", "Q391", "Q392", "Q393", "Q394", "Q402")}
 NUM_DIFFS = NUM_DIFFS_V2160 | NUM_DIFFS_V2170      # 累計（v21.5 → 現行；舊版逐格比較測試扣除用）
+
+
+@lru_cache(maxsize=None)
+def v218_added() -> set:
+    """v21.8 新增的具名範圍（只有新 SRC 紀錄名稱；test_v2180_names 看守）。"""
+    return set(openpyxl.load_workbook(model_path()).defined_names) - set(openpyxl.load_workbook(V217).defined_names)

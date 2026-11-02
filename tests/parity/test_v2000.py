@@ -203,7 +203,7 @@ def test_v2000_stress_scenarios_no_error_values(lo):
 def test_v2000_governance_counts(lo):
     v = lo.view({})
     # Warnings 132 → 133：SRC_DEM_088（利害關係方、3 級）缺第二來源，W1 +1（真實狀態，chat 端接受；不補來源、不給免除）；H3 不變（CHK_L1Order＝0）
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
     r = next(r for r in range(1, 400) if v.get("Checks", f"A{r}") == "P1")
     assert v.get("Checks", f"D{r}") == 0 and v.get("Checks", f"C{r}") == "WARN"

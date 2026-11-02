@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2180_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
 from v2180_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
@@ -164,7 +165,7 @@ def test_v2100_existing_names_unchanged(lo):
 def test_v2100_names_added_only(wbf):
     a = openpyxl.load_workbook(V201)
     na, nb = set(a.defined_names), set(wbf.defined_names)
-    assert na <= nb and nb - na == NEW_NAMES | V2110_NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted((nb - na) ^ NEW_NAMES)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）； v21.1：另加 V2110_NEW_NAMES
+    assert na <= nb and nb - na == NEW_NAMES | V2110_NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"} | v218_added(), sorted((nb - na) ^ NEW_NAMES)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）； v21.1：另加 V2110_NEW_NAMES
     changed = {k for k in na if a.defined_names[k].attr_text != wbf.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]
     for nm in NEW_NAMES:

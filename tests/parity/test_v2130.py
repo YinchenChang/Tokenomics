@@ -19,6 +19,8 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2180_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
+from v2180_allow import v218_cells      # v21.8
 
 REPO = Path(__file__).resolve().parents[2]
 V212 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.2.xlsx"
@@ -141,6 +143,8 @@ def test_v2130_unchanged_names(lo, pw, wbf):
         if name in CHANGED:
             hit.add(name)
             continue
+        if name in v218_names():
+            continue      # v21.8：高成本欄（例 L1_HoldEconGW_VR200_Hi）由 test_v2180 看守
         assert name in pw.defined_names, name
         want = _arch_value(pw, pw.defined_names[name])
         got = _flat(v.get_name(name))
@@ -191,23 +195,23 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             changed.add(name)
     rng = {n for n in changed if n.startswith("RNG_")}
-    other = changed - rng
+    other = changed - rng - v218_names()      # v21.8（test_v2180 看守）
     V214 = {"GOV_Warnings", "GOV_Table", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"}      # v21.6：NonNV 持有比 TPU／Trn（test_v2160 看守）
     V214 |= set()      # v21.4 W3：SRC_PRC_049 第二來源「免」使 GOV_Warnings 135 → 134、GOV_Table 內的 D87（W1 WARN 計數）133 → 132（test_v2140 看守）
     assert other == CHANGED | LABEL_NAMES | INDEX_NAMES | V214, (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
-    assert str(v.get_name("RNG_Version")).endswith("v21.7") and str(v.get_name("RNG_Current")).endswith("v21.7")      # v21.4：版本字串（原 v21.3）
+    assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"
     # 名稱沒有增減（SRC_ID 名稱除外：SRC_HW_098／099 與 099 的 _Lo／_Hi）
     new_names = set(wbf.defined_names) - set(pw.defined_names)
-    assert new_names == {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted(new_names)
+    assert new_names - v218_added() == {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted(new_names)
     assert set(pw.defined_names) - set(wbf.defined_names) == set()
 
 
 # ---------------------------------------------------------------- 4. 只有兩個輸入驅動
 def test_v2130_only_two_inputs_drive(lo, pw, wbf):
     h = lo.view(REVERT)
-    for nm in sorted(CHANGED):
+    for nm in sorted(CHANGED - v218_names()):      # v21.8：高成本欄與 MiniMax 快取（不在 REVERT 內）由 test_v2180 看守
         want = _arch_value(pw, pw.defined_names[nm])
         got = _flat(h.get_name(nm))
         assert len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got)), nm
@@ -280,7 +284,7 @@ def test_v2130_records(wbf):
         assert key in t5, key
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
-    assert str(rm["A1"].value).startswith("Tokenomics v21.7")
+    assert str(rm["A1"].value).startswith("Tokenomics v21.8")
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.3 機架價低端 7.5 與 Sol 快取價 0.10"]
     assert len(rr) == 1 and "7.5" in rm.cell(rr[0], 2).value
 
@@ -291,7 +295,7 @@ def test_v2130_fingerprint_ranges_and_gov(lo, wbf):
     assert v.get_name("RNG_StaleFlag") == "一致"
     assert v.get_name("RNG_OutCount") == 0
     assert v.get("Alloc", "C410") == 0
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 指紋記錄值（Alloc P 節：A＝頁、B＝格、D＝記錄值）：F11 與 SRC_PRC_049 為葉格；SRC_PRC_007（C11）不再是葉格
     al = wbf["Alloc"]
     rec = {(al.cell(r, 1).value, al.cell(r, 2).value): al.cell(r, 4).value for r in range(400, 1300) if al.cell(r, 1).value}
@@ -312,6 +316,9 @@ def test_v2130_diffs_only_expected_vs_v212():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
+    _v218 = v218_cells()      # v21.8：v21.7 → v21.8 的差異格兩邊都扣掉（test_v2180 看守）
+    d = {k: [t for t in v if t[0] not in _v218.get(k, set())] for k, v in d.items()}
+    d = {k: v for k, v in d.items() if v}
     got = {k: sorted(t[0] for t in v) for k, v in d.items()}
     row = lambda coord: int(re.sub(r"[A-Z]+", "", coord))
     col = lambda coord: re.sub(r"\d+", "", coord)
@@ -329,6 +336,8 @@ def test_v2130_diffs_only_expected_vs_v212():
              # v21.6 W1（test_v2160 看守）      # v21.4：E406（第 330 列）；v21.5：E407／E408（第 331、332 列）
         "SRC_Price": sorted(["B10", "H10", "W10", "B12", "H12", "W12", "O11", "P11", "V11", "O53", "Q53", "V53", "W53", "R53", "V54"]),      # v21.4 W3：R53、V54
     }
+    exact = {k: [c for c in v if c not in _v218.get(k, set())] for k, v in exact.items()}
+    exact = {k: v for k, v in exact.items() if v}
     for sh, want in exact.items():
         assert got.get(sh) == sorted(want), (sh, sorted(set(got.get(sh, [])) ^ set(want)))
     # SRC_HW：新增兩列（第 102、103 列 A:Z、AH）、X 欄範圍（$AH$5:$AH$151 → $AH$153）、V20、W21
@@ -344,4 +353,4 @@ def test_v2130_diffs_only_expected_vs_v212():
     for t in d["Alloc"]:
         coord, x, y = t
         assert coord == "C177" or (_num(x) and _num(y)) or 1230 <= row(coord) <= 1240, t
-    assert "C177" in got["Alloc"]
+    assert "C177" in got["Alloc"] or "C177" in _v218.get("Alloc", set())      # v21.8：C177 也被 v21.8 改動（兩邊扣除）

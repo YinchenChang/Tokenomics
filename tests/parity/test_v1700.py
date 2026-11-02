@@ -14,6 +14,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2180_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -208,11 +209,12 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     changed -= {"IFC_Conf", "IFC_Use", "IFC_Layer", "IFC_Updated"}      # v19.0：Interface 契約欄範圍隨 N 節新列延伸（既有列的值不變，由 test_v1900 看守）
     changed -= V2120_CHANGED | V2130_CHANGED      # v21.2：AL_SpendBasis 0.85 → 1.8 的預期變動名稱（44 個；test_v2120 看守）      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
     changed -= {n for n in changed if n.startswith("RNG_")} - VERSION_NAMES      # v21.3：W6 區間端點（RNG_*_Lo／_Hi）隨機架價低端／Sol 快取價重新產生（test_v2130 看守）
+    changed -= v218_names() - VERSION_NAMES      # v21.8：高成本折舊與治理連帶（test_v2180 看守）
     assert changed == VERSION_NAMES, sorted(changed ^ VERSION_NAMES)
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.357051772507014), ("L1_LTotalFleetV", 0.715894950036491),
                     ("L1_LReqFleet_IdNoK", 0.357051772507014), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.947804246237318), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     #      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
 

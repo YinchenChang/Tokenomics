@@ -243,7 +243,8 @@ def test_v2010_formulas_and_labels(wbf):
             g = G_OF[k]
             assert f == (f'=IF(ISNUMBER({col}{p}),IF(AND(ISNUMBER(INDEX(L1_LDiscGen,1,{g})),ISNUMBER(L1_M)),{col}{p}*INDEX(L1_LDiscGen,1,{g})*L1_M,"L、m 非數字（本情境）"),{col}{p})'), (col, r, f)
         assert "O–Q" in ws[f"Z{r}"].value
-    t = ws[f"A{int(re.findall(r'[$](\d+)', wbf.defined_names['IFW_RevGW_Luna_LifeSelf'].attr_text)[0]) - 1}"].value
+    luna_row = int(re.findall(r"[$](\d+)", wbf.defined_names["IFW_RevGW_Luna_LifeSelf"].attr_text)[0])  # 移出 f-string（Python 3.11 不允許 f-string 運算式含反斜線）
+    t = ws[f"A{luna_row - 1}"].value
     assert t.startswith("L. 情境：自算 L、m（v20.1 起）：") and "L1_LDiscGen" in t and "v10.0–v20.0 口徑" in t
     l1 = wbf["L1"]
     r = int(wbf.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])

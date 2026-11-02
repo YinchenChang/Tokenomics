@@ -198,7 +198,8 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
     other = changed - rng - v218_names()      # v21.8（test_v2180 看守）
     V214 = {"GOV_Warnings", "GOV_Table", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"}      # v21.6：NonNV 持有比 TPU／Trn（test_v2160 看守）
     V214 |= set()      # v21.4 W3：SRC_PRC_049 第二來源「免」使 GOV_Warnings 135 → 134、GOV_Table 內的 D87（W1 WARN 計數）133 → 132（test_v2140 看守）
-    assert other == CHANGED | LABEL_NAMES | INDEX_NAMES | V214, (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
+    V214 -= v218_names()      # v21.8
+    assert other == (CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - v218_names(), (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
     assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"

@@ -18,6 +18,8 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 from v2180_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2180_allow import v218_added      # v21.8
+from v2180_allow import v218_cells      # v21.8
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -293,6 +295,9 @@ def test_v2000_diffs_only_expected_vs_v191():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y and x is not None:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
+    _v218 = v218_cells()      # v21.8：v21.7 → v21.8 的差異格先扣掉（test_v2180 看守）
+    d = {k: [t for t in v if t[0] not in _v218.get(k, set())] for k, v in d.items()}
+    d = {k: v for k, v in d.items() if v}
     allowed = {"Alloc", "Cap_In", "Checks", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index", "Alloc_In", "DB_Evidence", "Decisions"}      # v21.0：NonNV M5:M9； v21.1：Alloc_In G24（test_v2110 看守）
     assert set(d) <= allowed | set(v213_cells()), set(d) - allowed - set(v213_cells())      # v21.3：另加 Spec_Rack／SRC_HW／SRC_Price（W1／W2，test_v2130 看守）
     # Alloc：只有 A70（標籤尾注）與版本字串 C177／C178
@@ -311,7 +316,7 @@ def test_v2000_diffs_only_expected_vs_v191():
     # 名稱：只新增
     na, nb = set(a.defined_names), set(b.defined_names)
     assert na <= nb
-    new = nb - na
+    new = nb - na - v218_added()      # v21.8：新 SRC 紀錄名稱（test_v2180 看守）
     assert {"AL_FleetGW25", "AL_FleetGW25_Lo", "AL_FleetGW25_Hi", "AL_ProdDerate_Lo", "AL_ProdDerate_Hi", "IF_ProdDerate_Lo", "IF_ProdDerate_Hi", "SRC_DEM_088"} <= new
     for k in ("ServeGW_GW25", "TokPaid_GW25", "TokLedger_GW25", "HoldFleet25", "PayRatio25", "RevPerGW25", "LReqFleet_Full", "DPaid_T4k", "DPaid_T12k", "DPaid_T30k", "DPaid_wCodex"):
         assert {f"L1_{k}", f"L1_{k}_Lo", f"L1_{k}_Hi"} <= new, k

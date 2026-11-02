@@ -82,7 +82,7 @@ def test_v2140_all_names_unchanged(lo, pw, wbf):
                 assert pairs == {(133, 127), (7, 8)}, pairs      # v21.8：D87 132 → 127（第二來源 5 筆）、D89 7 → 8（test_v2180 看守）      # GOV_Table 範圍 Checks A74:D96 內只有 D87（W1 的 WARN 計數）；D98 是 GOV_Warnings 本身
     assert n > 1500, n
     bad = [b for b in bad if b not in v218_names() or b == "GOV_Table"]      # v21.8
-    assert sorted(bad) == sorted({"GOV_Warnings", "GOV_Table", "IDX_SrcID", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"} | VERSION_NAMES), bad      # v21.6：NonNV 持有比（test_v2160 看守）      # v21.5：哨兵 IDX_SrcID（GM088，test_v2150 看守）
+    assert sorted(bad) == sorted(({"GOV_Warnings", "GOV_Table", "IDX_SrcID", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"} | VERSION_NAMES) - (v218_names() - {"GOV_Table"})), bad      # v21.6：NonNV 持有比（test_v2160 看守）      # v21.5：哨兵 IDX_SrcID（GM088，test_v2150 看守）
     assert set(wbf.defined_names) - v218_added() == set(pw.defined_names)      # 名稱沒有增減（v21.8 新 SRC 紀錄名稱除外）
 
 
@@ -158,7 +158,7 @@ def test_v2140_w3_w4_text(lo, wbf):
 def test_v2140_gov_counts(lo, wbf):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）
-    assert v.get("Checks", "D98") == 134 and v.get("Checks", "D87") == 132
+    assert v.get("Checks", "D98") == 129 and v.get("Checks", "D87") == 127      # v21.8：134 → 129、132 → 127（第二來源 5 筆；test_v2180 看守）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
     assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")      # v21.5：版本字串（test_v2150 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]

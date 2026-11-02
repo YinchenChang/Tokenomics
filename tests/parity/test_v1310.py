@@ -93,7 +93,7 @@ def test_v1310_existing_contract_names_unchanged(lo):
     prev = openpyxl.load_workbook(V130_PREV, data_only=True)
     v = lo.view({})
     keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in v218_names() and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED and n not in V2130_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
-    assert len(keep) >= 250, len(keep)      # v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300； v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
+    assert len(keep) >= 230, len(keep)      # v21.8：再扣除 v21.8 值改變名稱（實測 241）； v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300； v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

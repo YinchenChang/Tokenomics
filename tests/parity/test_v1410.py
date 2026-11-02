@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2180_allow import v218_names      # v21.8：高成本欄與治理連帶的名稱（test_v2180 看守）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -125,8 +126,8 @@ def test_v1410_names_off_the_chain_unchanged(lo):
     例外只有：R1 的三個名稱（上方斷言新值）、R2 的 CHK_VerifyTotal／Pass（24／16 → 22／14）、版本字串。"""
     prev = openpyxl.load_workbook(V140_PREV, data_only=True)
     v = lo.view(C17_OLD)
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES and n not in ("RNG_OutCount", "RNG_StaleFlag") and n not in P25_V142 and n not in V150_CHANGED and n not in V152_CHANGED and n not in _V2130_LABEL]      # v21.3：略過 IF_FrontModel_Sol／B4_MktModel（Cap_In A47 改名 GPT-6.1 Sol 的文字值；數值部分已由 R213_OLD 設回舊值，test_v2130 看守）
-    assert len(keep) >= 250, len(keep)      # v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v15.2：同上；原 ≥ 700      # 789 個名稱中的契約前綴者，扣除上列例外後仍有 742 個
+    keep = [n for n in prev.defined_names if n not in v218_names() and n.startswith(CONTRACT_PREFIX) and n not in R1_CHANGED and n not in R2_CHANGED and n not in VERSION_NAMES and n not in ("RNG_OutCount", "RNG_StaleFlag") and n not in P25_V142 and n not in V150_CHANGED and n not in V152_CHANGED and n not in _V2130_LABEL]      # v21.3：略過 IF_FrontModel_Sol／B4_MktModel（Cap_In A47 改名 GPT-6.1 Sol 的文字值；數值部分已由 R213_OLD 設回舊值，test_v2130 看守）
+    assert len(keep) >= 220, len(keep)      # v21.8：再扣除 v21.8 值改變名稱（約 −10）； v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v15.2：同上；原 ≥ 700      # 789 個名稱中的契約前綴者，扣除上列例外後仍有 742 個
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

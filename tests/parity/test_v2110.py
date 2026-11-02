@@ -20,6 +20,7 @@ from openpyxl.utils import range_boundaries
 
 from conftest import model_path
 from v2180_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
+from v2180_allow import v218_cells      # v21.8
 from v2180_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
@@ -237,6 +238,9 @@ def test_v2110_diffs_only_expected_vs_v210():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
+    _v218 = v218_cells()      # v21.8：v21.7 → v21.8 的差異格先扣掉（test_v2180 看守）
+    d = {k: [t for t in v if t[0] not in _v218.get(k, set())] for k, v in d.items()}
+    d = {k: v for k, v in d.items() if v}
     allowed = {"Alloc", "Alloc_In", "Cap_In", "Checks", "DB_Evidence", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "NonNV", "README", "SRC_Demand", "SRC_Index"}
     assert set(d) <= allowed | set(v213_cells()), set(d) - allowed - set(v213_cells())      # v21.3：另加 Spec_Rack／SRC_HW／SRC_Price（W1／W2，test_v2130 看守）
     assert strip("Alloc", [t[0] for t in d["Alloc"]]) == strip("Alloc", ["C177", "D1020", "D1021", "D1022"])      # v21.3：兩邊扣掉區間端點常數與指紋記錄列（W6，test_v2130 看守）；      # 版本字串；v21.2：D1020:D1022 指紋記錄值（test_v2120 看守）

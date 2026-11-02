@@ -39,7 +39,7 @@ jobs:
   parity:
     name: parity
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75   # 2026-11-02：LibreOffice 安裝約 20 分＋測試約 40 分，45 分會在 73% 被取消
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

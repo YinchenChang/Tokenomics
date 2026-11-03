@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from conftest import model_path
+from v2180_allow import v218_names      # v21.8：高成本欄與治理連帶的名稱（IFC_Conf 等；test_v2180 看守）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -51,7 +52,8 @@ PREWARM = {
 
 # v19.1（W1 B2）：Arch!C17 由 4224 改為 2176 後，下列檢驗的事前值（v5.x–v12.0 的 Luna 相關期望值）在 C17 回 4224 時仍成立。
 # 做法：這些測試的每個視圖都疊上 SRC_MOD_106＝1024（C17＝4224）；C17 改值本身由 test_v1910 看守。
-C17_OLD_INPUT = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17（AL_SpendBasis 1.8 的預期變動由 test_v2120 看守）      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
+V218_OLD = {"SRC_DC_008": 4, "SRC_PRC_051": 0.3}      # v21.8：Nebius 折舊年限 5 → 4、MiniMax 快取 0.06 → 以新鮮價 0.3 代入（原 F58 空白的效果）；兩項預期變動由 test_v2180 看守
+C17_OLD_INPUT = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD, **V218_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17（AL_SpendBasis 1.8 的預期變動由 test_v2120 看守）      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
 C17_OLD_TESTS = {'test_floor_scenarios_expected_values', 'test_alloc_expected_values_and_slo_text', 'test_v529_contract_waterfall_expected_values', 'test_alloc_mix_2025_expected_values', 'test_prod_derate_expected_values', 'test_v1020_eta_calibration', 'test_l1_v516_expected_values_and_h3', 'test_v536_spend_route_kappa_price', 'test_v600_audit_fix1_expected_values', 'test_v1200_gb200_geomean_and_v20_dependence', 'test_v534_m_split', 'test_v533_fleet_basis', 'test_v602_model_scale_ttft_alloc', 'test_v1200_service_side_unchanged', 'test_v1200_range_table', 'test_v700_leftovers', 'test_v535_l_split', 'test_batch_etad_expected_values', 'test_v603_fleet_price_k2_k3', 'test_v800_audit_fix2_3'}
 
 
@@ -383,7 +385,7 @@ def test_l1_v516_expected_values_and_h3(model, lo):
             assert abs(got - v) < 5e-6, (n + suffix, got, v)
         assert lo <= d <= hi
     assert eng.get_name("CHK_L1Order") == 0                                              # H3（WARN）：基準 0；以具名範圍讀，不查標籤（快取不含常數標籤格）
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 135 and eng.get_name("GOV_Info") == 182      # v15.2：舊 SLO 視圖 Info 181 → 182（I3 +1、I1 +1、K5 −1：B2／B3 使 L1 外部對照差距旗標列數與 Gov_Map 區間內外狀態改變）；  # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：舊 SLO 視圖改動上游輸入，基準落在 RNG_* 區間外，Checks RG2 觸發（上限算 1）：Warnings 282 → 283； v13.0 K3：Info 181 → 182（Calib C68 類別『倒推』更正為 Assumed，列入 Load_Bearing，K5 計數 +1）； v12.0：Info 179 → 181（Gov_Map 新增 CHK_SoftCapFail、Calib C156 Hopper 兩列，皆為 Assumed 帶區間的資訊列）； v10.0：Warnings 271 → 276（W1 +5：SRC_PERF_060–064 為利害關係方 Active、無第二來源；SRC_HAR_016 為 Alt 不計）；v8.0：Warnings 271 不變、Info 174 → 177（I3 L1 區間外或差距 >20% 的列 18 → 21）；v7.0：Info 175 → 174（Calib C68 類別 Assumed → 倒推，Load_Bearing 56 → 55）；v6.1：Info 169 → 172（Load_Bearing 列數 50 → 53，K5 計入新增的 3 列高段 Assumed Gov_Map 登錄；Q3 RL 區間）；v5.35：Warnings 270 → 271（W1 +1：SRC_DEM_072 利害關係方 Active、無第二來源）；Info 不變（L1_LTotal 判讀「區間內」、L1_LReqFleet 判讀「回本」、L1_LPrice／LDemote「無外部對照」皆不計入 I3）；v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213      # v6.2：Info 172 → 175（Gov_Map 新增 3 列 Assumed 模型規模倍數，K5 Load_Bearing 53 → 56）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133（SRC_MOD_018 填 C1 免除標記）      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 130 and eng.get_name("GOV_Info") == 183      # v21.8：W1 −5（第二來源 5 筆）、I1 +1（DB_Evidence 待判定）；回復 V218_OLD 不影響這兩項      # v15.2：舊 SLO 視圖 Info 181 → 182（I3 +1、I1 +1、K5 −1：B2／B3 使 L1 外部對照差距旗標列數與 Gov_Map 區間內外狀態改變）；  # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：舊 SLO 視圖改動上游輸入，基準落在 RNG_* 區間外，Checks RG2 觸發（上限算 1）：Warnings 282 → 283； v13.0 K3：Info 181 → 182（Calib C68 類別『倒推』更正為 Assumed，列入 Load_Bearing，K5 計數 +1）； v12.0：Info 179 → 181（Gov_Map 新增 CHK_SoftCapFail、Calib C156 Hopper 兩列，皆為 Assumed 帶區間的資訊列）； v10.0：Warnings 271 → 276（W1 +5：SRC_PERF_060–064 為利害關係方 Active、無第二來源；SRC_HAR_016 為 Alt 不計）；v8.0：Warnings 271 不變、Info 174 → 177（I3 L1 區間外或差距 >20% 的列 18 → 21）；v7.0：Info 175 → 174（Calib C68 類別 Assumed → 倒推，Load_Bearing 56 → 55）；v6.1：Info 169 → 172（Load_Bearing 列數 50 → 53，K5 計入新增的 3 列高段 Assumed Gov_Map 登錄；Q3 RL 區間）；v5.35：Warnings 270 → 271（W1 +1：SRC_DEM_072 利害關係方 Active、無第二來源）；Info 不變（L1_LTotal 判讀「區間內」、L1_LReqFleet 判讀「回本」、L1_LPrice／LDemote「無外部對照」皆不計入 I3）；v5.34：Warnings 267 → 270（M4 +1：需求 ÷ 機隊 0.465 < 0.5，預期；W1 +2：SRC_DEM_069、071 為利害關係方 Active、無第二來源；070 為 Alt 不計）；Info 168 → 169（I3 +1：L1_TokPerPromptClose 判讀「高於外部區間」）；v5.33：Warnings 250 → 267（W1 +17：SRC_DEM_049–051、054–058、060–068 為利害關係方 Active、無第二來源；M2、M3 依現值 0）；v5.32：Warnings 221 → 250（M1 +1：L1_MImplied 1.74 在 0.3–1.0 外，J4 (a) 預期；W1 +28：SRC_DEM_019–045、048 為利害關係方 Active、無第二來源）；Info 不變（L1_MImplied／_Ext 判讀為「區間內／外」，不計入 I3）；v5.31：Warnings 220 → 221（W1：SRC_DC_014 IREN、SRC_DC_017 DGX 利害關係方無第二來源 +2，SRC_HW_007 改 Alt −1）；Info 165 → 168（I3 15 → 17：L1_GPUhr_GB300_vsBE、L1_GapProduct 判讀改「差距 >20%」；I8 53 → 54：Spec_Rack E12 標記變更）；v5.29 r2：Info 108 → 165（I3 8 → 15：新增 L1 列判讀「差距 >20%」7 列——FleetMargin 與 HoldEconMW_GB300 外部欄依 r2 第 11 項改「—」；K4 0（r2 第 2 項：比對含 CTL_ProdDerate × L × m）；K5 50；K6 0；K7 0）；Warnings 219 → 220（W1：SRC_DEM_018 利害關係方無第二來源 +1；SRC_DEM_004 依 r2 維持 Active；K1 0）；v5.27：W1 213 → 219（SRC_MOD_057–062 Kimi K3 為利害關係方、無第二來源）；I3 7 → 8（L1 第 39 列新增外部對照，判讀「差距 >20%」）；v5.25：W1 209 → 213      # v6.2：Info 172 → 175（Gov_Map 新增 3 列 Assumed 模型規模倍數，K5 Load_Bearing 53 → 56）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133（SRC_MOD_018 填 C1 免除標記）      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
 
 
 def _pct(eng, n, k):
@@ -676,7 +678,7 @@ def test_v531_rack_price_and_it_maint(model, lo):
             k = 3 * g + j
             assert abs(maint[k] - capex[k] * eq) <= 1e-9 * capex[k], (col, g)
             assert abs(warr[k] - capex[k] * ri) <= 1e-9 * capex[k] and abs(post[k] - capex[k] * rp) <= 1e-9 * capex[k], (col, g)
-    assert [round(eng.get("Inputs", f"{c}30"), 6) for c in "DEF"] == [0.010244, 0.015725, 0.018248]
+    assert [round(eng.get("Inputs", f"{c}30"), 6) for c in "DEF"] == [0.010244, 0.015725, 0.023148]      # v21.8：F30 0.018248 → 0.023148（Inputs!F23 4 → 5；預期變動 CSV 已列）
     want = {"IF_CapexIT": (32.237224, 37.586352), "IF_MaintIT": (0.506931, 0.591046), "IF_HoldAcct": (7.989922, 8.992304),
             "IF_HoldEcon": (10.886411, 12.225471), "IF_GPUhrEcon": (2.551788, 4.783652)}      # LibreOffice 重算值（GB300、VR200 基準欄）
     for n, (gb, vr) in want.items():
@@ -917,7 +919,7 @@ def test_v600_audit_fix1_expected_values(model, lo):
     """v6.0（稽核修正1：D7、D8、D11）基準期望值。錨點為 LibreOffice 重算值（相對容差 1e-4）；工作單預期變動：
     FullCost_Luna(Hopper) +46%、FullCostDefault_Luna +94%、FullCostDefault_Sol(VR200) +21%、Astra 不變；付費產能比約 0.712、m 下限約 0.647；IF_*_Life ÷ 舊值 0.486–0.81。"""
     eng = _vo(lo, {})
-    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 135 and eng.get_name("GOV_Info") == 182      # v15.2：舊 SLO 視圖 Info 181 → 182（I3 +1、I1 +1、K5 −1：B2／B3 使 L1 外部對照差距旗標列數與 Gov_Map 區間內外狀態改變）；  # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：同上，Warnings 282 → 283（RG2）； v13.0 K3：Info 181 → 182（同上）； v12.0：Info 179 → 181（同上）； v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133（同上）      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
+    assert eng.get_name("GOV_Errors") == 0 and eng.get_name("GOV_Warnings") == 130 and eng.get_name("GOV_Info") == 183      # v21.8：W1 −5（第二來源 5 筆）、I1 +1（DB_Evidence 待判定）；回復 V218_OLD 不影響這兩項      # v15.2：舊 SLO 視圖 Info 181 → 182（I3 +1、I1 +1、K5 −1：B2／B3 使 L1 外部對照差距旗標列數與 Gov_Map 區間內外狀態改變）；  # v15.0：預期變動（工作單 r1 T1-2 O14／T1-4 O9）：舊 SLO 視圖 Info 184 → 181（L1 外部對照換算後 P 欄「差距 >20%」旗標減少）      # v13.0 K2：同上，Warnings 282 → 283（RG2）； v13.0 K3：Info 181 → 182（同上）； v12.0：Info 179 → 181（同上）； v8.0：Info 174 → 177（見 343 行）；v7.0：175 → 174（Calib C68 倒推，Load_Bearing 55）；v6.2：Info 172 → 175（Load_Bearing +3，模型規模倍數三列）      # v13.1 D15 B 段：Warnings 減 2（SRC_HW_067／068 有了第二來源，W1 −2）、Info 加 2（DB_Evidence 新增 2 筆『待判定』）；預期變動，非放寬      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133（同上）      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
     rel = lambda got, want, tol=1e-4: abs(got - want) <= tol * abs(want)
     # D11：回本溢價分母＝付費 token（Hopper 基準欄＝第 2 欄、VR200 基準欄＝第 11 欄）
     old = {("IF_FullCost_Luna", 1): 0.184810505721705, ("IF_FullCostDefault_Luna", 1): 0.198387926107027, ("IF_FullCostDefault_Sol", 10): 0.107287815966711}
@@ -1488,7 +1490,7 @@ def test_v1300_range_file_matches_workbook(lo):
     cur = model_path().name[: -len(".xlsx")]
     assert d["version"] == cur == base.get_name("RNG_Version") == base.get_name("RNG_Current"), (d["version"], cur)
     assert base.get_name("RNG_OutCount") == 0 and base.get_name("RNG_StaleFlag") == "一致"
-    assert base.get_name("GOV_Warnings") == 134      # RG1／RG2 在基準為 0，不改變 GOV_Warnings      # v13.1：282 → 280（W1 −2）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：133 → 132
+    assert base.get_name("GOV_Warnings") == 129      # v21.8：134 → 129（第二來源 5 筆）      # RG1／RG2 在基準為 0，不改變 GOV_Warnings      # v13.1：282 → 280（W1 −2）      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：133 → 132
 
 
 def _chk_row(v, code):
@@ -1502,14 +1504,14 @@ def test_v1300_stale_flag_fires(lo):
     """K2 第 1、2 項：區間計算版本與現行版本不同（舊版字串），或基準落在區間之外（把 RNG_IF_AllocQ1_Lo 改成 0.5 > 基準 0.184），
     RNG_StaleFlag 必須顯示『區間過期』，Checks RG1／RG2 觸發，並計入 GOV_Warnings（282 → 283）；GOV_Errors 不變。"""
     base = lo.view({})
-    assert base.get_name("RNG_StaleFlag") == "一致" and base.get_name("GOV_Warnings") == 134      # v13.1：282 → 280      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
+    assert base.get_name("RNG_StaleFlag") == "一致" and base.get_name("GOV_Warnings") == 129      # v21.8：134 → 129      # v13.1：282 → 280      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0
     old = lo.view({"RNG_Version": "20261016_Tokenomics_v12.0"})
     assert old.get_name("RNG_StaleFlag") == "區間過期" and old.get("Checks", f"D{_chk_row(old, 'RG1')}") == 1
-    assert old.get_name("GOV_Warnings") == 135 and old.get_name("GOV_Errors") == 0      # v13.1：283 → 281      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
+    assert old.get_name("GOV_Warnings") == 130 and old.get_name("GOV_Errors") == 0      # v21.8：135 → 130      # v13.1：283 → 281      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
     out = lo.view({"RNG_IF_AllocQ1_Lo": 0.5})
     assert out.get_name("RNG_OutCount") == 1 and out.get_name("RNG_StaleFlag") == "區間過期"
-    assert out.get("Checks", f"D{_chk_row(out, 'RG2')}") == 1 and out.get_name("GOV_Warnings") == 135 and out.get_name("GOV_Errors") == 0      # v13.1：283 → 281      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
+    assert out.get("Checks", f"D{_chk_row(out, 'RG2')}") == 1 and out.get_name("GOV_Warnings") == 130 and out.get_name("GOV_Errors") == 0      # v21.8：135 → 130      # v13.1：283 → 281      # v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）      # v19.1：134 → 133      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
 
 
 def test_v1300_existing_contract_names_unchanged(model, lo):
@@ -1518,8 +1520,8 @@ def test_v1300_existing_contract_names_unchanged(model, lo):
     from openpyxl.utils import range_boundaries
     prev = openpyxl.load_workbook(V120_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED and n not in V2130_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱（test_v2120 看守）      # v15.2：B2／B3 預期變動名單（605 個既有契約名稱中 252 個移出對照，餘 353 個仍須與 v12.0 相同）；      # v14.0（4-3B Q4）：CHK_VerifyTotal／Pass 因新增 V23–V26 而變（見檔尾斷言）；Fail／Warn 仍須相同      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
-    assert len(keep) >= 250, len(keep)      # v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v15.3：350 → 340（再扣除 v15.3 預期變動名稱後餘 343）； v15.2：500 → 350（預期變動名稱移出後的餘額 353）      # v19.1：扣除預期變動名稱後 ≥ 300
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in v218_names() and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED and n not in V2130_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱（test_v2120 看守）      # v15.2：B2／B3 預期變動名單（605 個既有契約名稱中 252 個移出對照，餘 353 個仍須與 v12.0 相同）；      # v14.0（4-3B Q4）：CHK_VerifyTotal／Pass 因新增 V23–V26 而變（見檔尾斷言）；Fail／Warn 仍須相同      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
+    assert len(keep) >= 230, len(keep)      # v21.8：再扣除 v21.8 值改變名稱（實測 239）； v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v15.3：350 → 340（再扣除 v15.3 預期變動名稱後餘 343）； v15.2：500 → 350（預期變動名稱移出後的餘額 353）      # v19.1：扣除預期變動名稱後 ≥ 300
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))

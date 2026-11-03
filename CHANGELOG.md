@@ -2,7 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
-## 20261102_Tokenomics_v21.8.xlsx（取代 v21.7；**次版：高成本情境 IT 折舊年限 4 → 5（SRC_DC_008，E467）、MiniMax M3 快取價 0.06 接入候選表（SRC_PRC_051，E428）、SRC 等級與出處升級（值不變）、DB_Evidence E412–E558；契約名稱值改變者全部在高成本欄，基準與低成本欄不變；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261102_v21.8_財報季與月度證據.md` r0）
+## 20261103_Tokenomics_v21.9.xlsx（取代 v21.8；**次版：NonNV Q1 定案——TPU v7、Trainium3 產出比改各晶片最高原生精度（PR #172 Q1 預設，Andy 2026-11-03 照預設）；v21.8 獨立核對的文字與治理修正（不動數值）；契約名稱的值改變只有 `IF_NonNV_Out_TPU`、`IF_NonNV_Out_Trn`（各 3 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261103_v21.9_Q1原生精度與文字治理修正.md` r0）
+
+- 分支 `claude/v21-9`（PR 與 SHA 見報告）。報告：`docs/reports/20261103_v21.9_Q1原生精度與文字治理修正.md`；進度檔：`docs/reports/20261103_v21.9_進度.md`。**不合併**。
+- Excel（CC 以 `builder/v2190.py` 自 v21.8 產生，經 LibreOffice 重算存檔；冪等）：W1 `NonNV` B6:D6（TPU v7 產出比）0.6／0.8／1.1 → 0.25／0.35／0.40、B7:D7（Trainium3）0.3／0.5／0.8 → 0.06／0.14／0.25（只在仍為舊值時才寫）；每 token 成本比基準 TPU 0.875 → 2.0、Trn3 1.22 → 4.357。W2 `NonNV` L6／L7／L8／L9／A2 與 `Interface` A368 說明更新（Cerebras、OpenAI 客製依 PR #176 數值不改），被改寫的原文保留於「｜原（v21.9 前）：」後。W3 `SRC_HW_100` 改 Superseded（取代者 SRC_HW_010，重複登錄）、`SRC_HW_010` Evidence 加 E450；`SRC_DC_004` 出處改 Turner & Townsend 原文、適用對象改 AI 資料中心；`SRC_PRC_074` 等級 1 → 2；`SRC_DEM_091` 口徑加「近（nearly）」；`Inputs!H23` 10-Q 措辭；`Decisions` SL65-01 與 README B5 v21.8 段補連帶；`Load_Bearing!C3` 改為建置日（builder 寫入版本日期）。W4 `DB_Evidence` E559、`Decisions` SL66-01、README B5 開頭 v21.9 段。
+- 數值差異：預期變動 CSV 28 格全部改變且值與預檢相同；CSV 以外的數值差異只有治理連帶（`Load_Bearing` N 欄 6 格＝審查日距建置日、`SRC_Price!K78` 與 `SRC_Index!E600` 等級、版本字串），逐類見報告表 2。GOV 0／129／183 不變；`RNG_StaleFlag` 一致。
+- 文件：下游契約 v0.27 不升版，首行改 v21.9 並加 v21.9 段；builder md 重產；契約快照 `contract_snapshot_v21.9.json`；區間端點與時效指紋只改版本字串（端點值不變）。
+- 測試：新增 `tests/parity/test_v2190.py`；`v2180_allow.py` 改名 `v2190_allow.py`（加 v219_cells／v219_names）；舊測試版本字串更新、C17_OLD 視圖加 V219_OLD（NonNV B6:D7 舊值），不放寬任何數值容差。
+
+## 20261102_Tokenomics_v21.8.xlsx（取代 v21.7；**次版：高成本情境 IT 折舊年限 4 → 5（SRC_DC_008，E467）、MiniMax M3 快取價 0.06 接入候選表（SRC_PRC_051，E428）、SRC 等級與出處升級（值不變）、DB_Evidence E412–E558；契約名稱值改變者全部在高成本欄；另有 `B4_MktCache`（1-G）與 `IFC_Conf`／`IFC_Use`／`IFC_Updated`（IF_DeprLifeIT 信心 B→A）連帶（v21.9 補），基準與低成本欄不變；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261102_v21.8_財報季與月度證據.md` r0）
 
 - 分支 `claude/v21-8`（PR 與 SHA 見報告）。報告：`docs/reports/20261102_v21.8_財報季與月度證據.md`；進度檔：`docs/reports/20261102_v21.8_進度.md`。**不合併**。
 - Excel（CC 以 `builder/v2180.py` 自 v21.7 產生，經 LibreOffice 重算存檔；冪等）：W1 `SRC_DC!C12` 4 → 5（只在仍為舊值時才寫）與其出處、等級、日期、審查日、Evidence、備註；`Inputs!H23` 說明（原文保留於「｜原：」後）；`Cap_In!F58` 空白 → `=SRC_PRC_051`、M58 說明；Sensitivity N4／O4／A72「7 年對 4 年」→「7 年對 5 年」。W2 依草稿第 2 節第 1–2 點升級 SRC 等級與出處 64 筆（逐筆核對 SRC_ID、現值、列標籤；原文保留於 W 欄）、第二來源 5 筆、備註 5 筆、SRC_DC_004 指標更正（修訂九）、新增紀錄 44 筆（SRC_PRC_051–077、SRC_HW_100–102、SRC_DC_023–027、SRC_DEM_091／092、SRC_MOD_107、SRC_PERF_086／087）。W3 DB_Evidence 115 列（`builder/v2180_evidence.json`，由 `tools/gen_v2180_data.py` 自候選 CSV 產生）、E014 結案、Decisions SL65-01、README B5。

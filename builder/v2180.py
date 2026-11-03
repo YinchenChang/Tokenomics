@@ -435,7 +435,7 @@ def text_fixes(wb):
     n = 0
     ws = wb["Inputs"]
     assert ws["A23"].value == "IT 設備折舊年限"
-    if ws["H23"].value != H23_NEW:
+    if ws["H23"].value != H23_NEW and not str(ws["H23"].value).startswith(H23_NEW.split("v21.8 起高成本由 4 改 5")[0] + "v21.8 起高成本由 4 改 5"):      # v21.9 W3 point 3 rewords the v21.8 sentence (v2190.gov_text_fixes)
         assert ws["H23"].value == H23_OLD, ws["H23"].value
         ws["H23"].value = H23_NEW; n += 1
     ci = wb["Cap_In"]

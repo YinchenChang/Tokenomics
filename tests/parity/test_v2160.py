@@ -14,8 +14,9 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2180_allow import NUM_DIFFS, NUM_DIFFS_V2160      # 工作單第 0 節清單（數值差異）；舊版逐格比較測試也用它扣除
-from v2180_allow import v218_cells, v218_names, v218_added      # v21.8
+from v2190_allow import NUM_DIFFS, NUM_DIFFS_V2160      # 工作單第 0 節清單（數值差異）；舊版逐格比較測試也用它扣除
+from v2190_allow import v218_cells, v218_names, v218_added      # v21.8
+from v2190_allow import V219_OLD, v219_old_sheet      # v21.9
 
 REPO = Path(__file__).resolve().parents[2]
 V215 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.5.xlsx"
@@ -82,19 +83,19 @@ def test_v2160_names_changed_only_expected(lo, pw, wbf):
     assert set(wbf.defined_names) - v218_added() == set(pw.defined_names)      # 名稱沒有增減
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_TPU"))] == [0.65, 0.70, 0.90]
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_Trn"))] == [0.45, 0.61, 0.70]      # v21.7：Trn3 持有比基準 0.55 → 0.61（test_v2170 看守）
-    assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")
+    assert str(v.get_name("RNG_Version")).endswith("v21.9") and str(v.get_name("RNG_Current")).endswith("v21.9")      # v21.9：版本字串
 
 
 # ---------------------------------------------------------------- 2. W1 NonNV
 def test_v2160_nonnv_rows(lo, wbf, pw):
-    nn = wbf["NonNV"]
+    nn = v219_old_sheet(wbf["NonNV"], "NonNV")      # v21.9：B6:D7 與 L6:L9 讀回 v21.8 舊值（新值由 test_v2190 看守）
     assert nn["A6"].value == "Google TPU v7 Ironwood" and nn["A7"].value == "AWS Trainium3"
     assert [nn[f"{c}6"].value for c in "EFG"] == [0.65, 0.7, 0.9] and [nn[f"{c}7"].value for c in "EFG"] == [0.45, 0.61, 0.7]      # v21.7：F7 0.55 → 0.61
 
     assert [nn[f"{c}6"].value for c in "BCD"] == [0.6, 0.8, 1.1] and [nn[f"{c}7"].value for c in "BCD"] == [0.3, 0.5, 0.8]      # 產出比不改（待 PR #172 Q1）
     for r in (6, 7):
         assert (nn[f"H{r}"].value, nn[f"I{r}"].value, nn[f"J{r}"].value) == (f"=F{r}/C{r}", f"=E{r}/D{r}", f"=G{r}/B{r}") and nn[f"K{r}"].value == "Assumed"
-    v = lo.view({})
+    v = lo.view(V219_OLD)      # v21.9：設回 NonNV B6:D7 舊值
     assert abs(v.get("NonNV", "H6") - 0.7 / 0.8) < 1e-12 and abs(v.get("NonNV", "I6") - 0.65 / 1.1) < 1e-12 and abs(v.get("NonNV", "J6") - 0.9 / 0.6) < 1e-12
     assert abs(v.get("NonNV", "H7") - 0.61 / 0.5) < 1e-12 and abs(v.get("NonNV", "I7") - 0.45 / 0.8) < 1e-12 and abs(v.get("NonNV", "J7") - 0.7 / 0.3) < 1e-12
     pn = pw["NonNV"]
@@ -144,7 +145,7 @@ def test_v2160_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.6（次版，底版 v21.5：" in b5 and "契約名稱的值改變的只有 IF_NonNV_Hold_TPU、IF_NonNV_Hold_Trn（各 3 格）與版本字串" in b5      # v21.7：v21.6 段在 v21.7 段之後（test_v2170 看守）
-    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.8")
+    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.9")      # v21.9
     assert (REPO / "docs" / "workorders" / "20261025_v21.6_預期變動.csv").exists()
 
 

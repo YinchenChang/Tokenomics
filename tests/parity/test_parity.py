@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 from conftest import model_path
-from v2180_allow import v218_names      # v21.8：高成本欄與治理連帶的名稱（IFC_Conf 等；test_v2180 看守）
+from v2190_allow import v218_names      # v21.8：高成本欄與治理連帶的名稱（IFC_Conf 等；test_v2180 看守）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -53,7 +53,8 @@ PREWARM = {
 # v19.1（W1 B2）：Arch!C17 由 4224 改為 2176 後，下列檢驗的事前值（v5.x–v12.0 的 Luna 相關期望值）在 C17 回 4224 時仍成立。
 # 做法：這些測試的每個視圖都疊上 SRC_MOD_106＝1024（C17＝4224）；C17 改值本身由 test_v1910 看守。
 V218_OLD = {"SRC_DC_008": 4, "SRC_PRC_051": 0.3}      # v21.8：Nebius 折舊年限 5 → 4、MiniMax 快取 0.06 → 以新鮮價 0.3 代入（原 F58 空白的效果）；兩項預期變動由 test_v2180 看守
-C17_OLD_INPUT = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD, **V218_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17（AL_SpendBasis 1.8 的預期變動由 test_v2120 看守）      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
+V219_OLD = {"NonNV!B6": 0.6, "NonNV!C6": 0.8, "NonNV!D6": 1.1, "NonNV!B7": 0.3, "NonNV!C7": 0.5, "NonNV!D7": 0.8}      # v21.9：設回 TPU v7／Trainium3 產出比舊值（原生精度口徑的新值由 test_v2190 看守）
+C17_OLD_INPUT = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD, **V218_OLD, **V219_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17（AL_SpendBasis 1.8 的預期變動由 test_v2120 看守）      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
 C17_OLD_TESTS = {'test_floor_scenarios_expected_values', 'test_alloc_expected_values_and_slo_text', 'test_v529_contract_waterfall_expected_values', 'test_alloc_mix_2025_expected_values', 'test_prod_derate_expected_values', 'test_v1020_eta_calibration', 'test_l1_v516_expected_values_and_h3', 'test_v536_spend_route_kappa_price', 'test_v600_audit_fix1_expected_values', 'test_v1200_gb200_geomean_and_v20_dependence', 'test_v534_m_split', 'test_v533_fleet_basis', 'test_v602_model_scale_ttft_alloc', 'test_v1200_service_side_unchanged', 'test_v1200_range_table', 'test_v700_leftovers', 'test_v535_l_split', 'test_batch_etad_expected_values', 'test_v603_fleet_price_k2_k3', 'test_v800_audit_fix2_3'}
 
 

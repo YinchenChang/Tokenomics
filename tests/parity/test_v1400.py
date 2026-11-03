@@ -16,11 +16,12 @@ from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2�
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
 from parity_lib import lo_recalc
-from v2180_allow import v218_names
+from v2190_allow import v218_names
 
 # v19.1：Arch!C17 改值（4224 → 2176，W1 B2）後 Luna 相關值變動；下列檢驗的事前值在 C17 回 4224（SRC_MOD_106＝1024）時仍成立，由 test_v1910 看守兩者的關係
 V218_OLD = {"SRC_DC_008": 4, "SRC_PRC_051": 0.3}      # v21.8：設回 Nebius 折舊 4 年、MiniMax 快取以新鮮價 0.3 代入（同 test_parity.py；新值由 test_v2180 看守）
-C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD, **V218_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值（v14.x–v15.x）仍成立；新值由 test_v2120 看守      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
+V219_OLD = {"NonNV!B6": 0.6, "NonNV!C6": 0.8, "NonNV!D6": 1.1, "NonNV!B7": 0.3, "NonNV!C7": 0.5, "NonNV!D7": 0.8}      # v21.9：設回 TPU v7／Trainium3 產出比舊值（原生精度口徑的新值由 test_v2190 看守）
+C17_OLD = {"SRC_MOD_106": 1024, **SB_OLD, **R213_OLD, **V218_OLD, **V219_OLD}      # v21.2：另把 Alloc_In C23:E23 設回 0.85／0.73／1.17，下列事前值（v14.x–v15.x）仍成立；新值由 test_v2120 看守      # v21.3：另設回 Spec_Rack F11 7.8、SRC_PRC_049 0.2（機架價低端與 Sol 快取價的預期變動由 test_v2130 看守）
 
 REPO = Path(__file__).resolve().parents[2]
 V152_CHANGED = set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v152_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v153_changed_names.json", encoding="utf-8"))["names"]) | set(__import__("json").load(open(REPO / "tests" / "parity" / "fixtures" / "v191_changed_names.json", encoding="utf-8"))["changed"])      # v19.1：併入 Arch!C17 下游的預期變動名稱； v15.3：另併入 v15.2→v15.3 的預期變動名單（E1／E2／C2／D1；test_v1530 逐名稱釘住）

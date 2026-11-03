@@ -23,6 +23,8 @@ from conftest import model_path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "builder"))
 import v2180  # noqa: E402
+import v2190  # noqa: E402      # v21.9
+from v2190_allow import v219_cells, v219_names      # v21.9：v21.8 → v21.9 的差異格與名稱兩邊都扣掉（test_v2190 看守）
 
 V217 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.7.xlsx"
 CSV = REPO / "docs" / "workorders" / "20261102_v21.8_預期變動.csv"
@@ -108,6 +110,8 @@ def test_v2180_names(wbf, wbv, pw):
         if not diff:
             continue
         changed.add(name)
+        if name in v219_names() - {"IDX_SrcGrade", "IDX_SrcStat", "LB_Days", "RNG_Version", "RNG_Current"}:
+            continue      # v21.9：IF_NonNV_Out_TPU／Trn（test_v2190 看守）
         if name.startswith("RNG_") or name in GOV_NAMES or name == "SRC_DC_008":
             continue
         miss = [pw[sh].cell(r, c).coordinate for r, c in diff if (sh, pw[sh].cell(r, c).coordinate) not in exp]
@@ -117,7 +121,7 @@ def test_v2180_names(wbf, wbv, pw):
     assert {"IF_HoldEcon", "IF_DeprLifeIT", "L1_Ans5_GM_Lo", "B4_MktCache"} <= changed
     # 基準與低成本欄不變：Interface C:Q 中只有高成本欄（E、H、K、N、Q）可變
     for name in changed:
-        if not name.startswith("IF_"):
+        if not name.startswith("IF_") or name in v219_names():      # v21.9：IF_NonNV_Out_TPU／Trn（test_v2190 看守）
             continue
         sh, cells = _cells(wbf.defined_names[name].attr_text)
         if sh != "Interface":
@@ -139,7 +143,7 @@ def test_v2180_w1_inputs_and_text(wbf, wbv, pf):
     assert "原出處＝『capefearadvisors.substack.com；CNBC 2025-11；SiliconANGLE』" in w
     assert wbf["Inputs"]["F23"].value == "=SRC_DC_008" and wbv["Inputs"]["F23"].value == 5 and wbv["Inputs"]["E23"].value == 6 and wbv["Inputs"]["D23"].value == 6
     h23 = wbf["Inputs"]["H23"].value
-    assert h23 == v2180.H23_NEW and h23.endswith("｜原：" + pf["Inputs"]["H23"].value)
+    assert h23 == v2190.H23_NEW and h23.endswith("｜原：" + pf["Inputs"]["H23"].value)      # v21.9 W3 第 3 點改寫 v21.8 句（test_v2190 看守）
     ci = wbf["Cap_In"]
     assert ci["F58"].value == "=SRC_PRC_051" and wbv["Cap_In"]["F58"].value == 0.06 and pf["Cap_In"]["F58"].value is None
     assert ci["M58"].value == "S54（≤512K 輸入；快取 0.06（E428））；指數未取得"
@@ -183,7 +187,7 @@ def test_v2180_new_records(wbf, wbv):
     for sid in NEW_IDS:
         ws, r = _src(wbf, sid)
         assert ws[f"U{r}"].value == "U-V2180", sid
-        assert ws[f"O{r}"].value == ("Active" if sid == "SRC_PRC_051" else "Alt"), sid
+        assert ws[f"O{r}"].value == ("Active" if sid == "SRC_PRC_051" else "Superseded" if sid == "SRC_HW_100" else "Alt"), sid      # v21.9：SRC_HW_100 撤銷（test_v2190 看守）
         assert str(ws[f"Q{r}"].value).startswith("E"), sid
     ws, r = _src(wbf, "SRC_PRC_051")
     assert ws[f"C{r}"].value == 0.06 and ws[f"Q{r}"].value == "E428" and ws[f"V{r}"].value == "Cap_In!F58｜直接" and ws[f"R{r}"].value.startswith("免（C1")
@@ -204,7 +208,7 @@ def test_v2180_evidence_decisions_readme(wbf):
     r0 = _row(ev, "E412")
     assert ev.cell(r0 - 1, 1).value == "E411"
     ids = [ev.cell(r0 + i, 1).value for i in range(115)]
-    assert ids == [d[0] for d in data] and ev.cell(r0 + 115, 1).value is None
+    assert ids == [d[0] for d in data] and ev.cell(r0 + 115, 1).value == "E559"      # v21.9：E559 接在 E558 後（test_v2190 看守）
     assert ids[:64] == [f"E{i}" for i in range(412, 476)] and ids[64:96] == [f"E{i}" for i in range(476, 508)] and ids[96:] == [f"E{i}" for i in range(540, 559)]
     st = {ev.cell(r0 + i, 1).value: ev.cell(r0 + i, 12).value for i in range(115)}
     assert st["E467"] == st["E428"] == st["E476"] == st["E488"] == "已處理（v21.8）"
@@ -221,8 +225,8 @@ def test_v2180_evidence_decisions_readme(wbf):
         assert key in txt, key
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
-    assert b5.startswith("20261102_Tokenomics_v21.8（次版，底版 v21.7：") and "以下為 v21.7（次版，底版 v21.6：" in b5
-    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.8")
+    assert "以下為 v21.8（次版，底版 v21.7：" in b5 and "以下為 v21.7（次版，底版 v21.6：" in b5      # v21.9：B5 開頭為 v21.9 段（test_v2190 看守）
+    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.9")
 
 
 # ---------------------------------------------------------------- 5. GOV
@@ -230,7 +234,7 @@ def test_v2180_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")
+    assert str(v.get_name("RNG_Version")).endswith("v21.9") and str(v.get_name("RNG_Current")).endswith("v21.9")      # v21.9：版本字串（test_v2190 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 
@@ -263,12 +267,15 @@ def test_v2180_cell_diffs_only_expected(pf, pw, wbf, wbv):
     exp = _csv()
     assert pf.sheetnames == wbf.sheetnames
     num_out, text_out = [], []
+    v219 = v219_cells()      # v21.9：v21.8 → v21.9 的差異格兩邊都扣掉（test_v2190 看守）
     for ws in pf:
         wn, va, vb = wbf[ws.title], pw[ws.title], wbv[ws.title]
         for r in range(1, max(ws.max_row, wn.max_row) + 1):
             for c in range(1, max(ws.max_column, wn.max_column) + 1):
                 p, q = va.cell(r, c).value, vb.cell(r, c).value
                 coord = ws.cell(r, c).coordinate
+                if coord in v219.get(ws.title, set()):
+                    continue
                 key = (ws.title, coord)
                 if _eq(p, q):
                     continue
@@ -311,5 +318,7 @@ def test_v2180_cell_diffs_only_expected(pf, pw, wbf, wbv):
         for r in range(1, max(ws.max_row, wn.max_row) + 1):
             for c in range(1, max(ws.max_column, wn.max_column) + 1):
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
+                if ws.cell(r, c).coordinate in v219.get(ws.title, set()):
+                    continue
                 if x != y and ((isinstance(x, str) and x.startswith("=")) or (isinstance(y, str) and y.startswith("="))):
                     assert (ws.title, ws.cell(r, c).coordinate) in {("Cap_In", "F58"), ("Checks", "D86"), ("Alloc", "C177")}, (ws.title, ws.cell(r, c).coordinate)

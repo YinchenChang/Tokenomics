@@ -1,0 +1,46 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "b4e5854eeb8eb8a602695a6586e21f6583abdfdb",
+ "github_sha": "b4e5854eeb8eb8a602695a6586e21f6583abdfdb",
+ "ref": "refs/heads/claude/fix-parity-fstring",
+ "event": "push",
+ "run_id": 41544475781,
+ "run_number": 738,
+ "run_attempt": 1,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 125616561189,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-11-02T23:19:07Z",
+   "completed_at": "2026-11-02T23:20:12Z",
+   "seconds": 65,
+   "python": "3.11.17"
+  },
+  {
+   "id": 125616561629,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-11-02T23:19:07Z",
+   "completed_at": "2026-11-03T00:10:35Z",
+   "seconds": 3088,
+   "python": "3.11.17"
+  },
+  {
+   "id": 125638053907,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-11-03T00:10:37Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.14.4"
+  }
+ ],
+ "failures": [],
+ "log_excerpts": {},
+ "recalc_seconds": null,
+ "generated_at": "2026-11-03T00:10:48Z",
+ "errors": []
+}

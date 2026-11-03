@@ -208,6 +208,7 @@ def test_v1600_decisions_evidence_readme(wbf):
     assert "F1" in t3 and "F2" in t3 and "未回應前不改主口徑" in t3
     e = wbf["DB_Evidence"]
     ids = [e.cell(r, 1).value for r in range(5, e.max_row + 1)]
+    ids = ids[:ids.index("E411") + 1]      # v21.8：E412 起的新列由 test_v2180 看守
     assert ids[-14] == "E398" and ids[-19:-14] == ["E393", "E394", "E395", "E396", "E397"] and ids[-13] == "E399" and ids[-12] == "E400" and ids[-11] == "E401" and ids[-10] == "E402" and ids[-9] == "E403" and ids[-8] == "E404" and ids[-7] == "E405" and ids[-6] == "E406" and ids[-5] == "E407" and ids[-4] == "E408" and ids[-3] == "E409" and ids[-2] == "E410" and ids[-1] == "E411"      # v21.7：DB_Evidence 新增 E410／E411（第 334、335 列）；      # v21.6：DB_Evidence 新增 E409（第 333 列）；      # v21.5：DB_Evidence 新增 E407／E408（第 331、332 列）； v21.4：DB_Evidence 新增 E406（第 330 列）； v21.3：DB_Evidence 新增 E404／E405； v21.2：DB_Evidence 新增 E403； v21.1：DB_Evidence 新增 E402；      # v19.1：DB_Evidence 新增 E400； v18.0：新增 E399
     assert "不新增外部來源" in e.cell(_row(e, "E398"), 4).value and "可撤回" in e.cell(_row(e, "E398"), 11).value
     rd = wbf["README"]
@@ -241,7 +242,7 @@ def test_v1600_only_new_names_and_nothing_else_changed(lo):
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LTotal_Lo", 0.396282624140417), ("L1_LTotal_Hi", 1.09636652745877), ("L1_LReqFleet_Id", 0.756109635897205),
                     ("L1_MFleet", 0.460003106109943), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 135, 182)      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 130, 183)      # v21.8：W1 −5、I1 +1      # v21.1: +2 (SRC_DEM_089/090 W1)      # v21.4：W3 SRC_PRC_049 第二來源「免」，136 → 135（test_v2140 看守）
     #      # v19.1：本檢驗用 C17_OLD 視圖（SRC_MOD_106＝1024），此時 RG2／RG3 因區間端點檔已按 C17＝2176 重產而各觸發，故仍是 133（基準視圖為 132，見 test_v1910）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
     assert v.get_name("RNG_StaleFlag") == "區間過期" and v.get_name("RNG_OutCount") >= 0      # v19.1：C17_OLD 視圖下指紋與區間端點（按 C17＝2176 重產）不符；基準視圖由 test_v1910 檢查「一致」與 0
 

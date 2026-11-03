@@ -16,8 +16,10 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+from v2180_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
+from v2180_allow import v218_cells      # v21.8
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動（test_v2130 看守）
-from v2170_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2180_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 
 REPO = Path(__file__).resolve().parents[2]
 V211 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.1.xlsx"
@@ -117,9 +119,10 @@ def test_v2120_changed_set_is_exactly_expected(lo, pw, wbf):
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             changed.add(name)
     v213 = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"GOV_Warnings", "GOV_Table", "IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"} | {n for n in changed if n.startswith("RNG_")}      # v21.4：GOV_Warnings／GOV_Table（SRC_PRC_049 第二來源「免」，test_v2140 看守）；      # v21.3：W1／W2 的預期變動名稱、改名連帶的文字名稱、SRC_Index 延伸、W6 區間端點（test_v2130 看守）
+    v213 |= v218_names() & changed      # v21.8
     assert changed == CHANGED | v213, (sorted(changed - CHANGED - v213), sorted((CHANGED | v213) - changed))
     # 版本字串名稱改變（README B5 的版本主幹）
-    assert str(v.get_name("RNG_Version")).endswith("v21.7") and str(v.get_name("RNG_Current")).endswith("v21.7")      # v21.3：版本字串（原 v21.2）
+    assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")      # v21.3：版本字串（原 v21.2）
 
 
 # ---------------------------------------------------------------- 3. 不變名稱
@@ -132,8 +135,8 @@ def test_v2120_unchanged_names(lo, pw, wbf):
         if not (name.startswith(KEEP_PREFIX) or name in KEEP_EXACT):
             continue
         assert name not in CHANGED, name
-        if name in _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX or name in ("IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"):
-            continue      # v21.3：這些名稱改由 test_v2130 看守（機架價低端／Sol 快取價的預期變動）； v21.6：NonNV 持有比 TPU／Trn 由 test_v2160 看守
+        if name in v218_names() or name in _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX or name in ("IF_NonNV_Hold_TPU", "IF_NonNV_Hold_Trn", "IF_NonNV_Out_AMD", "IF_NonNV_Hold_AMD"):
+            continue      # v21.8：v218_names 由 test_v2180 看守； v21.3：這些名稱改由 test_v2130 看守（機架價低端／Sol 快取價的預期變動）； v21.6：NonNV 持有比 TPU／Trn 由 test_v2160 看守
         assert name in pw.defined_names, name
         want = _arch_value(pw, pw.defined_names[name])
         got = _flat(v.get_name(name))
@@ -207,7 +210,7 @@ def test_v2120_records(wbf):
     assert ev.cell(er[0], 5).value == "Derived" and "非實付價直接證據" in ev.cell(er[0], 11).value and "1.8" in ev.cell(er[0], 3).value
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "以下為 v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value)      # v21.3：B5 前面加 v21.3 句，v21.2 句保留
-    assert str(rm["A1"].value).startswith("Tokenomics v21.7")      # v21.3：版本字串（原 v21.2）
+    assert str(rm["A1"].value).startswith("Tokenomics v21.8")      # v21.3：版本字串（原 v21.2）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.2 計價倍數 1.8 與說明修補"]
     assert len(rr) == 1 and "1.8" in rm.cell(rr[0], 2).value
 
@@ -218,7 +221,7 @@ def test_v2120_fingerprint_ranges_and_gov(lo, wbf):
     assert v.get_name("RNG_StaleFlag") == "一致"
     assert v.get("Alloc", "C410") == 0
     assert (v.get("Alloc", "D1020"), v.get("Alloc", "D1021"), v.get("Alloc", "D1022")) == (1.8, 0.85, 2.3)
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 檔案層級的指紋與端點檔對現行活頁簿一致由 tools/gen_fingerprint.py --check、tools/gen_ranges.py --check 驗證（見報告）
 
 
@@ -234,6 +237,9 @@ def test_v2120_diffs_only_expected_vs_v211():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y:
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
+    _v218 = v218_cells()      # v21.8：v21.7 → v21.8 的差異格先扣掉（test_v2180 看守）
+    d = {k: [t for t in v if t[0] not in _v218.get(k, set())] for k, v in d.items()}
+    d = {k: v for k, v in d.items() if v}
     got = {k: sorted(t[0] for t in v) for k, v in d.items()}
     want = {
         "Alloc": sorted(["C177", "D1020", "D1021", "D1022"]),
@@ -248,4 +254,6 @@ def test_v2120_diffs_only_expected_vs_v211():
     }
     for k, cells in v213_cells().items():      # v21.3：疊上 v21.2 → v21.3 的差異格（規則同 test_v2130）
         want[k] = sorted(set(want.get(k, [])) | cells)
+    want = {k: sorted(set(v) - _v218.get(k, set())) for k, v in want.items()}
+    want = {k: v for k, v in want.items() if v}
     assert got == want, {k: (sorted(set(got.get(k, [])) ^ set(want.get(k, [])))) for k in set(got) | set(want) if got.get(k) != want.get(k)}

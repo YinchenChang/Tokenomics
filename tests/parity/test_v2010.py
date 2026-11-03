@@ -15,7 +15,9 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2170_allow import v213_cells, strip, csv_value_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2180_allow import v213_cells, strip, csv_value_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2180_allow import v218_added      # v21.8
+from v2180_allow import v218_cells      # v21.8
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
 V2130_CHANGED = _V2130_CHANGED | _V2130_LABEL | _V2130_INDEX | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi", "SRC_PRC_049"}      # v21.3：171 個值變動名稱＋Cap_In A47 改名連帶的 2 個文字名稱＋SRC_Index 延伸的 4 個 IDX_Src*＋新 SRC 紀錄 4 個名稱＋SRC_PRC_049（舊值輸入 R213_OLD 把它設回 0.2 的副作用；v21.3 起 Active）
@@ -243,7 +245,8 @@ def test_v2010_formulas_and_labels(wbf):
             g = G_OF[k]
             assert f == (f'=IF(ISNUMBER({col}{p}),IF(AND(ISNUMBER(INDEX(L1_LDiscGen,1,{g})),ISNUMBER(L1_M)),{col}{p}*INDEX(L1_LDiscGen,1,{g})*L1_M,"L、m 非數字（本情境）"),{col}{p})'), (col, r, f)
         assert "O–Q" in ws[f"Z{r}"].value
-    t = ws[f"A{int(re.findall(r'[$](\d+)', wbf.defined_names['IFW_RevGW_Luna_LifeSelf'].attr_text)[0]) - 1}"].value
+    luna_row = int(re.findall(r"[$](\d+)", wbf.defined_names["IFW_RevGW_Luna_LifeSelf"].attr_text)[0])  # 移出 f-string（Python 3.11 不允許 f-string 運算式含反斜線）
+    t = ws[f"A{luna_row - 1}"].value
     assert t.startswith("L. 情境：自算 L、m（v20.1 起）：") and "L1_LDiscGen" in t and "v10.0–v20.0 口徑" in t
     l1 = wbf["L1"]
     r = int(wbf.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
@@ -274,6 +277,9 @@ def test_v2010_diffs_only_expected_vs_v200():
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
                 if x != y and (x is not None or ws.title == "Interface" and c == 26):
                     d.setdefault(ws.title, []).append((ws.cell(r, c).coordinate, x, y))
+    _v218 = v218_cells()      # v21.8：v21.7 → v21.8 的差異格先扣掉（test_v2180 看守）
+    d = {k: [t for t in v if t[0] not in _v218.get(k, set())] for k, v in d.items()}
+    d = {k: v for k, v in d.items() if v}
     allowed = {"Cap_In", "Decisions", "Gov_Map", "Interface", "L1", "Load_Bearing", "README", "SRC_Index", "Alloc", "Checks", "NonNV", "Alloc_In", "SRC_Demand", "DB_Evidence"}      # v21.0：Checks D118／D119／E118（範圍延伸）、NonNV M5:M9（test_v2100 看守）； v21.1：Alloc_In G24、SRC_Demand W10（test_v2110 看守）
     assert set(d) <= allowed | set(v213_cells()), set(d) - allowed - set(v213_cells())      # v21.3：另加 Spec_Rack／SRC_HW／SRC_Price（W1／W2，test_v2130 看守）
     # Cap_In 既有格：只有 A238、C238:E238、A313
@@ -287,6 +293,6 @@ def test_v2010_diffs_only_expected_vs_v200():
     assert cols <= set("ACDEFGHIJKLMNOPQ") | {"R", "S", "T", "U", "V", "W", "Z"}, cols
     # 名稱：只新增 L1_LDiscGen
     na, nb = set(a.defined_names), set(b.defined_names)
-    assert na <= nb and nb - na == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")} | V2110_NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted(nb - na)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）； v21.0：+13（test_v2100 看守）
+    assert na <= nb and nb - na - v218_added() == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")} | V2110_NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted(nb - na)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）； v21.0：+13（test_v2100 看守）
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
     assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸

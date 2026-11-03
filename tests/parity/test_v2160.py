@@ -14,7 +14,8 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2170_allow import NUM_DIFFS, NUM_DIFFS_V2160      # 工作單第 0 節清單（數值差異）；舊版逐格比較測試也用它扣除
+from v2180_allow import NUM_DIFFS, NUM_DIFFS_V2160      # 工作單第 0 節清單（數值差異）；舊版逐格比較測試也用它扣除
+from v2180_allow import v218_cells, v218_names, v218_added      # v21.8
 
 REPO = Path(__file__).resolve().parents[2]
 V215 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.5.xlsx"
@@ -76,11 +77,12 @@ def test_v2160_names_changed_only_expected(lo, pw, wbf):
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
     assert n > 1500, n
+    bad = [b for b in bad if b not in v218_names() - CHANGED_NAMES]      # v21.8（test_v2180 看守）
     assert sorted(bad) == sorted(CHANGED_NAMES), bad
-    assert set(wbf.defined_names) == set(pw.defined_names)      # 名稱沒有增減
+    assert set(wbf.defined_names) - v218_added() == set(pw.defined_names)      # 名稱沒有增減
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_TPU"))] == [0.65, 0.70, 0.90]
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_Trn"))] == [0.45, 0.61, 0.70]      # v21.7：Trn3 持有比基準 0.55 → 0.61（test_v2170 看守）
-    assert str(v.get_name("RNG_Version")).endswith("v21.7") and str(v.get_name("RNG_Current")).endswith("v21.7")
+    assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")
 
 
 # ---------------------------------------------------------------- 2. W1 NonNV
@@ -142,14 +144,14 @@ def test_v2160_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.6（次版，底版 v21.5：" in b5 and "契約名稱的值改變的只有 IF_NonNV_Hold_TPU、IF_NonNV_Hold_Trn（各 3 格）與版本字串" in b5      # v21.7：v21.6 段在 v21.7 段之後（test_v2170 看守）
-    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.7")
+    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.8")
     assert (REPO / "docs" / "workorders" / "20261025_v21.6_預期變動.csv").exists()
 
 
 # ---------------------------------------------------------------- 4. GOV
 def test_v2160_gov_counts(lo):
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 134, 182)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
@@ -183,10 +185,16 @@ def test_v2160_cell_diffs_only_expected():
                     nd.add((ws.title, ws.cell(r, c).coordinate))
                 elif not (_num(p) and _num(q)) and p != q:
                     td.add((ws.title, ws.cell(r, c).coordinate))
+    _v218 = v218_cells()      # v21.8：v21.7 → v21.8 的差異格兩邊都扣掉（test_v2180 看守）
+    fd = {k: s - _v218.get(k, set()) for k, s in fd.items()}
+    fd = {k: s for k, s in fd.items() if s}
+    EXACT_CELLS = {k: s - _v218.get(k, set()) for k, s in globals()["EXACT_CELLS"].items()}
+    EXACT_CELLS = {k: s for k, s in EXACT_CELLS.items() if s}
     assert fd == EXACT_CELLS, {k: sorted(fd.get(k, set()) ^ EXACT_CELLS.get(k, set())) for k in set(fd) | set(EXACT_CELLS) if fd.get(k, set()) != EXACT_CELLS.get(k, set())}
-    assert nd == NUM_DIFFS, sorted(nd ^ NUM_DIFFS)      # 數值差異只落在工作單第 0 節清單
+    _v218s = {(k, c) for k, cs in _v218.items() for c in cs}
+    assert nd - _v218s == NUM_DIFFS - _v218s, sorted((nd ^ NUM_DIFFS) - _v218s)      # 數值差異只落在工作單第 0 節清單
     text_expected = {(s, c) for s, cs in EXACT_CELLS.items() for c in cs} | TEXT_MIRRORS | {("Alloc", "C178")}
-    assert td - text_expected == set(), sorted(td - text_expected)
+    assert td - text_expected - _v218s == set(), sorted(td - text_expected - _v218s)
     for sh, cells in fd.items():      # 公式文字不變：改的只有常數與文字
         for coord in cells:
             x, y = a[sh][coord].value, b[sh][coord].value

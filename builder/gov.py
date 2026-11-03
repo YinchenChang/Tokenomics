@@ -39,6 +39,7 @@ import v2010                      # v20.1: L1 PriceReqBE row (main-basis L)
 import v2100                      # v21.0: L1 PriceReqBE row text (L_total -> L1_LTotalFleetVDisc)
 import v2120                      # v21.2: L1 GapSpendBasis row text (C71／H71)
 import v2130                      # v21.3: SRC_HW_098／099 records, L1 I128:I131 token-ledger text
+import v2180                      # v21.8: new SRC records (SRC_PRC_051–077, SRC_HW_100–102, SRC_DC_023–027, SRC_DEM_091／092, SRC_MOD_107, SRC_PERF_086／087), Cap_In!F58 link
 import v2110                      # v21.1: SRC_DEM_089／090, Gov_Map rows (NonNV rows 10／11, Cap_In Q), L1 rows 145-148
 import v2000                      # v20.0: SRC_DEM_088, Gov_Map rows for the new blue inputs, L1 rows
 import v1910                      # v19.1: W1 second sources B2 (SRC_MOD_106, Arch!C17 link, GM201 H)
@@ -66,7 +67,7 @@ import v522                       # v5.22: X7 (L, m side-by-side outputs: Gov_Ma
 ALL_RECORDS = SRC_RECORDS + SRC_RECORDS2 + SRC_RECORDS3
 ALL_PERF_ATTR = {**PERF_ATTR, **PERF_ATTR2}
 ALL_FORMULA_MAP = {**FORMULA_MAP, **FORMULA_MAP2}
-def _fm(): return v2130.formula_map(v1910.formula_map(v1020.formula_map(v531.formula_map(v518.formula_map(ALL_FORMULA_MAP)))))     # v21.3 W2: Cap_In D7／F47 -> SRC_PRC_049 (v2130.formula_map); v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
+def _fm(): return v2180.formula_map(v2130.formula_map(v1910.formula_map(v1020.formula_map(v531.formula_map(v518.formula_map(ALL_FORMULA_MAP))))))     # v21.8 W1: Cap_In F58 -> SRC_PRC_051 (v2180.formula_map); v21.3 W2: Cap_In D7／F47 -> SRC_PRC_049 (v2130.formula_map); v5.18: steps (C44, C69, G2, G4, E3, RU) add or drop links; v5.31 X16／X18: Spec_Rack E12 dropped, E13 -> SRC_HW_010, Inputs E36 -> SRC_DC_015
 
 SRC_SHEETS = ["SRC_HW", "SRC_DC", "SRC_Model", "SRC_Perf", "SRC_Price", "SRC_Cap", "SRC_Harness", "SRC_Demand"]   # v5.13: +4
 SRC_LAST = 400                      # record rows 5..SRC_LAST (formula ranges)
@@ -126,7 +127,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb) + v2130.src_new_records(wb):      # v17.2: W1 second sources (Alt)
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb) + v2130.src_new_records(wb) + v2180.src_new_records(wb):      # v17.2: W1 second sources (Alt); v21.8: v2180 records
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue

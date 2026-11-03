@@ -15,8 +15,8 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2180_allow import NUM_DIFFS_V2170 as NUM_DIFFS      # 工作單第 0 節清單（數值差異；對 v21.6）
-from v2180_allow import v218_cells, v218_names, v218_added      # v21.8
+from v2190_allow import NUM_DIFFS_V2170 as NUM_DIFFS      # 工作單第 0 節清單（數值差異；對 v21.6）
+from v2190_allow import v218_cells, v218_names, v218_added      # v21.8
 
 REPO = Path(__file__).resolve().parents[2]
 V216 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.6.xlsx"
@@ -87,7 +87,7 @@ def test_v2170_names_changed_only_expected(lo, pw, wbf):
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_AMD"))] == [0.67, 0.85, 1.12]
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_Trn"))] == [0.45, 0.61, 0.70]
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_TPU"))] == [0.65, 0.70, 0.90]      # TPU 不變
-    assert str(v.get_name("RNG_Version")).endswith("v21.8") and str(v.get_name("RNG_Current")).endswith("v21.8")
+    assert str(v.get_name("RNG_Version")).endswith("v21.9") and str(v.get_name("RNG_Current")).endswith("v21.9")      # v21.9：版本字串
 
 
 # ---------------------------------------------------------------- 2. W1 NonNV
@@ -165,7 +165,7 @@ def test_v2170_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.7（次版，底版 v21.6：" in b5 and "契約名稱的值改變的只有 IF_NonNV_Out_AMD、IF_NonNV_Hold_AMD（各 3 格）、IF_NonNV_Hold_Trn（基準 1 格）與版本字串" in b5
-    assert "以下為 v21.6（次版，底版 v21.5：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.8")
+    assert "以下為 v21.6（次版，底版 v21.5：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.9")      # v21.9
     assert (REPO / "docs" / "workorders" / "20261025_v21.7_預期變動.csv").exists()
 
 

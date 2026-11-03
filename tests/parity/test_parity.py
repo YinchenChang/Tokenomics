@@ -3,6 +3,7 @@
 範圍：全部情境（scenarios.yaml）的錯誤值與防空轉；具名範圍與形狀；各版本的期望值測試。
 `lo.view(inputs)` 回傳該組輸入重算後的唯讀檢視（介面同舊 Engine 的唯讀部分）；inputs={} 為基準。
 """
+import re
 from pathlib import Path
 
 import pytest
@@ -291,8 +292,10 @@ def test_named_ranges_vs_libreoffice(model, lo, tmp_path):
     set_inputs(model, src, {})
     out = lo_recalc(src, tmp_path / "lo")
     import openpyxl
-    lo_names = {k: v.attr_text.replace("$", "") for k, v in openpyxl.load_workbook(out).defined_names.items()}
-    ours = {k: v.replace("$", "") for k, v in lo.meta.names.items()}
+    # 正規化：去 $；去掉工作表名稱外的單引號（新版 LibreOffice 對形似儲存格位址的表名，如 L1，存成 'L1'!D16）
+    norm = lambda t: re.sub(r"^'([^'!]+)'!", r"\1!", t.replace("$", ""))
+    lo_names = {k: norm(v.attr_text) for k, v in openpyxl.load_workbook(out).defined_names.items()}
+    ours = {k: norm(v) for k, v in lo.meta.names.items()}
     assert lo_names == ours
 
 

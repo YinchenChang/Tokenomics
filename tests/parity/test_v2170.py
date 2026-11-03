@@ -17,6 +17,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 from v2190_allow import NUM_DIFFS_V2170 as NUM_DIFFS      # 工作單第 0 節清單（數值差異；對 v21.6）
 from v2190_allow import v218_cells, v218_names, v218_added      # v21.8
+from v2190_allow import V219_OLD, v219_old_sheet      # v21.9
 
 REPO = Path(__file__).resolve().parents[2]
 V216 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.6.xlsx"
@@ -92,14 +93,14 @@ def test_v2170_names_changed_only_expected(lo, pw, wbf):
 
 # ---------------------------------------------------------------- 2. W1 NonNV
 def test_v2170_nonnv_rows(lo, wbf, pw):
-    nn = wbf["NonNV"]
+    nn = v219_old_sheet(wbf["NonNV"], "NonNV")      # v21.9：B6:D7 與 L6:L9、A2 讀回 v21.8 舊值（新值由 test_v2190 看守）
     assert nn["A5"].value == "AMD MI455X（Helios）" and nn["A7"].value == "AWS Trainium3"
     assert [nn[f"{c}5"].value for c in "BCD"] == [0.7, 0.8, 1.15] and [nn[f"{c}5"].value for c in "EFG"] == [0.67, 0.85, 1.12]
     assert [nn[f"{c}7"].value for c in "EFG"] == [0.45, 0.61, 0.7] and [nn[f"{c}7"].value for c in "BCD"] == [0.3, 0.5, 0.8]      # Trn3 產出比、持有比低／高端不變
     assert [nn[f"{c}6"].value for c in "BCDEFG"] == [0.6, 0.8, 1.1, 0.65, 0.7, 0.9]      # TPU 不變
     for r in (5, 7):
         assert (nn[f"H{r}"].value, nn[f"I{r}"].value, nn[f"J{r}"].value) == (f"=F{r}/C{r}", f"=E{r}/D{r}", f"=G{r}/B{r}") and nn[f"K{r}"].value == "Assumed"
-    v = lo.view({})
+    v = lo.view(V219_OLD)      # v21.9：設回 NonNV B6:D7 舊值
     assert abs(v.get("NonNV", "H5") - 0.85 / 0.8) < 1e-12 and abs(v.get("NonNV", "I5") - 0.67 / 1.15) < 1e-12 and abs(v.get("NonNV", "J5") - 1.12 / 0.7) < 1e-12
     assert abs(v.get("NonNV", "H7") - 0.61 / 0.5) < 1e-12 and abs(v.get("NonNV", "I7") - 0.45 / 0.8) < 1e-12 and abs(v.get("NonNV", "J7") - 0.7 / 0.3) < 1e-12
     pn = pw["NonNV"]
@@ -126,7 +127,7 @@ def test_v2170_nonnv_rows(lo, wbf, pw):
     a2 = nn["A2"].value
     assert a2.startswith("每 GW 產出比與每 GW 持有成本比皆相對 VR200（同層級、同 SLO）。持有成本比：TPU、Trn3、AMD、昇騰、Maia 依每 kW 設備價推導（v21.1、v21.6、v21.7）；Cerebras、OpenAI 客製仍為慣例值（Block 1『接近 1』）")
     assert a2.endswith("｜原：" + A2_OLD) and a2.count("｜原：") == 1
-    a368 = wbf["Interface"]["A368"].value
+    a368 = v219_old_sheet(wbf["Interface"], "Interface")["A368"].value      # v21.9：讀回 v21.8 文字（test_v2190 看守）
     assert a368.startswith("P. 非 NVIDIA 比例（v21.0 R5；") and "（第 379–382 列）；持有比已推導：昇騰、Maia、TPU、Trn3、AMD，其餘為慣例值；產出比已推導：AMD、昇騰、Maia（TPU、Trn3 待精度口徑）" in a368
     assert a368.endswith("｜原：" + A368_OLD) and a368.count("｜原：") == 1
 

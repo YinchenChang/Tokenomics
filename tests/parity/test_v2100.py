@@ -17,6 +17,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 from v2190_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
 from v2190_allow import v218_cells      # v21.8
+from v2190_allow import V219_OLD      # v21.9
 from v2190_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
@@ -101,7 +102,7 @@ def test_v2100_w1_same_across_generations(lo):
 # ---------------------------------------------------------------- 2. W2
 @pytest.mark.parametrize("stem", sorted(NONNV))
 def test_v2100_w2_values(lo, stem):
-    v = lo.view({})
+    v = lo.view(V219_OLD)      # v21.9：設回 NonNV B6:D7 舊值（TPU／Trn3 產出比的新值由 test_v2190 看守）
     row, out_pre, hold_pre = NONNV[stem]
     out, hold = _flat(v.get_name(f"IF_NonNV_Out_{stem}")), _flat(v.get_name(f"IF_NonNV_Hold_{stem}"))
     assert len(out) == len(hold) == 3

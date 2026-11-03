@@ -121,7 +121,7 @@ def test_v2180_names(wbf, wbv, pw):
     assert {"IF_HoldEcon", "IF_DeprLifeIT", "L1_Ans5_GM_Lo", "B4_MktCache"} <= changed
     # 基準與低成本欄不變：Interface C:Q 中只有高成本欄（E、H、K、N、Q）可變
     for name in changed:
-        if not name.startswith("IF_"):
+        if not name.startswith("IF_") or name in v219_names():      # v21.9：IF_NonNV_Out_TPU／Trn（test_v2190 看守）
             continue
         sh, cells = _cells(wbf.defined_names[name].attr_text)
         if sh != "Interface":

@@ -190,3 +190,54 @@ def v219_names() -> set:
 def v219_added() -> set:
     """v21.9 新增的具名範圍（應為空集合；test_v2190_names 看守）。"""
     return set(openpyxl.load_workbook(model_path()).defined_names) - set(openpyxl.load_workbook(V218).defined_names)
+
+
+V219_OLD = {"NonNV!B6": 0.6, "NonNV!C6": 0.8, "NonNV!D6": 1.1, "NonNV!B7": 0.3, "NonNV!C7": 0.5, "NonNV!D7": 0.8}      # v21.8 的 TPU v7／Trainium3 產出比（新值由 test_v2190 看守）
+
+
+def v219_revert_text(sheet: str, coord: str, text):
+    """把 v21.9 W2 改寫過的說明格還原成 v21.8 的文字（舊測試用；新文字由 test_v2190 逐字看守）。
+    NonNV L6／L7／L8／L9 與 Interface A368 被改寫的原文接在「｜原（v21.9 前）：」之後；NonNV A2 只有插入一句。"""
+    import sys
+    sys.path.insert(0, str(REPO / "builder"))
+    import v2190
+    t = str(text)
+    tag = v2190.OLD_TAG
+    key = (sheet, coord)
+    if key == ("NonNV", "A2"):
+        return t.replace(v2190.A2_ADD, "")
+    if tag not in t:
+        return text
+    head = t.split(tag)[0]
+    if key in (("NonNV", "L6"), ("NonNV", "L7")):
+        return head.replace(v2190.Q1_NEW, v2190.Q1_OLD)
+    if key == ("NonNV", "L8"):
+        return head.replace("｜" + v2190.L8_ADD + v2190.ORIG, "；" + v2190.NO_DATA + v2190.ORIG)
+    if key == ("NonNV", "L9"):
+        assert head.startswith(v2190.L9_OPEN_NEW)
+        head = v2190.L9_OPEN_OLD + head[len(v2190.L9_OPEN_NEW):]
+        return head.replace(v2190.ORIG, "；" + v2190.NO_DATA + v2190.ORIG, 1)
+    if key == ("Interface", "A368"):
+        return head.replace(v2190.A368_NEW, v2190.A368_OLD)
+    raise AssertionError(key)
+
+
+class _Cell:
+    def __init__(self, value):
+        self.value = value
+
+
+class v219_old_sheet:
+    """工作表的唯讀檢視：v21.9 改過的 NonNV B6:D7 讀回 v21.8 舊值、W2 說明格讀回 v21.8 文字（舊測試用；新值由 test_v2190 看守）。"""
+    TEXT = {("NonNV", c) for c in ("L6", "L7", "L8", "L9", "A2")} | {("Interface", "A368")}
+
+    def __init__(self, ws, sheet):
+        self._ws, self._sh = ws, sheet
+
+    def __getitem__(self, coord):
+        v = self._ws[coord].value
+        if f"{self._sh}!{coord}" in V219_OLD:
+            return _Cell(V219_OLD[f"{self._sh}!{coord}"])
+        if (self._sh, coord) in self.TEXT:
+            return _Cell(v219_revert_text(self._sh, coord, v))
+        return _Cell(v)

@@ -21,6 +21,7 @@ from openpyxl.utils import range_boundaries
 from conftest import model_path
 from v2190_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
 from v2190_allow import v218_cells      # v21.8
+from v2190_allow import v219_revert_text      # v21.9
 from v2190_allow import v213_cells, strip      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from test_v2120 import CHANGED as V2120_CHANGED, REVERT as SB_OLD      # v21.2：AL_SpendBasis 改 1.8 的預期變動名稱（44 個）與舊值輸入
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213_OLD      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動名稱與舊值輸入（test_v2130 看守）
@@ -290,7 +291,7 @@ def test_v2110_records_and_text(wbf):
     assert "559 kW" in nv["L10"].value and "0.13" in nv["L10"].value and "PR #149" in nv["L10"].value
     assert "0.68" in nv["L11"].value and "1.7 倍" in nv["L11"].value and "$0.5／0.8／1.2M" in nv["L11"].value
     for r in range(5, 10):
-        assert nv[f"L{r}"].value.endswith("（Andy 2026-10-23 Q2）。") and "持有比為慣例值" in nv[f"L{r}"].value, r
+        assert v219_revert_text("NonNV", f"L{r}", nv[f"L{r}"].value).endswith("（Andy 2026-10-23 Q2）。") and "持有比為慣例值" in nv[f"L{r}"].value, r      # v21.9：L6:L9 讀回 v21.8 文字（test_v2190 看守）
         assert wbf["NonNV"][f"M{r}"].value.startswith("已接 Interface P 節（v21.0）")      # v21.0 的 M5:M9 不動
     assert "B:G 已接 Interface P 節；H:J 未接線" in nv["A1"].value and "待用" not in nv["A1"].value
     ws = wbf["Interface"]

@@ -99,7 +99,7 @@ def text_fixes(wb):
     # A2: output-ratio sentence added after the holding-ratio sentence (insertion only)
     a2 = ws["A2"]
     cur = str(a2.value)
-    if A2_ADD not in cur:
+    if A2_ADD not in cur and A2_ADD[1:] not in cur:      # v21.10 rewrites this sentence and keeps it (without the leading "；") after "｜原（v21.10 前）：" (v21100.text_fixes)
         assert cur.count(A2_ANCHOR + ORIG) == 1, cur
         a2.value = cur.replace(A2_ANCHOR + ORIG, A2_ANCHOR + A2_ADD + ORIG)
         n += 1
@@ -178,7 +178,7 @@ def gov_text_fixes(wb):
     n = 0
     # 3. Inputs!H23 (Excel-owned; v2180.text_fixes accepts this text)
     ws = wb["Inputs"]
-    if ws["H23"].value != H23_NEW:
+    if not str(ws["H23"].value).startswith(H23_NEW):      # v21.10 follow-up 13 appends the v21.8 sentence after "｜原（v21.9 前）：" (v21100.text_fixes)
         assert ws["H23"].value == v2180.H23_NEW, ws["H23"].value
         ws["H23"].value = H23_NEW
         n += 1

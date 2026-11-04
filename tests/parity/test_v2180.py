@@ -24,7 +24,8 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "builder"))
 import v2180  # noqa: E402
 import v2190  # noqa: E402      # v21.9
-from v2190_allow import v219_cells, v219_names      # v21.9：v21.8 → v21.9 的差異格與名稱兩邊都扣掉（test_v2190 看守）
+from v2110_allow import v2110_revert_text      # v21.10
+from v2110_allow import v219_cells, v219_names      # v21.9：v21.8 → v21.9 的差異格與名稱兩邊都扣掉（test_v2190 看守）
 
 V217 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.7.xlsx"
 CSV = REPO / "docs" / "workorders" / "20261102_v21.8_預期變動.csv"
@@ -142,7 +143,7 @@ def test_v2180_w1_inputs_and_text(wbf, wbv, pf):
     assert w.startswith("v21.8（E467，1-A）：2026-01-01 起 GPU 4 → 5 年（會計估計變更）；FY2025 仍 4 年") and "原值＝4" in w and "原等級＝2" in w
     assert "原出處＝『capefearadvisors.substack.com；CNBC 2025-11；SiliconANGLE』" in w
     assert wbf["Inputs"]["F23"].value == "=SRC_DC_008" and wbv["Inputs"]["F23"].value == 5 and wbv["Inputs"]["E23"].value == 6 and wbv["Inputs"]["D23"].value == 6
-    h23 = wbf["Inputs"]["H23"].value
+    h23 = v2110_revert_text("Inputs", "H23", wbf["Inputs"]["H23"].value)      # v21.10：句尾補 v21.8 原句（追加 13，test_v21100 看守）
     assert h23 == v2190.H23_NEW and h23.endswith("｜原：" + pf["Inputs"]["H23"].value)      # v21.9 W3 第 3 點改寫 v21.8 句（test_v2190 看守）
     ci = wbf["Cap_In"]
     assert ci["F58"].value == "=SRC_PRC_051" and wbv["Cap_In"]["F58"].value == 0.06 and pf["Cap_In"]["F58"].value is None
@@ -226,7 +227,7 @@ def test_v2180_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.8（次版，底版 v21.7：" in b5 and "以下為 v21.7（次版，底版 v21.6：" in b5      # v21.9：B5 開頭為 v21.9 段（test_v2190 看守）
-    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.9")
+    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.10")
 
 
 # ---------------------------------------------------------------- 5. GOV
@@ -234,7 +235,7 @@ def test_v2180_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.9") and str(v.get_name("RNG_Current")).endswith("v21.9")      # v21.9：版本字串（test_v2190 看守）
+    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")      # v21.9：版本字串（test_v2190 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

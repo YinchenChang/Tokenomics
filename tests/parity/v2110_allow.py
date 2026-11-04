@@ -1,4 +1,4 @@
-"""v21.3＋v21.4＋v21.5＋v21.6＋v21.7（＋v21.8：v218_cells／v218_names；＋v21.9：v219_cells／v219_names／v219_added）看守的「v21.2 → 現行版逐格差異」集合，供舊版逐格差異測試（*_diffs_only_expected_*）放寬用。
+"""v21.3＋v21.4＋v21.5＋v21.6＋v21.7（＋v21.8：v218_cells／v218_names；＋v21.9：v219_cells／v219_names／v219_added；＋v21.10：v2110_cells／v2110_names／v2110_added／V2110_OLD／v2110_revert_text／v2110_old_sheet；檔名 v2190_allow → v2110_allow）看守的「v21.2 → 現行版逐格差異」集合，供舊版逐格差異測試（*_diffs_only_expected_*）放寬用。
 
 只放寬到兩張工作單列明的格：docs/workorders/20261024_v21.3_機架價低端與Sol快取價.md 的 W1–W6，
 以及 docs/workorders/20261024_v21.4_token帳讀法與過時文字.md 的 W1–W6（v21.4 新增的格見 `exact` 內標註）；
@@ -18,6 +18,7 @@ REPO = Path(__file__).resolve().parents[2]
 V212 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.2.xlsx"
 V217 = REPO / "model" / "archive" / "20261025_Tokenomics_v21.7.xlsx"
 V218 = REPO / "model" / "archive" / "20261102_Tokenomics_v21.8.xlsx"
+V219 = REPO / "model" / "archive" / "20261103_Tokenomics_v21.9.xlsx"      # v21.10
 SHEETS = {"Gov_Map", "README", "Interface", "Spec_Rack", "Cap_In", "Alloc_In", "Alloc", "L1", "Checks", "Decisions", "DB_Evidence", "NonNV", "SRC_Price", "SRC_HW", "SRC_Index"}
 _row = lambda coord: int(re.sub(r"[A-Z]+", "", coord))
 _col = lambda coord: re.sub(r"\d+", "", coord)
@@ -201,13 +202,13 @@ def v219_revert_text(sheet: str, coord: str, text):
     import sys
     sys.path.insert(0, str(REPO / "builder"))
     import v2190
-    t = str(text)
+    t = str(v2110_revert_text(sheet, coord, text))      # v21.10：先還原 v21.10 的改寫（v21.10 文字由 test_v21100 看守）
     tag = v2190.OLD_TAG
     key = (sheet, coord)
     if key == ("NonNV", "A2"):
         return t.replace(v2190.A2_ADD, "")
     if tag not in t:
-        return text
+        return t if isinstance(text, str) else text
     head = t.split(tag)[0]
     if key in (("NonNV", "L6"), ("NonNV", "L7")):
         return head.replace(v2190.Q1_NEW, v2190.Q1_OLD)
@@ -240,4 +241,95 @@ class v219_old_sheet:
             return _Cell(V219_OLD[f"{self._sh}!{coord}"])
         if (self._sh, coord) in self.TEXT:
             return _Cell(v219_revert_text(self._sh, coord, v))
+        return _Cell(v)
+
+
+# ---------------------------------------------------------------- v21.10（工作單 docs/workorders/20261104_v21.10_TPU產出比改FP8對齊與文字修正.md）
+@lru_cache(maxsize=None)
+def v2110_cells() -> dict:
+    """v21.9 → 現行版（v21.10）的全部差異格（公式文字或重算值不同）。內容由 test_v21100（權威）逐類看守：
+    預期變動 CSV（NonNV B:D、H:J 第 6、7 列；Interface C370:E371；Gov_Map 鏡像）、W2 文字（NonNV L6:L9、A2，Interface A368，Inputs H23，Gov_Map N 欄鏡像）、
+    W3 治理（Load_Bearing C3／N、SRC_DC_004 與 SRC_Index 等級鏡像、DB_Evidence E450 與 E560、Decisions SL67-01、README）與版本字串。舊測試兩邊都扣掉本集合。"""
+    a, b = openpyxl.load_workbook(V219), openpyxl.load_workbook(model_path())
+    av, bv = openpyxl.load_workbook(V219, data_only=True), openpyxl.load_workbook(model_path(), data_only=True)
+    out = {}
+    for ws in a:
+        wn, va, vb = b[ws.title], av[ws.title], bv[ws.title]
+        for r in range(1, max(ws.max_row, wn.max_row) + 1):
+            for c in range(1, max(ws.max_column, wn.max_column) + 1):
+                if ws.cell(r, c).value != wn.cell(r, c).value or not _eqv(va.cell(r, c).value, vb.cell(r, c).value):
+                    out.setdefault(ws.title, set()).add(ws.cell(r, c).coordinate)
+    return out
+
+
+@lru_cache(maxsize=None)
+def v2110_names() -> set:
+    """v21.9 → v21.10 值改變或新增的具名範圍（test_v21100_names 看守）。舊測試的「名稱不變」檢查扣掉本集合。"""
+    a = openpyxl.load_workbook(V219, data_only=True)
+    bf, bv = openpyxl.load_workbook(model_path()), openpyxl.load_workbook(model_path(), data_only=True)
+    from openpyxl.utils import range_boundaries
+    out = set(bf.defined_names) - set(a.defined_names)
+    for n, d in a.defined_names.items():
+        t = d.attr_text
+        if "!" not in t or "," in t:
+            continue
+        if n not in bf.defined_names or bf.defined_names[n].attr_text != t:
+            out.add(n); continue
+        sh, rg = t.rsplit("!", 1); sh = sh.strip("'")
+        c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
+        if any(not _eqv(a[sh].cell(r, c).value, bv[sh].cell(r, c).value) for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)):
+            out.add(n)
+    return out
+
+
+@lru_cache(maxsize=None)
+def v2110_added() -> set:
+    """v21.10 新增的具名範圍（應為空集合；test_v21100_names 看守）。"""
+    return set(openpyxl.load_workbook(model_path()).defined_names) - set(openpyxl.load_workbook(V219).defined_names)
+
+
+V2110_OLD = {"NonNV!B6": 0.25, "NonNV!C6": 0.35, "NonNV!D6": 0.40, "NonNV!B7": 0.06, "NonNV!C7": 0.14, "NonNV!D7": 0.25}      # v21.9 的 TPU v7／Trainium3 產出比（原生精度口徑；FP8 對齊新值由 test_v21100 看守）
+
+
+def v2110_revert_text(sheet: str, coord: str, text):
+    """把 v21.10 改寫過的說明格還原成 v21.9 的文字（舊測試用；新文字由 test_v21100 逐字看守）。
+    NonNV L6／L7／L8／A2 與 Interface A368：被改寫的 v21.9 原句接在「｜原（v21.10 前）：」之後（A2 原句去掉開頭的「；」）；
+    NonNV L9：只在 v21.9 句後插入一句；Inputs H23：只在句尾補「｜原（v21.9 前）：」v21.8 原句。"""
+    import sys
+    sys.path.insert(0, str(REPO / "builder"))
+    import v2190
+    import v21100 as w
+    if text is None:
+        return text
+    t = str(text)
+    key = (sheet, coord)
+    if key == ("NonNV", "L9"):
+        return t.replace(v2190.L9_OPEN_NEW + w.L9_ADD, v2190.L9_OPEN_NEW, 1)
+    if key == ("Inputs", "H23"):
+        return t[: -len(w.H23_TAIL)] if t.endswith(w.H23_TAIL) else t
+    pairs = {("NonNV", "L6"): (w.Q1_NEW, v2190.Q1_NEW, v2190.Q1_NEW), ("NonNV", "L7"): (w.Q1_NEW, v2190.Q1_NEW, v2190.Q1_NEW),
+             ("NonNV", "L8"): (w.L8_NEW, v2190.L8_ADD, v2190.L8_ADD), ("NonNV", "A2"): (w.A2_NEW, v2190.A2_ADD, v2190.A2_ADD[1:]),
+             ("Interface", "A368"): (w.A368_NEW, v2190.A368_NEW, v2190.A368_NEW)}
+    if key not in pairs:
+        return text
+    new, old, kept = pairs[key]
+    tail = w.OLD_TAG + kept
+    if not t.endswith(tail):
+        return t
+    return t[: -len(tail)].replace(new, old, 1)
+
+
+class v2110_old_sheet:
+    """工作表的唯讀檢視：v21.10 改過的 NonNV B6:D7 讀回 v21.9 值、說明格讀回 v21.9 文字（舊測試用；新值由 test_v21100 看守）。"""
+    TEXT = {("NonNV", c) for c in ("L6", "L7", "L8", "L9", "A2")} | {("Interface", "A368"), ("Inputs", "H23")}
+
+    def __init__(self, ws, sheet):
+        self._ws, self._sh = ws, sheet
+
+    def __getitem__(self, coord):
+        v = self._ws[coord].value
+        if f"{self._sh}!{coord}" in V2110_OLD:
+            return _Cell(V2110_OLD[f"{self._sh}!{coord}"])
+        if (self._sh, coord) in self.TEXT:
+            return _Cell(v2110_revert_text(self._sh, coord, v))
         return _Cell(v)

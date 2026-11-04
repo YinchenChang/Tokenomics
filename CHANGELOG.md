@@ -2,6 +2,14 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261104_Tokenomics_v21.10.xlsx（取代 v21.9；**次版：TPU v7、Trainium3 產出比基準改 FP8 對齊（PR #172 E 節方法一），各晶片最高原生精度降為低端（查核 `docs/evidence/20261104_TPU產出比查核/`，Andy 2026-11-04 照建議）；v21.9 獨立核對的文字與治理修正（追加 11–16，不動數值）；契約名稱的值改變只有 `IF_NonNV_Out_TPU`、`IF_NonNV_Out_Trn`（各 3 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261104_v21.10_TPU產出比改FP8對齊與文字修正.md` r0）
+
+- 分支 `claude/v21-10`（PR 與 SHA 見報告）。報告：`docs/reports/20261104_v21.10_TPU產出比改FP8對齊.md`；進度檔：`docs/reports/20261104_v21.10_進度.md`。**不合併**。
+- Excel（CC 以 `builder/v21100.py` 自 v21.9 產生，經 LibreOffice 重算存檔；冪等；模組名 v21100＝v21.10，因 `builder/v2110.py` 已是 v21.1）：W1 `NonNV` B6:D6（TPU v7 產出比）0.25／0.35／0.40 → 0.35／0.66／0.84、B7:D7（Trainium3）0.06／0.14／0.25 → 0.14／0.28／0.50（只在仍為舊值時才寫）；每 token 成本比基準 TPU 2.0 → 1.061、Trn3 4.357 → 2.179。W2 `NonNV` L6／L7（口徑句）、A2（口徑與追加 12）、L8（追加 11）、`Interface` A368 說明更新，被改寫的原文保留於「｜原（v21.10 前）：」後；`Inputs!H23` 句尾補 v21.8 原句（追加 13，「｜原（v21.9 前）：」）；`NonNV` L9 補「Jalapeño 機架與規格證據見 #176 §3」（追加 16）。W3 `Load_Bearing!C3` 改由版本檔名日期帶出（追加 14，builder 寫入）；`DB_Evidence` E450 相關 SRC 加 SRC_HW_010、`SRC_DC_004` 等級 3 → 1、二手 → 一手、立場說明改 Turner & Townsend（追加 15）；`DB_Evidence` E560、`Decisions` SL67-01、README B5 開頭 v21.10 段。
+- 數值差異：預期變動 CSV 28 格全部改變且值與預檢相同；CSV 以外的數值差異只有治理連帶（`Load_Bearing` N 欄 6 格＝審查日距建置日、`SRC_DC!K8` 與 `SRC_Index!E160` 等級、新紀錄列），逐類見報告表 2。GOV 0／129／183 不變；`RNG_StaleFlag` 一致。
+- 文件：下游契約 v0.27 不升版，首行改 v21.10 並加 v21.10 段；builder md 重產；契約快照 `contract_snapshot_v21.10.json`；區間端點與時效指紋只改版本字串（端點值不變）。
+- 測試：新增 `tests/parity/test_v21100.py`；`v2190_allow.py` 改名 `v2110_allow.py`（加 v2110_cells／v2110_names／V2110_OLD／v2110_revert_text）；舊測試版本字串更新、test_v2190 改設回 v21.9 舊值，不放寬任何數值容差。
+
 ## 20261103_Tokenomics_v21.9.xlsx（取代 v21.8；**次版：NonNV Q1 定案——TPU v7、Trainium3 產出比改各晶片最高原生精度（PR #172 Q1 預設，Andy 2026-11-03 照預設）；v21.8 獨立核對的文字與治理修正（不動數值）；契約名稱的值改變只有 `IF_NonNV_Out_TPU`、`IF_NonNV_Out_Trn`（各 3 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261103_v21.9_Q1原生精度與文字治理修正.md` r0）
 
 - 分支 `claude/v21-9`（PR 與 SHA 見報告）。報告：`docs/reports/20261103_v21.9_Q1原生精度與文字治理修正.md`；進度檔：`docs/reports/20261103_v21.9_進度.md`。**不合併**。

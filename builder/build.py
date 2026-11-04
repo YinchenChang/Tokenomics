@@ -224,6 +224,8 @@ import v2180
 V518_LOG += v2180.inputs_update(wb)       # v21.8 W1: SRC_DC!C12 (SRC_DC_008, read by Inputs!F23) 4 -> 5 (old-value guard; after restore, before gov_all)
 import v2190
 V518_LOG += v2190.inputs_update(wb)       # v21.9 W1: NonNV B6:D6 0.6/0.8/1.1 -> 0.25/0.35/0.40, B7:D7 0.3/0.5/0.8 -> 0.06/0.14/0.25 (old-value guards; after restore, before gov_all)
+import v21100
+V518_LOG += v21100.inputs_update(wb)       # v21.10 W1: NonNV B6:D6 0.25/0.35/0.40 -> 0.35/0.66/0.84, B7:D7 0.06/0.14/0.25 -> 0.14/0.28/0.50 (FP8-aligned baseline; old-value guards; after v2190, before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
 order = ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
@@ -318,7 +320,7 @@ print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)
-v2190.load_bearing_date(wb)       # v21.9 W3 point 4 (engineering): Load_Bearing!C3 = build date of the current version (was the static v5.29 date)
+v21100.load_bearing_date(wb)       # v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
 CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
 CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
@@ -434,6 +436,8 @@ V2180 = v2180.apply(wb, v518._append_text)       # v21.8: SRC upgrades／notes�
 print("v2180 v21.8:", V2180)
 V2190 = v2190.apply(wb, v518._append_text)       # v21.9: NonNV L6／L7／L8／L9／A2, Interface A368 text; SRC_HW_100 Superseded, SRC_DC_004／PRC_074／DEM_091 fixes; Inputs H23; Decisions SL65-01 text; DB_Evidence E559; Decisions SL66-01
 print("v2190 v21.9:", V2190)
+V21100 = v21100.apply(wb, v518._append_text)       # v21.10: NonNV L6／L7／L8／L9／A2, Interface A368, Inputs H23 text; SRC_DC_004 grade／一手; DB_Evidence E450 related SRC, E560; Decisions SL67-01
+print("v21100 v21.10:", V21100)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

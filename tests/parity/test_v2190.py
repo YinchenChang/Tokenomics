@@ -8,6 +8,8 @@
   5. W4：DB_Evidence E559、Decisions SL66-01、README B5 開頭。
   6. GOV 三項計數 0／129／183；RNG_StaleFlag 一致；全部公式格無錯誤值。
   7. 逐格比較 v21.8 → v21.9：數值差異只落在預期變動 CSV 與 W3 的治理連帶格（規則見 gov_rule）；文字差異只在 W2–W4 所列格與其鏡像。
+v21.10 起現行版為 v21.10：NonNV B6:D7 以 V2110_OLD 讀回 v21.9 值、說明格以 v2110_revert_text 讀回 v21.9 文字；逐格比較兩邊扣掉 v2110_cells（v21.9 → v21.10，test_v21100 看守），
+預期變動 CSV 的格若也在 v21.10 改變，改與封存的 v21.9 檔比值。
 """
 import csv
 import re
@@ -24,6 +26,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "builder"))
 import v2180  # noqa: E402
 import v2190  # noqa: E402
+from v2110_allow import V2110_OLD, V219, v2110_cells, v2110_old_sheet, v2110_revert_text      # v21.10（test_v21100 看守 v21.10 的改變）
 
 V218 = REPO / "model" / "archive" / "20261102_Tokenomics_v21.8.xlsx"
 CSV = REPO / "docs" / "workorders" / "20261103_v21.9_預期變動.csv"
@@ -110,28 +113,29 @@ def test_v2190_names(wbf, wbv, pw):
                 bad.append((name, miss))
     assert bad == [], bad
     assert changed == CHANGED | OTHER, sorted(changed ^ (CHANGED | OTHER))
-    iv = wbv["Interface"]
+    iv = openpyxl.load_workbook(V219, data_only=True)["Interface"]      # v21.10：Interface 第 370、371 列改 FP8 對齊（test_v21100 看守）；這裡核對封存的 v21.9
     assert [iv[f"{c}370"].value for c in "CDE"] == [0.25, 0.35, 0.4]
     assert [iv[f"{c}371"].value for c in "CDE"] == [0.06, 0.14, 0.25]
 
 
 # ---------------------------------------------------------------- 2. W1
-def test_v2190_w1_inputs(wbf, wbv, pf):
-    nn, nv, po = wbf["NonNV"], wbv["NonNV"], pf["NonNV"]
+def test_v2190_w1_inputs(lo, wbf, pf):
+    nn, po = v2110_old_sheet(wbf["NonNV"], "NonNV"), pf["NonNV"]      # v21.10：B6:D7 讀回 v21.9 值（FP8 對齊新值由 test_v21100 看守）
+    v = lo.view(V2110_OLD)
     assert nn["A6"].value == "Google TPU v7 Ironwood" and nn["A7"].value == "AWS Trainium3"
     assert [nn[f"{c}6"].value for c in "BCD"] == [0.25, 0.35, 0.40] and [po[f"{c}6"].value for c in "BCD"] == [0.6, 0.8, 1.1]
     assert [nn[f"{c}7"].value for c in "BCD"] == [0.06, 0.14, 0.25] and [po[f"{c}7"].value for c in "BCD"] == [0.3, 0.5, 0.8]
     for r in (6, 7):      # 持有比與公式不變
         for c in "EFGHIJK":
             assert nn[f"{c}{r}"].value == po[f"{c}{r}"].value, (c, r)
-    assert abs(nv["H6"].value - 2.0) < 1e-12 and abs(nv["H7"].value - 0.61 / 0.14) < 1e-12
-    assert abs(nv["I6"].value - 1.625) < 1e-12 and abs(nv["J6"].value - 3.6) < 1e-12
-    assert abs(nv["I7"].value - 1.8) < 1e-12 and abs(nv["J7"].value - 0.7 / 0.06) < 1e-12
+    assert abs(v.get("NonNV", "H6") - 2.0) < 1e-12 and abs(v.get("NonNV", "H7") - 0.61 / 0.14) < 1e-12
+    assert abs(v.get("NonNV", "I6") - 1.625) < 1e-12 and abs(v.get("NonNV", "J6") - 3.6) < 1e-12
+    assert abs(v.get("NonNV", "I7") - 1.8) < 1e-12 and abs(v.get("NonNV", "J7") - 0.7 / 0.06) < 1e-12
 
 
 # ---------------------------------------------------------------- 3. W2
 def test_v2190_w2_text(wbf, pf):
-    nn, po = wbf["NonNV"], pf["NonNV"]
+    nn, po = v2110_old_sheet(wbf["NonNV"], "NonNV"), pf["NonNV"]      # v21.10：說明格讀回 v21.9 文字（test_v21100 看守）
     for r in (6, 7):
         t, o = nn[f"L{r}"].value, po[f"L{r}"].value
         assert v2190.Q1_OLD in o and v2190.Q1_NEW not in o
@@ -149,7 +153,7 @@ def test_v2190_w2_text(wbf, pf):
         assert o[o.index("｜原："):] in nn[f"L{r}"].value, r
     a2 = nn["A2"].value
     assert a2 == po["A2"].value.replace(v2190.A2_ANCHOR + "｜原：", v2190.A2_ANCHOR + v2190.A2_ADD + "｜原：")
-    a368, o368 = wbf["Interface"]["A368"].value, pf["Interface"]["A368"].value
+    a368, o368 = v2110_old_sheet(wbf["Interface"], "Interface")["A368"].value, pf["Interface"]["A368"].value
     assert a368 == o368.replace(v2190.A368_OLD, v2190.A368_NEW) + TAG + v2190.A368_OLD
     for r in (8, 9):      # Cerebras、OpenAI 客製數值不改
         for c in "BCDEFG":
@@ -173,28 +177,28 @@ def test_v2190_w3_governance(wbf, wbv, pf):
     ws, r = _src(wbf, "SRC_DC_004")
     assert ws[f"J{r}"].value == v2190.DC004_J and ws[f"H{r}"].value == "AI 資料中心"
     assert "原出處＝『archdesk.com、gigacapacity.com 轉述 JLL』；原適用對象＝『液冷設施』" in ws[f"W{r}"].value
-    assert (ws[f"D{r}"].value, ws[f"E{r}"].value, ws[f"K{r}"].value) == (0.07, 0.1, 3)
+    assert (ws[f"D{r}"].value, ws[f"E{r}"].value, ws[f"K{r}"].value) == (0.07, 0.1, 1)      # v21.10 追加 15：等級 3 → 1（test_v21100 看守）
     ws, r = _src(wbf, "SRC_PRC_074")
     assert ws[f"K{r}"].value == 2 and ws[f"L{r}"].value == "Derived" and "原等級＝1" in ws[f"W{r}"].value
     ws, r = _src(wbf, "SRC_DEM_091")
     assert ws[f"G{r}"].value == v2190.DEM091_G_NEW and "近（nearly）" in ws[f"G{r}"].value and ws[f"C{r}"].value == 32
     assert v2190.DEM091_G_OLD in ws[f"W{r}"].value
-    h23 = wbf["Inputs"]["H23"].value
+    h23 = v2110_revert_text("Inputs", "H23", wbf["Inputs"]["H23"].value)      # v21.10 追加 13：句尾補 v21.8 原句（test_v21100 看守）
     assert h23 == v2190.H23_NEW and "Amazon、Meta、Microsoft、SpaceX 10-Q 皆無 4 年，Alphabet 6 年見其法說（10-Q 未讀）" in h23
     assert "四家 hyperscaler" not in h23 and pf["Inputs"]["H23"].value == v2180.H23_NEW
     d = wbf["Decisions"]
     t = d.cell(_row(d, "SL65-01"), 4).value
     assert v2190.HIGH_ANCHOR + v2190.HIGH_ADD in t and t.count("B4_MktCache") == 1
     lb = wbf["Load_Bearing"]
-    assert lb["C3"].value == "2026-11-03" and pf["Load_Bearing"]["C3"].value == "2026-10-08"
-    assert wbv["Load_Bearing"]["N43"].value == 2      # 審查日 2026-11-01 距建置日 2 天（v21.8 為 −24）
+    assert openpyxl.load_workbook(V219)["Load_Bearing"]["C3"].value == "2026-11-03" and pf["Load_Bearing"]["C3"].value == "2026-10-08"      # v21.10：現行版 C3 改由版本檔名日期帶出（test_v21100 看守）
+    assert openpyxl.load_workbook(V219, data_only=True)["Load_Bearing"]["N43"].value == 2      # 審查日 2026-11-01 距建置日 2 天（v21.8 為 −24）
 
 
 # ---------------------------------------------------------------- 5. W4
 def test_v2190_evidence_decisions_readme(wbf):
     ev = wbf["DB_Evidence"]
     r = _row(ev, "E559")
-    assert ev.cell(r - 1, 1).value == "E558" and ev.cell(r + 1, 1).value is None
+    assert ev.cell(r - 1, 1).value == "E558" and ev.cell(r + 1, 1).value == "E560"      # v21.10：E560 接在 E559 後（test_v21100 看守）
     assert [ev.cell(r, c).value for c in range(1, 19)] == v2190.E559
     assert ev.cell(r, 12).value == "已處理" and ev.cell(r, 10).value == "v21.9" and "Andy 2026-11-03" in ev.cell(r, 11).value
     d = wbf["Decisions"]
@@ -205,10 +209,10 @@ def test_v2190_evidence_decisions_readme(wbf):
         assert key in txt, key
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
-    assert b5.startswith("20261103_Tokenomics_v21.9（次版，底版 v21.8：") and "以下為 v21.8（次版，底版 v21.7：" in b5
+    assert "以下為 v21.9（次版，底版 v21.8：" in b5 and "以下為 v21.8（次版，底版 v21.7：" in b5      # v21.10：B5 開頭為 v21.10 段（test_v21100 看守）
     assert "契約名稱值改變者只有 IF_NonNV_Out_TPU、IF_NonNV_Out_Trn（各 3 格）與版本字串" in b5
     assert v2190.HIGH_ANCHOR + v2190.HIGH_ADD + "；基準與低成本欄不變" in b5      # W3 第 2 點：v21.8 段補連帶
-    assert str(rm["A1"].value).startswith("Tokenomics v21.9")
+    assert str(rm["A1"].value).startswith("Tokenomics v21.10")
 
 
 # ---------------------------------------------------------------- 6. GOV
@@ -216,7 +220,7 @@ def test_v2190_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.9") and str(v.get_name("RNG_Current")).endswith("v21.9")
+    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 
@@ -240,6 +244,8 @@ def test_v2190_cell_diffs_only_expected(pf, pw, wbf, wbv):
     exp = _csv()
     assert pf.sheetnames == wbf.sheetnames
     hit, num_out, text_out = set(), [], []
+    v2110 = v2110_cells()      # v21.10：v21.9 → v21.10 的差異格兩邊都扣掉（test_v21100 看守）
+    w219 = openpyxl.load_workbook(V219, data_only=True)
     for ws in pf:
         wn, va, vb = wbf[ws.title], pw[ws.title], wbv[ws.title]
         for r in range(1, max(ws.max_row, wn.max_row) + 1):
@@ -251,7 +257,11 @@ def test_v2190_cell_diffs_only_expected(pf, pw, wbf, wbv):
                     continue
                 if key in exp:
                     hit.add(key)
+                    if coord in v2110.get(ws.title, set()):
+                        q = w219[ws.title][coord].value      # v21.10 也改了這格：與封存的 v21.9 檔比值
                     assert abs(float(exp[key][3]) - q) <= 1e-9 * max(1, abs(q)), (key, exp[key][3], q)
+                    continue
+                if coord in v2110.get(ws.title, set()):
                     continue
                 if ws.title in ("DB_Evidence", "Decisions"):
                     continue      # W4 新列與 SL65-01 文字（下面逐列核對）
@@ -271,7 +281,7 @@ def test_v2190_cell_diffs_only_expected(pf, pw, wbf, wbv):
         a, b = pf[sh], wbf[sh]
         for r in range(1, max(a.max_row, b.max_row) + 1):
             for c in range(1, max(a.max_column, b.max_column) + 1):
-                if a.cell(r, c).value != b.cell(r, c).value:
+                if a.cell(r, c).value != b.cell(r, c).value and a.cell(r, c).coordinate not in v2110.get(sh, set()):
                     assert allowed(a.cell(r, c).coordinate), (sh, a.cell(r, c).coordinate)
     # 公式文字：模型計算頁沒有任何公式改變
     for ws in pf:
@@ -279,5 +289,7 @@ def test_v2190_cell_diffs_only_expected(pf, pw, wbf, wbv):
         for r in range(1, max(ws.max_row, wn.max_row) + 1):
             for c in range(1, max(ws.max_column, wn.max_column) + 1):
                 x, y = ws.cell(r, c).value, wn.cell(r, c).value
+                if ws.cell(r, c).coordinate in v2110.get(ws.title, set()):
+                    continue
                 if x != y and ((isinstance(x, str) and x.startswith("=")) or (isinstance(y, str) and y.startswith("="))):
                     raise AssertionError((ws.title, ws.cell(r, c).coordinate, x, y))

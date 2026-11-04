@@ -16,10 +16,10 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2190_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
-from v2190_allow import v218_cells      # v21.8
+from v2110_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
+from v2110_allow import v218_cells      # v21.8
 from test_v2130 import CHANGED as _V2130_CHANGED, LABEL_NAMES as _V2130_LABEL, INDEX_NAMES as _V2130_INDEX, REVERT as R213      # v21.3：機架價低端 7.5／Sol 快取價 0.10 的預期變動（test_v2130 看守）
-from v2190_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
+from v2110_allow import v213_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 
 REPO = Path(__file__).resolve().parents[2]
 V211 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.1.xlsx"
@@ -122,7 +122,7 @@ def test_v2120_changed_set_is_exactly_expected(lo, pw, wbf):
     v213 |= v218_names() & changed      # v21.8
     assert changed == CHANGED | v213, (sorted(changed - CHANGED - v213), sorted((CHANGED | v213) - changed))
     # 版本字串名稱改變（README B5 的版本主幹）
-    assert str(v.get_name("RNG_Version")).endswith("v21.9") and str(v.get_name("RNG_Current")).endswith("v21.9")      # v21.9：版本字串      # v21.3：版本字串（原 v21.2）
+    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")      # v21.9：版本字串      # v21.3：版本字串（原 v21.2）
 
 
 # ---------------------------------------------------------------- 3. 不變名稱
@@ -210,7 +210,7 @@ def test_v2120_records(wbf):
     assert ev.cell(er[0], 5).value == "Derived" and "非實付價直接證據" in ev.cell(er[0], 11).value and "1.8" in ev.cell(er[0], 3).value
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "以下為 v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value)      # v21.3：B5 前面加 v21.3 句，v21.2 句保留
-    assert str(rm["A1"].value).startswith("Tokenomics v21.9")      # v21.9      # v21.3：版本字串（原 v21.2）
+    assert str(rm["A1"].value).startswith("Tokenomics v21.10")      # v21.9      # v21.3：版本字串（原 v21.2）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.2 計價倍數 1.8 與說明修補"]
     assert len(rr) == 1 and "1.8" in rm.cell(rr[0], 2).value
 

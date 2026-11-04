@@ -19,8 +19,8 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
-from v2190_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
-from v2190_allow import v218_cells      # v21.8
+from v2110_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
+from v2110_allow import v218_cells      # v21.8
 
 REPO = Path(__file__).resolve().parents[2]
 V212 = REPO / "model" / "archive" / "20261023_Tokenomics_v21.2.xlsx"
@@ -201,7 +201,7 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
     V214 -= v218_names()      # v21.8
     assert other == (CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - v218_names(), (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
-    assert str(v.get_name("RNG_Version")).endswith("v21.9") and str(v.get_name("RNG_Current")).endswith("v21.9")      # v21.9：版本字串      # v21.4：版本字串（原 v21.3）
+    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")      # v21.9：版本字串      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"
     # 名稱沒有增減（SRC_ID 名稱除外：SRC_HW_098／099 與 099 的 _Lo／_Hi）
     new_names = set(wbf.defined_names) - set(pw.defined_names)
@@ -285,7 +285,7 @@ def test_v2130_records(wbf):
         assert key in t5, key
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
-    assert str(rm["A1"].value).startswith("Tokenomics v21.9")      # v21.9
+    assert str(rm["A1"].value).startswith("Tokenomics v21.10")      # v21.9
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.3 機架價低端 7.5 與 Sol 快取價 0.10"]
     assert len(rr) == 1 and "7.5" in rm.cell(rr[0], 2).value
 

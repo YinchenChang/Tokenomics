@@ -215,7 +215,7 @@ def test_v2190_evidence_decisions_readme(wbf):
     assert "以下為 v21.9（次版，底版 v21.8：" in b5 and "以下為 v21.8（次版，底版 v21.7：" in b5      # v21.10：B5 開頭為 v21.10 段（test_v21100 看守）
     assert "契約名稱值改變者只有 IF_NonNV_Out_TPU、IF_NonNV_Out_Trn（各 3 格）與版本字串" in b5
     assert v2190.HIGH_ANCHOR + v2190.HIGH_ADD + "；基準與低成本欄不變" in b5      # W3 第 2 點：v21.8 段補連帶
-    assert str(rm["A1"].value).startswith("Tokenomics v21.11")
+    assert str(rm["A1"].value).startswith("Tokenomics v21.12")
 
 
 # ---------------------------------------------------------------- 6. GOV
@@ -223,7 +223,7 @@ def test_v2190_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")
+    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

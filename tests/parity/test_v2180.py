@@ -228,7 +228,7 @@ def test_v2180_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.8（次版，底版 v21.7：" in b5 and "以下為 v21.7（次版，底版 v21.6：" in b5      # v21.9：B5 開頭為 v21.9 段（test_v2190 看守）
-    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.11")
+    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.12")
 
 
 # ---------------------------------------------------------------- 5. GOV
@@ -236,7 +236,7 @@ def test_v2180_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")      # v21.9：版本字串（test_v2190 看守）
+    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")      # v21.9：版本字串（test_v2190 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

@@ -23,6 +23,9 @@ import tiers  # noqa: E402
 import v21110  # noqa: E402
 
 V2110 = REPO / "model" / "archive" / "20261104_Tokenomics_v21.10.xlsx"
+# v21.12（v22.0 B2，R10）：v21.11 已移到 archive；本檔改為看守封存的 v21.11 檔本身（v21.10 → v21.11 的改變）。
+# 現行 v21.12 對 v21.11 的逐值相等由 test_v21120 以鍵對齊比較看守。
+V2111 = REPO / "model" / "archive" / "20261105_Tokenomics_v21.11.xlsx"
 BLUE = "FF0000FF"
 VALUE_CHANGED = {"RNG_Version", "RNG_Current", "LB_Days"}      # 版本字串與建置日（Load_Bearing!C3 → 審查日距建置日）
 # 鍵對齊比較中允許的文字差異（頁首、版本、欄位說明；全部非數值）
@@ -40,7 +43,7 @@ def cmp():
     import tempfile
     out = Path(tempfile.mkdtemp()) / "cmp.json"
     old_argv = sys.argv
-    sys.argv = ["cmp_relayout.py", str(V2110), str(model_path()), str(out)]
+    sys.argv = ["cmp_relayout.py", str(V2110), str(V2111), str(out)]
     try:
         with contextlib.redirect_stdout(io.StringIO()):
             cmp_relayout.main()
@@ -51,12 +54,12 @@ def cmp():
 
 @pytest.fixture(scope="module")
 def wbf():
-    return openpyxl.load_workbook(model_path())
+    return openpyxl.load_workbook(V2111)
 
 
 @pytest.fixture(scope="module")
 def wbv():
-    return openpyxl.load_workbook(model_path(), data_only=True)
+    return openpyxl.load_workbook(V2111, data_only=True)
 
 
 def _mark_rewrite(sheet, t):
@@ -191,7 +194,7 @@ def test_v21110_preserve_mapping():
     m = tiers.old_col_map("Perf_Batch")
     assert L(m[18]) == "W" and L(m[19]) == "X" and len(set(m.values())) == len(m)
     assert tiers.old_layout(openpyxl.load_workbook(V2110)) is True
-    assert tiers.old_layout(openpyxl.load_workbook(model_path())) is False
+    assert tiers.old_layout(openpyxl.load_workbook(V2111)) is False and tiers.old_layout(openpyxl.load_workbook(model_path())) is False
 
 
 def test_v21110_gov_map(wbf):
@@ -203,20 +206,21 @@ def test_v21110_gov_map(wbf):
     assert len(reasons) == 3 and all("Arch!$H$" in x and "Arch!$G$" not in x for x in reasons)
 
 
-def test_v21110_gov_counts_and_version(lo, wbf):
-    v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")
-    assert v.get_name("CHK_VerifyPass") == 13 and v.get_name("CHK_VerifyFail") == 7
-    errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
-    assert errs == []
-    stem = (REPO / "model" / "CURRENT").read_text(encoding="utf-8").strip()
+def test_v21110_gov_counts_and_version(wbf, wbv):
+    """v21.12 起看守封存的 v21.11 檔（存檔值）；現行版的 GOV、時效與版本由 test_v21120 看守。"""
+    def nv(n):
+        sh, ref = wbf.defined_names[n].attr_text.split("!")
+        return wbv[sh.strip("'")][ref.replace("$", "")].value
+    assert (nv("GOV_Errors"), nv("GOV_Warnings"), nv("GOV_Info")) == (0, 129, 183)
+    assert nv("RNG_StaleFlag") == "一致" and nv("RNG_OutCount") == 0
+    assert str(nv("RNG_Version")).endswith("v21.11") and str(nv("RNG_Current")).endswith("v21.11")
+    assert nv("CHK_VerifyPass") == 13 and nv("CHK_VerifyFail") == 7
+    stem = V2111.name
     assert v21110.VERSION + ".xlsx" == stem
     d = stem.split("_", 1)[0]
     assert wbf["Load_Bearing"]["C3"].value == f"{d[:4]}-{d[4:6]}-{d[6:8]}"
     c3 = dt.date.fromisoformat(wbf["Load_Bearing"]["C3"].value)
-    assert v.get("Load_Bearing", "N43") == (c3 - dt.date(2026, 11, 1)).days
+    assert wbv["Load_Bearing"]["N43"].value == (c3 - dt.date(2026, 11, 1)).days
 
 
 def test_v21110_decisions_readme(wbf):

@@ -183,7 +183,7 @@ def lo_session(request):
     for item in request.session.items:
         sc = getattr(getattr(item, "callspec", None), "params", {}).get("sc")
         if sc is not None:
-            sets.append(sc["inputs"])
+            sets.append(sc["inputs"] if _uses_v22(item.module) else {**V22_REVERT, **sc["inputs"]})
         extra = list(getattr(item.module, "PREWARM", {}).get(item.originalname, []))
         if not _uses_v22(item.module):      # v22.0：舊版測試的組合一律加上 V22_REVERT
             extra = [{**V22_REVERT, **i} for i in extra] + [dict(V22_REVERT)]

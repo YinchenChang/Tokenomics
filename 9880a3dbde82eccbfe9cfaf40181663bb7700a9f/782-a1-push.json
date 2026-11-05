@@ -1,0 +1,46 @@
+{
+ "schema_version": 1,
+ "repo": "YinchenChang/Tokenomics",
+ "sha": "9880a3dbde82eccbfe9cfaf40181663bb7700a9f",
+ "github_sha": "9880a3dbde82eccbfe9cfaf40181663bb7700a9f",
+ "ref": "refs/heads/claude/v22-b2",
+ "event": "push",
+ "run_id": 42020720924,
+ "run_number": 782,
+ "run_attempt": 1,
+ "overall": "success",
+ "jobs": [
+  {
+   "id": 127222511145,
+   "name": "governance（GOV_Errors 必須為 0；匯出 CSV）",
+   "conclusion": "success",
+   "started_at": "2026-11-05T11:39:26Z",
+   "completed_at": "2026-11-05T11:40:59Z",
+   "seconds": 93,
+   "python": "3.11.18"
+  },
+  {
+   "id": 127222511357,
+   "name": "parity",
+   "conclusion": "success",
+   "started_at": "2026-11-05T11:39:26Z",
+   "completed_at": "2026-11-05T12:43:39Z",
+   "seconds": 3853,
+   "python": "3.11.17"
+  },
+  {
+   "id": 127252306586,
+   "name": "ci-status（結果寫回 ci-status 分支）",
+   "conclusion": "in_progress",
+   "started_at": "2026-11-05T12:43:41Z",
+   "completed_at": null,
+   "seconds": null,
+   "python": "3.14.4"
+  }
+ ],
+ "failures": [],
+ "log_excerpts": {},
+ "recalc_seconds": null,
+ "generated_at": "2026-11-05T12:43:52Z",
+ "errors": []
+}

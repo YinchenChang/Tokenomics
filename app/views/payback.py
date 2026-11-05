@@ -31,7 +31,7 @@ def _l1_table(l1: dict, ids) -> pd.DataFrame:
         if i not in l1:
             continue
         r = l1[i]
-        rows.append({"名稱": i, **{c: (fmt(r[c]) if c in ("基準值", "低", "高") else r[c]) for c in SHOW_COLS}})
+        rows.append({"名稱": i, **{c: (fmt_unit(r[c], r["單位"]) if c in ("基準值", "低", "高") else r[c]) for c in SHOW_COLS}})   # 單位 % 者 ×100 加 %
     return pd.DataFrame(rows)
 
 
@@ -53,8 +53,8 @@ def render():
     cols = st.columns(len(HEADLINE))
     for c, i in zip(cols, HEADLINE):
         r = l1[i]
-        c.metric(f"{i}（{r['單位']}）", fmt(r["基準值"]), help=str(r["指標或問題"]))
-        c.caption(f"區間 {fmt(r['低'])}–{fmt(r['高'])}")
+        c.metric(f"{i}（{r['單位']}）", fmt_unit(r["基準值"], r["單位"]), help=str(r["指標或問題"]))
+        c.caption(f"區間 {fmt_unit(r['低'], r['單位'])}–{fmt_unit(r['高'], r['單位'])}")
     st.info("讀法（Andy 2026-10-22）：看「實際 ÷ 所需」的年度趨勢，不看單一年的絕對值。"
             "上方 L（主口徑）與所需 L（主口徑）並列；兩者的比值不是 Excel 的具名範圍，本頁不另算。")
 

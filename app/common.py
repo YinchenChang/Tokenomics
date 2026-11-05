@@ -109,6 +109,37 @@ def fmt_unit(v, unit) -> str:
     return fmt(v)
 
 
+def is_pct(unit) -> bool:
+    """單位恰為「%」：Excel 存小數（0.6 ＝ 60%），顯示時 ×100 加 %（fmt_unit）。「%/年（小數）」等其他單位照原值顯示。"""
+    return isinstance(unit, str) and unit.strip() == "%"
+
+
+def fmt_rows(df: pd.DataFrame, units) -> pd.DataFrame:
+    """逐列依單位格式化（units 與列對齊）：% 列 ×100 加 %，其餘沿用 fmt。已是字串的格不再處理（不會重複 ×100）。"""
+    out = df.astype(object).copy()
+    for i, u in enumerate(units):
+        out.iloc[i] = [fmt_unit(v, u) for v in df.iloc[i]]
+    return out
+
+
+PCT_VALUE_COLS = ("基準值", "低", "高", "外部值（低）", "外部值（高）", "數值")
+
+
+def pct_by_unit_col(df: pd.DataFrame, unit_col: str = "單位", value_cols=PCT_VALUE_COLS) -> pd.DataFrame:
+    """表內有「單位」欄者（L1 頁、SRC 頁）：單位為 % 的列，其值欄（基準值／低／高、外部值、數值）改為百分比字串。"""
+    if unit_col not in df.columns:
+        return df
+    df = df.copy()
+    pct = df[unit_col].map(is_pct)
+    for c in value_cols:
+        if c in df.columns:
+            col = [fmt_unit(v, "%") if p else v for v, p in zip(df[c], pct)]
+            if pct.any():                    # 同欄混有數值與文字時全部轉為顯示字串，避免表格序列化失敗
+                col = [fmt(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v for v in col]
+            df[c] = col
+    return df
+
+
 def block2_table(eng: Engine, tier: str, case: str) -> pd.DataFrame:
     """列＝指標（Excel 標籤＋單位，前綴層級）；欄＝世代；只取所選成本情境。"""
     rows = {}
@@ -514,7 +545,7 @@ def _table_by_names(eng: Engine, sheet: str, row_names: list[str], last_col: str
 def l1_table(eng: Engine) -> pd.DataFrame:
     """L1 頁（第 1 層常用推算值）：列由 L1_ 具名範圍（不含 _Lo／_Hi）決定。"""
     names = [n for n in eng.names if n.startswith("L1_") and not n.endswith(("_Lo", "_Hi"))]
-    df = _table_by_names(eng, eng.name_ref(names[0])[0], names, L1_LAST_COL)
+    df = pct_by_unit_col(_table_by_names(eng, eng.name_ref(names[0])[0], names, L1_LAST_COL))   # 單位 % 的列以百分比顯示
     for c in df.columns:                      # 同欄混有數值與文字（例：外部值「—」）時轉為文字，避免表格序列化失敗
         if df[c].map(lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)).nunique() > 1:
             df[c] = df[c].map(lambda v: fmt(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else str(v))
@@ -527,7 +558,7 @@ def src_tables(eng: Engine) -> dict[str, pd.DataFrame]:
     for p in SRC_SHEET_PREFIXES:
         names = [n for n in eng.names if n.startswith(p)]
         if names:
-            out[eng.name_ref(names[0])[0]] = _table_by_names(eng, eng.name_ref(names[0])[0], names, SRC_LAST_COL)
+            out[eng.name_ref(names[0])[0]] = pct_by_unit_col(_table_by_names(eng, eng.name_ref(names[0])[0], names, SRC_LAST_COL))
     return out
 
 

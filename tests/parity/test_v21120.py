@@ -25,6 +25,8 @@ import cmp_v21120  # noqa: E402
 import v21120  # noqa: E402
 
 V2111 = REPO / "model" / "archive" / "20261105_Tokenomics_v21.11.xlsx"
+# v22.0（B3，R10）：v21.12 已移到 archive；本檔改為看守封存的 v21.12 檔本身（v21.11 → v21.12 的改變）。現行 v22.0 對 v21.12 的比較由 test_v22000 看守。
+V2112 = REPO / "model" / "archive" / "20261105_Tokenomics_v21.12.xlsx"
 VALUE_CHANGED = {"RNG_Version", "RNG_Current"}
 NEW_NAMES = {"B4_MixPaid25", "B4_MixFree25", "B4_TerraFam", "CAP_TokGWPaidMix25", "B5_SuccOvr_Terra"}
 # 1×3 → 1×4（Terra 欄）與 1×13 → 1×14（Terra 候選列）；RNG_Dem004_*：Alloc P 節指紋多 30 葉格，下方 Q 節下移 30 列（值不變）
@@ -48,7 +50,7 @@ ANCHORS_2025 = ["L1_MFleet", "L1_MFleet_Lo", "L1_MFleet_Hi", "L1_LReqFleet", "L1
 def cmp():
     out = Path(tempfile.mkdtemp()) / "cmp.json"
     old_argv = sys.argv
-    sys.argv = ["cmp_v21120.py", str(V2111), str(model_path()), str(out)]
+    sys.argv = ["cmp_v21120.py", str(V2111), str(V2112), str(out)]
     try:
         with contextlib.redirect_stdout(io.StringIO()):
             cmp_v21120.main()
@@ -59,12 +61,12 @@ def cmp():
 
 @pytest.fixture(scope="module")
 def wbf():
-    return openpyxl.load_workbook(model_path())
+    return openpyxl.load_workbook(V2112)
 
 
 @pytest.fixture(scope="module")
 def wbv():
-    return openpyxl.load_workbook(model_path(), data_only=True)
+    return openpyxl.load_workbook(V2112, data_only=True)
 
 
 def _val(wbf, wbv, n):
@@ -176,14 +178,16 @@ def test_v21120_terra_blocks_zero_contribution(wbv):
 
 
 # ---------------------------------------------------------------- 5. GOV、版本、Decisions、README
-def test_v21120_gov_counts_and_version(lo, wbf):
-    v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")
-    errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
+def test_v21120_gov_counts_and_version(wbf, wbv):
+    """v22.0 起看守封存的 v21.12 檔（存檔值）；現行版的 GOV、時效與版本由 test_v22000 看守。"""
+    def nv(n):
+        return _val(wbf, wbv, n)
+    assert (nv("GOV_Errors"), nv("GOV_Warnings"), nv("GOV_Info")) == (0, 129, 183)
+    assert nv("RNG_StaleFlag") == "一致" and nv("RNG_OutCount") == 0
+    assert str(nv("RNG_Version")).endswith("v21.12") and str(nv("RNG_Current")).endswith("v21.12")
+    errs = [(ws.title, c.coordinate) for ws in wbv.worksheets for row in ws.iter_rows() for c in row if isinstance(c.value, str) and c.value[:4] in ("#REF", "#DIV", "#VAL", "#NAM", "#N/A", "#NUM")]
     assert errs == []
-    stem = (REPO / "model" / "CURRENT").read_text(encoding="utf-8").strip()
+    stem = V2112.name
     assert v21120.VERSION + ".xlsx" == stem
     d = stem.split("_", 1)[0]
     assert wbf["Load_Bearing"]["C3"].value == f"{d[:4]}-{d[4:6]}-{d[6:8]}"

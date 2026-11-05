@@ -177,7 +177,8 @@ def gov_update(ws, append_text):
     row_of = {ws.cell(r, 1).value: r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value}
     for g in D15["gov"]:
         r = row_of[g["gm"]]
-        assert (ws.cell(r, 3).value, ws.cell(r, 4).value) == (g["page"], g["cell"]), (g["gm"], ws.cell(r, 3).value, ws.cell(r, 4).value)
+        import v21110      # v21.11: the registrations of the re-laid generation × tier sheets moved to their 20-column range
+        assert (ws.cell(r, 3).value, ws.cell(r, 4).value) in ((g["page"], g["cell"]), (g["page"], v21110.gm_key(g["page"], g["cell"]))), (g["gm"], ws.cell(r, 3).value, ws.cell(r, 4).value)
         ids = g["ids"]
         if ids and _is_blank(ws.cell(r, 10).value):
             ws.cell(r, 10).value = ids[0]; n += 1

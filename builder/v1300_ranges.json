@@ -1,6 +1,6 @@
 {
  "version": "20261105_Tokenomics_v21.11",
- "generated_from": "new.xlsx",
+ "generated_from": "20261105_Tokenomics_v21.11.xlsx",
  "scenarios": {
   "hi": {
    "CAL_BatchEtaD[2]": 1.59
@@ -2131,6 +2131,7 @@
   "AL_SensCost",
   "AL_SensQ1",
   "AL_SensQ2",
+  "GOV_Warnings",
   "TRN_GPUhFinal",
   "TRN_GPUhProg",
   "TRN_GPUhRL",

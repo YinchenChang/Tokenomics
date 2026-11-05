@@ -50,3 +50,5 @@ import json as _json
 from pathlib import Path as _Path
 B3_NEW = set(_json.loads((_Path(__file__).resolve().parent / "fixtures" / "v22000_new_names.json").read_text(encoding="utf-8"))["names"])
 B2_NEW = B2_NEW | B3_NEW
+# v22.0：v21.12 → v22.0 值改變的既有名稱（fixtures/v22000_changed_names.json）；讀模型存檔值的舊測試「名稱值不變」檢查略過它們
+B3_CHANGED = set(_json.loads((_Path(__file__).resolve().parent / "fixtures" / "v22000_changed_names.json").read_text(encoding="utf-8"))["names"])

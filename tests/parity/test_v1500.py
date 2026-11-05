@@ -6,6 +6,7 @@ T3-2 O4   VR200 批次倍數區間：只經 VR200 欄的 12 個名稱的 RNG_*_L
 T3-1 O5   SRC_PERF_060 來源登錄更正（修訂九：原字樣保留）。
 其他：O9 V16 改標恆等式、O14 L1 換算、O20 κ 推導區塊、Decisions SL46-*、既有 59 個名稱的區間端點不變。
 """
+USES_V22_INPUTS = True      # v22.0：本檔只看守結構與區間端點（端點依 v22.0 值重產），讀 v22.0 原值
 import json
 import re
 from pathlib import Path

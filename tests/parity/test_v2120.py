@@ -219,7 +219,7 @@ def test_v2120_records(wbf):
 def test_v2120_fingerprint_ranges_and_gov(lo, wbf):
     v = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值
     assert v.get_name("RNG_StaleFlag") == "一致"
-    assert v.get("Alloc", "C410") == 0
+    assert v.get("Alloc", "C452") == 0      # v22.0：O 節多 42 列（Terra 區間），原 C410 下移到 C452
     ws = wbf["Alloc"]      # v21.11（R10）：指紋葉格增加 62 格（Terra 輸入），Alloc_In C23:E23 的指紋列不再固定在 1020–1022，改依 A／B 欄（頁、格）定位
     rows = {ws[f"B{r}"].value: r for r in range(400, ws.max_row + 1) if ws[f"A{r}"].value == "Alloc_In" and ws[f"B{r}"].value in ("C23", "D23", "E23")}
     assert (v.get("Alloc", f"D{rows['C23']}"), v.get("Alloc", f"D{rows['D23']}"), v.get("Alloc", f"D{rows['E23']}")) == (1.8, 0.85, 2.3)

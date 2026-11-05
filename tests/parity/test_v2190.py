@@ -115,6 +115,7 @@ def test_v2190_names(wbf, wbv, pw):
             if miss:
                 bad.append((name, miss))
     assert bad == [], bad
+    changed -= {n for n in v21110_allow.B3_CHANGED if n not in CHANGED}      # v22.0：v22.0 值改變者由 test_v22000 看守
     assert changed == CHANGED | OTHER, sorted(changed ^ (CHANGED | OTHER))
     iv = openpyxl.load_workbook(V219, data_only=True)["Interface"]      # v21.10：Interface 第 370、371 列改 FP8 對齊（test_v21100 看守）；這裡核對封存的 v21.9
     assert [iv[f"{c}370"].value for c in "CDE"] == [0.25, 0.35, 0.4]
@@ -220,8 +221,8 @@ def test_v2190_evidence_decisions_readme(wbf):
 
 # ---------------------------------------------------------------- 6. GOV
 def test_v2190_gov_counts(lo):
-    v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；在 conftest.V22_REVERT 下 RNG 區間過期 +1（端點依 v22.0 值重產）
+    v = getattr(lo, "base", lo).view({})
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；v22.0 原值另 P1 +1（Cap_In K 節 2026 欄單價基準）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
     assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]

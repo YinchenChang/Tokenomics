@@ -216,7 +216,8 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
         assert abs(v.get_name(n) - want) < 1e-9, n
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；在 conftest.V22_REVERT 下 RNG 區間過期 +1（端點依 v22.0 值重產）
     #      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
+    _a = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值
+    assert _a.get_name("RNG_StaleFlag") == "一致" and _a.get_name("RNG_OutCount") == 0
 
 
 def test_v1700_changed_cells_only_expected():

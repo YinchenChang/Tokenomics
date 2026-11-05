@@ -295,7 +295,7 @@ def test_v2130_fingerprint_ranges_and_gov(lo, wbf):
     v = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值
     assert v.get_name("RNG_StaleFlag") == "一致"
     assert v.get_name("RNG_OutCount") == 0
-    assert v.get("Alloc", "C410") == 0
+    assert v.get("Alloc", "C452") == 0      # v22.0：O 節多 42 列（Terra 區間），原 C410 下移到 C452
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 指紋記錄值（Alloc P 節：A＝頁、B＝格、D＝記錄值）：F11 與 SRC_PRC_049 為葉格；SRC_PRC_007（C11）不再是葉格
     al = wbf["Alloc"]

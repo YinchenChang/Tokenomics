@@ -258,7 +258,7 @@ def test_v2110_diffs_only_expected_vs_v210():
     for coord, x, y in d["L1"]:
         row = int(re.sub(r"[A-Z]+", "", coord))
         assert coord in ("T4", "C71", "H71", "K71") or coord in v213_cells().get("L1", ()) or (row >= 145 and x is None), (coord, x, y)      # v21.3：I128:I131（W5，test_v2130 看守）      # v21.2：C71／H71／K71（test_v2120 看守）
-    assert sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "D86", "E118"] or sorted(t[0] for t in d["Checks"]) == ["D118", "D119", "E118"], d["Checks"]
+    assert sorted(t[0] for t in d.get("Checks", [])) in (["D118", "D119", "D86", "E118"], ["D118", "D119", "E118"], [])      # v22.0：Checks 這些格已全落在 v218_cells（v21.7 → 現行），兩邊扣除後為空, d["Checks"]
     nn = sorted(t[0] for t in d["NonNV"])
     assert strip("NonNV", nn) == strip("NonNV", sorted(["A1", "L5", "L6", "L7", "L8", "L9"] + [f"{c}{r}" for r in (10, 11) for c in "ABCDEFGHIJKLM"])), nn      # v21.6：E6:G7、L6、L7 由 test_v2160 看守
     # SRC_Demand：W10 前置文字、兩筆新紀錄（第 93、94 列）、檢查公式 X 欄範圍隨之延伸

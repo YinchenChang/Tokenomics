@@ -12,3 +12,7 @@ tests/parity/_results.json
 # Claude settings
 .claude/
 .venv/
+
+# 靜態網站（GitHub Pages）建置產物與截圖：由 site/build_site.py、site/check_site_playwright.py 產生，不進版控
+site/dist/
+site/screenshots/

@@ -222,7 +222,7 @@ def test_meta_matches_current(site, xl):
     out, _ = site
     p = _parse(out, "index.html")
     assert p.ids["meta-excel"] == xl["name"]
-    assert p.ids["meta-version"] == re.search(r"_(v[\d.]+)\.xlsx$", xl["name"]).group(1) == "v21.10"
+    assert p.ids["meta-version"] == re.search(r"_(v[\d.]+)\.xlsx$", xl["name"]).group(1) == "v21.11"      # v21.11（v22.0 B1）：現行版版本字串
     assert re.fullmatch(r"[0-9a-f]{7}.*", p.ids["meta-commit"])
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", p.ids["meta-date"])
 

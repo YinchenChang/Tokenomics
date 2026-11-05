@@ -461,7 +461,7 @@ print("v21100 v21.10:", V21100)
 V21110 = v21110.apply(wb, v518._append_text)       # v21.11: Unit_Cost Terra 用途 marks「預備」, Decisions SL68-01
 print("v21110 v21.11:", V21110)
 V21120 = v21120.apply(wb, v518._append_text)       # v21.12: Checks Z3 (four-tier mix sums), Decisions SL69-01
-V21120["marks"] = v21120.purpose_marks(wb, {"cache": S4["terra_rows"], "fleet": F4["terra_rows"], "amort": A4["terra_rows"], "late": TERRA_LATE})
+V21120["marks"] = v21120.purpose_marks(wb, {"cache": S4["terra_rows"], "fleet": F4["terra_rows"], "amort": A4["terra_rows"], "late": TERRA_LATE, "pf": P4})
 print("v21120 v21.12:", V21120)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",

@@ -300,6 +300,17 @@ def purpose_marks(wb, terra):
                 put(ws, f"{L(pc)}{r}", PREP, F_NOTE); n += 1
             elif PREP not in str(c.value):
                 c.value = f"{c.value} ｜{PREP}"; n += 1
+    # Price_Frontier: Terra candidate row (A section) and the Terra cells of B／D rows that only the live tiers' readers use (frontier model, thinking price)
+    P = terra["pf"]
+    ws = wb["Price_Frontier"]
+    pc = v1400._purpose_col(ws)
+    for r, txt in ((P["t1"], PREP + "（Terra 候選列：能力指數空白，不參與其他層級前緣，J7 (b)）"),
+                   (P["frm"], PREP + f"（{tiers.TC[-1]}{P['frm']}：Terra 前緣模型）"), (P["eth"], PREP + f"（{tiers.TC[-1]}{P['eth']}：Terra 思考有效價）")):
+        c = ws.cell(r, pc)
+        if c.value in (None, ""):
+            put(ws, f"{L(pc)}{r}", txt, F_NOTE); n += 1
+        elif PREP not in str(c.value):
+            c.value = f"{c.value} ｜{txt}"; n += 1
     return n
 
 

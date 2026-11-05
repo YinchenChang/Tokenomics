@@ -331,7 +331,7 @@ def test_v2110_sources_and_evidence(wbf):
 
 def test_v2110_cap_in_q_section(wbf):
     ws = wbf["Cap_In"]
-    assert ws["A344"].value.startswith("Q. 免費占比時間路徑（v21.1") and ws.max_row == 348
+    assert ws["A344"].value.startswith("Q. 免費占比時間路徑（v21.1") and ws.max_row in (348, 356)      # v21.12：Q 節之下新增 R 節（第 350–356 列）
     assert ws["A345"].value.startswith("免費服務占服務 — 2026（投資人資料預估）") and ws["A346"].value.startswith("免費服務占服務 — 2030（投資人資料預估）")
     assert ws["C345"].value == "=SRC_DEM_089" and ws["C346"].value == "=SRC_DEM_090"
     assert (ws["D345"].value, ws["E345"].value, ws["D346"].value, ws["E346"].value) == (0.25, 0.46, 0.03, 0.30)

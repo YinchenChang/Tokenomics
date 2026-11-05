@@ -231,6 +231,11 @@ def sens_har_terra(wb, U, S, SH, HT):
         n = {"50% 時間範圍 低": "B5_H50Lo", "50% 時間範圍 高": "B5_H50Hi"}.get(lab, "B5_H50")
         return f"=INDEX({n},1,{TT})"
     drow("h", f"50% 時間範圍：{TL}（hr）", h50, "0.0")
+    from copy import copy
+    for ci in cols:      # scenario cells that differ from the base column carry the same yellow fill as the live tiers' horizon rows
+        src = ws.cell(SH["h2"], ci)
+        if src.fill.fill_type:
+            ws.cell(rows["h"], ci).fill = copy(src.fill)
     drow("cs", f"{TL}：選定每次嘗試成本 $",
          lambda X: f"=IF(ISNUMBER(Unit_Cost!${col}${cd}),({g('fp', X)}*Unit_Cost!${col}${cf}+{g('cp', X)}*(Unit_Cost!${col}${cc}+Cache_Store!${col}${S[TK]}*{g('Ret', X)}/B4_Retain)"
                    f"+{g('dp', X)}*Unit_Cost!${col}${cd})/1E6,{NA})", "$#,##0.0000")

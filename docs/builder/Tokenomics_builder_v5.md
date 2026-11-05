@@ -2525,16 +2525,16 @@ def amortize(wb, F, P, S):
     incl = lambda t: f"AND(ISNUMBER({{X}}{A[f'td{t}']}),ISNUMBER({{X}}{A[f'yr{t}']}),ISNUMBER({{X}}{A[f'bu{t}']}))"      # tier counted in the totals only if its serving and R&D cost are both numbers
     anyn = "OR(" + ",".join(incl(t) for t in range(NA4)) + ")"
     tdsum = "+".join(f"IF({incl(t)},{{X}}{A[f'td{t}']}*{{X}}{A[f'yr{t}']},0)" for t in range(NA4))
-    row15(ws, r, "由上而下年化總額（可達層級合計；v21.12 起含 Terra）", "$M/年", f"=IF({anyn},({tdsum})/1E6,{NA})", "#,##0.0")
+    row15(ws, r, "由上而下年化總額（可達層級合計）", "$M/年", f"=IF({anyn},({tdsum})/1E6,{NA})", "#,##0.0")
     A["tdtot"] = r; r += 1
     fam = lambda t: "*B4_TerraFam" if t == t3 else ""
-    row15(ws, r, "自下而上年化總額（研發計畫成本 × 12 ÷ 商業壽命，可達層級合計；Terra × 家族研發計入開關 B4_TerraFam）", "$M/年",
+    row15(ws, r, "自下而上年化總額（研發計畫成本 × 12 ÷ 商業壽命，可達層級合計）", "$M/年",
           "=" + "+".join(f"IF({incl(t)},{{X}}{A[f'pc{t}']}*12/INDEX(B4_Life,1,{t+1}){fam(t)},0)" for t in range(NA4)), "#,##0.0"); A["butot"] = r; r += 1
     row15(ws, r, "縮放倍數（由上而下 ÷ 自下而上總額）", "x",
           f"=IF(ISNUMBER({{X}}{A['tdtot']}),IF({{X}}{A['butot']}>0,{{X}}{A['tdtot']}/{{X}}{A['butot']},0),{NA})", "0.00", key=True); A["scale"] = r; r += 1
     pay = lambda t: f"Fleet_1GW!{{X}}{F[f'p{t}']}*INDEX(B4_EffRef,1,{t+1})"
     paysum = "+".join(f"IF({incl(t)},{pay(t)},0)" for t in range(NA4))
-    row15(ws, r, "付費營收合計（OpenAI 有效單價，可達層級；v21.12 起含 Terra）", "$M/年", f"=IF({anyn},({paysum})/1E6,{NA})", "#,##0.0")
+    row15(ws, r, "付費營收合計（OpenAI 有效單價，可達層級）", "$M/年", f"=IF({anyn},({paysum})/1E6,{NA})", "#,##0.0")
     A["revtot"] = r; r += 1
     def cd_rows(t, tn, lab_c, lab_d, r):
         row15(ws, r, lab_c, "$/M",

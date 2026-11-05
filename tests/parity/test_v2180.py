@@ -98,7 +98,8 @@ def test_v2180_names(wbf, wbv, pw):
     added = set(wbf.defined_names) - set(pw.defined_names)
     assert set(pw.defined_names) <= set(wbf.defined_names)      # 沒有名稱被刪除
     want_added = set(NEW_IDS) | {"SRC_PRC_074_Lo", "SRC_PRC_074_Hi", "SRC_HW_101_Lo", "SRC_HW_101_Hi"}
-    assert added == want_added, sorted(added ^ want_added)
+    import v21110_allow
+    assert added - v21110_allow.B2_NEW == want_added, sorted((added - v21110_allow.B2_NEW) ^ want_added)      # v21.12：B2 新增的 5 個內部名稱另由 test_v21120 看守
     bad, changed = [], set()
     for name, d in pw.defined_names.items():
         t = d.attr_text

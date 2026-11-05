@@ -33,7 +33,7 @@ SHAPE_OK = ({"B4_PriceIn", "B4_PriceCache", "B4_PriceOut", "B4_Life", "B4_MixPai
             | {f"B4_Mkt{x}" for x in ("Model", "Vendor", "Country", "Open", "In", "Cache", "Out", "Peak", "Index", "China")})
 # 鍵對齊比較中允許的文字差異（頁首、標籤、版本、契約前驅說明；全部非數值）
 TEXT_OK = {("README", "A1"), ("README", "B5"), ("Alloc", "A153"), ("Alloc", "G153"), ("Alloc", "G46"), ("Alloc", "C177"), ("Alloc", "C178"),
-           ("Amortize", "A2"), ("Amortize", "A39"), ("Amortize", "A40"), ("Amortize", "A42"), ("Cap_In", "A281"), ("Cap_In", "A333"), ("Cap_In", "A60"),
+           ("Amortize", "A2"), ("Cap_In", "A281"), ("Cap_In", "A333"), ("Cap_In", "A60"),
            ("Cap_In", "A90"), ("Checks", "A56"), ("Checks", "B97"), ("Fleet_1GW", "A2"), ("Fleet_1GW", "A30"), ("Fleet_1GW", "A33"), ("Fleet_1GW", "A41"),
            ("Fleet_1GW", "A42"), ("Fleet_1GW_Prod", "A41"), ("Fleet_1GW_Prod", "A42"), ("L1", "C135"), ("Price_Frontier", "A2"), ("Price_Frontier", "A20"),
            ("Price_Frontier", "A21"), ("Price_Frontier", "A25")} \
@@ -103,7 +103,7 @@ def test_v21120_mix_sums_and_terra_zero(wbf, wbv):
     assert _val(wbf, wbv, "B4_MixPaid") == [0.4, 0.45, 0.15, 0] and _val(wbf, wbv, "B4_MixPaid25") == [0.4, 0.45, 0.15, 0]
     assert _val(wbf, wbv, "B4_TerraFam") == 0
     ck = wbf["Checks"]
-    rows = [r for r in range(1, ck.max_row + 1) if str(ck.cell(r, 1).value).startswith("Z3")]
+    rows = [r for r in range(1, ck.max_row + 1) if str(ck.cell(r, 1).value).startswith("Z3") and ck.cell(r, 3).value == "ERROR"]
     assert len(rows) == 4 and all(wbv["Checks"].cell(r, 4).value == 0 for r in rows)
     gov = wbf.defined_names["GOV_Errors"].attr_text
     assert all(f"D{r}" in str(ck[gov.split("!")[1].replace("$", "")].value) for r in rows)

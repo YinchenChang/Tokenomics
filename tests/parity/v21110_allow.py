@@ -36,4 +36,11 @@ def narrow(name: str, values):
 def ref_moved(name: str) -> bool:
     """v21.11 參照位址改變、但值不變的名稱：DRV_／TRN_（1×15 → 1×20）與 RNG_Dem004_*（Alloc P 節時效指紋多 62 葉格，Q 節下移 62 列）。
     舊測試的「參照位址不變」檢查略過這些名稱；它們對 v21.10 的逐值相等由 test_v21110 以鍵對齊比較看守。"""
-    return name.startswith(WIDE) or name.startswith("RNG_Dem004_")
+    return name.startswith(WIDE) or name.startswith("RNG_Dem004_") or name in B2_SHAPE
+
+
+# v21.12（v22.0 B2，R10）：1×3 → 1×4（Terra 欄）與 1×13 → 1×14（Terra 候選列）的名稱，值的前 3／13 格不變（test_v21120 看守）
+B2_SHAPE = ({"B4_PriceIn", "B4_PriceCache", "B4_PriceOut", "B4_Life", "B4_MixPaid", "B4_MixFree", "B4_ISL", "B4_OSL", "B4_EffIn", "B4_EffCache",
+             "B4_EffOut", "B4_EffRef", "B4_FrontRef", "B5_H50", "B5_H50Lo", "B5_H50Hi"}
+            | {f"B4_Mkt{x}" for x in ("Model", "Vendor", "Country", "Open", "In", "Cache", "Out", "Peak", "Index", "China")})
+B2_NEW = {"B4_MixPaid25", "B4_MixFree25", "B4_TerraFam", "CAP_TokGWPaidMix25", "B5_SuccOvr_Terra"}      # v21.12 新增的內部名稱（非契約）

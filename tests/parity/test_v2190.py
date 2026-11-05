@@ -96,7 +96,7 @@ def _src(wb, sid):
 # ---------------------------------------------------------------- 1. 具名範圍
 def test_v2190_names(wbf, wbv, pw):
     exp = _csv()
-    assert set(wbf.defined_names) == set(pw.defined_names)      # 名稱不增不減（契約名稱與 SRC 名稱）
+    assert set(wbf.defined_names) - v21110_allow.B2_NEW == set(pw.defined_names)      # v21.12：B2 新增的 5 個內部名稱另由 test_v21120 看守； 名稱不增不減（契約名稱與 SRC 名稱）
     changed, bad = set(), []
     for name, d in pw.defined_names.items():
         t = d.attr_text

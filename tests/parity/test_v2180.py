@@ -121,7 +121,7 @@ def test_v2180_names(wbf, wbv, pw):
         if miss:
             bad.append((name, miss[:5]))
     assert bad == [], bad
-    assert {"IF_HoldEcon", "IF_DeprLifeIT", "L1_Ans5_GM_Lo", "B4_MktCache"} <= changed
+    assert {"IF_HoldEcon", "IF_DeprLifeIT", "L1_Ans5_GM_Lo", "B4_MktCache"} - v21110_allow.B2_SHAPE <= changed      # v21.12：B4_MktCache 形狀 13 → 14 列，列入 ref_moved（值的前 13 格由 test_v21120 看守）
     # 基準與低成本欄不變：Interface C:Q 中只有高成本欄（E、H、K、N、Q）可變
     for name in changed:
         if not name.startswith("IF_") or name in v219_names():      # v21.9：IF_NonNV_Out_TPU／Trn（test_v2190 看守）

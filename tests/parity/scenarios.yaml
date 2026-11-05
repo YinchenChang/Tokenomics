@@ -17,7 +17,7 @@ workbook_expectations:            # 版本升級時必須有意識地更新（CL
   # v5.15：736 → 865（AL_ 80、IF_Alloc 7、L1_ 96→132、SRC_ 324→330、IF_ 其餘不變）
   # v5.13：611 → 736（SRC_ 220→324、L1_ 75→96；其餘前綴計數不變）
   block2_names: 28                # IF_{TokRack,TokRackD,TokGW,VReq,CostPre,CostCache,CostDec,CostDecAcct,TokPerJ}_{Luna,Sol,Astra} 與 IF_Util
-  display_only_names: 141         # v14.0：143 → 141（B5_TaskTok、B5_SelVendor 移除）； v6.3：142 → 143（B4_PriceFleet）； v5.34：140 → 142（B4_Disc_Lo／_Hi：Cap_In D12／E12 區間端點，H8-4 折讓因子用）；v5.23：139 → 140（CAL_BatchEtaD）； IF_Hdr*（3：IF_HdrGen／IF_HdrCost／IF_HdrTask）、DRV_*（16）、CAL_*（19）、TRN_*（15）、TR_*（23）、B4_*（39）、B5_*（24）；僅供網站顯示，下游不得連結
+  display_only_names: 145         # v21.12（v22.0 B2）：141 → 145（B4_MixPaid25、B4_MixFree25、B4_TerraFam、B5_SuccOvr_Terra）； v14.0：143 → 141（B5_TaskTok、B5_SelVendor 移除）； v6.3：142 → 143（B4_PriceFleet）； v5.34：140 → 142（B4_Disc_Lo／_Hi：Cap_In D12／E12 區間端點，H8-4 折讓因子用）；v5.23：139 → 140（CAL_BatchEtaD）； IF_Hdr*（3：IF_HdrGen／IF_HdrCost／IF_HdrTask）、DRV_*（16）、CAL_*（19）、TRN_*（15）、TR_*（23）、B4_*（39）、B5_*（24）；僅供網站顯示，下游不得連結
   b4_names: 45                    # v21.12：42 → 45（B4_MixPaid25、B4_MixFree25、B4_TerraFam）； v6.3：41 → 42（B4_PriceFleet）； v5.34：39 → 41（B4_Disc_Lo／_Hi）；v5.9：B4_Chi 改名 B4_CacheHit，新增 B4_MktChina
   b5_names: 23                    # v21.12：22 → 23（B5_SuccOvr_Terra，Har_In 第 58 列）； v14.0：24 → 22（B5_TaskTok、B5_SelVendor 指向已刪除的格，無人使用，移除；4-3B Q1）； B5_*（v5.9 新增 23；v5.10 加 B5_PFloor）：Block 5 顯示或內部用
   drv_names: 16

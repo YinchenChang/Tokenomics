@@ -231,11 +231,6 @@ def sens_har_terra(wb, U, S, SH, HT):
         n = {"50% 時間範圍 低": "B5_H50Lo", "50% 時間範圍 高": "B5_H50Hi"}.get(lab, "B5_H50")
         return f"=INDEX({n},1,{TT})"
     drow("h", f"50% 時間範圍：{TL}（hr）", h50, "0.0")
-    from copy import copy
-    for ci in cols:      # scenario cells that differ from the base column carry the same yellow fill as the live tiers' horizon rows
-        src = ws.cell(SH["h2"], ci)
-        if src.fill.fill_type:
-            ws.cell(rows["h"], ci).fill = copy(src.fill)
     drow("cs", f"{TL}：選定每次嘗試成本 $",
          lambda X: f"=IF(ISNUMBER(Unit_Cost!${col}${cd}),({g('fp', X)}*Unit_Cost!${col}${cf}+{g('cp', X)}*(Unit_Cost!${col}${cc}+Cache_Store!${col}${S[TK]}*{g('Ret', X)}/B4_Retain)"
                    f"+{g('dp', X)}*Unit_Cost!${col}${cd})/1E6,{NA})", "$#,##0.0000")
@@ -305,6 +300,15 @@ def purpose_marks(wb, terra):
                 put(ws, f"{L(pc)}{r}", PREP, F_NOTE); n += 1
             elif PREP not in str(c.value):
                 c.value = f"{c.value} ｜{PREP}"; n += 1
+    # Sens_Har: the Terra horizon row carries the yellow fill of the Astra horizon row on the scenario cells that differ from the base column
+    #           (the live rows get their fill late in the build, so this runs at the end)
+    from copy import copy
+    ws = wb["Sens_Har"]
+    sh = terra["late"]["sens_har"]
+    src_r = next(r for r in range(1, sh["first"]) if str(ws.cell(r, 1).value).startswith("50% 時間範圍：Astra"))
+    for ci in range(3, ws.max_column + 1):
+        if ws.cell(src_r, ci).fill.fill_type and ws.cell(sh["h"], ci).value is not None:
+            ws.cell(sh["h"], ci).fill = copy(ws.cell(src_r, ci).fill)
     # Price_Frontier: Terra candidate row (A section) and the Terra cells of B／D rows that only the live tiers' readers use (frontier model, thinking price)
     P = terra["pf"]
     ws = wb["Price_Frontier"]

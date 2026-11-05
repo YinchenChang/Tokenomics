@@ -36,7 +36,7 @@ def narrow(name: str, values):
 def ref_moved(name: str) -> bool:
     """v21.11 參照位址改變、但值不變的名稱：DRV_／TRN_（1×15 → 1×20）與 RNG_Dem004_*（Alloc P 節時效指紋多 62 葉格，Q 節下移 62 列）。
     舊測試的「參照位址不變」檢查略過這些名稱；它們對 v21.10 的逐值相等由 test_v21110 以鍵對齊比較看守。"""
-    return name.startswith(WIDE) or name.startswith("RNG_") or name in B2_SHAPE      # v22.0：Alloc O 節依字母序插入 Terra 區間名稱，其下 RNG_ 列下移（值由 gen_ranges --check／test_v22000 看守）
+    return name.startswith(WIDE) or name.startswith(("RNG_", "IDX_Src", "IFC_")) or name in B2_SHAPE      # v22.0：Alloc O 節依字母序插入 Terra 區間名稱，其下 RNG_ 列下移（值由 gen_ranges --check／test_v22000 看守）
 
 
 # v21.12（v22.0 B2，R10）：1×3 → 1×4（Terra 欄）與 1×13 → 1×14（Terra 候選列）的名稱，值的前 3／13 格不變（test_v21120 看守）

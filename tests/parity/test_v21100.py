@@ -222,7 +222,7 @@ def test_v21100_evidence_decisions_readme(wbf):
 # ---------------------------------------------------------------- 5. GOV
 def test_v21100_gov_counts(lo):
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；在 conftest.V22_REVERT 下 RNG 區間過期 +1（端點依 v22.0 值重產）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
     assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")      # v21.11：lo 讀現行版
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]

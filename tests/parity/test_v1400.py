@@ -124,7 +124,7 @@ def test_v1400_existing_contract_names_unchanged(lo):
     例外只有：CHK_VerifyTotal／Pass（新增 V23–V26）、IFC_*（Interface 新增列，範圍變長）、RNG_Version／Current（版本字串）。"""
     prev = openpyxl.load_workbook(V131_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED | V152_CHANGED | V2120_CHANGED | V2130_CHANGED | v218_names()]      # v21.8：扣除 v21.7→v21.8 值改變的名稱（test_v2180 看守）      # v21.2：+44 個 AL_SpendBasis 預期變動名稱      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and not n.startswith("RNG_") and n not in Q4_CHANGED | VERSION_NAMES | IFC_RANGES | R1_CHANGED | V152_CHANGED | V2120_CHANGED | V2130_CHANGED | v218_names()]      # v21.8：扣除 v21.7→v21.8 值改變的名稱（test_v2180 看守）      # v21.2：+44 個 AL_SpendBasis 預期變動名稱      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
     assert len(keep) >= 230, len(keep)      # v21.8：扣除 v218_names 後實測 240，下限 250 → 230（同 test_parity v1300）      # v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300（原 ≥ 340）； v15.2：同上；原 ≥ 700
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)
@@ -168,7 +168,7 @@ def test_v1400_new_checks_pass_on_base(lo):
         r = _chk(v, code)
         assert v.get("Checks", f"G{r}") == "驗證" and v.get("Checks", f"F{r}") == 1, (code, v.get("Checks", f"F{r}"))
     r = _chk(v, "V23")
-    assert v.get("Checks", f"D{r}") == 32 and v.get("Checks", f"C{r}") == 0      # 可達欄 32（Perf 15＋Perf_Batch 17）、低於 SLO 的欄數 0
+    assert v.get("Checks", f"D{r}") == 42 and v.get("Checks", f"C{r}") == 0      # v22.0：Terra 納入（tiers.NT_LIVE＝4）：可達欄 42（Perf 20＋Perf_Batch 22）      # 可達欄 32（Perf 15＋Perf_Batch 17）、低於 SLO 的欄數 0
     assert abs(v.get("Checks", f"E{_chk(v, 'V25')}") - 0.322541070274425) < 1e-9      # v21.2：0.2177 → 0.3225（AL_SpendBasis 0.85 → 1.8）； v19.1：V25 0.2237 → 0.2177（Arch!C17 改值）
     assert v.get("Checks", f"E{_chk(v, 'V24')}") == 0 and v.get("Checks", f"E{_chk(v, 'V26')}") == 0
 
@@ -190,7 +190,7 @@ def test_v1400_v23_not_vacuous_when_some_columns_unreachable(lo):
     """V23 不因『不可達欄』而空轉或誤判：Train_In!E31＝100（Perf_Batch 部分欄 SLO 不可達）時，可達欄數少於 32 但仍 > 0，V23 仍成立（v14.1 R2：F 欄＝「恆等式（非驗證）」，而非「恆等式不成立」）。"""
     v = lo.view({"Train_In!E31": 100})
     r = _chk(v, "V23")
-    assert 0 < v.get("Checks", f"D{r}") < 32 and v.get("Checks", f"F{r}") == "恆等式（非驗證）", (v.get("Checks", f"D{r}"), v.get("Checks", f"F{r}"))      # v14.1 R2：V23 改標恆等式，F 欄為文字；可達欄數 > 0 與 < 32 仍斷言（防空轉）
+    assert 0 < v.get("Checks", f"D{r}") < 42 and v.get("Checks", f"F{r}") == "恆等式（非驗證）", (v.get("Checks", f"D{r}"), v.get("Checks", f"F{r}"))      # v14.1 R2：V23 改標恆等式，F 欄為文字；可達欄數 > 0 與 < 32 仍斷言（防空轉）
 
 
 def test_v1400_v24_fails_when_cap_in_147_differs_from_l1_mimplied(model, tmp_path):

@@ -97,7 +97,7 @@ def test_v1910_changes_only_downstream_of_c17(lo):
         n += 1
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
-    assert n > 1400
+    assert n > 1300      # v22.0：RNG_／IFC_ 參照移動者略過
     assert bad == [], bad[:20]      # v21.3：略過 IF_FrontModel_Sol／B4_MktModel（Cap_In A47 改名 GPT-6.1 Sol）與 SRC_PRC_049（R213_OLD 把它設回 0.2 的副作用）
 
 
@@ -119,7 +119,7 @@ def test_v1910_stress_scenarios_no_error_values(lo):
 
 def test_v1910_governance_counts(lo):
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；在 conftest.V22_REVERT 下 RNG 區間過期 +1（端點依 v22.0 值重產）
     #
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
 

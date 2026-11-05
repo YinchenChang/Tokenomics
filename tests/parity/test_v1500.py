@@ -101,7 +101,7 @@ def test_v1500_o13_mechanism_is_excel_formula(wbf):
 
 def test_v1500_o13_out_of_range_fires_rg4(lo):
     """防空轉：把 SRC_DEM_004（基準支出）改到區間上端之外，基準落在端點之外，OutCount > 0，Checks RG4 ＝ 1 並計入 GOV_Warnings（280 → 281）。"""
-    base, out = lo.view({}), lo.view(SC_SPEND_HI)
+    base, out = getattr(lo, "base", lo).view({}), getattr(lo, "base", lo).view(SC_SPEND_HI)
     assert base.get_name("RNG_Dem004_OutCount") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG4')}") == 0
     assert out.get_name("RNG_Dem004_OutCount") >= 1
     assert out.get("Checks", f"D{_chk_row(out, 'RG4')}") == 1
@@ -133,8 +133,8 @@ def test_v1500_b11_guard_flags_no_qualified_combination(lo):
 def test_v1500_t32_twelve_vr200_names_have_ranges(lo):
     """12 個只經 VR200 欄的名稱都有 RNG_*_Lo／_Hi，基準在區間內；既有 59 個名稱（另有 15 格名稱的 VR200 欄點值）的端點與 v14.2 檔相同（快照另測）。"""
     assert len(VR_NAMES) == 14, VR_NAMES      # v19.1：12 → 14（區間端點檔重產後 CHK_VerifyFail／CHK_VerifyPass 也納入，只經 VR200 欄變動）
-    assert sum(1 for d in RANGES["names"].values() if d.get("source") != "vr200") == 59
-    v = lo.view({})
+    assert sum(1 for d in RANGES["names"].values() if d.get("source") != "vr200") == 73      # v22.0：+14 個 Terra 名稱（重產）
+    v = getattr(lo, "base", lo).view({})
     for n in VR_NAMES:
         base, lo_, hi_ = _flat(v.get_name(n)), _flat(v.get_name(f"RNG_{n}_Lo")), _flat(v.get_name(f"RNG_{n}_Hi"))
         assert len(base) == len(lo_) == len(hi_) == RANGES["names"][n]["n"]
@@ -186,12 +186,12 @@ def test_v1500_t32_existing_range_endpoints_unchanged(wbf):
             got = [cells.value] if not isinstance(cells, tuple) else [c.value for r in cells for c in r]
             assert all(_same(p, q) for p, q in zip(got, d[key])) and len(got) == len(d[key]), (n, tag)
             n_checked += len(got)
-    assert n_checked == 2 * 647
+    assert n_checked == 2 * 857      # v22.0：Terra 14 名稱 × 15 格 ＝ +210
 
 
 def test_v1500_t32_wording_corrected_with_original_kept(wbf):
     ws = wbf["Alloc"]
-    txt = " ".join(str(ws.cell(r, 1).value or "") for r in range(150, 420))
+    txt = " ".join(str(ws.cell(r, 1).value or "") for r in range(150, 480))      # v22.0：O 節多 42 列（Terra 區間），說明列下移
     assert "VR200 欄無區間" in txt and "VR200 批次倍數無證據" in txt      # 原字樣保留
     assert "v15.0 更正（修訂九，T3-2）" in txt and "0.70–0.76" in txt and "約 1.20–1.28" in txt
 

@@ -151,7 +151,7 @@ def test_v2130_unchanged_names(lo, pw, wbf):
         n_keep += 1
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
-    assert n_keep > 40
+    assert n_keep > 25      # v22.0：v22.0 值改變的名稱改由 test_v22000 看守
     expect = KEEP_BUT_CHANGED - {"L1_CapexGW_VR200_Lo", "L1_HoldEconGW_VR200_Lo"}      # 這兩個不在 KEEP_EXACT 掃描範圍（下方另行點名）
     assert hit == expect, (sorted(hit - expect), sorted(expect - hit))
     assert bad == [], bad[:20]
@@ -292,7 +292,7 @@ def test_v2130_records(wbf):
 
 # ---------------------------------------------------------------- 6. W6：指紋、區間、GOV
 def test_v2130_fingerprint_ranges_and_gov(lo, wbf):
-    v = lo.view({})
+    v = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值
     assert v.get_name("RNG_StaleFlag") == "一致"
     assert v.get_name("RNG_OutCount") == 0
     assert v.get("Alloc", "C410") == 0
@@ -351,7 +351,7 @@ def test_v2130_diffs_only_expected_vs_v212():
     # SRC_Index：只因 SRC_HW 多兩列而重排（A:F 欄，第 102 列起）
     assert all(col(x) in "ABCDEF" and row(x) >= 102 for x in got["SRC_Index"])
     # Alloc：版本字串 C177、區間端點常數（數字對數字）、指紋記錄列（第 1233–1237 列的連結位址）
-    for t in d["Alloc"]:
+    for t in d.get("Alloc", []):      # v22.0：Alloc 差異已全落在 v218_cells（v21.7 → 現行）
         coord, x, y = t
         assert coord == "C177" or (_num(x) and _num(y)) or 1230 <= row(coord) <= 1240, t
     assert "C177" in got["Alloc"] or "C177" in _v218.get("Alloc", set())      # v21.8：C177 也被 v21.8 改動（兩邊扣除）

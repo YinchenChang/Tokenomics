@@ -77,7 +77,8 @@ def test_v2150_all_names_unchanged(lo, pw, wbf):
             bad.append(name)
     assert n > 1500, n
     bad = [b for b in bad if b not in v218_names() - CHANGED_NAMES]      # v21.8（test_v2180 看守）
-    assert sorted(bad) == sorted(CHANGED_NAMES), bad
+    _x = lambda xs: sorted(x for x in xs if not x.startswith(("RNG_", "GOV_")))      # v22.0：V22_REVERT 下 RNG_ 端點過期、GOV 計數另測
+    assert _x(bad) == _x(CHANGED_NAMES), bad
     assert set(wbf.defined_names) - v218_added() == set(pw.defined_names)      # 名稱沒有增減
 
 
@@ -145,7 +146,7 @@ def test_v2150_w3_applied(wbf, lo):
 # ---------------------------------------------------------------- 4. GOV
 def test_v2150_gov_counts(lo):
     v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；在 conftest.V22_REVERT 下 RNG 區間過期 +1（端點依 v22.0 值重產）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
     assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")      # v21.9：版本字串
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]

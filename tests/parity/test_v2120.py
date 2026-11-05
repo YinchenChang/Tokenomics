@@ -122,7 +122,7 @@ def test_v2120_changed_set_is_exactly_expected(lo, pw, wbf):
     v213 |= v218_names() & changed      # v21.8
     assert changed == CHANGED | v213, (sorted(changed - CHANGED - v213), sorted((CHANGED | v213) - changed))
     # 版本字串名稱改變（README B5 的版本主幹）
-    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")      # v21.9：版本字串      # v21.3：版本字串（原 v21.2）
+    assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")      # v21.9：版本字串      # v21.3：版本字串（原 v21.2）
 
 
 # ---------------------------------------------------------------- 3. 不變名稱
@@ -210,7 +210,7 @@ def test_v2120_records(wbf):
     assert ev.cell(er[0], 5).value == "Derived" and "非實付價直接證據" in ev.cell(er[0], 11).value and "1.8" in ev.cell(er[0], 3).value
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "以下為 v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value)      # v21.3：B5 前面加 v21.3 句，v21.2 句保留
-    assert str(rm["A1"].value).startswith("Tokenomics v21.12")      # v21.9      # v21.3：版本字串（原 v21.2）
+    assert str(rm["A1"].value).startswith("Tokenomics v22.0")      # v21.9      # v21.3：版本字串（原 v21.2）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.2 計價倍數 1.8 與說明修補"]
     assert len(rr) == 1 and "1.8" in rm.cell(rr[0], 2).value
 

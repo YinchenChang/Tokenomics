@@ -556,8 +556,18 @@ def _decisions():
     return rows
 
 
+def clear_l1_ratio(wb):
+    """L1 column O (推算 ÷ 外部) of the Terra rows: no external value, cleared like the other external-less rows (no dead formula cells; v21.1 rule)."""
+    ws = wb["L1"]; n = 0
+    keys = {f"L1_{k[0]}" for k in l1_rows_new()}
+    for r in range(5, ws.max_row + 1):
+        if ws.cell(r, 1).value in keys and ws[f"O{r}"].value is not None:
+            ws[f"O{r}"].value = None; n += 1
+    return n
+
+
 def apply(wb, append_text):
-    log = {"z4": checks_z4(wb), "evidence": evidence_append(wb), "cap008": src_notes(wb, append_text)}
+    log = {"z4": checks_z4(wb), "evidence": evidence_append(wb), "cap008": src_notes(wb, append_text), "l1_o_cleared": clear_l1_ratio(wb)}
     ws = wb["Decisions"]
     have = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
     log["decisions"] = v1410.decisions_append(wb, [x for x in _decisions() if x[0] not in have])

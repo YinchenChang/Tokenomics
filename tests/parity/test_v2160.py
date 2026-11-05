@@ -83,7 +83,7 @@ def test_v2160_names_changed_only_expected(lo, pw, wbf):
     assert set(wbf.defined_names) - v218_added() == set(pw.defined_names)      # 名稱沒有增減
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_TPU"))] == [0.65, 0.70, 0.90]
     assert [round(x, 12) for x in _flat(v.get_name("IF_NonNV_Hold_Trn"))] == [0.45, 0.61, 0.70]      # v21.7：Trn3 持有比基準 0.55 → 0.61（test_v2170 看守）
-    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")      # v21.9：版本字串
+    assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")      # v21.9：版本字串
 
 
 # ---------------------------------------------------------------- 2. W1 NonNV
@@ -145,7 +145,7 @@ def test_v2160_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.6（次版，底版 v21.5：" in b5 and "契約名稱的值改變的只有 IF_NonNV_Hold_TPU、IF_NonNV_Hold_Trn（各 3 格）與版本字串" in b5      # v21.7：v21.6 段在 v21.7 段之後（test_v2170 看守）
-    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.12")      # v21.9
+    assert "以下為 v21.5（次版，底版 v21.4：" in b5 and str(rm["A1"].value).startswith("Tokenomics v22.0")      # v21.9
     assert (REPO / "docs" / "workorders" / "20261025_v21.6_預期變動.csv").exists()
 
 

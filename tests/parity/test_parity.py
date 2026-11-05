@@ -22,7 +22,7 @@ V152_CHANGED = set(__import__("json").load(open(HERE / "fixtures" / "v152_change
 CFG = yaml.safe_load((HERE / "scenarios.yaml").read_text(encoding="utf-8"))
 SCENARIOS = CFG["scenarios"]
 EXPECT = CFG["workbook_expectations"]
-TIERS = ("Luna", "Sol", "Astra")
+TIERS = ("Luna", "Sol", "Astra", "Terra")      # v22.0 B3：Terra 第四層級（R10；IF_*_Terra 在 Interface R 節）
 BLOCK3_PREFIX = ("TrainGPUh", "TrainCost", "PostShareFLOP", "PostShareGPUh", "RLMFU", "ProgGPUh", "ProgCost", "ProgGWyr")
 BLOCK2_PREFIX = ("TokRack", "TokRackD", "TokGW", "VReq", "CostPre", "CostCache", "CostDec", "CostDecAcct", "TokPerJ")
 

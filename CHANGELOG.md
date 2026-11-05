@@ -2,6 +2,11 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 網站：GitHub Pages 靜態唯讀版（2026-11-05；不改 Excel、不改任何數值）
+
+- 新增 `site/build_site.py`（讀 `model/CURRENT` 存值，沿用 `app/` 取數函式，產生 11 頁自含 HTML 到 `site/dist/`）、`site/check_site_playwright.py`（1280／390 px 截圖、無橫向捲動、無空值、無外部請求）、`site/publish_to_company_models_pages.sh`（只新增或取代 company-models gh-pages 的 `tokenomics/`，預設 dry run，不 force）；測試 `tests/site/`。
+- 頁名改中文自明名稱並集中於 `app/nav.py`（Streamlit 與靜態網站共用）：Block 2 →「推論：每 GW 產能與單位成本」、Block 3 →「訓練：算力與成本」、Block 4 →「價格、營收與攤提」、Block 5 →「任務成功率與每任務成本」、Alloc →「算力分配：服務／訓練／研發」（Andy 核定）；總覽與其他頁見 `app/nav.py`。
+
 ## 20261104_Tokenomics_v21.10.xlsx（取代 v21.9；**次版：TPU v7、Trainium3 產出比基準改 FP8 對齊（PR #172 E 節方法一），各晶片最高原生精度降為低端（查核 `docs/evidence/20261104_TPU產出比查核/`，Andy 2026-11-04 照建議）；v21.9 獨立核對的文字與治理修正（追加 11–16，不動數值）；契約名稱的值改變只有 `IF_NonNV_Out_TPU`、`IF_NonNV_Out_Trn`（各 3 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261104_v21.10_TPU產出比改FP8對齊與文字修正.md` r0）
 
 - 分支 `claude/v21-10`（PR 與 SHA 見報告）。報告：`docs/reports/20261104_v21.10_TPU產出比改FP8對齊.md`；進度檔：`docs/reports/20261104_v21.10_進度.md`。**不合併**。

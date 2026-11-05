@@ -3,11 +3,12 @@
 import pandas as pd
 import streamlit as st
 
-from app.common import fmt_unit, get_engine, series
+from app.common import fmt_unit, get_engine, header_above, series
 
+VALUE_COL = "值（多格者逐格標明世代；表頭取自 Excel）"
 CHAIN = (
     ("A. 需求 D（M tok/年；token 路線，A9）", ("AL_DAPI", "AL_DChat", "AL_DChatFree", "AL_DChatPaid", "AL_DPaid", "AL_DFree", "AL_D", "AL_DDaily")),
-    ("B. 服務 GW（世代組合 GB200／GB300／VR200）", ("AL_ShareGen", "AL_GenOK", "AL_CapPaid", "AL_CapFree", "AL_BlendPaid", "AL_BlendFree",
+    ("B. 服務 GW（世代組合 Hopper／GB200／GB300／VR200）", ("AL_ShareGen", "AL_GenOK", "AL_CapPaid", "AL_CapFree", "AL_BlendPaid", "AL_BlendFree",
                                               "AL_ServeGWPaid", "AL_ServeGWFree", "AL_ServeGW", "AL_ServeGen", "AL_HoldGen")),
     ("C. 研發 GW 年（物理下限）", ("AL_FamGWyr", "AL_RefGWyr", "AL_RDGW", "AL_RDGWg", "AL_HoldTrain", "AL_RDCost")),
     ("D. Q1、Q2", ("AL_Q1", "AL_Q1R2", "AL_Q2", "AL_Q1g", "AL_Q2g")),
@@ -22,8 +23,13 @@ def chain_table(eng) -> pd.DataFrame:
         for n in names:
             s = series(eng, n)
             unit = s["unit"] if s["unit"] not in (None, "") else ""
-            rows.append((sec, s["label"], unit, " ｜ ".join(fmt_unit(v, unit) for v in s["values"])))
-    return pd.DataFrame(rows, columns=["節", "項目（Excel 標籤）", "單位", "值（多格為 C–E 欄：世代或層級）"])
+            if len(s["values"]) > 1:            # 多格：每格標上該欄表頭（Alloc 頁 C–F 欄＝Hopper／GB200／GB300／VR200，表頭取自 Excel）
+                heads = header_above(eng, n)
+                shown = " ｜ ".join(f"{h}：{fmt_unit(v, unit)}" for h, v in zip(heads, s["values"]))
+            else:
+                shown = fmt_unit(s["values"][0], unit)
+            rows.append((sec, s["label"], unit, shown))
+    return pd.DataFrame(rows, columns=["節", "項目（Excel 標籤）", "單位", VALUE_COL])
 
 
 def render():

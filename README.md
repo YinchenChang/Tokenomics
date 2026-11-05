@@ -11,6 +11,8 @@ AI 推論的物理推導模型：**Excel 活頁簿是唯一事實來源**（`mod
 | `tests/parity/` | 數值檢查與情境檔：以 LibreOffice 重算現行活頁簿與每個情境，檢查錯誤值、防空轉、各版本期望值、具名範圍與 GOV_Errors |
 | `app/` | Streamlit 網站（唯讀；修訂十一） |
 | `tests/app/` | 網站檢查 |
+| `site/` | 靜態唯讀網站（GitHub Pages：company-models `tokenomics/`）的建置、瀏覽器檢查與發布程式 |
+| `tests/site/` | 靜態網站檢查 |
 | `legacy/` | 暫停的公式引擎（`legacy/engine/`，修訂八）及其工具、早先停用的 v4 手抄公式；不執行 |
 | `tests/legacy/` | 暫停的引擎測試（`test_functions.py`）及舊 v4 測試，不列入 CI |
 | `docs/reports/` | 每輪報告（繁體中文） |
@@ -65,6 +67,30 @@ Excel 的具名範圍分為兩類（見 Excel README 頁）：
 - Streamlit Community Cloud：主程式 `tokenomics.py`、分支 `master`、套件 `requirements.txt`。
 
 網站顯示的每個數字都是 `model/CURRENT` 活頁簿中 LibreOffice 重算後存下的值；網站不計算、不改輸入。頁面：回本判讀（m、L、每 GW 營收 P×Q、持有成本、承重輸入、非 NVIDIA）、名稱查詢（任一具名範圍與 L1 全表）、Interface Block 1–5、Alloc、問答、證據登錄、治理。
+
+## 靜態網站（GitHub Pages，公司內可開）
+
+Streamlit 在公司網路連不到，因此另有一份**唯讀靜態版**，與 AI 投資地圖、Wattonomics 同站：
+https://yinchenchang.github.io/company-models/tokenomics/ （company-models 的 gh-pages 分支 `tokenomics/` 子目錄）。
+
+- 內容與 Streamlit 各頁相同，取數沿用 `app/common.py`、`app/views/*` 的同一批函式；只讀 `model/CURRENT` 活頁簿存下的值，不做任何計算、不可調整。
+  表格 → 靜態表、圖 → inline SVG；選擇器（層級、成本情境、世代、任務、工作表）的每個組合預先產生，以頁內小段 JS 切換（無 JS 時顯示 Streamlit 的預設組合）。
+- 每頁一個自含 HTML（CSS、JS inline，不載入任何外部資源）；刊頭列模型版本、Excel 檔名、master commit、建置日期。
+- 頁名清單在 `app/nav.py`，Streamlit（`app/main.py`）與靜態網站共用，兩邊一致。
+
+每次 Excel 換版（或 `app/` 改版）合併後，在 master 重建並發布：
+
+```bash
+python3 site/build_site.py                                   # → site/dist/（約 10 秒；不進版控）
+python -m pytest tests/site                                  # 頁面齊全、頁名、抽樣數字＝Excel、無外部資源；瀏覽器檢查（約 30 秒）
+python3 site/check_site_playwright.py                        # 選用：截圖到 site/screenshots/（1280／390 px）
+bash site/publish_to_company_models_pages.sh                 # dry run：列出 gh-pages 上會變動的檔案，不 commit、不 push
+bash site/publish_to_company_models_pages.sh --push          # 發布（需 Andy 明確指示；Project Instructions 第 6 條）
+```
+
+發布程式在最新 `origin/gh-pages` 上追加一個 commit，只新增或取代 `tokenomics/`（有其他目錄變動即停止），一般 push、不 force；
+company-models 的位置預設為同層的 `../company-models`（或環境變數 `COMPANY_MODELS`、選項 `--company-models`）。
+**注意**：company-models 的 `markets/invest_map/publish_pages.sh` 會以全新歷史 force 覆寫整個 gh-pages，執行後 `tokenomics/` 會消失，須再跑一次本發布程式。
 
 匯出 SRC_／Interface CSV 並檢查 GOV_Errors（以 LibreOffice 重算 `model/CURRENT`）：`python3 tools/export_csv.py --out data/export`。
 

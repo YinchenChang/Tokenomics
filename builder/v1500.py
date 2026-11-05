@@ -392,7 +392,7 @@ def o8_o12_labels(wb, append_text):
     ci = wb["Cap_In"]
     for r in (28, 29, 31, 32):
         assert ci[f"A{r}"].value not in (None, ""), r
-        n += append_text(ci[f"G{r}"], O12_TAG)
+        n += append_text(ci[f"{'H' if r in (31, 32) else 'G'}{r}"], O12_TAG)      # v21.12 (J2 (a)): 說明 of the tier-mix rows moved G -> H
     cal = wb["Calib"]
     for r in (5, 67):
         n += append_text(cal[f"J{r}"], O8_NOTE)

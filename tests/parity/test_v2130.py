@@ -201,7 +201,7 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
     V214 -= v218_names()      # v21.8
     assert other == (CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - v218_names(), (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
-    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")      # v21.9：版本字串      # v21.4：版本字串（原 v21.3）
+    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")      # v21.9：版本字串      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"
     # 名稱沒有增減（SRC_ID 名稱除外：SRC_HW_098／099 與 099 的 _Lo／_Hi）
     new_names = set(wbf.defined_names) - set(pw.defined_names)
@@ -244,7 +244,7 @@ def test_v2130_text_w1_to_w5(wbf):
         assert price[f"W{r}"].value.startswith("v21.3 改名（原：GPT-6 Sol；值不變）｜—｜v17.2 Q3：")
     ci = wbf["Cap_In"]
     assert ci["A47"].value == "GPT-6.1 Sol"
-    assert ci["G7"].value == "v21.3：Sol 快取＝0.10（官方頁短上下文，輸入價 5%；SRC_PRC_049）｜原：＝輸入價 10%（S50）"
+    assert ci["H7"].value == "v21.3：Sol 快取＝0.10（官方頁短上下文，輸入價 5%；SRC_PRC_049）｜原：＝輸入價 10%（S50）"      # v21.12：說明 G → H（J2 (a)）
     # W3：G23 前綴、原文逐字在後；C23:E23／F23 不改
     ai = wbf["Alloc_In"]
     g = ai["G23"].value
@@ -285,7 +285,7 @@ def test_v2130_records(wbf):
         assert key in t5, key
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
-    assert str(rm["A1"].value).startswith("Tokenomics v21.11")      # v21.9
+    assert str(rm["A1"].value).startswith("Tokenomics v21.12")      # v21.9
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.3 機架價低端 7.5 與 Sol 快取價 0.10"]
     assert len(rr) == 1 and "7.5" in rm.cell(rr[0], 2).value
 
@@ -299,7 +299,7 @@ def test_v2130_fingerprint_ranges_and_gov(lo, wbf):
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 指紋記錄值（Alloc P 節：A＝頁、B＝格、D＝記錄值）：F11 與 SRC_PRC_049 為葉格；SRC_PRC_007（C11）不再是葉格
     al = wbf["Alloc"]
-    rec = {(al.cell(r, 1).value, al.cell(r, 2).value): al.cell(r, 4).value for r in range(400, 1300) if al.cell(r, 1).value}
+    rec = {(al.cell(r, 1).value, al.cell(r, 2).value): al.cell(r, 4).value for r in range(400, al.max_row + 1) if al.cell(r, 1).value}      # v21.12：P 節多 30 葉格，不再以 1300 為上限
     assert rec[("Spec_Rack", "F11")] == 7.5 and rec[("SRC_Price", "C53")] == 0.1 and ("SRC_Price", "C11") not in rec
     assert (rec[("Alloc_In", "C23")], rec[("Alloc_In", "D23")], rec[("Alloc_In", "E23")]) == (1.8, 0.85, 2.3)
     # 檔案層級的指紋與端點檔對現行活頁簿一致由 tools/gen_fingerprint.py --check、tools/gen_ranges.py --check 驗證（見報告）

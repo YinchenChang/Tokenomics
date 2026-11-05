@@ -124,8 +124,9 @@ def har_in(wb, TR):
     put(ws, f"H{r}", "Derived", F_NOTE)
     put(ws, f"I{r}", "由 METR 50% ÷ 80% 時間範圍比反推：β＝ln4 ÷ ln（比值）；GPT-5、5.2、5.4 約 0.70–0.75，Gemini 3.1 Pro 約 1.0（見 E 節）", F_NOTE, wrap=True)
     H["beta"] = r; r += 1
-    nm(wb, "B5_H50", f"Har_In!$C${H['h50']}:$E${H['h50']}"); nm(wb, "B5_H50Lo", f"Har_In!$C${H['h50lo']}:$E${H['h50lo']}")
-    nm(wb, "B5_H50Hi", f"Har_In!$C${H['h50hi']}:$E${H['h50hi']}"); nm(wb, "B5_Beta", f"Har_In!$C${H['beta']}")
+    LT = TC_ALL[-1]      # v21.12 (B2): B5_H50／_Lo／_Hi are 1×4 (Terra in F)
+    nm(wb, "B5_H50", f"Har_In!$C${H['h50']}:${LT}${H['h50']}"); nm(wb, "B5_H50Lo", f"Har_In!$C${H['h50lo']}:${LT}${H['h50lo']}")
+    nm(wb, "B5_H50Hi", f"Har_In!$C${H['h50hi']}:${LT}${H['h50hi']}"); nm(wb, "B5_Beta", f"Har_In!$C${H['beta']}")
     taskhead(ws, r, "任務"); r += 1
     put(ws, f"A{r}", "任務長度（人類完成時間）"); put(ws, f"B{r}", "hr")
     for c, v in zip(TK, [0.02, 0.1, 0.5, 2, 8]): put(ws, f"{c}{r}", v, fmt="0.00")
@@ -134,12 +135,12 @@ def har_in(wb, TR):
     put(ws, f"A{r}", "任務期程類別"); put(ws, f"B{r}", "")
     for c, v in zip(TK, ["短程", "短程", "短程", "長程", "長程"]): put(ws, f"{c}{r}", v, F_IN)
     put(ws, f"I{r}", "≥ 1 小時為長程；只作標示，倍數在 B 節逐任務輸入", F_NOTE); r += 1
-    for t, (tk, tn) in enumerate(TIERS):
+    for t, (tk, tn) in enumerate(TIERS_ALL):      # v21.12 (B2): Terra override row 58 (was the empty row before section D; nothing moves)
         put(ws, f"A{r}", f"成功率覆寫：{tn}（空白＝用公式）"); put(ws, f"B{r}", "%")
         for c in TK: ws[f"{c}{r}"].number_format = "0%"; ws[f"{c}{r}"].font = F_IN
-        put(ws, f"I{r}", "有中立方實測時填入（L7）", F_NOTE); H[f"ovr{t}"] = r
+        put(ws, f"I{r}", "有中立方實測時填入（L7）" + ("；v21.12 預備（Terra 無中立方實測，設計第 3.7 節：空白＝用公式）" if t == len(TIERS) else ""), F_NOTE); H[f"ovr{t}"] = r
         nm(wb, f"B5_SuccOvr_{tk}", f"Har_In!$C${r}:$G${r}"); r += 1
-    r += 1
+    r += 1 if len(TIERS_ALL) == 3 else 0      # v21.12: section D stays on its v21.11 row
     section(ws, r, "D. 敏感度區間（Sens_Har；作用於選定檔案的 Coding agent（長程））", 9); r += 1
     put(ws, f"A{r}", "參數", F_BOLD); put(ws, f"C{r}", "低", F_BOLD); put(ws, f"D{r}", "高", F_BOLD); put(ws, f"I{r}", "說明", F_BOLD); r += 1
     for key, lab, lo, hi, fmt, note in [

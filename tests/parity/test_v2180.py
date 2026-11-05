@@ -98,7 +98,8 @@ def test_v2180_names(wbf, wbv, pw):
     added = set(wbf.defined_names) - set(pw.defined_names)
     assert set(pw.defined_names) <= set(wbf.defined_names)      # 沒有名稱被刪除
     want_added = set(NEW_IDS) | {"SRC_PRC_074_Lo", "SRC_PRC_074_Hi", "SRC_HW_101_Lo", "SRC_HW_101_Hi"}
-    assert added == want_added, sorted(added ^ want_added)
+    import v21110_allow
+    assert added - v21110_allow.B2_NEW == want_added, sorted((added - v21110_allow.B2_NEW) ^ want_added)      # v21.12：B2 新增的 5 個內部名稱另由 test_v21120 看守
     bad, changed = [], set()
     for name, d in pw.defined_names.items():
         t = d.attr_text
@@ -120,7 +121,7 @@ def test_v2180_names(wbf, wbv, pw):
         if miss:
             bad.append((name, miss[:5]))
     assert bad == [], bad
-    assert {"IF_HoldEcon", "IF_DeprLifeIT", "L1_Ans5_GM_Lo", "B4_MktCache"} <= changed
+    assert {"IF_HoldEcon", "IF_DeprLifeIT", "L1_Ans5_GM_Lo", "B4_MktCache"} - v21110_allow.B2_SHAPE <= changed      # v21.12：B4_MktCache 形狀 13 → 14 列，列入 ref_moved（值的前 13 格由 test_v21120 看守）
     # 基準與低成本欄不變：Interface C:Q 中只有高成本欄（E、H、K、N、Q）可變
     for name in changed:
         if not name.startswith("IF_") or name in v219_names():      # v21.9：IF_NonNV_Out_TPU／Trn（test_v2190 看守）
@@ -228,7 +229,7 @@ def test_v2180_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.8（次版，底版 v21.7：" in b5 and "以下為 v21.7（次版，底版 v21.6：" in b5      # v21.9：B5 開頭為 v21.9 段（test_v2190 看守）
-    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.11")
+    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.12")
 
 
 # ---------------------------------------------------------------- 5. GOV
@@ -236,7 +237,7 @@ def test_v2180_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")      # v21.9：版本字串（test_v2190 看守）
+    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")      # v21.9：版本字串（test_v2190 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

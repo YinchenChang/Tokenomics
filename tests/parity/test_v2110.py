@@ -280,7 +280,7 @@ def test_v2110_records_and_text(wbf):
     for key in ("當然要放", "J one J two 都同意", "NonNV Q1–Q4", "J1", "J2"):
         assert key in txt, key
     rm = wbf["README"]
-    assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.11")      # v21.9；v21.4：版本字串（原 v21.3）
+    assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value) and "v21.1（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.12")      # v21.9；v21.4：版本字串（原 v21.3）
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.1 NonNV 昇騰／Maia 與免費占比路徑"]
     assert len(rr) == 1 and "L1_FreeShare" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_／IF_NonNV_Hold_ × Ascend／Maia" in rm.cell(rr[0], 2).value
     nv = wbf["NonNV"]
@@ -331,7 +331,7 @@ def test_v2110_sources_and_evidence(wbf):
 
 def test_v2110_cap_in_q_section(wbf):
     ws = wbf["Cap_In"]
-    assert ws["A344"].value.startswith("Q. 免費占比時間路徑（v21.1") and ws.max_row == 348
+    assert ws["A344"].value.startswith("Q. 免費占比時間路徑（v21.1") and ws.max_row in (348, 356)      # v21.12：Q 節之下新增 R 節（第 350–356 列）
     assert ws["A345"].value.startswith("免費服務占服務 — 2026（投資人資料預估）") and ws["A346"].value.startswith("免費服務占服務 — 2030（投資人資料預估）")
     assert ws["C345"].value == "=SRC_DEM_089" and ws["C346"].value == "=SRC_DEM_090"
     assert (ws["D345"].value, ws["E345"].value, ws["D346"].value, ws["E346"].value) == (0.25, 0.46, 0.03, 0.30)

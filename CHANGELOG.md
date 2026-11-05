@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261105_Tokenomics_v21.12.xlsx（取代 v21.11；**結構版：v22.0 B2 段「結構二」——GPT-6.1 Terra 第四層級進入 Block 4–6（價格、壽命、組合、前緣、機隊、攤提、營收、harness），Terra 付費／免費組合＝0、家族研發計入開關＝0，所有既有具名範圍與契約名稱的值不變；`B4_*`／`B5_H50*` 1×3 → 1×4；不新增任何 Terra 的 IF_／IFW_／L1_／RNG_ 名稱；不升契約版本（v0.27）**；依設計文件 `docs/plan/20261105_v22.0_Terra第四層級_設計.md` 第 6.1 節 B2，Andy 2026-11-05「完整第四層級」、J1–J15 照建議）
+
+- 分支 `claude/v22-b2`（底稿 B1 `claude/v22-b1`；PR 與 SHA 見報告）。報告：`docs/reports/20261105_v21.12_Terra結構二.md`；進度檔：`docs/reports/20261105_v22.0_進度.md`。**不合併**。
+- builder：新模組 `builder/v21120.py`（Cap_In R 節、Theory_Rev／Harness／Sens_Har Terra 區、Checks Z3、用途標記、Decisions SL69-01、版本字串）；`tiers.py` 加 `terra_src`（Terra 尚無 IF_ 名稱時讀 Interface B／C 同一格）；block4（Cap_In、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev 機隊合計）、block5（Har_In）、block6（Alloc 2025 口徑）、v532（Cap_In 第 90 列四項）、v600（前緣機隊 _Prod 四項）、v603／v800／v2000（2025 口徑）、v1400（Price_Frontier 刪除範圍含 Terra 欄）、v1500／v2130（Cap_In 說明 G → H 的追加文字）、v522（G 節起始守衛）。
+- Excel（CC 以 builder 自 v21.11 產生，經 LibreOffice 重算存檔；冪等）：Cap_In F5:H8、F21:H24、F30:H32（Terra：牌價 1.00／0.05／5.00、壽命 9（4–18）、組合 0；標記／說明移 G／H，藍字格不移）；F 節第 59 列 GPT-6.1 Terra 候選（能力指數空白，J7 (b)），註記移第 60 列；R 節第 350–356 列（`B4_MixPaid25`／`B4_MixFree25`＝v21.10 值、`B4_TerraFam`＝0、`CAP_TokGWPaidMix25`）。Price_Frontier 四層（A 節 H–S、B–D 節 F 欄），門檻改由層級 → 候選列對照（R6），無合格者取自身（R7）。Cache_Store、Fleet_1GW（E 節）、Amortize、Theory_Rev（F 節）、Harness（J 節）、Sens_Har 加 Terra 區（用途「預備」）；Har_In 第 58 列（`B5_SuccOvr_Terra`）。四項加總：Fleet_1GW、Amortize K6、Theory_Rev 機隊營收、Interface J 前緣機隊 _Prod、Cap_In 第 90 列、Checks 機隊閉合。2025 口徑（J5）：Alloc B／I／K 節、`CAP_Price25Mix`、Cap_In 第 333 列、Alloc 第 153 列。Checks Z3（四層組合合計＝1，ERROR）。
+- 驗收：V1 鍵對齊（`tools/cmp_v21120.py`）：v21.11 的 1,865 名稱值不符只有 `RNG_Version`、`RNG_Current`；公式頁只有文字差異（標籤、頁首、版本、Interface 契約前驅說明 9 格）。V2 錯誤 0、unmatched 0、kept 59；V3 冪等 0 差異；V5 四層合計＝1、2025 錨點逐值不變。GOV 0／129／183、`RNG_StaleFlag` 一致。公式格 57,200 → 58,145；名稱 1,865 → 1,870。
+- 文件：區間端點只改版本字串；時效指紋葉格 895 → 925（Alloc P 節下方各節 +30 列）；契約快照 `contract_snapshot_v21.12.json`；builder md 重產；下游契約首行改 v21.12 並加 v21.12 段（不升版）。
+- 測試：新增 `tests/parity/test_v21120.py`；`test_v21110.py` 改為看守封存的 v21.11；版本字串、名稱數、公式格數、死格基準、指紋葉格數更新（見報告）。
+
 ## 20261105_Tokenomics_v21.11.xlsx（取代 v21.10；**結構版：v22.0 B1 段「結構一」——GPT-6.1 Terra 第四層級的計算結構（Block 1–3），所有既有具名範圍與契約名稱的值不變；DRV_*（16）與 TRN_*（15）形狀 1×15 → 1×20；不新增任何 Terra 的 IF_／L1_ 名稱；不升契約版本（v0.27）**；依設計文件 `docs/plan/20261105_v22.0_Terra第四層級_設計.md` 第 6.1 節 B1，Andy 2026-11-05「完整第四層級」、J1–J15 照建議）
 
 - 分支 `claude/v22-b1`（PR 與 SHA 見報告）。報告：`docs/reports/20261105_v21.11_Terra結構一.md`；進度檔：`docs/reports/20261105_v22.0_進度.md`。**不合併**。

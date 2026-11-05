@@ -68,7 +68,7 @@ def alloc_fleet_price(wb, R):
     flags = lambda c: [f"{c}{R[k]}" for k in ("rl", "rs", "ra")]
     put(ws, f"A{r}", "各世代付費 token 混合有效單價＝Σ（可達層級的付費組合權重 × 該層級參考單價）÷ 可達層級權重合計（全不可達的世代為文字）", wrap=True); put(ws, f"B{r}", "$/M")
     for c in "CDEF":
-        num = "+".join(f"IF({f}=1,INDEX(B4_MixPaid,1,{t})*{price[tn]},0)" for t, (f, (tn, _)) in enumerate(zip(flags(c), TIERS), 1))
+        num = "+".join(f"IF({f}=1,INDEX(B4_MixPaid25,1,{t})*{price[tn]},0)" for t, (f, (tn, _)) in enumerate(zip(flags(c), TIERS), 1))      # v21.12 (J5): Alloc is the 2025 base year -> 2025 tier mix
         put(ws, f"{c}{r}", f'=IF({c}{R["ok"]}=1,({num})/{c}{R["wp"]},"{SLO}")', fmt="0.0000")
     put(ws, f"G{r}", "全層級可達時等於 Cap_In 第 90 列（B4_MixPaid × IF_PriceRef_*）；v8.0 以前基準下 Hopper 欄排除 Astra（TTFT 不可達）；v9.0 起快取命中進 prefill 產能，基準下全層級可達，等於第 90 列（κ＝1）", F_NOTE)
     wb.defined_names["AL_PriceGen"] = DefinedName("AL_PriceGen", attr_text=f"Alloc!$C${r}:$F${r}")

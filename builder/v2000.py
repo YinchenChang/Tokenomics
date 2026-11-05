@@ -62,7 +62,7 @@ LAB = dict(
     gwlo="2025 平均上線 GW 低端（後段集中；Epoch 方法頁與 Abilene 時程；Derived）　→ AL_FleetGW25_Lo",
     fleetgw="2025 平均上線 GW：C 指數內插 (G1−G0)÷LN(G1÷G0)（SRC_DEM_008→009）、D 後段集中、E 線性 (G0+G1)÷2　→ AL_FleetGW25／_Lo／_Hi",
     servegw="2025 服務 GW＝平均上線 GW × 對外服務占機隊（B4_Serve；D 取 0.30、E 取 0.60）　→ L1_ServeGW_GW25",
-    sigma="混合每 GW 付費產能 Σ（AL_MixGen 世代占比 × IF_TokGWPaidMix 基準欄：Hopper 第 2、GB200 第 5、GB300 第 8、VR200 第 11 欄；M tok/GW/年）",
+    sigma="混合每 GW 付費產能 Σ（AL_MixGen 世代占比 × 2025 口徑付費產能 CAP_TokGWPaidMix25：Hopper、GB200、GB300、VR200（v21.12 J5；原讀 IF_TokGWPaidMix 基準欄第 2、5、8、11 欄，2025 組合同 2026 時兩者相等）；M tok/GW/年）",
     tokpaid="GW 優先：2025 付費 token＝服務 GW ×（1 − 免費占比）× Σ × 實際利用率 × 生產折減　→ L1_TokPaid_GW25",
     ledger="GW 優先 token 帳＝GW 優先付費 token ÷ 需求面付費 token（AL_DPaid）　→ L1_TokLedger_GW25",
     hold="全部算力年持有成本＝平均上線 GW × 機隊每 GW 年持有成本（AL_FleetHold；$B/年）　→ L1_HoldFleet25",
@@ -98,7 +98,7 @@ SCEN_TOK = (4000, 12000, 30000)
 
 def sigma_formula():
     m = lambda k: f"INDEX(AL_MixGen,{k},1)"
-    p = lambda col: f"INDEX(IF_TokGWPaidMix,1,{col})"
+    p = lambda col: f"INDEX(CAP_TokGWPaidMix25,1,{(col + 1) // 3})"      # v21.12 (J5): 2025-basis paid capacity (Cap_In R; same formula as IF_TokGWPaidMix on B4_MixPaid25)
     ks = ((1, 2), (2, 5), (3, 8), (4, 11))
     allnum = ",".join(f"ISNUMBER({m(k)})" for k, _ in ks)
     bad = ",".join(f"AND({m(k)}>0,NOT(ISNUMBER({p(c)})))" for k, c in ks)
@@ -240,7 +240,7 @@ def l1_rows_new():
         tri3("ServeGW_GW25", "2025 服務 GW（GW 優先）＝平均上線 GW × 對外服務占比", "AL_FleetGW25（指數內插 0.6→1.9 GW）× B4_Serve；低＝1.0 GW × 0.30、高＝1.25 GW × 0.60", "GW",
              "低＝後段集中 GW 1.0 × 服務占比 0.30；高＝線性 GW 1.25 × 0.60", READ_GW, "平均上線 GW、服務占比 B4_Serve", "GW 端點：OpenAI 官方（Interested-party）；內插形狀：Derived；服務占比：Interested-party／Derived",
              "平均上線 GW 的內插形狀無一手資料；GW 口徑未明（D1）"),
-        tri3("TokPaid_GW25", "2025 付費 token（GW 優先；M tok/年）", "＝L1_ServeGW_GW25 ×（1 − IF_FreeShare）× Σ（AL_MixGen × IF_TokGWPaidMix 基準欄）× AL_UtilActual × CTL_ProdDerate", "M tok/年",
+        tri3("TokPaid_GW25", "2025 付費 token（GW 優先；M tok/年）", "＝L1_ServeGW_GW25 ×（1 − IF_FreeShare）× Σ（AL_MixGen × CAP_TokGWPaidMix25（2025 口徑組合，v21.12））× AL_UtilActual × CTL_ProdDerate", "M tok/年",
              "低＝服務 0.30、免費 0.60、利用 0.30、效率 AL_ProdDerate_Lo 0.72、GW 1.0；高＝服務 0.60、免費 0.35、利用 0.65、效率 AL_ProdDerate_Hi 0.95、GW 1.25", READ_GW + " 免費切分用支出口徑（Andy 07:34）。",
              "平均上線 GW、服務占比、免費占比、混合每 GW 付費產能、利用率、生產折減", "利用率、效率區間、服務占比：Assumed／Interested-party；產能：roofline 推導（Derived）",
              "token 路線與支出路線的免費切分口徑不同（見 L1_ExtFreeShare）"),

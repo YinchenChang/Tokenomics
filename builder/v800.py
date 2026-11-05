@@ -102,10 +102,10 @@ def cap_in_m(wb, l_sec):
         for nmx, col in ((f"CAP_Px25_{tn}", "C"), (f"CAP_Px25_{tn}_Lo", "D"), (f"CAP_Px25_{tn}_Hi", "E")):
             wb.defined_names[nmx] = DefinedName(nmx, attr_text=f"Cap_In!${col}${r}")
         CM[f"px_{tn}"] = r; r += 1
-    put(ws, f"A{r}", "2025 付費 token 混合有效單價（全層級；B4_MixPaid × 2025 層級單價 ×（1 − B4_Disc）× AL_Kappa；寫法同第 90 列；κ 為 v9.0 M3）", wrap=True); put(ws, f"B{r}", "$/M")
+    put(ws, f"A{r}", "2025 付費 token 混合有效單價（全層級；B4_MixPaid25（2025 口徑組合，v21.12 J5）× 2025 層級單價 ×（1 − B4_Disc）× AL_Kappa；寫法同第 90 列；κ 為 v9.0 M3）", wrap=True); put(ws, f"B{r}", "$/M")
     for col, suf in (("C", ""), ("D", "_Lo"), ("E", "_Hi")):
-        # v9.0 M3 (D9): kappa on the price end as on the token end (kappa = 1 in the base case)
-        f = "+".join(f"INDEX(B4_MixPaid,1,{t})*CAP_Px25_{tn}{suf}*(1-B4_Disc)" for tn, t in TIERS)
+        # v9.0 M3 (D9): kappa on the price end as on the token end (kappa = 1 in the base case); v21.12 (J5): 2025 tier mix B4_MixPaid25
+        f = "+".join(f"INDEX(B4_MixPaid25,1,{t})*CAP_Px25_{tn}{suf}*(1-B4_Disc)" for tn, t in TIERS)
         put(ws, f"{col}{r}", "=(" + f + ")*AL_Kappa", F_CALC, fmt="0.0000", fill=FILL_KEY if col == "C" else None)
     put(ws, f"F{r}", "Derived"); put(ws, f"G{r}", "基準約 1.680（第 90 列 1.9607 的 0.857 倍）；低 0.874、高 2.899（2Q 第 1.3 節）。機隊口徑（可達層級重新正規化）見 Alloc K 節 AL_PriceFleet25", F_NOTE)
     for nmx, col in (("CAP_Price25Mix", "C"), ("CAP_Price25Mix_Lo", "D"), ("CAP_Price25Mix_Hi", "E")):
@@ -260,7 +260,7 @@ def alloc_sections(wb, R):
         price = {tn: f"CAP_Px25_{tn}{suf}" for tn, _ in TIERS}
         out = {}
         for c in CF:
-            num = "+".join(f"IF({f}=1,INDEX(B4_MixPaid,1,{t})*{price[tn]},0)" for t, (f, (tn, _)) in enumerate(zip(flags(c), TIERS), 1))
+            num = "+".join(f"IF({f}=1,INDEX(B4_MixPaid25,1,{t})*{price[tn]},0)" for t, (f, (tn, _)) in enumerate(zip(flags(c), TIERS), 1))      # v21.12 (J5): 2025 tier mix
             out[c] = f'=IF({c}{R["ok"]}=1,({num})*(1-B4_Disc)/{c}{R["wp"]},"{SLO}")'
         return out
     row("k_pg", "各世代付費 token 2025 混合有效單價＝Σ（可達層級的付費組合權重 × 該層級 2025 單價）×（1 − B4_Disc）÷ 可達層級權重合計（全不可達的世代為文字）", "$/M", pg25(""), "0.0000", "AL_PriceGen25", ("C", "F"),
@@ -280,9 +280,12 @@ def alloc_sections(wb, R):
         wb.defined_names[nmx] = DefinedName(nmx, attr_text=f"Alloc!${c}${r}")
     AM["k_pf"] = r; r += 1
     row("k_pfr", "機隊口徑 2025 單價 ÷ 2026 快照機隊口徑單價（AL_PriceFleet）", "x", f'=IF(AND(ISNUMBER(C{AM["k_pf"]}),ISNUMBER(AL_PriceFleet)),C{AM["k_pf"]}/AL_PriceFleet,C{AM["k_pf"]})', "0.0000")
-    row("k_rev", "各世代每 GW 付費營收（2025 單價）＝IF_RevGWFleet（該世代基準欄）× 2025 單價 ÷ 2026 單價（同一組可達層級與付費 token，只換單價；IF_Util 基準）", "$B/GW/年",
-        {c: (f'=IF(AND(ISNUMBER(INDEX(IF_RevGWFleet,1,{col(c)})),ISNUMBER({c}{AM["k_pg"]}),ISNUMBER({c}{R["pg"]})),IF({c}{R["pg"]}>0,INDEX(IF_RevGWFleet,1,{col(c)})*{c}{AM["k_pg"]}/{c}{R["pg"]},"{SLO}"),"{SLO}")') for c in CF},
-        "0.000", "AL_RevGW25", ("C", "F"), note="IF_RevGWFleet＝Fleet_1GW 付費 token × 2026 單價（Theory_Rev 第 67 列），故可依單價比例換算")
+    # v21.12 (J5): on the 2025 tier mix. v21.11 read IF_RevGWFleet (2026 mix, Theory_Rev row 67) × 2025 price ÷ 2026 price; with the same mix that equals
+    #      paid serving GW share × paid capacity per GW (B section, 2025 mix) × 2025 price — the form used now, so the 2026 mix (v22.0 Terra) cannot reach this 2025 anchor.
+    row("k_rev", "各世代每 GW 付費營收（2025 單價）＝付費服務占比 B4_Serve ×（1 − B4_Free）× 每 GW 付費產能（B 節，2025 口徑組合 B4_MixPaid25；IF_Util 基準）× 2025 單價"
+        "（v21.12 J5：原為 IF_RevGWFleet × 2025 單價 ÷ 2026 單價，組合相同時兩式相等）", "$B/GW/年",
+        {c: (f'=IF(AND({c}{R["ok"]}=1,ISNUMBER({c}{R["capp"]}),ISNUMBER({c}{AM["k_pg"]})),B4_Serve*(1-B4_Free)*{c}{R["capp"]}*{c}{AM["k_pg"]}/1E9,"{SLO}")') for c in CF},
+        "0.000", "AL_RevGW25", ("C", "F"), note="與 Theory_Rev 第 67 列（IF_RevGWFleet）同一組可達層級與付費 token 算法（Fleet_1GW B 節），但層級組合用 2025 口徑 B4_MixPaid25（v21.12 J5）")
     row("k_holdl", "各世代每 GW 年經濟持有成本 — 低成本欄", "$B/GW/年", {c: f"=INDEX(IF_HoldEcon,1,{col(c)}-1)" for c in CF}, "0.000", "AL_HoldGen_Lo", ("C", "F"))
     row("k_holdh", "各世代每 GW 年經濟持有成本 — 高成本欄", "$B/GW/年", {c: f"=INDEX(IF_HoldEcon,1,{col(c)}+1)" for c in CF}, "0.000", "AL_HoldGen_Hi", ("C", "F"))
     ss_ = [f"{c}${R['share']}" for c in CF]

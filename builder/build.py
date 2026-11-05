@@ -126,6 +126,7 @@ checks(wb, CAL, PR, SR, U)
 _r, _rows = checks_b3(wb, TRN, TI, CAL, PB)
 write_checks_b3(wb, _r, _rows, SP)
 # ---- v5.8: Block 4 ----
+tiers.SRC.update(PR=PR, U=U, TRN=TRN)      # v21.12 (B2): Terra blocks of Block 4–6 read the Perf／Unit_Cost／Training rows the Interface B／C rows read
 from block4 import cap_in, price_frontier, capability, cache_store, fleet, amortize, theory_rev, sens_rev, interface_b4, checks_b4, sources_b4, evidence_b4
 K4 = cap_in(wb)
 import v522
@@ -161,6 +162,8 @@ V1700_O = v1700.cap_in_o(wb, V1600_N)      # v17.0 W1: Cap_In O section (discoun
 import v2000
 V2000_P = v2000.cap_in_p(wb, V1700_O)      # v20.0 W1／W2／W4: Cap_In P section (GW-first calibration, whole-fleet payback, comparison rows; below O, nothing above moves)
 V2110_Q = v2110.cap_in_q(wb, V2000_P)      # v21.1 W3: Cap_In Q section (free-share time path, rows 344-348; below P, nothing above moves)
+import v21120
+V21120_R = v21120.cap_in_r(wb, V2110_Q)      # v21.12 (B2) S2: Cap_In R section (2025 tier mix B4_MixPaid25／B4_MixFree25, B4_TerraFam, CAP_TokGWPaidMix25; below Q, nothing above moves)
 P4 = price_frontier(wb, K4, TR)
 C4 = capability(wb, K4, P4, TRN, TI)
 S4 = cache_store(wb)
@@ -316,6 +319,7 @@ IFJ = v530.interface_j(wb, v600.prod_override(wb, F4))            # v5.30 X15 (a
 v600.patch_j_header(wb, IFJ)
 v600.life_alias(wb, IFJ)               # v6.0 D7-3: IF_*_Life／Theory_Rev D section become aliases of IFW_*_Life
 ID_ROWS = v600.prod_identity(wb, IFJ)    # v6.0 D7-1: _Prod revenue / _Prod token = tier price (flags on Theory_Rev; Checks Z1 is written after Checks M so no Checks row moves)
+TERRA_LATE = v21120.terra_late(wb, F4, A4, T4, U, S4, R5, SH5)      # v21.12 (B2) S4: Terra blocks below every existing row of Theory_Rev／Harness／Sens_Har; Checks Block 4 fleet closure four-term (before the dependency tracing)
 I2 = v531.interface_i2(wb)            # v5.31 X17／X18: Interface I continuation after J (IF_MaintITWarr, IF_MaintITPost, IF_WarrantyYrs); IF_StaffSW label (X19)
 IFK = v800.interface_k(wb)            # v8.0 L5: Interface K section (IF_AllocServeGW_Tok; appended last, before the contract columns are built)
 import v1000
@@ -336,7 +340,7 @@ DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every for
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)
 import v21110
-v21110.load_bearing_date(wb)       # v21.11: C3 = date of the v21.11 version file name; was v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
+v21120.load_bearing_date(wb)       # v21.12 (was v21110.load_bearing_date); v21.11: C3 = date of the v21.11 version file name; was v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
 CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
 CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
@@ -456,6 +460,9 @@ V21100 = v21100.apply(wb, v518._append_text)       # v21.10: NonNV L6／L7／L8�
 print("v21100 v21.10:", V21100)
 V21110 = v21110.apply(wb, v518._append_text)       # v21.11: Unit_Cost Terra 用途 marks「預備」, Decisions SL68-01
 print("v21110 v21.11:", V21110)
+V21120 = v21120.apply(wb, v518._append_text)       # v21.12: Checks Z3 (four-tier mix sums), Decisions SL69-01
+V21120["marks"] = v21120.purpose_marks(wb, {"cache": S4["terra_rows"], "fleet": F4["terra_rows"], "amort": A4["terra_rows"], "late": TERRA_LATE, "pf": P4})
+print("v21120 v21.12:", V21120)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

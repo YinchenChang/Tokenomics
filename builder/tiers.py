@@ -79,6 +79,33 @@ def old_layout(wb):
     return wb.defined_names["DRV_Tier"].attr_text.endswith(f"${OLD_LAST}$5")
 
 
+# ---- v21.12 (v22.0 segment B2「結構二」): Block 4–6 pages carry a Terra block while Terra has no IF_ name yet (the IF_*_Terra names are B3).
+# Terra cells on Cache_Store／Fleet_1GW／Amortize／Theory_Rev read the same cells the Interface B／C rows of the live tiers read (identical templates,
+# tier index NT instead of 1–3). build.py fills SRC before Block 4 is built.
+TERRA = NT                          # tier index of Terra (J1 (a): appended as index 4)
+TERRA_KEY, TERRA_LAB = TIERS[-1]
+SRC = {}                            # {"PR": Perf rows, "U": Unit_Cost rows, "TRN": Training rows}
+PREP_B2 = "預備（v21.12 結構二）：Terra 第四層級，付費組合 Terra＝0、家族研發計入開關＝0，v22.0 啟用前尚無契約名稱讀取"
+
+
+def terra_src(stem, gen="Unit_Cost!{X}$6"):
+    """Excel expression of the Terra counterpart of an Interface B／C name (IF_<stem>_<tier>) at generation × cost-case column {X}
+    (same template as finish.interface／interface_b3, tier index NT). `gen` is the generation-index cell of column {X}."""
+    PR, U, TRN = SRC["PR"], SRC["U"], SRC["TRN"]
+    pl = lambda r: f"INDEX(Perf!$C${r}:${GT_LAST}${r},{gt_index(gen, TERRA)})"
+    tl = lambda r: f"INDEX(Training!$C${r}:${GT_LAST}${r},{gt_index(gen, TERRA)})"
+    if stem == "TokGW":
+        return pl(PR["gwtot"])
+    if stem in ("CostPre", "CostCache", "CostDec"):
+        return f"Unit_Cost!{{X}}{U[(TERRA, {'CostPre': 'cf', 'CostCache': 'cc', 'CostDec': 'cd'}[stem])]}"
+    if stem == "ProgCost":
+        h = tl(TRN["Hprog"])
+        return f"IF(ISNUMBER({h}),{h}*Unit_Cost!{{X}}$8/1E6,{h})"
+    if stem == "ProgGWyr":
+        return tl(TRN["GWp"])
+    raise KeyError(stem)
+
+
 def live_ranges(sheet, r):
     """Comma-joined ranges of the live-tier columns of one generation × tier row (one contiguous block per generation),
     e.g. Perf!C116:E116,Perf!G116:I116,… — for MAX／MIN-type checks that must keep their v21.10 value while Terra is not live."""

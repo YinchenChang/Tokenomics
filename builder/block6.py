@@ -135,7 +135,7 @@ def alloc(wb, AIN):
          {c: f"=3*({c}{R['genidx']}-1)+2" for c in "CDEF"}, "0", "AL_GenCol", span=("C", "F"))
     line("share", "世代占比（Alloc_In）", "%",
          {"C": "=AL_MixHopper", "D": "=AL_MixGB200", "E": "=AL_MixGB300", "F": "=AL_MixVR200"}, "0%", "AL_ShareGen", span=("C", "F"))
-    mp, mf = "B4_MixPaid", "B4_MixFree"
+    mp, mf = "B4_MixPaid25", "B4_MixFree25"      # v21.12 (J5): Alloc is the 2025 base year -> 2025 tier mix (Terra = 0; Cap_In R); the 2026 mix B4_MixPaid／B4_MixFree is Fleet_1GW's
     # ---- v6.2 2-1-c: unreachable tiers are excluded and the tier weights renormalised over the reachable tiers (same as Fleet_1GW rows 19-20, 37-49);
     #      a generation with no reachable tier is text and the generation mix is renormalised over the remaining generations. Nothing is silently dropped:
     #      the unserved weight is shown per generation (AL_UnservedPaid／AL_UnservedFree) and for the mix (AL_UnservedGen).
@@ -196,7 +196,7 @@ def alloc(wb, AIN):
     for c in "CDE": ws[f"{c}{R['tier']}"].font = F_CALC
     line("fam", "家族計畫 GW 年（IF_ProgGWyr；含研發倍數；等同 Fleet_1GW 第 33 列）", "GW·年",
          {**{c: f"=INDEX(IF_ProgGWyr_{tk},1,AL_TrainCol)" for c, (tk, tn) in zip("CDE", TIERS)}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "0.0000", "AL_FamGWyr",
-         "每個家族計畫：三層級最終訓練 GPU 小時 × 研發倍數，換算為訓練世代的 GW 年", key_fill=False)
+         "每個家族計畫：三層級最終訓練 GPU 小時 × 研發倍數，換算為訓練世代的 GW 年（v21.12 J9：Terra 2026-10 上市，不計入 2025 家族；2026 起的家族見 Fleet_1GW 第 33 列與 B4_TerraFam）", key_fill=False)
     nm(wb, "AL_FamGWyr", f"Alloc!$F${R['fam']}")
     tr = wb["Training"]
     r104 = _row_of(tr, "後訓練 GPU 小時（SFT＋RL＋蒸餾）"); r18 = _row_of(tr, "每 GW GPU 數")

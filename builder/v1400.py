@@ -73,7 +73,7 @@ def _widen(e):
     The 用途 note keeps the v14.0 range text."""
     from tiers import TC_LAST, RELAID
     rng = e["range"]
-    if e["sheet"] in ("Arch", "Serving") and re.fullmatch(r"C\d+:E\d+", rng):
+    if e["sheet"] in ("Arch", "Serving", "Price_Frontier") and re.fullmatch(r"C\d+:E\d+", rng):      # v21.12: Price_Frontier B section has Terra in F
         return rng.replace(":E", ":" + TC_LAST)
     if e["sheet"] in RELAID and re.fullmatch(r"C\d+:Q\d+", rng):
         return rng.replace(":Q", ":" + GT_LAST)

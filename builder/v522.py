@@ -33,7 +33,7 @@ DESC_M = ("付費 token 平均實收單價 ÷ OpenAI 有效單價（表列 ×(1�
 def cap_in_g(wb):
     """Two blue inputs (value 1) and their named ranges. Asserts the sheet still ends where v5.21 ended, so nothing is silently moved."""
     ws = wb["Cap_In"]
-    assert ws.max_row == CAP_START - 2, f"Cap_In ends at row {ws.max_row}; X7 section expects it to start at row {CAP_START}"
+    assert ws.max_row in (CAP_START - 2, CAP_START - 1), f"Cap_In ends at row {ws.max_row}; X7 section expects it to start at row {CAP_START}"      # v21.12: the F note moved 59 -> 60 (Terra candidate row 59)
     section(ws, CAP_START, "G. 營收實現（X7，v5.22）：壽命期價格係數 L 與變現率 m — 並列輸出用控制參數（基準 1＝既有輸出不變；"
                            "Theory_Rev D 節、Interface H 節；區間見 Gov_Map）", 7)
     r = CAP_START + 1

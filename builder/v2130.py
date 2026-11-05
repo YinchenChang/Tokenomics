@@ -169,7 +169,7 @@ def text_fixes(wb):
     ci = wb["Cap_In"]
     assert ci["A7"].value == "快取輸入" and ci["D5"].value == "Sol"
     n += _set(ci, "A47", "GPT-6 Sol", "GPT-6.1 Sol")
-    n += _set(ci, "G7", G7_OLD, G7_NEW)
+    n += _set(ci, "H7", G7_OLD, G7_NEW)      # v21.12 (J2 (a)): the 說明 of Cap_In rows 5–8 moved G -> H (Terra in F)
 
     ai = wb["Alloc_In"]
     assert ai["A23"].value == "推論支出 ÷ 持有成本（計價倍數；含供應商利潤與資本回收）", ai["A23"].value

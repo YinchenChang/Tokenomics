@@ -235,7 +235,7 @@ SPEC = [
     ("ext_paid", "(ii) 外部 token：付費合計（Epoch × 365 × 付費占比）", "M tok/年", "=C{ext_daily}*1000000*365*C{paid_share}",
      "=D{ext_daily}*1000000*365*D{paid_share}", "=E{ext_daily}*1000000*365*E{paid_share}", "Derived", "T → M：× 1,000,000"),
     (None, "H4. 單價（J2 (iii)：Cap_In 第 31 列付費層級組合 × IF_PriceRef_*；不新增輸入，三欄相同）"),
-    ("price", "付費 token 混合有效單價（層級組合 Luna／Sol／Astra；× AL_Kappa，v9.0 M3）", "$/M", "=(INDEX(B4_MixPaid,1,1)*IF_PriceRef_Luna+INDEX(B4_MixPaid,1,2)*IF_PriceRef_Sol+INDEX(B4_MixPaid,1,3)*IF_PriceRef_Astra)*AL_Kappa",
+    ("price", "付費 token 混合有效單價（層級組合 Luna／Sol／Astra／Terra；× AL_Kappa，v9.0 M3；v21.12 起四項，Terra 以 B4_EffRef 第 4 欄）", "$/M", "=(INDEX(B4_MixPaid,1,1)*IF_PriceRef_Luna+INDEX(B4_MixPaid,1,2)*IF_PriceRef_Sol+INDEX(B4_MixPaid,1,3)*IF_PriceRef_Astra+INDEX(B4_MixPaid,1,4)*INDEX(B4_EffRef,1,4))*AL_Kappa",
      "=C{price}", "=C{price}", "Derived", "參考請求混合有效單價（OpenAI 有效價＝表列 ×（1−折扣））按 Cap_In 第 31 列（B4_MixPaid）加權；A 段第 6 節基準 1.961"),
     (None, "H5. 隱含 m＝付費營收 ÷（付費 token × 混合有效單價）；對照 CTL_Monetize（第 64 列，基準 1；Gov_Map 區間 0.3–1.0，J1 (a′) 不改）"),
     ("m_sub", "隱含 m — 訂閱路線（模型 token）", "x", "=C{rev_sub}*1000000000/(C{tok_chat}*C{price})",

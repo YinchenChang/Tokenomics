@@ -44,7 +44,7 @@ def prod_override(wb, F):
         ov[f"IFW_RevGWFront_{tk}_Prod"] = (
             lambda X, tr=tr, t=t: f"=IF(ISNUMBER(Theory_Rev_Prod!{X}{tr}),Theory_Rev_Prod!{X}{tr}*INDEX(B4_FrontRef,1,{t+1})/1E9,Theory_Rev_Prod!{X}{tr})",
             f"（＝Theory_Rev_Prod 第 {tr} 列重解後產出 × 前緣單價；v6.0 D7-2）")
-    pay = lambda X: "+".join(f"IF(ISNUMBER(Fleet_1GW_Prod!{X}{F[f'p{t}']}),Fleet_1GW_Prod!{X}{F[f'p{t}']}*INDEX(B4_FrontRef,1,{t+1}),0)" for t in range(3))
+    pay = lambda X: "+".join(f"IF(ISNUMBER(Fleet_1GW_Prod!{X}{F[f'p{t}']}),Fleet_1GW_Prod!{X}{F[f'p{t}']}*INDEX(B4_FrontRef,1,{t+1}),0)" for t in range(4))      # v21.12: four-term (Terra, Fleet_1GW section E)
     ov["IFW_RevGWFleetFront_Prod"] = (lambda X: f'=IF(Fleet_1GW_Prod!{X}{F["ok"]}=1,({pay(X)})/1E9,"{SLO}")',
                                       "（＝Fleet_1GW_Prod 付費 token（重解後）× 前緣單價；v6.0 D7-2）")
     return ov

@@ -160,7 +160,7 @@ def main():
                     continue
                 if cell.value is not None and (cell.row, cell.column) not in seen:
                     added += 1
-        res["sheets"][s] = {"cells": n, "diffs": len(diffs), "added_in_new": added, "first": diffs[:40]}
+        res["sheets"][s] = {"cells": n, "diffs": len(diffs), "added_in_new": added, "first": diffs[:400]}
     for s in fn.sheetnames:
         if s not in fo.sheetnames:
             res["sheets"][s] = {"new_sheet": True}

@@ -59,6 +59,15 @@ def wbv():
     return openpyxl.load_workbook(model_path(), data_only=True)
 
 
+def _mark_rewrite(sheet, t):
+    import re
+    last = tiers.PB_SCEN[-1] if sheet == "Perf_Batch" else tiers.GT_LAST
+    u = re.sub(r"\bC(\d+):(Q|S)\1\b", lambda m: f"C{m.group(1)}:{last}{m.group(1)}", t)
+    if sheet == "Perf_Batch":
+        u = re.sub(r"\bR(\d+):S\1\b", lambda m: f"W{m.group(1)}:X{m.group(1)}", u)
+    return u
+
+
 # ---------------------------------------------------------------- 1. V1 具名範圍
 def test_v21110_names_value_identical(cmp, wbf):
     n = cmp["names"]
@@ -89,6 +98,8 @@ def test_v21110_cells_keyed_identical(cmp):
                 assert int(y) - int(x) == 1, (old, x, y)
                 continue
             if s == "Gov_Map" and col in GM_ROWS_TEXT:
+                continue
+            if s in tiers.RELAID and _mark_rewrite(s, x) == y:      # R9：用途欄的列範圍文字隨 20 欄改寫（C4:Q4 → C4:V4 等）
                 continue
             other.append((s, old, new, kind, x, y))
     assert other == [], other[:10]

@@ -296,7 +296,7 @@ def test_v2130_fingerprint_ranges_and_gov(lo, wbf):
     assert v.get_name("RNG_StaleFlag") == "一致"
     assert v.get_name("RNG_OutCount") == 0
     assert v.get("Alloc", "C452") == 0      # v22.0：O 節多 42 列（Terra 區間），原 C410 下移到 C452
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0：W1 +3、P1 +1（v22.0 原值）      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 指紋記錄值（Alloc P 節：A＝頁、B＝格、D＝記錄值）：F11 與 SRC_PRC_049 為葉格；SRC_PRC_007（C11）不再是葉格
     al = wbf["Alloc"]
     rec = {(al.cell(r, 1).value, al.cell(r, 2).value): al.cell(r, 4).value for r in range(400, al.max_row + 1) if al.cell(r, 1).value}      # v21.12：P 節多 30 葉格，不再以 1300 為上限
@@ -354,4 +354,4 @@ def test_v2130_diffs_only_expected_vs_v212():
     for t in d.get("Alloc", []):      # v22.0：Alloc 差異已全落在 v218_cells（v21.7 → 現行）
         coord, x, y = t
         assert coord == "C177" or (_num(x) and _num(y)) or 1230 <= row(coord) <= 1240, t
-    assert "C177" in got["Alloc"] or "C177" in _v218.get("Alloc", set())      # v21.8：C177 也被 v21.8 改動（兩邊扣除）
+    assert "C177" in got.get("Alloc", set()) or "C177" in _v218.get("Alloc", set())      # v21.8：C177 也被 v21.8 改動（兩邊扣除）

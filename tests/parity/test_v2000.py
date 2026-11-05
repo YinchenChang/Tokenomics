@@ -209,7 +209,8 @@ def test_v2000_governance_counts(lo):
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；v22.0 原值另 P1 +1（Cap_In K 節 2026 欄單價基準）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
     r = next(r for r in range(1, 400) if v.get("Checks", f"A{r}") == "P1")
-    assert v.get("Checks", f"D{r}") == 0 and v.get("Checks", f"C{r}") == "WARN"
+    _r = lo.view({})      # v22.0：P1 在 v22.0 原值為 1（Cap_In K 節 2026 欄單價基準，報告第 5 節第 2 項）；組合改回 v21.12 時為 0
+    assert _r.get("Checks", f"D{r}") == 0 and v.get("Checks", f"D{r}") == 1 and v.get("Checks", f"C{r}") == "WARN"
 
 
 # ---------------------------------------------------------------- static

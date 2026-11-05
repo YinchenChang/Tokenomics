@@ -223,7 +223,7 @@ def test_v2120_fingerprint_ranges_and_gov(lo, wbf):
     ws = wbf["Alloc"]      # v21.11（R10）：指紋葉格增加 62 格（Terra 輸入），Alloc_In C23:E23 的指紋列不再固定在 1020–1022，改依 A／B 欄（頁、格）定位
     rows = {ws[f"B{r}"].value: r for r in range(400, ws.max_row + 1) if ws[f"A{r}"].value == "Alloc_In" and ws[f"B{r}"].value in ("C23", "D23", "E23")}
     assert (v.get("Alloc", f"D{rows['C23']}"), v.get("Alloc", f"D{rows['D23']}"), v.get("Alloc", f"D{rows['E23']}")) == (1.8, 0.85, 2.3)
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0：W1 +3、P1 +1（v22.0 原值）      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 檔案層級的指紋與端點檔對現行活頁簿一致由 tools/gen_fingerprint.py --check、tools/gen_ranges.py --check 驗證（見報告）
 
 

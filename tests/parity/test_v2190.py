@@ -115,8 +115,9 @@ def test_v2190_names(wbf, wbv, pw):
             if miss:
                 bad.append((name, miss))
     assert bad == [], bad
-    changed -= {n for n in v21110_allow.B3_CHANGED if n not in CHANGED}      # v22.0：v22.0 值改變者由 test_v22000 看守
-    assert changed == CHANGED | OTHER, sorted(changed ^ (CHANGED | OTHER))
+    changed -= {n for n in v21110_allow.B3_CHANGED if n not in CHANGED | OTHER}      # v22.0：v22.0 值改變者由 test_v22000 看守
+    _want = {n for n in CHANGED | OTHER if not v21110_allow.ref_moved(n)}      # v22.0：RNG_／IDX_Src 參照移動者在上方略過
+    assert changed == _want, sorted(changed ^ _want)
     iv = openpyxl.load_workbook(V219, data_only=True)["Interface"]      # v21.10：Interface 第 370、371 列改 FP8 對齊（test_v21100 看守）；這裡核對封存的 v21.9
     assert [iv[f"{c}370"].value for c in "CDE"] == [0.25, 0.35, 0.4]
     assert [iv[f"{c}371"].value for c in "CDE"] == [0.06, 0.14, 0.25]

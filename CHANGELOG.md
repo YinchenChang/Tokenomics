@@ -2,6 +2,15 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261105_Tokenomics_v21.11.xlsx（取代 v21.10；**結構版：v22.0 B1 段「結構一」——GPT-6.1 Terra 第四層級的計算結構（Block 1–3），所有既有具名範圍與契約名稱的值不變；DRV_*（16）與 TRN_*（15）形狀 1×15 → 1×20；不新增任何 Terra 的 IF_／L1_ 名稱；不升契約版本（v0.27）**；依設計文件 `docs/plan/20261105_v22.0_Terra第四層級_設計.md` 第 6.1 節 B1，Andy 2026-11-05「完整第四層級」、J1–J15 照建議）
+
+- 分支 `claude/v22-b1`（PR 與 SHA 見報告）。報告：`docs/reports/20261105_v21.11_Terra結構一.md`；進度檔：`docs/reports/20261105_v22.0_進度.md`。**不合併**。
+- builder：層級清單單一來源 `builder/tiers.py`（`TIERS`＝Luna、Sol、Astra、Terra，`NT`＝4；契約與跨層級合計仍為 3 層，`NT_LIVE`＝3，v22.0 改 4）；Block 4–6 頁（Cap_In、Price_Frontier、Fleet_1GW、Amortize、Theory_Rev、Har_In 名稱、Alloc）改由 `tiers.TIERS_LIVE` 取層級，內容不變（B2）。新模組 `builder/v21110.py`（版本字串、Gov_Map 守衛更新、用途標記、Decisions SL68-01）。
+- Excel（CC 以 builder 自 v21.10 產生，經 LibreOffice 重算存檔；冪等）：Arch 插入 Terra 欄 F（DeepSeek V4 家族內插 700B／30B 等，設計第 3.1 節；標記／說明 F／G → G／H；Gov_Map 理由欄 `=Arch!$G$6／$G$7／$G$10` → `$H$`）；Serving F21:F24（SLO 67.4、TTFT 3、ISL 16,384、OSL 2,048；說明 F → G）；Train_In F25:F38（設計第 3.4 節；G 欄寫 Terra 標記與區間）；Har_In F48:F50（50% 時間範圍 6／3／10 小時；`B5_H50*` 仍 1×3，B2 擴形）。Perf、Perf_Batch、Training 與 _Prod 鏡像改 20 欄（C–V＝5 世代 × 4 層級，索引 4×(g−1)＋t），Perf_Batch FP8 情境 R／S → W／X，_Prod 檢查副本自 X 欄起；讀取端（Unit_Cost、Interface B／C／M、Training、Sens_Train、Alloc C／J、L1、Cap_In M-4、Checks）改新索引，成本情境的 3×(g−1)＋k 不動；Checks 能量閉合與 V23 只讀 3 個現有層級。Unit_Cost 新增 Terra 區（第 51–61 列，用途「預備」）。Terra VR200 每 GW 產出 5.108×10¹¹ M tok／年、decode 0.180 $/M（與設計第 5.2 節試算一致）。
+- 驗收：V1 具名範圍 1,865 個鍵對齊比較，值不符只有版本字串與建置日（`RNG_Version`、`RNG_Current`、`LB_Days`）；公式頁逐鍵比較只有文字（頁首、版本、欄位說明）與 Gov_Map 登錄範圍（7 格＋說明）差異。LibreOffice 錯誤 0；`restore_log` unmatched 0、Excel kept over code 59（同 v21.10）；冪等 0 差異。GOV 0／129／183、`RNG_StaleFlag` 一致。公式格 54,751 → 57,200。
+- 文件：時效指紋重產（葉格 833 → 895：Terra 輸入與新索引格，Alloc P 節下方各節下移 62 列，名稱值不變）；區間端點只改版本字串；契約快照 `contract_snapshot_v21.11.json`（值同 v21.10，`RNG_Dem004_*` 參照列號 +62）；builder md 重產；比較工具 `tools/cmp_relayout.py`。
+- 網站：`app/common.py` 層級選單只列已有 IF_ 名稱的層級（Terra 的 IF_ 名稱 v22.0 才建立）。
+
 ## 20261104_Tokenomics_v21.10.xlsx（取代 v21.9；**次版：TPU v7、Trainium3 產出比基準改 FP8 對齊（PR #172 E 節方法一），各晶片最高原生精度降為低端（查核 `docs/evidence/20261104_TPU產出比查核/`，Andy 2026-11-04 照建議）；v21.9 獨立核對的文字與治理修正（追加 11–16，不動數值）；契約名稱的值改變只有 `IF_NonNV_Out_TPU`、`IF_NonNV_Out_Trn`（各 3 格）與版本字串；不升契約版本（v0.27）**；依工作單 `docs/workorders/20261104_v21.10_TPU產出比改FP8對齊與文字修正.md` r0）
 
 - 分支 `claude/v21-10`（PR 與 SHA 見報告）。報告：`docs/reports/20261104_v21.10_TPU產出比改FP8對齊.md`；進度檔：`docs/reports/20261104_v21.10_進度.md`。**不合併**。

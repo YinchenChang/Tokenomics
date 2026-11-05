@@ -160,7 +160,7 @@ def test_v2140_gov_counts(lo, wbf):
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）
     assert v.get("Checks", "D98") == 129 and v.get("Checks", "D87") == 127      # v21.8：134 → 129、132 → 127（第二來源 5 筆；test_v2180 看守）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")      # v21.9：版本字串      # v21.5：版本字串（test_v2150 看守）
+    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")      # v21.9：版本字串      # v21.5：版本字串（test_v2150 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 
@@ -186,7 +186,7 @@ def test_v2140_records(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.5（次版，底版 v21.4：" in b5 and "v21.4（次版，底版 v21.3：" in b5 and "只改文字；所有契約名稱的值不變；GOV_Warnings 135 → 134（W3）" in b5
-    assert "v21.3（次版，底版 v21.2：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.10")      # v21.9
+    assert "v21.3（次版，底版 v21.2：" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.11")      # v21.9
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.4 token 帳讀法與過時文字"]
     assert len(rr) == 1 and rr[0] == 74 and "只改文字，所有契約名稱的值不變" in rm.cell(rr[0], 2).value
 

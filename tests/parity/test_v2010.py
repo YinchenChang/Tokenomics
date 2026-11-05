@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+import v21110_allow      # v21.11（v22.0 B1）：DRV_／TRN_ 與 RNG_Dem004_* 的參照位址改變、值不變（test_v21110 看守；R10）
 from v2110_allow import v213_cells, strip, csv_value_cells      # v21.3：v21.2 → v21.3 的逐格差異集合（規則同 test_v2130，只到工作單 W1–W6 列明的格）
 from v2110_allow import v218_added      # v21.8
 from v2110_allow import v218_cells      # v21.8
@@ -295,4 +296,4 @@ def test_v2010_diffs_only_expected_vs_v200():
     na, nb = set(a.defined_names), set(b.defined_names)
     assert na <= nb and nb - na - v218_added() == {"L1_LDiscGen"} | {"IF_RackPrice", "IF_ScaleOutShare", "IF_StoragePerGPU"} | {f"IF_NonNV_{k}_{x}" for k in ("Out", "Hold") for x in ("AMD", "TPU", "Trn", "CS", "OAI")} | V2110_NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"}, sorted(nb - na)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）； v21.0：+13（test_v2100 看守）
     changed = {k for k in na if a.defined_names[k].attr_text != b.defined_names[k].attr_text}
-    assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]      # v21.0：IFC_ 契約欄範圍延伸
+    assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) or v21110_allow.ref_moved(k) for k in changed), sorted(changed)[:10]      # v21.11：DRV_／TRN_ 1×15 → 1×20（R10）      # v21.0：IFC_ 契約欄範圍延伸

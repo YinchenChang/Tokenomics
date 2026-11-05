@@ -23,6 +23,10 @@ PERF_BATCH_ROWS = {41, 43, 44, 53, 76, 93, 94, 120, 121}     # Perf_Batch ↔ Pe
 PROD_OWN_ROWS = {"Theory_Rev_Prod": set(range(90, 97))}       # 鏡像頁專屬的自我檢查列（頁首明訂，不鏡像核心頁同列）
 SUMMARY_FROM = {"Sensitivity": 64}                            # Sensitivity 第 64 列起為摘要表（各欄意義不同，不比對）
 NOT_COMPARED = {"Sens_Rev"}                                   # 封閉式重算頁，無逐格對應的核心頁
+# v21.11（v22.0 B1，R10）：Perf／Perf_Batch／Training 改為 20 欄（C–V），_Prod 檢查副本由「主體欄＋16」（S 起）改為「主體欄＋21」（X 起）
+SHIFT = 21
+COPY_FROM = 3 + SHIFT       # 24＝X 欄
+GT_LAST_COL = 22            # V 欄：世代 × 層級頁的最後一欄
 
 
 def load(path):
@@ -83,7 +87,7 @@ def r1c1(formula, own, r0, c0, lname, lnames, shift=0):
                     s_ += f"R{row}" if ra else f"R[{int(row) - r0}]"
                 if col:
                     cn = CI(col)
-                    if shift and is_local and cn >= 19:
+                    if shift and is_local and cn >= COPY_FROM:
                         cn -= shift
                     s_ += f"C{cn}" if ca else f"C[{cn - c0}]"
                 parts.append(s_)
@@ -118,8 +122,8 @@ class Model:
                 if s != mp or not isf(x):
                     continue
                 r, c = x["r"], x["c"]
-                kind = "副本" if c >= 19 else "主體"
-                cc = c - 16 if c >= 19 else c
+                kind = "副本" if c >= COPY_FROM else "主體"
+                cc = c - SHIFT if c >= COPY_FROM else c
                 if r in PROD_OWN_ROWS.get(mp, ()):
                     continue
                 mf = x["f"]
@@ -133,7 +137,7 @@ class Model:
                 if cx is None or not isf(cx):
                     bad.append((mp, a, "核心頁同位置非公式"))
                     continue
-                shift = 16 if kind == "副本" else 0
+                shift = SHIFT if kind == "副本" else 0
                 a1 = r1c1(mf, mp, r, cc, self.lname, self.lnames, shift)
                 b1 = r1c1(cx["f"], core, r, cc, self.lname, self.lnames)
                 if a1 == b1:
@@ -213,10 +217,10 @@ class Model:
 
     # ---------------------------------------------------------------- Perf ↔ Perf_Batch
     def perf_batch_diff_rows(self):
-        """Perf_Batch 與 Perf 在 C:Q 同格結構不同的列（集合）與格數。"""
+        """Perf_Batch 與 Perf 在 C:V（v21.11 起 20 欄；v21.10 為 C:Q）同格結構不同的列（集合）與格數。"""
         rows = collections.Counter()
         for (s, a), x in self.cells.items():
-            if s != "Perf_Batch" or not isf(x) or x["c"] < 3 or x["c"] > 17 or x["r"] < 8:
+            if s != "Perf_Batch" or not isf(x) or x["c"] < 3 or x["c"] > GT_LAST_COL or x["r"] < 8:
                 continue
             p = self.cells.get(("Perf", a))
             if p is None or not isf(p):

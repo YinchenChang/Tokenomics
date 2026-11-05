@@ -73,9 +73,34 @@ DECISION_REF = f"Decisions {DEC_ID}"
 PREP = "預備（v21.11 結構一）：Terra 第四層級，v22.0 啟用前尚無下游讀取"
 
 
+# Perf rows whose Terra cells only feed the energy-closure check (Checks「能量閉合：各欄最大閉合比」reads the live tiers, tiers.live_ranges)
+PERF_ENERGY_KEYS = ("gpuw", "ehbm", "rpre", "eflop", "elink", "fpt", "bpt", "cpt", "Edec", "Epre", "pphys", "close")
+PERF_PREP = (f"預備（v21.11 結構一）：本列 Terra 欄（{'、'.join(tiers.gt_col(g, tiers.NT) for g in range(1, tiers.NG + 1))}）只通到 Checks 能量閉合，"
+             "該檢查目前只讀 Luna／Sol／Astra（tiers.NT_LIVE＝3，既有值不變），v22.0 起納入")
+
+
+def _perf_labels():
+    import collections
+    from perf import perf_rows
+    d = collections.defaultdict(int)
+    tr = collections.defaultdict(str)
+    return {item[0]: item[1] for item in perf_rows(d, d, d, tr) if item[0] != "§"}
+
+
 def purpose_marks(wb):
     import v1400
     n = 0
+    ws = wb["Perf"]
+    pc = v1400._purpose_col(ws)
+    labs = _perf_labels()
+    want = {labs[k] for k in PERF_ENERGY_KEYS}
+    for r in range(8, ws.max_row + 1):
+        if ws.cell(r, 1).value in want:
+            c = ws.cell(r, pc)
+            if c.value in (None, ""):
+                put(ws, f"{L(pc)}{r}", PERF_PREP, F_NOTE); n += 1
+            elif PERF_PREP not in str(c.value):
+                c.value = f"{c.value} ｜{PERF_PREP}"; n += 1
     ws = wb["Unit_Cost"]
     pc = v1400._purpose_col(ws)
     first = None

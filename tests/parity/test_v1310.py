@@ -67,7 +67,7 @@ def test_v1310_fingerprint_file_matches_workbook(lo):
     assert [(s, a) for s, a, _ in fp["leaves"]] == [(s, a) for s, a, _ in leaves], "葉格集合不同"
     bad = [(s, a, v, w) for (s, a, v), (_, _, w) in zip(fp["leaves"], leaves) if not _same(v, w)]
     assert bad == [], (len(bad), bad[:8])
-    assert len(fp["leaves"]) == 833      # v19.1：629 → 833（指紋根名稱 + CHK_VerifyFail／CHK_VerifyPass，且 Arch!C17 改連 SRC_MOD_106 後上游常數格增加；tools/gen_fingerprint.py 重產）； v15.3：604 → 629（Alloc P 節新增 25 列：D156 變公式後區間情境多 25 格上游常數）； v15.0 T3-2：591 → 604（12 個 VR200 區間名稱新增 13 個上游常數格）； v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
+    assert len(fp["leaves"]) == 895      # v21.11（v22.0 B1，R10）：833 → 895（+62＝新座標 66 − 舊座標 4：Terra 輸入格 Arch 14、Train_In 14、Serving 4，Perf 10、Perf_Batch 14、Training 10 為重排後的世代／層級索引格（Perf_Batch 另有 4 個舊座標 R／S 第 6–7 列不再是葉格）；依賴圖以整列範圍為上游，INDEX 讀整列；tools/gen_fingerprint.py 重產）； v19.1：629 → 833（指紋根名稱 + CHK_VerifyFail／CHK_VerifyPass，且 Arch!C17 改連 SRC_MOD_106 後上游常數格增加；tools/gen_fingerprint.py 重產）； v15.3：604 → 629（Alloc P 節新增 25 列：D156 變公式後區間情境多 25 格上游常數）； v15.0 T3-2：591 → 604（12 個 VR200 區間名稱新增 13 個上游常數格）； v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
     base = lo.view({})
     assert base.get_name("RNG_StaleFlag") == "一致" and base.get("Checks", f"D{_chk_row(base, 'RG3')}") == 0
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0

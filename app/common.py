@@ -82,10 +82,13 @@ def interface_series(eng: Engine, name: str) -> dict:
 
 
 def tiers(eng: Engine) -> dict[str, str]:
-    """層級 → 顯示標題（如 'Luna' → 'Luna（低層）'）；取自 DRV_Tier，順序＝Excel 欄順序。"""
+    """層級 → 顯示標題（如 'Luna' → 'Luna（低層）'）；取自 DRV_Tier，順序＝Excel 欄順序。
+    v21.11：DRV_Tier 有 4 個層級（Terra 計算欄已建），但 Terra 的 IF_ 名稱 v22.0 才建立；只列出已有 IF_TokGW_<層級> 的層級。"""
     out = {}
     for title in eng.get_name("DRV_Tier"):
-        out.setdefault(str(title).split("（")[0], str(title))
+        k = str(title).split("（")[0]
+        if f"IF_TokGW_{k}" in eng.names:
+            out.setdefault(k, str(title))
     return out
 
 
@@ -233,7 +236,9 @@ def tier_titles_trn(eng: Engine) -> dict[str, str]:
     """層級 → 顯示標題；取自 TRN_Tier。"""
     out = {}
     for title in eng.get_name("TRN_Tier"):
-        out.setdefault(str(title).split("（")[0], str(title))
+        k = str(title).split("（")[0]
+        if f"IF_TrainGPUh_{k}" in eng.names:      # v21.11：同 tiers()，Terra 的 IF_ 名稱 v22.0 才建立
+            out.setdefault(k, str(title))
     return out
 
 

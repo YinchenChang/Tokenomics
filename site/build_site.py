@@ -89,6 +89,20 @@ def td(v, tag: str = "td", extra: str = "") -> str:
     return f"<{tag}{c}>{e(s).replace(chr(10), '<br>')}</{tag}>"
 
 
+ANNOT_RE = re.compile(r"\s*\[IF[A-Z]?_\w+\]")
+
+
+def row_head(label) -> str:
+    """列首：Excel 標籤中「[IF_…]｜口徑說明」很長時，只顯示短標籤（加單位），完整文字放 title（滑鼠停留可見）。"""
+    text = str(label)
+    m = ANNOT_RE.search(text)
+    if not m:
+        return f'<th class="ix" scope="row">{e(text)}</th>'
+    unit = re.search(r"（[^（）]*）$", text)
+    short = text[:m.start()].rstrip() + (unit.group(0) if unit else "")
+    return f'<th class="ix ab" scope="row" title="{e(text)}">{e(short)}<span class="more">…</span></th>'
+
+
 def table(df: pd.DataFrame, index: bool = True, index_head: str = "", tid: str = "", row_attrs=None,
           cls: str = "", scroll: bool = False) -> str:
     """DataFrame → HTML 表。值應已是顯示字串（或數值，交給 txt）。欄可為兩層 MultiIndex。"""
@@ -114,7 +128,7 @@ def table(df: pd.DataFrame, index: bool = True, index_head: str = "", tid: str =
         attrs = ""
         if row_attrs:
             attrs = "".join(f' data-{a}="{e(v)}"' for a, v in row_attrs[k].items())
-        cells = ([f'<th class="ix" scope="row">{e(idx)}</th>'] if index else []) + [td(v) for v in row.tolist()]
+        cells = ([row_head(idx)] if index else []) + [td(v) for v in row.tolist()]
         out.append(f"<tr{attrs}>" + "".join(cells) + "</tr>")
     out.append("</tbody>")
     t_id = f' id="{tid}"' if tid else ""
@@ -269,7 +283,8 @@ def page_payback(cx: Ctx):
     cards = []
     for i in v_payback.HEADLINE:
         r = l1[i]
-        cards.append((f"{i}（{r['單位']}）", r["基準值"], f"{r['指標或問題']}｜區間 {txt(r['低'])}–{txt(r['高'])}"))
+        u = r["單位"]
+        cards.append((f"{i}（{u}）", C.fmt_unit(r["基準值"], u), f"{r['指標或問題']}｜區間 {C.fmt_unit(r['低'], u)}–{C.fmt_unit(r['高'], u)}"))
     parts.append(kpis(cards))
     parts.append(callout("讀法（Andy 2026-10-22）：看「實際 ÷ 所需」的年度趨勢，不看單一年的絕對值。"
                          "上方 L（主口徑）與所需 L（主口徑）並列；兩者的比值不是 Excel 的具名範圍，本頁不另算。"))
@@ -328,7 +343,7 @@ def page_lookup(cx: Ctx):
     idx = v_lookup._index(eng, str(eng.path))
     prefixes = sorted({n.split("_")[0] for n in idx["名稱"]})
     attrs = [{"pfx": n.split("_")[0], "s": f"{n} {lab}".lower()} for n, lab in zip(idx["名稱"], idx["標籤"].astype(str))]
-    l1 = C.l1_rows(eng, str(eng.path))
+    l1 = C.pct_by_unit_col(C.l1_rows(eng, str(eng.path)))      # 單位 % 的列以百分比顯示（與 Streamlit 名稱查詢頁相同）
     l1_attrs = [{"s": " ".join(txt(x) for x in row).lower()} for row in l1.itertuples(index=False)]
     chips = "".join(f'<button type="button" data-val="{e(p)}" aria-pressed="false">{e(p)}</button>' for p in prefixes)
     parts = [
@@ -364,22 +379,23 @@ def page_overview(cx: Ctx):
     block1 = [n for n in eng.names if C.is_downstream_name(n) and n != "IF_Util" and not C.is_block3_name(n) and not C.is_block4_name(n)
               and not C.is_block5_name(n) and not C.is_block6_name(n) and not any(n.startswith(f"IF_{m}_") for m in C.BLOCK2_METRICS)]
     hdr = len(eng.get_name("IF_HdrGen"))
-    rows, idx, others = {}, None, []
+    rows, units, idx, others = {}, [], None, []
     for n in sorted(block1, key=lambda n: range_boundaries(eng.name_ref(n)[1])[1]):
         s = C.interface_series(eng, n)
         if len(s["values"]) != hdr:
             others.append(n)
             continue
         rows[f"{s['label']}（{s['unit']}）"] = s["values"]
+        units.append(s["unit"])
         if idx is None:
             idx = pd.MultiIndex.from_arrays([s["gens"], s["cases"]], names=["世代", "成本情境"])
     df = pd.DataFrame(rows, index=idx).T
-    sec = [table(fmt_df(df), index_head="指標（單位）＼世代｜成本情境")]
+    sec = [table(C.fmt_rows(df, units), index_head="指標（單位）＼世代｜成本情境")]      # 單位 % 的列 ×100 加 %
     if others:
         other_rows = []
         for n in others:
             s = C.series(eng, n)
-            other_rows.append({"名稱": n, "標籤": s["label"], "單位": s["unit"], "值": "、".join(C.fmt(v) for v in s["values"])})
+            other_rows.append({"名稱": n, "標籤": s["label"], "單位": s["unit"], "值": "、".join(C.fmt_unit(v, s["unit"]) for v in s["values"])})
         sec += ['<p class="label">其他 Interface 名稱（不是「世代 × 成本情境」的形狀）</p>', table(pd.DataFrame(other_rows).map(txt), index=False)]
     sec.append(note("列標籤、單位、世代與成本情境皆取自 Excel Interface 頁；Block 2–5 見左側頁面。"))
     parts.append(section("Interface — Block 1（每 GW＝IT 關鍵電力）", *sec))
@@ -503,7 +519,7 @@ def page_block4(cx: Ctx):
                                   tier=ti, case=ci))
             for gi, gen in enumerate(gens):
                 chain = C.b4_chain(eng, tier, gen, case)
-                chain["值"] = chain["值"].map(C.fmt)
+                chain["值"] = [C.fmt_unit(v, u) for v, u in zip(chain["值"], chain["單位"])]   # 利用率等單位 % 者 ×100 加 %
                 v_chain.append(variant(f"<h4>推導鏈｜{e(tier_map[tier])}｜{e(gen)}｜成本情境：{e(case)}</h4>" + table(chain.map(txt), index=False),
                                        tier=ti, case=ci, gen=gi))
     parts.append(section("每 GW 理論營收（理想上限）", *v_rev,
@@ -708,6 +724,8 @@ th.grp{text-align:center;border-left:1px solid var(--rule)}
 th.ix{font-weight:500;color:var(--ink);white-space:normal;min-width:200px;max-width:340px;background:var(--surface)}
 thead th.ix{background:var(--sunken)}
 td.n{text-align:right}
+th.ab{cursor:help}
+th.ab .more{color:var(--faint);margin-left:2px}
 td.wr{white-space:normal;min-width:220px;max-width:460px}
 td.blank{color:var(--faint);text-align:center}
 tbody tr:hover td,tbody tr:hover th{background:var(--sunken)}

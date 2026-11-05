@@ -1,7 +1,7 @@
 """Block 4 — 單價、理論營收（理想上限）、成本與攤提。資料只來自 Excel 的具名範圍（IF_、B4_）。"""
 import streamlit as st
 
-from app.common import (b4_chain, cost_cases, cost_table, fmt, generations, get_engine,
+from app.common import (b4_chain, cost_cases, cost_table, fmt, fmt_unit, generations, get_engine,
                         market_table, price_table, rev_table, tiers)
 
 
@@ -69,5 +69,5 @@ def render():
     st.caption("依序：每 GW 產出 → 利用率 → 有效單價 → 理論營收 → 服務成本 → 快取儲存 → 攤提 → 全成本。"
                "每一步都是 Excel 既有具名範圍的值（IF_），此處不新增計算。")
     chain = b4_chain(eng, tier, gen, case)
-    chain["值"] = chain["值"].map(fmt)
+    chain["值"] = [fmt_unit(v, u) for v, u in zip(chain["值"], chain["單位"])]   # 利用率等單位 % 者 ×100 加 %
     st.dataframe(chain, width="stretch", hide_index=True, height=_h(chain))

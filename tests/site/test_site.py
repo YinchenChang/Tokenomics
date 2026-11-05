@@ -70,7 +70,7 @@ def xl():
         lab = re.sub(r"\s*\[IF[A-Z]?_\w+\]\s*$", "", str(ws.cell(r1, 1).value)).strip("　 ")
         return lab, ws.cell(r1, 2).value
 
-    return {"name": name, "get": get, "label": label}
+    return {"name": name, "get": get, "label": label, "wb": wb}
 
 
 class _Tables(HTMLParser):
@@ -149,6 +149,15 @@ def _parse(out: Path, fn: str) -> _Tables:
 def _file(key: str) -> str:
     path = dict((k, p) for k, _, p in PAGES)[key]
     return "index.html" if path == PAGES[0][2] else f"{path}.html"
+
+
+def _short(label: str) -> str:
+    """網站列首的短標籤：去掉「[IF_…]」起的口徑說明，保留結尾單位（完整文字在 title）。"""
+    m = re.search(r"\s*\[IF[A-Z]?_\w+\]", label)
+    if not m:
+        return label
+    unit = re.search(r"（[^（）]*）$", label)
+    return label[:m.start()].rstrip() + (unit.group(0) if unit else "") + "…"
 
 
 def _cell(tables, row_start: str, col: str, dims: dict | None = None, tid: str | None = None) -> str:
@@ -258,7 +267,7 @@ def test_block4_cells_equal_excel(site, xl, name, tier_i, case_i, gen):
     case = ["低成本", "基準", "高成本"][case_i]
     lab, unit = xl["label"](name)
     p = _parse(out, _file("block4"))
-    got = _cell(p.tables, f"{tier}｜{lab}（{unit}）", gen, dims={"tier": str(tier_i), "case": str(case_i)})
+    got = _cell(p.tables, _short(f"{tier}｜{lab}（{unit}）"), gen, dims={"tier": str(tier_i), "case": str(case_i)})
     assert got == fmt(_gen_case_value(xl, name, gen, case))
     price = p.tables[0]                                     # 單價表：列＝層級、欄＝token 類型
     plab, _ = xl["label"]("IF_PriceFresh_Sol")
@@ -267,14 +276,14 @@ def test_block4_cells_equal_excel(site, xl, name, tier_i, case_i, gen):
     assert row[col] == fmt(xl["get"]("IF_PriceFresh_Sol"))
 
 
-@pytest.mark.parametrize("name", ["IF_CapexTotal", "IF_DeprIT", "IF_AvgDraw"])
+@pytest.mark.parametrize("name", ["IF_CapexTotal", "IF_DeprIT", "IF_AvgDraw", "IF_GMDefault_Luna", "IF_AmortRevShare", "IF_TrainInferShare_Sol"])
 def test_overview_block1_row_equals_excel(site, xl, name):
     """總覽 Block 1 表（兩層表頭：世代 × 成本情境）的整列 15 格＝Excel。"""
     out, _ = site
     t = next(t for t in _parse(out, _file("overview")).tables if len(t["rows"]) > 3 and len(t["rows"][1]) == 15)
     lab, unit = xl["label"](name)
-    row = next(r for r in t["rows"][2:] if r[0] == f"{lab}（{unit}）")
-    assert row[1:] == [fmt(v) for v in xl["get"](name)]
+    row = next(r for r in t["rows"][2:] if r[0] == _short(f"{lab}（{unit}）"))
+    assert row[1:] == [fmt_unit(v, unit) for v in xl["get"](name)]
     assert t["rows"][1] == [str(c) for c in xl["get"]("IF_HdrCost")]
 
 
@@ -283,12 +292,17 @@ def test_lookup_and_alloc_values_equal_excel(site, xl):
     p = _parse(out, _file("lookup"))
     for n in ("IF_Util", "AL_Q1", "GOV_Errors", "L1_M"):
         got = _cell(p.tables, n, "值", tid="lk")
-        assert got == fmt(xl["get"](n)), n
+        unit = xl["label"](n)[1] if not n.startswith("L1_") else ""     # L1 頁的單位在 G 欄；此處 L1_M 單位為 x
+        assert got == fmt_unit(xl["get"](n), unit), n
+    assert _cell(p.tables, "AL_Q1", "值", tid="lk") == "18.41%"
     a = _parse(out, _file("alloc"))
     lab, unit = xl["label"]("AL_Q1")
-    got = _cell(a.tables, lab, "值（多格為 C–E 欄：世代或層級）")
-    v = xl["get"]("AL_Q1")
-    assert got == " ｜ ".join(fmt_unit(x, unit or "") for x in (v if isinstance(v, list) else [v]))
+    col = "值（多格者逐格標明世代；表頭取自 Excel）"
+    assert _cell(a.tables, lab, col) == fmt_unit(xl["get"]("AL_Q1"), unit) == "18.41%"
+    lab, unit = xl["label"]("AL_ShareGen")                 # 多格：Alloc!C:F ＝ Hopper／GB200／GB300／VR200（表頭第 15 列）
+    gens = [xl["wb"]["Alloc"].cell(15, c).value for c in range(3, 7)]
+    assert gens[0].startswith("Hopper") and gens[3].startswith("VR200")
+    assert _cell(a.tables, lab, col) == " ｜ ".join(f"{g}：{fmt_unit(v, unit)}" for g, v in zip(gens, xl["get"]("AL_ShareGen")))
 
 
 # ── 4. 不載入外部資源 ─────────────────────────────────────────────
@@ -313,3 +327,61 @@ def test_no_external_resources(site):
             assert not m, f"{f}: {rx.pattern} → {html[max(0, m.start() - 60):m.end() + 60]!r}"
         for href in re.findall(r'href="([^"]*)"', html):     # 站內連結只指向本站各頁
             assert href in pages, (f, href)
+
+
+# ── 5. 單位為 % 的值一律 ×100 加 %（不重複 ×100） ───────────────────────
+
+_BARE = re.compile(r"^[-+−]?(?:\d[\d,]*\.?\d*|\.\d+)(?:e[-+]?\d+)?$", re.I)     # 沒有 % 的純數字
+_VALUE_COLS = ("基準值", "低", "高", "值", "數值", "外部值（低）", "外部值（高）", "基準")
+
+
+def _parts(cell: str):
+    """多值格（「、」或「｜」分隔；「世代：值」）拆成各個值。"""
+    for p in re.split(r"[、｜]", cell):
+        yield p.split("：")[-1].strip()
+
+
+def test_every_percent_cell_has_percent_sign(site):
+    out, _ = site
+    bad, n = [], 0
+    for k, _, _ in PAGES:
+        p = _parse(out, _file(k))
+        for t in p.tables:
+            head = t["rows"][0] if t["rows"] else []
+            ucol = head.index("單位") if "單位" in head else None
+            for r in t["rows"][1:]:
+                if not r:
+                    continue
+                cols = []
+                if ucol is not None and ucol < len(r) and r[ucol] == "%":
+                    cols = [j for j, h in enumerate(head) if j < len(r) and (h in _VALUE_COLS or h.startswith("值"))]
+                elif r[0].endswith("（%）") or r[0].endswith("（%）…"):
+                    cols = range(1, len(r))
+                for j in cols:
+                    for v in _parts(r[j]):
+                        n += 1
+                        if _BARE.match(v):
+                            bad.append((k, r[0][:40], head[j] if j < len(head) else j, v))
+        for label, v in p.kpis.items():
+            if label.endswith("（%）") and _BARE.match(v.strip()):
+                bad.append((k, label, "KPI", v))
+    assert n > 500, n
+    assert not bad, f"{len(bad)} 個 % 值缺 %，例：{bad[:10]}"
+
+
+def test_percent_values_equal_excel_once(site, xl):
+    """抽樣：% 值＝Excel 小數 ×100（不重複 ×100）。"""
+    out, _ = site
+    qa = (out / _file("qa")).read_text(encoding="utf-8")
+    m = re.search(r"L1_Ans1</p>.*?答案（基準值）</div><div class=\"v num\">([^<]+)<", qa)
+    assert m and m.group(1) == "18.41%" == fmt_unit(xl["get"]("L1_Ans1"), "%")
+    lk = _parse(out, _file("lookup"))
+    assert _cell(lk.tables, "L1_FinalTrainShare", "基準值", tid="l1") == fmt_unit(xl["get"]("L1_FinalTrainShare"), "%")
+    assert _cell(lk.tables, "IF_Util", "值", tid="lk") == "60%"
+    b4 = _parse(out, _file("block4"))
+    util = next(r for t in b4.tables if t["dims"] == {"tier": "0", "case": "1", "gen": "0"} for r in t["rows"] if r[0] == "2 利用率")
+    assert "60%" in util
+    b2 = _parse(out, _file("block2"))                      # 推導鏈 prefill 占比：DRV_PreShare（% 單位，Excel 小數）
+    lab, unit = xl["label"]("DRV_PreShare")
+    row = next(r for t in b2.tables if t["dims"] == {"tier": "0", "case": "1"} for r in t["rows"] if r[0].startswith(lab))
+    assert row[1] == fmt_unit(xl["get"]("DRV_PreShare")[0], unit) and row[1].endswith("%") and float(row[1][:-1]) < 100

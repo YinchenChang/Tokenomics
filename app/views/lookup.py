@@ -6,7 +6,7 @@ Excel 已超過 8 萬格，整本閱讀不實際；本頁讓人用「名稱或�
 import pandas as pd
 import streamlit as st
 
-from app.common import fmt, get_engine, l1_rows, name_label
+from app.common import fmt_unit, get_engine, l1_rows, name_label, pct_by_unit_col
 
 
 @st.cache_data(show_spinner="建立名稱索引…")
@@ -20,7 +20,7 @@ def _index(_eng, path_key: str) -> pd.DataFrame:
             label, unit, v = "", "", ""
         vals = v if isinstance(v, list) else [v]
         flat = [x for row in vals for x in (row if isinstance(row, list) else [row])]
-        shown = "、".join(fmt(x) for x in flat[:16]) + ("…" if len(flat) > 16 else "")
+        shown = "、".join(fmt_unit(x, unit) for x in flat[:16])   # 單位 % 者 ×100 加 % + ("…" if len(flat) > 16 else "")
         rows.append({"名稱": n, "值": shown, "單位": unit, "標籤": label, "位置": attr.replace("$", ""), "格數": len(flat)})
     return pd.DataFrame(rows).sort_values("名稱").reset_index(drop=True)
 
@@ -45,7 +45,7 @@ def render():
 
     st.divider()
     st.subheader("L1 全表（第 1 層常用推算值）")
-    l1 = l1_rows(eng, str(eng.path))
+    l1 = pct_by_unit_col(l1_rows(eng, str(eng.path)))      # 單位 % 的列以百分比顯示
     if q:
         text = l1.astype(str).agg(" ".join, axis=1)
         for word in q.split():                       # 與上表相同：全部關鍵字都要符合

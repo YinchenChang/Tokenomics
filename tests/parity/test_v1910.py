@@ -147,7 +147,7 @@ def test_v1910_records(wbf):
     assert "『DeepSeek V4』" in g(b, "W") and "『Arch!C17｜換算』" in g(b, "W") and "SL54-01" in g(b, "W")      # 修訂九：原值逐字保留
     ar = wbf["Arch"]
     assert ar["C17"].value == "=SRC_MOD_106*SRC_MOD_019+SRC_MOD_017" and ar["D17"].value == "=SRC_MOD_018*SRC_MOD_019+SRC_MOD_017" and ar["E17"].value == 0
-    assert "512" in ar["G17"].value and "1,024" in ar["G17"].value
+    assert "512" in ar["H17"].value and "1,024" in ar["H17"].value      # v21.11：Arch 說明欄 G → H（Terra 插在 F；R10）
     gm = wbf["Gov_Map"]
     rr = [r for r in range(5, gm.max_row + 1) if gm[f"C{r}"].value == "Arch" and gm[f"D{r}"].value == "C17"]
     assert len(rr) == 1 and gm[f"H{rr[0]}"].value == "SRC_MOD_106" and "SRC_MOD_018" in gm[f"N{rr[0]}"].value

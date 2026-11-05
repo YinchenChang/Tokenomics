@@ -24,6 +24,20 @@ if "Sources" in wb.sheetnames and "Sources_Legacy" not in wb.sheetnames:
                                         "新來源一律先登錄 DB_Evidence，擇優寫入 SRC_*）")
 # ---- v5.7 Excel-first: snapshot every input cell (blue font) before the rebuild ----
 SNAP = snapshot(wb)
+# ---- v21.11 (R2／R13): Perf／Perf_Batch／Training moved from 15 to 20 generation × tier columns. On a base with the old layout (DRV_Tier ends at
+#      column Q) the blue inputs of those sheets (generation／tier index rows 6–7, Perf_Batch FP8 overrides) follow their (generation, tier) to the
+#      new column; on a v21.11-or-later base nothing is remapped (idempotent).
+import tiers
+SNAP_RELAID = 0
+if tiers.old_layout(wb):
+    _moved = {}
+    for _k in [k for k in SNAP if k[0] in tiers.RELAID]:
+        _m = tiers.old_col_map(_k[0])
+        if _k[2] in _m:
+            _moved[(_k[0], _k[1], _m[_k[2]])] = SNAP.pop(_k); SNAP_RELAID += 1      # collected first: old and new columns overlap
+    assert not set(_moved) & set(SNAP), "relaid input keys collide"
+    SNAP.update(_moved)
+print("v21.11 relaid inputs remapped:", SNAP_RELAID)
 # ---- v5.12 (A): inputs that moved to another row keep their Excel value (restore stays unmatched 0) ----
 from training import SNAP_MOVES
 for _old, _new in SNAP_MOVES:
@@ -247,11 +261,12 @@ ck["E10"].value = '="參照 ÷ 本模型＝"&TEXT(C10/B10,"0.00")'
 from openpyxl.workbook.defined_name import DefinedName
 def nm(n, ref): wb.defined_names[n] = DefinedName(n, attr_text=ref)
 nm("IF_HdrGen", "Interface!$C$4:$Q$4"); nm("IF_HdrCost", "Interface!$C$5:$Q$5")
-nm("DRV_Gen", "Perf!$C$4:$Q$4"); nm("DRV_Tier", "Perf!$C$5:$Q$5")
+GL = tiers.GT_LAST      # v21.11: DRV_／TRN_ are generation × tier, C..V (20 columns)
+nm("DRV_Gen", f"Perf!$C$4:${GL}$4"); nm("DRV_Tier", f"Perf!$C$5:${GL}$5")
 for n, k in [("DRV_FlopDec","Fd"),("DRV_FlopPre","Fp"),("DRV_WeightGB","W"),("DRV_TfixMs","tfix"),("DRV_SeqMs","ceff"),
              ("DRV_SeqBind","cbind"),("DRV_Batch","B"),("DRV_Bind","bind"),("DRV_DecTokGPU","D"),("DRV_PreTokGPU","Pp"),
              ("DRV_PreShare","psh"),("DRV_RackTok","rtot"),("DRV_GWTok","gwtot"),("DRV_Close","close")]:
-    nm(n, f"Perf!$C${PR[k]}:$Q${PR[k]}")
+    nm(n, f"Perf!$C${PR[k]}:${GL}${PR[k]}")
 nm("CAL_EtaD", f"Calib!$C${CAL['etad_fit']}"); nm("CAL_TlayerUs", f"Calib!$C${CAL['tl_fit']}")
 nm("CAL_F_Label", f"Calib!$C${CAL['lab']}:$I${CAL['lab']}")
 for n, k in [("CAL_F_Gen","gn"),("CAL_F_Eng","eng"),("CAL_F_Speed","s"),("CAL_F_Meas","T"),("CAL_F_Model","vT"),("CAL_F_Basis","basis")]:
@@ -265,8 +280,8 @@ nm("CAL_H_Ratio", f"Calib!$C${CAL['mR']}:$F${CAL['mR']}")
 for n, k in [("TRN_FlopTokPre","Fpt"),("TRN_FlopPre","Cp"),("TRN_GPUhPre","Hp"),("TRN_GPUhRL","Hrl"),("TRN_RLMFU","rlmfu"),
              ("TRN_RLRatioH","rlH"),("TRN_RLRatioF","rlF"),("TRN_GPUhFinal","Hfin"),("TRN_PostShareF","psF"),("TRN_PostShareH","psH"),
              ("TRN_InferShare","Ish"),("TRN_GPUhProg","Hprog"),("TRN_GWyrProg","GWp")]:
-    nm(n, f"Training!$C${TRN[k]}:$Q${TRN[k]}")
-nm("TRN_Gen", "Training!$C$4:$Q$4"); nm("TRN_Tier", "Training!$C$5:$Q$5")
+    nm(n, f"Training!$C${TRN[k]}:${GL}${TRN[k]}")
+nm("TRN_Gen", f"Training!$C$4:${GL}$4"); nm("TRN_Tier", f"Training!$C$5:${GL}$5")
 # ---- v5.6: Tech_Registry display-only named ranges (TR_；網站唯讀表用，下游不得連結) ----
 r0, r1 = TR["_rows"]; h0, h1 = TR["_hooks"]
 for n, c in [("TR_ID","A"),("TR_Tech","B"),("TR_Hook","C"),("TR_Acts","D"),("TR_Lo","E"),("TR_Base","F"),("TR_Hi","G"),
@@ -320,7 +335,8 @@ print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)
-v21100.load_bearing_date(wb)       # v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
+import v21110
+v21110.load_bearing_date(wb)       # v21.11: C3 = date of the v21.11 version file name; was v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
 CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
 CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
@@ -438,6 +454,8 @@ V2190 = v2190.apply(wb, v518._append_text)       # v21.9: NonNV L6／L7／L8／L
 print("v2190 v21.9:", V2190)
 V21100 = v21100.apply(wb, v518._append_text)       # v21.10: NonNV L6／L7／L8／L9／A2, Interface A368, Inputs H23 text; SRC_DC_004 grade／一手; DB_Evidence E450 related SRC, E560; Decisions SL67-01
 print("v21100 v21.10:", V21100)
+V21110 = v21110.apply(wb, v518._append_text)       # v21.11: Unit_Cost Terra 用途 marks「預備」, Decisions SL68-01
+print("v21110 v21.11:", V21110)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

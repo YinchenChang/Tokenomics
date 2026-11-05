@@ -15,6 +15,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+import v21110_allow      # v21.11（v22.0 B1）：DRV_／TRN_ 與 RNG_Dem004_* 的參照位址改變、值不變（test_v21110 看守；R10）
 from v2110_allow import v218_names, v218_added      # v21.8：v21.7 → v21.8 值改變／新增的名稱（test_v2180 看守）
 from v2110_allow import v218_cells      # v21.8
 from v2110_allow import V219_OLD      # v21.9
@@ -169,7 +170,7 @@ def test_v2100_names_added_only(wbf):
     na, nb = set(a.defined_names), set(wbf.defined_names)
     assert na <= nb and nb - na == NEW_NAMES | V2110_NEW_NAMES | {"SRC_HW_098", "SRC_HW_099", "SRC_HW_099_Lo", "SRC_HW_099_Hi"} | v218_added(), sorted((nb - na) ^ NEW_NAMES)      # v21.3：另加 SRC_HW_098／099 與 099 的 _Lo／_Hi（W1，test_v2130 看守）； v21.1：另加 V2110_NEW_NAMES
     changed = {k for k in na if a.defined_names[k].attr_text != wbf.defined_names[k].attr_text}
-    assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) for k in changed), sorted(changed)[:10]
+    assert all(k.startswith(("IDX_", "RNG_", "GOV_", "IFC_")) or v21110_allow.ref_moved(k) for k in changed), sorted(changed)[:10]      # v21.11：DRV_／TRN_ 1×15 → 1×20（R10）
     for nm in NEW_NAMES:
         ref = wbf.defined_names[nm].attr_text
         assert ref.startswith("Interface!")

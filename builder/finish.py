@@ -1,6 +1,7 @@
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
 from outputs import COLS15
+from tiers import TIERS_LIVE, NT_LIVE, GT_LAST, gt_index, gt_col, live_ranges
 import v520
 import v521
 import v522
@@ -59,6 +60,7 @@ import v2170
 import v2180
 import v2190
 import v21100
+import v21110
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -68,10 +70,10 @@ def interface(wb, PR, U):
     put(ws, "A3", v520.X5_NOTE, F_NOTE)     # v5.20 X5: row 3 was empty, no row moves
     section(ws, 17, "B. Block 2 產出（依層級；100%＝理想上限；下游以自身利用率換算）", 17)
     r = 18; names = []
-    tiers = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+    tiers = TIERS_LIVE      # v21.11: Interface B stays on the live tiers; Terra rows are Interface R (v22.0 B3, J14)
     for t, (tk, tn) in enumerate(tiers, start=1):
         put(ws, f"A{r}", tn, F_BOLD); r += 1
-        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:$Q${PR[key]},3*(Unit_Cost!{{X}}$6-1)+{t})"
+        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:${GT_LAST}${PR[key]},{gt_index('Unit_Cost!{X}$6', t)})"      # generation × tier index (J3); not the cost-scenario 3 (R1)
         rows = [
           (f"IF_TokRack_{tk}", "每架總 tok/s（參考任務 P:D）", "tok/s", "#,##0", pl("rtot")),
           (f"IF_TokRackD_{tk}", "每架 decode tok/s", "tok/s", "#,##0", pl("rdec")),
@@ -112,8 +114,8 @@ def checks(wb, CAL, PR, SR, U):
       ("第二來源：GB300 interactive 模型 ÷ MLPerf（DeepSeek-R1）", f"=Calib!C{CAL['mR']}", "1.00", "x", "<1：本模型低於 MLPerf，InferenceX 校準未比 MLPerf 樂觀", "S31、S32"),
       ("第二來源：VR200 ÷ GB300 模型 對 MLPerf", f"=Calib!C{CAL['mVR']}", f"=Calib!C{CAL['mVRm']}", "x", "兩者接近即支持 VR 沿用 GB300 效率係數", "S32"),
       ("來源衝突：GB300 ÷ GB200 模型 對 MLPerf", f"=Calib!C{CAL['mGB']}", f"=Calib!D{CAL['mGB']}", "x", "InferenceX 1.7–2.8、MLPerf 約 1.05、模型居中", "S20、S31"),
-      ("能量閉合：各欄最大閉合比", f"=MAX(Perf!C{PR['close']}:Q{PR['close']})", "≤ 100%", "%", "超過代表產出或能量常數有誤", "Perf J 節"),
-      ("SLO 或 TTFT 不可達的欄數（15 欄中）", f"=COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"SLO 不可達\")+COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"TTFT 不可達\")", "—", "欄", "0＝15 欄皆可達；v6.2 起 TTFT 納入可達判斷：v6.2–v8.0 基準下 Hopper × Astra 首 token 時間約 6.1 秒，高於上限 5 秒，計 1 欄；v9.0 起快取命中進 prefill 產能（只計新鮮輸入），該欄約 2.7 秒、符合上限，基準為 0", "Perf G 節（綁定約束列）"),
+      ("能量閉合：各欄最大閉合比", f"=MAX({live_ranges('Perf', PR['close'])})", "≤ 100%", "%", "超過代表產出或能量常數有誤", "Perf J 節"),
+      ("SLO 或 TTFT 不可達的欄數（15 欄中）", f"=COUNTIFS(Perf!C{PR['bind']}:{GT_LAST}{PR['bind']},\"SLO 不可達\",Perf!C7:{GT_LAST}7,\"<={NT_LIVE}\")+COUNTIFS(Perf!C{PR['bind']}:{GT_LAST}{PR['bind']},\"TTFT 不可達\",Perf!C7:{GT_LAST}7,\"<={NT_LIVE}\")", "—", "欄", "0＝15 欄皆可達；v6.2 起 TTFT 納入可達判斷：v6.2–v8.0 基準下 Hopper × Astra 首 token 時間約 6.1 秒，高於上限 5 秒，計 1 欄；v9.0 起快取命中進 prefill 產能（只計新鮮輸入），該欄約 2.7 秒、符合上限，基準為 0", "Perf G 節（綁定約束列）"),
       ("牌價空間：V4-Pro 8K/1K 牌價 ÷ GB300 Sol 成本（基準利用率）", f"=((8*1.32+3.96)/9)/((8*Unit_Cost!J{U[(2,'cfu')]}+Unit_Cost!J{U[(2,'cdu')]})/9)", "—", "x", "DeepSeek V4-Pro API 牌價 $1.32／$3.96（2026-09 價格追蹤站；記錄於 Tokenomics v4 活頁簿預設表）；只說明空間，不代表 DeepSeek 毛利", "S27"),
     ]
     put(ws, "A13", "項目", F_BOLD); put(ws, "B13", "本模型", F_BOLD); put(ws, "C13", "外部參照", F_BOLD)
@@ -165,7 +167,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v21100.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v21110.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -189,7 +191,7 @@ def readme(wb):
       ("Block 5 決策", "L1 參數組取代單一 token 倍數；L2 METR 型成功率＋覆寫欄；L3 增強檔不入基準（w＝0）；L4 harness 不影響每 GW 營收；L5 每成功任務成本＝每次嘗試 ÷ p；L6 非 GPU 成本不入第 0 層；L7 情境值只採中立方同條件實測；M1 (b) 成功任務成本前緣只比較成功率 ≥ 可靠度下限 p_min（基準 50%）者，無合格時回傳「無合格」，不設下限的前緣列為對照。"),
       ("來源原則", "SemiAnalysis（含 InferenceX）資料一律須有第二來源佐證並標記 Interested-party；目前第二來源為 MLPerf（MLCommons 稽核，NVIDIA 提交）與 DeepSeek 自揭（待查）。"),
       ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取儲存成本已於 v5.8 Cache_Store 加入（儲存層與保留時間為 Assumed）。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。(11) v5.8：K6 下游攤提預設於 v5.9 定為 (c)；Claude Opus 5.5、Kimi K3、MiniMax M3 的能力指數未取得，不參與前緣；Anthropic、Moonshot、Alibaba、MiniMax 價格為二手；METR 檢查未入表；Google 未列入候選。(12) v5.9：METR 尚未發布 GPT-6 各層級時間範圍（以 GPT-5.6 Sol、Mythos Preview 類比）；任務長度為 Assumed；ARC 金額衝突與 Opus 5 harness 歸屬待核；harness 用於 RL rollout 與非 GPU 成本延後。"),
-      ("生產折減並列輸出（v5.19 X1）", "Serving!C18（J15）維持 1.0（G0-11），模型的基準輸出不變。Interface G 節並列七列 _Prod 輸出，以 CTL_ProdDerate（Serving!C28，預設 0.85＝區間 0.7–1.0 的中點，情境值）重算：從 Serving!C18 進入模型的兩處（Perf、Perf_Batch 第 50 列）起，到 Theory_Rev 七個輸出列為止的公式鏈，逐格鏡像到 *_Prod 頁（同位置；只改兩處：鏈上參照改讀 *_Prod、第 50 列改讀 CTL_ProdDerate）。右側 S:AG 為檢查副本（第 50 列＝Serving!C18），Checks X1 比對七列是否等於基準列。_Prod 輸出的口徑同 D 節對應列；SLO 不可達時為文字。"),
+      ("生產折減並列輸出（v5.19 X1）", "Serving!C18（J15）維持 1.0（G0-11），模型的基準輸出不變。Interface G 節並列七列 _Prod 輸出，以 CTL_ProdDerate（Serving!C28，預設 0.85＝區間 0.7–1.0 的中點，情境值）重算：從 Serving!C18 進入模型的兩處（Perf、Perf_Batch 第 50 列）起，到 Theory_Rev 七個輸出列為止的公式鏈，逐格鏡像到 *_Prod 頁（同位置；只改兩處：鏈上參照改讀 *_Prod、第 50 列改讀 CTL_ProdDerate）。右側 X 欄起為檢查副本（v21.11 起；v5.19–v21.10 為 S:AG；第 50 列＝Serving!C18），Checks X1 比對七列是否等於基準列。_Prod 輸出的口徑同 D 節對應列；SLO 不可達時為文字。"),
       ("Interface 攤提耦合（v5.20 X5）", v520.X5_NOTE),
       v526.README_NAMES,      # v5.26: Interface I section names (appended; no README row moves)
       v530.README_ROW,        # v5.29: output contract and four-layer waterfall (appended); v5.30 X15: rewritten for the running product
@@ -240,7 +242,7 @@ def readme(wb):
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v21100.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v21110.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -249,10 +251,10 @@ def interface_b3(wb, TRN, start, TI):
     r = start
     section(ws, r, "C. Block 3 產出（依層級；欄＝世代 × 成本情境；GPU 小時不隨成本情境變動；下游預設 VR200、GB300 並列，J13）", 17); r += 1
     names = []
-    tiers = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+    tiers = TIERS_LIVE      # v21.11: see interface()
     for t, (tk, tn) in enumerate(tiers, start=1):
         put(ws, f"A{r}", tn, F_BOLD); r += 1
-        tl = lambda key: f"=INDEX(Training!$C${TRN[key]}:$Q${TRN[key]},3*(Unit_Cost!{{X}}$6-1)+{t})"
+        tl = lambda key: f"=INDEX(Training!$C${TRN[key]}:${GT_LAST}${TRN[key]},{gt_index('Unit_Cost!{X}$6', t)})"
         rows = [
           (f"IF_TrainGPUh_{tk}", "最終訓練 GPU 小時（單一模型）", "GPU-hr", "#,##0", tl("Hfin")),
           (f"IF_TrainCost_{tk}", "最終訓練成本 — 經濟（依成本情境）", "$M", "#,##0.0", "=IF(ISNUMBER(" + tl("Hfin")[1:] + "),"+ tl("Hfin")[1:] + "*Unit_Cost!{X}$8/1E6," + tl("Hfin")[1:] + ")"),
@@ -284,7 +286,8 @@ def interface_b3(wb, TRN, start, TI):
 def checks_b3(wb, TRN, TI, CAL, PB):
     ws = wb["Checks"]
     r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
-    section(ws, r0, "Block 3 檢查（VR200＝N 欄 Astra、M 欄 Sol；GB300＝K、J）", 6)
+    section(ws, r0, f"Block 3 檢查（VR200＝{gt_col(4, 3)} 欄 Astra、{gt_col(4, 2)} 欄 Sol；GB300＝{gt_col(3, 3)}、{gt_col(3, 2)}）", 6)
+    N, M, K = gt_col(4, 3), gt_col(4, 2), gt_col(3, 3)      # v21.11: Training is generation × 4 tiers (v21.10: N, M, K)
     put(ws, f"A{r0+1}", "項目", F_BOLD); put(ws, f"B{r0+1}", "本模型", F_BOLD); put(ws, f"C{r0+1}", "外部參照", F_BOLD)
     put(ws, f"D{r0+1}", "單位", F_BOLD); put(ws, f"E{r0+1}", "判讀", F_BOLD); put(ws, f"F{r0+1}", "來源", F_BOLD)
     T = lambda k, col: f"Training!{col}{TRN[k]}"
@@ -293,17 +296,17 @@ def checks_b3(wb, TRN, TI, CAL, PB):
     rows = [
       ("DeepSeek V3 推導 MFU（H800、FP8 分母）", v3, "=Training!C" + str(TRN["mfu"]), "%",
        "外部參照欄＝本模型 Hopper 採用 MFU；兩者接近即 Hopper 倍數 0.8 成立", "S44"),
-      ("RL ÷ 預訓練 GPU 小時：VR200 Astra", f"={T('rlH','N')}", f"=Train_In!$C${TI['grok']}", "x",
+      ("RL ÷ 預訓練 GPU 小時：VR200 Astra", f"={T('rlH',N)}", f"=Train_In!$C${TI['grok']}", "x",
        "J9 基準 1.0；參照為 Grok 4 宣稱（口徑不明）", "S42"),
-      ("RL ÷ 預訓練 GPU 小時：VR200 Sol", f"={T('rlH','M')}", f"=Train_In!$C${TI['r1rl']}", "x",
+      ("RL ÷ 預訓練 GPU 小時：VR200 Sol", f"={T('rlH',M)}", f"=Train_In!$C${TI['r1rl']}", "x",
        "J9 基準 0.3；參照為 R1（2025-01）", "S40"),
-      ("RL 有效 MFU：VR200 Astra", f"={T('rlmfu','N')}", "0.01–0.10", "%", "交接第 3 節區間；本模型為推導值", "交接"),
-      ("後訓練占比：GPU 小時口徑 − FLOPs 口徑（VR200 Astra）", f"=IF(AND(ISNUMBER({T('psH','N')}),ISNUMBER({T('psF','N')})),{T('psH','N')}-{T('psF','N')},{T('psH','N')})", "≥ 0", "%",
+      ("RL 有效 MFU：VR200 Astra", f"={T('rlmfu',N)}", "0.01–0.10", "%", "交接第 3 節區間；本模型為推導值", "交接"),
+      ("後訓練占比：GPU 小時口徑 − FLOPs 口徑（VR200 Astra）", f"=IF(AND(ISNUMBER({T('psH',N)}),ISNUMBER({T('psF',N)})),{T('psH',N)}-{T('psF',N)},{T('psH',N)})", "≥ 0", "%",
        "RL 有效 MFU 低於預訓練，GPU 小時占比必然較高", "Training I 節"),
       ("最終訓練 ÷ 研發計畫", f"=1/Train_In!$C${TI['rdm']}", "9.6%–22.6%", "%", "Epoch 三家公司區間", "S38"),
-      ("前沿錨點中值（5e26）反推 Astra 預訓練 token", f"=Train_In!$C${TI['an2']}/({T('Fpt','N')}*1E9)/1E12",
-       f"=Training!N{TRN['Dp']}", "T", "J8：差距大代表 Astra 啟用參數或 token 假設偏低；錨點低／高值見 Train_In", "S39"),
-      ("Astra 最終訓練占 1 GW 一年：VR200 ／ GB300", f"={T('GWf','N')}", f"={T('GWf','K')}", "%", "本模型 VR200 值；外部參照欄為 GB300", "Training"),
+      ("前沿錨點中值（5e26）反推 Astra 預訓練 token", f"=Train_In!$C${TI['an2']}/({T('Fpt',N)}*1E9)/1E12",
+       f"=Training!{N}{TRN['Dp']}", "T", "J8：差距大代表 Astra 啟用參數或 token 假設偏低；錨點低／高值見 Train_In", "S39"),
+      ("Astra 最終訓練占 1 GW 一年：VR200 ／ GB300", f"={T('GWf',N)}", f"={T('GWf',K)}", "%", "本模型 VR200 值；外部參照欄為 GB300", "Training"),
     ]
     return r0 + 2, rows
 

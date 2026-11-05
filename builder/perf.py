@@ -1,5 +1,6 @@
 # Perf-like column generator: same row logic for Perf (15 cols) and Sens_Perf (scenario cols)
 from common import *
+from tiers import TC_LAST
 
 def perf_rows(SP, AR, CAL, TR, cache=True):
     """v9.0 M1 (D9): cache=True (Perf, Sens_Perf and their _Prod mirrors) counts only the FRESH input ISL x (1 - B4_CacheHit) in prefill time (TTFT, GPU-s per request, prefill GPU share);
@@ -7,8 +8,8 @@ def perf_rows(SP, AR, CAL, TR, cache=True):
     Row spec: (key, label, unit, fmt, template) ; '§' key = section header. Templates use {X} and row keys."""
     I = lambda sheet, rng, idx: f"=INDEX({sheet}!{rng},{{X}}${idx})"
     sp = lambda r: I("Spec_Rack", f"$C${r}:$G${r}", 6)
-    ar = lambda r: I("Arch", f"$C${r}:$E${r}", 7)
-    sv = lambda r: I("Serving", f"$C${r}:$E${r}", 7)
+    ar = lambda r: I("Arch", f"$C${r}:${TC_LAST}${r}", 7)          # v21.11: tier columns C:F (Terra = F)
+    sv = lambda r: I("Serving", f"$C${r}:${TC_LAST}${r}", 7)
     fr = "({X}{isl}*(1-B4_CacheHit))" if cache else "{X}{isl}"      # fresh (non-cached) input tokens per reference request
     ft = "；v9.0 D9：prefill 只計新鮮輸入 ISL × (1 − B4_CacheHit)" if cache else ""
     return [

@@ -8,6 +8,7 @@
 #      (Hopper H200, GB200); SRC_Perf／SRC_Harness records for the new reference values.
 #   N4 label notes (Perf_Batch, Perf TTFT, kappa, free share), literal payback reading marked inconsistent.
 # Every write to an Excel-owned cell is guarded (text not yet present ／ cell still holds its v9.0 value).
+from tiers import gt_pos      # v21.11: TRN_ names are generation × 4 tiers (VR200 Luna／Sol at positions 13／14; v21.10: 10／11)
 import re
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
@@ -267,9 +268,9 @@ def checks_v(wb, CAL):
          "SRC_PERF_062（LMSYS／SGLang，96×H100，輸入 2,000，ITL 約 100 ms；Atlas Cloud 有商業動機）；v10.2 E3：模型值改為 Calib J 節 F 欄（條件對齊：DeepSeek-V3 規模、輸入 2,000、ITL 100 ms＝10 tok/s/user，批次由速度下限與 HBM 決定）；不用於校準"),
         ("V8", "LMSYS GB200 decode（條件對齊）：GB200——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0", f"=Calib!G{CAL['J']['jD']}", "=SRC_PERF_063", None, 0.5, 2.0,
          "SRC_PERF_063（LMSYS／SGLang，GB200 NVL72，NVFP4，輸入 2,000，decode 48 rank，無 TPOT；與 NVIDIA 合作，Interested-party 成分高）；v10.2 E3：模型值改為 Calib J 節 G 欄（條件對齊，同 V7）；不用於校準"),
-        ("V9", "RL ÷ 預訓練 GPU 小時：Luna（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,10)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3,
+        ("V9", "RL ÷ 預訓練 GPU 小時：Luna（VR200）——通過帶 0.1–0.3", f"=INDEX(TRN_RLRatioH,1,{gt_pos(4, 1)})", "=SRC_PERF_064", "=C{r}", 0.1, 0.3,
          "對照值＝Olmo 3（AI2）RL ÷ 預訓練約 0.11（SRC_PERF_064）；DeepSeek-V3.2 ≥ 0.1（SRC_PERF_065）；帶 0.1–0.3（3A 第 3 節）；模型值＝Training 第 78 列（J9 目標約 0.3，基準校準值，不是證據）"),
-        ("V10", "RL ÷ 預訓練 GPU 小時：Sol（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,11)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3, "同上；Sol"),
+        ("V10", "RL ÷ 預訓練 GPU 小時：Sol（VR200）——通過帶 0.1–0.3", f"=INDEX(TRN_RLRatioH,1,{gt_pos(4, 2)})", "=SRC_PERF_064", "=C{r}", 0.1, 0.3, "同上；Sol"),
         ("V11", "harness 輪數倍數 ≥ 1（Coding agent；選定檔案；SWE Atlas：原生 scaffold 工具呼叫多 1.5–2 倍，只判方向）", "=INDEX(B5_SelT,1,5)", "=SRC_HAR_016_Lo", "=C{r}", 1, None,
          "SRC_HAR_016（SWE Atlas arXiv 2605.08366：原生 scaffold 對 mini-SWE-agent 工具呼叫 1.5–2 倍）；基準 0.7（Har_In 第 12 列，Q3＝R1）預期失敗，如實顯示，不調輸入；工具呼叫數不等於輪數，只作方向證據"),
         ("V12", "樣本外：GB300 SGLang＋MTP 50 tok/s——模型 ÷ 實測 ±10%（Checks B15）", "—", "=Checks!C15", "=Checks!B15", 0.9, 1.1, "SRC_PERF_004；Checks B15 原判準「±10% 內視為前緣形狀成立」"),

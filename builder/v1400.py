@@ -10,6 +10,7 @@
 #   Q5  用途 marks for the 155 kept display rows (builder/v1400_data.json) and for the cells that became dead through Q1 (v1400_marks.json).
 # Every write to an Excel-owned cell is guarded (old value / old text).
 import json
+import re
 from pathlib import Path
 
 import openpyxl
@@ -18,6 +19,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.styles import PatternFill
 
 from common import put, F_NOTE, F_BOLD, F_CALC, section
+from tiers import GT_LAST, NT_LIVE, PB_SCEN, gt_index
 import v1310
 
 VERSION = "20261017_Tokenomics_v14.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
@@ -66,11 +68,23 @@ def _purpose_col(ws, create=True):
     return col
 
 
+def _widen(e):
+    """v21.11: a deleted tier row also covers the Terra cell the builder now writes (Arch／Serving C:E -> C:F; Training C:Q -> C:V).
+    The 用途 note keeps the v14.0 range text."""
+    from tiers import TC_LAST, RELAID
+    rng = e["range"]
+    if e["sheet"] in ("Arch", "Serving") and re.fullmatch(r"C\d+:E\d+", rng):
+        return rng.replace(":E", ":" + TC_LAST)
+    if e["sheet"] in RELAID and re.fullmatch(r"C\d+:Q\d+", rng):
+        return rng.replace(":Q", ":" + GT_LAST)
+    return rng
+
+
 def delete_cells(wb):
     n_cells = n_rows = 0
     for e in DATA["delete"]:
         ws = wb[e["sheet"]]
-        for r, c in _cells(e["range"]):
+        for r, c in _cells(_widen(e)):
             cell = ws.cell(r, c)
             if cell.value is not None:
                 cell.value = None; cell.fill = NO_FILL; n_cells += 1
@@ -113,7 +127,7 @@ def purpose_marks(wb):
 M_TITLE = ("M. 契約補名（v14.0，工作單 4-3B Q2）：18 個名稱中的 11 個 IF_ 名稱；其餘 7 個 L1_ 序列名稱在 Cap_In（見下游契約文件）。"
            "Luna／Sol／Astra 是模型層級（低／中／頂），不是世代；欄＝世代 × 成本情境（任務別列：欄 C–G＝Workload 任務）。"
            "每列標明層級與 token 類型；『混合』＝該值本身是跨 token 類型的混合比值，不能拆回單一類型")
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 GM_ROW = {"Luna": 24, "Sol": 42, "Astra": 60}
 
 
@@ -135,7 +149,7 @@ def interface_m(wb):
     name_it("IF_TaskTokMult", f"Interface!$C${r}:$G${r}"); made.append(("IF_TaskTokMult", r)); r += 1
     for t, (tk, tn) in enumerate(TIERS, start=1):
         put(ws, f"A{r}", tn, F_BOLD); r += 1
-        pick = lambda row: "=INDEX(Training!$C${0}:$Q${0},3*(Unit_Cost!{{X}}$6-1)+{1})".format(row, t)
+        pick = lambda row: "=INDEX(Training!$C${0}:${2}${0},{1})".format(row, gt_index("Unit_Cost!{X}$6", t), GT_LAST)      # v21.11: generation × tier index (J3)
         rows = [
             (f"IF_TrainFLOP_{tk}", f"最終訓練 FLOPs（{tn[:tn.index('（')]}層級；單一模型；預訓練側＋後訓練＋合成資料＋評測；訓練側，無 token 類型；不隨成本情境變動）",
              "FLOP", FLOPS_FMT, pick(109)),
@@ -178,15 +192,22 @@ def series_names(wb):
     return [n for n, *_ in SER_NAMES]
 
 
+# v21.11 (B1): Perf C..V and Perf_Batch C..X; the counts stay on the live tiers (row 7 = tier index <= NT_LIVE) so the v21.10 values hold
+_PM, _BM = f"(Perf!$C$7:${GT_LAST}$7<={NT_LIVE})", f"(Perf_Batch!$C$7:${PB_SCEN[-1]}$7<={NT_LIVE})"
+_P = lambda r: f"Perf!$C${r}:${GT_LAST}${r}"
+_B = lambda r: f"Perf_Batch!$C${r}:${PB_SCEN[-1]}${r}"
+V23_C = (f"=IFERROR(SUMPRODUCT({_PM}*({_P(87)}>0)*({_P(89)}<{_P(41)}*(1-0.000000001)))"
+         f"+SUMPRODUCT({_BM}*({_B(87)}>0)*({_B(89)}<{_B(41)}*(1-0.000000001))),1)")
+V23_D = f"=SUMPRODUCT({_PM}*({_P(87)}>0))+SUMPRODUCT({_BM}*({_B(87)}>0))"
+
+
 # ================================================================== Q4: Checks V23–V26 and D104／D140
 def v_items(wb):
     """Items in the format of v1000.checks_v: (id, label, C, D, E, lower, upper, note). F = 1 if lower <= E <= upper."""
     E_NUM = '=IF(ISNUMBER(C{r}),C{r},"—")'
     return [
         ("V23", "實際每用戶 decode 速度 ≥ SLO（Perf 與 Perf_Batch 第 89 列對第 41 列；可達欄中低於 SLO 的欄數＝0；全部層級，token 類型＝decode token）【恆等式（非驗證）；v14.1 R2】",
-         "=IFERROR(SUMPRODUCT((Perf!$C$87:$Q$87>0)*(Perf!$C$89:$Q$89<Perf!$C$41:$Q$41*(1-0.000000001)))"
-         "+SUMPRODUCT((Perf_Batch!$C$87:$S$87>0)*(Perf_Batch!$C$89:$S$89<Perf_Batch!$C$41:$S$41*(1-0.000000001))),1)",
-         "=SUMPRODUCT(--(Perf!$C$87:$Q$87>0))+SUMPRODUCT(--(Perf_Batch!$C$87:$S$87>0))",
+         V23_C, V23_D,
          '=IF(AND(ISNUMBER(C{r}),ISNUMBER(D{r})),IF(D{r}>0,C{r},1),"—")', 0, 0,
          "v14.0 4-3B Q4（A 段第 4 節）：模型值＝低於 SLO 的可達欄數（Perf 15 欄＋Perf_Batch 17 欄；B*＝0 的不可達欄不計）；對照值＝可達欄數（為 0 時本項判失敗，防止空轉）。"
          "結構性恆成立（B* ＝ MIN(SLO 限制批次, 記憶體限制批次)），程式或公式被改壞時才會失敗；專屬測試改寫 Perf!C87 公式（無法只靠改輸入使其失敗，見報告）"),

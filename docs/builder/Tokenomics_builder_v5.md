@@ -46,6 +46,7 @@
 - v5.33（2026-10-13）：新增 v533.py（判斷類，工作單 docs/workorders/20261012_v5.33.md r1：Alloc_In C9／C11／C12／E15 藍字（J8 世代組合 Hopper 60／GB200 40、J9 每則 token 高端 11,000；只在仍為舊值時才寫）；Cap_In H7「機隊口徑」〔第 108–130 列，接在 H6 之後，讀法列改寫移到第 130 列，不新增具名範圍〕；L1_MFleet／L1_TokCeiling〔L1 第 78–79 列〕與判讀欄；Checks M2／M3（WARN）；SRC_Demand SRC_DEM_049–068 與 SRC_DEM_007／009／045 備註；Gov_Map GM590／GM586／GM587／GM594 理由欄與新登錄 2 列（GM612／GM613）；DB_Evidence E302–E324 與 E301 判定；Decisions X27–X34 與 X22／X26 備註；README）。公式 46,471 格、零錯誤；具名範圍 1,140 個；restore matched 983、unmatched 0、Excel kept over code 9（冪等重建 986／0／12，多出的 3 格＝C9、C11、C12）；冪等重建不符 0。
 - v5.34（2026-10-14）：新增 v534.py（Cap_In H8 m 分拆、H9 token 帳三路線、H10 m 季度序列；L1 六列；Checks M4；SRC_DEM_069–071、DB_Evidence E325–E337、Decisions X35–X41；Cap_In E12 0.3 → 0.4）；gov.py、build.py、finish.py 接上。
 - v5.x（v21.1）：新增 v2110.py（NonNV 昇騰／Maia、免費占比時間路徑、Interface IF_NonNV_*）；補入 v2100.py
+- v21.11（結構版，v22.0 B1「結構一」）：新增 tiers.py（層級清單單一來源：TIERS＝Luna、Sol、Astra、Terra，NT＝4；NT_LIVE＝3）與 v21110.py；Arch／Serving／Train_In／Har_In 加 Terra 欄 F；Perf、Perf_Batch、Training 與 _Prod 鏡像改 20 欄（索引 4×(g−1)＋t）；讀取端改新索引；preserve 欄位對照（build.py）；Unit_Cost Terra 區；既有值逐值不變。
 v21.3：builder/v2130.py（VR200 機架價低端 7.5、GPT-6.1 Sol 快取價 0.10、Azure 加註、L1 說明修補）
 - v21.2（次版）：新增 v2120.py（AL_SpendBasis 1.8 與四項說明修補）；build.py、finish.py、gov.py 接上 v2120。
 v16.0: builder/v1600.py (L from each generation's own start)
@@ -97,12 +98,112 @@ def title(ws, t1, t2):
     put(ws, "A2", t2, F_NOTE)
 ```
 
+## tiers.py
+
+```python
+# v21.11 (v22.0 segment B1, design docs/plan/20261105_v22.0_Terra第四層級_設計.md J1／J3): single source of the model-tier list.
+# Computation order Luna, Sol, Astra, Terra (Terra appended as index 4, J1 (a)); display order by price is a reading-version／site matter (B4).
+#
+#   TIERS      every tier the physical engine computes (Arch, Serving, Train_In, Perf, Perf_Batch, Training and their *_Prod copies, Unit_Cost blocks)
+#   TIERS_LIVE the tiers whose outputs feed contract names and cross-tier aggregates. v21.11 (B1) and v21.12 (B2) keep it at 3 so every existing
+#              value stays the same (Terra is computed but read by nothing that a contract name reads); v22.0 (B3) raises NT_LIVE to 4.
+#   GT_COLS    generation × tier columns of Perf／Perf_Batch／Training (C..V = 5 generations × 4 tiers; index NT*(g-1)+t, J3 (a))
+from openpyxl.utils import get_column_letter as L, column_index_from_string as CI
+
+TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）"), ("Terra", "Terra（中低層）")]
+TIER_KEYS = [k for k, _ in TIERS]
+NT = len(TIERS)                     # 4
+NG = 5                              # generations (Hopper, GB200, GB300, VR200, Rubin Ultra)
+NT_LIVE = 3                         # v21.11／v21.12: 3; v22.0 B3: 4
+TIERS_LIVE = TIERS[:NT_LIVE]
+TC = "".join(L(3 + i) for i in range(NT))          # "CDEF": tier columns on the input sheets (Arch, Serving rows 20-24, Train_In rows 24-38, Har_In rows 47-50)
+TC_LIVE = TC[:NT_LIVE]                              # "CDE"
+TC_LAST = TC[-1]                                    # "F"
+GT_COLS = [L(i) for i in range(3, 3 + NG * NT)]     # C..V
+GT_LAST = GT_COLS[-1]                               # "V"
+GT_GENS_TIERS = [(i // NT + 1, i % NT + 1) for i in range(NG * NT)]
+GT_SPAN = f"$C${{r}}:${GT_LAST}${{r}}"             # format with r=row
+
+
+def gt_pos(g, t):
+    """1-based position of (generation g, tier t) in a generation × tier row (J3: NT*(g-1)+t)."""
+    return NT * (g - 1) + t
+
+
+def gt_col(g, t):
+    """Column letter of (g, t) on Perf／Perf_Batch／Training."""
+    return L(2 + gt_pos(g, t))
+
+
+def gt_index(gexpr, texpr):
+    """Excel index expression NT*(g-1)+t (texpr may be a number or a cell reference)."""
+    return f"{NT}*({gexpr}-1)+{texpr}"
+
+
+def gt_row(sheet, r):
+    """Absolute generation × tier range of one row, e.g. Perf!$C$95:$V$95."""
+    return f"{sheet}!$C${r}:${GT_LAST}${r}"
+
+
+# ---- old (v21.10 and earlier) 15-column layout: C..Q = 5 generations × 3 tiers, index 3*(g-1)+t
+OLD_NT = 3
+OLD_LAST = "Q"
+
+
+def old_to_new_col(c):
+    """Column number on the v21.10 15-column layout (3..17) -> column number on the 20-column layout (J3 mapping
+    3 + NT*floor((c-3)/3) + (c-3) mod 3)."""
+    i = c - 3
+    return 3 + NT * (i // OLD_NT) + i % OLD_NT
+
+
+# Perf_Batch scenario columns (FP8 rollout on VR200, Sol and Astra): R, S on the old layout -> W, X
+PB_SCEN_OLD = ["R", "S"]
+PB_SCEN = [L(3 + NG * NT), L(4 + NG * NT)]          # W, X
+PB_SCEN_TIERS = [2, 3]
+
+
+def old_col_map(sheet):
+    """{old column number: new column number} for the blue-input columns of a re-laid sheet (preserve mapping, R2)."""
+    m = {c: old_to_new_col(c) for c in range(3, 18)}
+    if sheet == "Perf_Batch":
+        for o, n in zip(PB_SCEN_OLD, PB_SCEN):
+            m[CI(o)] = CI(n)
+    return m
+
+
+RELAID = ("Perf", "Perf_Batch", "Training")          # generation × tier sheets re-laid to 20 columns (their *_Prod copies follow)
+
+
+def old_layout(wb):
+    """R13: the 15-column layout is detected from the width of DRV_Tier (Perf!$C$5:$Q$5 on v21.10 and earlier)."""
+    if "DRV_Tier" not in wb.defined_names:
+        return False
+    return wb.defined_names["DRV_Tier"].attr_text.endswith(f"${OLD_LAST}$5")
+
+
+def live_ranges(sheet, r):
+    """Comma-joined ranges of the live-tier columns of one generation × tier row (one contiguous block per generation),
+    e.g. Perf!C116:E116,Perf!G116:I116,… — for MAX／MIN-type checks that must keep their v21.10 value while Terra is not live."""
+    out = []
+    for g in range(1, NG + 1):
+        a, b = gt_col(g, 1), gt_col(g, NT_LIVE)
+        out.append(f"{sheet}!{a}{r}:{b}{r}")
+    if NT_LIVE == NT:
+        return f"{sheet}!C{r}:{GT_LAST}{r}"
+    return ",".join(out)
+```
+
 ## inputs.py
 
 ```python
 # Input sheets: Spec_Rack (Block 2 rows), Arch, Serving, Energy inputs
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
+from tiers import TIERS, TC, TC_LAST
+
+ARCH_TAG, ARCH_NOTE = "G", "H"      # v21.11: Terra takes column F, so 標記／來源說明 move from F／G to G／H (J2 (a); no blue input moves)
+SERV_NOTE = "G"                      # v21.11: Serving rows 20-24 說明 moves from F to G (Terra in F; rows 20-24 only)
 
 GENS = ["C", "D", "E", "F", "G"]          # Hopper, GB200, GB300, VR200, RU in Spec_Rack
 
@@ -174,42 +275,44 @@ def spec_rack(wb):
 
 def arch(wb):
     ws = wb.create_sheet("Arch", 3)
-    title(ws, "Arch — 三層級代表架構（D5：每層級一個代表；參數為公開模型卡或推估）",
-          "Luna／Sol 以公開權重模型為物理代表 [Analogy：對應封閉層級]；Astra 為封閉前沿代理，KV 以情境處理（J1）")
-    for c, w in zip("ABCDEFG", [30, 12, 16, 16, 18, 16, 80]): ws.column_dimensions[c].width = w
-    for c, v in zip("ABCDEFG", ["參數", "單位", "Luna（低層）", "Sol（中層）", "Astra（頂層）", "標記", "來源／說明"]):
+    title(ws, "Arch — 四層級代表架構（D5：每層級一個代表；參數為公開模型卡或推估）",
+          "Luna／Sol 以公開權重模型為物理代表 [Analogy：對應封閉層級]；Astra 為封閉前沿代理，KV 以情境處理（J1）；"
+          "Terra（F 欄，v21.11 起）＝DeepSeek V4 家族內插（Flash 與 Pro 之間，J4）[Analogy]，區間見 docs/plan/20261105_v22.0_Terra第四層級_設計.md 第 3.1 節；"
+          "v21.11 只建結構，Terra 欄尚無契約名稱讀取（v22.0 啟用）")
+    for c, w in zip("ABCDEFGH", [30, 12, 16, 16, 18, 18, 16, 80]): ws.column_dimensions[c].width = w
+    for c, v in zip("AB" + TC + ARCH_TAG + ARCH_NOTE, ["參數", "單位"] + [tn for _, tn in TIERS] + ["標記", "來源／說明"]):
         put(ws, f"{c}4", v, F_BOLD)
     R = {}
     rows = [
-      ("rep", "代表架構", "", ["DeepSeek V4-Flash 類", "DeepSeek V4-Pro 類", "封閉前沿代理"], None, "Decision", "D5；Andy 2026-09-30 確認"),
-      ("T", "總參數", "B", [284, 1600, 4000], "#,##0", "Verified／Assumed", "V4-Flash 284B、V4-Pro 1.6T（模型卡，S27）；Astra 4T [Assumed，區間 2–10T]"),
-      ("A", "啟用參數", "B", [13, 49, 180], "#,##0", "Verified／Assumed", "V4-Flash 13B、V4-Pro 49B；Astra 180B [Assumed，區間 60–250B]"),
-      ("L", "層數", "層", [43, 61, 100], "#,##0", "Verified／Assumed", "V4-Pro 61（config.json）；V4-Flash 43（二手）；Astra [Assumed]"),
-      ("d", "d_model", "", [4096, 7168, 12288], "#,##0", "Verified／Assumed", "V4-Pro 7168；V4-Flash 4096（官方 config.json hidden_size，v5.13 讀原文）；Astra [Assumed]"),
-      ("hq", "query heads", "", [64, 128, 96], "#,##0", "Verified／Assumed", "V4-Pro 128；V4-Flash 64（官方 config.json num_attention_heads，v5.13 讀原文）；Astra [Assumed]"),
-      ("hd", "head_dim", "", [512, 512, 128], "#,##0", "Verified／Assumed", "V4 單一 512 維 KV head；Astra 128"),
-      ("E", "routed experts", "", [256, 384, 512], "#,##0", "Verified／Assumed", ""),
-      ("k", "每 token 啟用 routed experts", "", [6, 6, 16], "#,##0", "Verified／Assumed", ""),
-      ("s", "shared experts", "", [1, 1, 1], "#,##0", "Verified", ""),
-      ("V", "vocab", "", [129280, 129280, 200000], "#,##0", "Verified／Assumed", ""),
-      ("ff", "全注意力層比例", "%", [0.5, 0.5, 1], "0%", "Verified／Assumed", "V4：CSA 與 HCA 約各半；Astra 全層注意力"),
-      ("cap", "全注意力層跨度上限（0＝全上下文）", "tok", [4224, 4224, 0], "#,##0", "Derived", "V4 CSA：top-k 1,024 壓縮塊 × 4 ＋ 128 窗口"),
-      ("comp", "其他層壓縮比", "x", [128, 128, 1], "#,##0", "Verified", "V4 HCA 128× 壓縮"),
-      ("win", "其他層滑動窗", "tok", [128, 128, 0], "#,##0", "Verified", ""),
-      ("kvsel", "Astra KV 情境（1 混合／2 全層 MLA／3 GQA-8）", "選擇", [None, None, 2], "0", "Decision", "J1：基準 2（Andy 2026-09-30 確認）"),
+      ("rep", "代表架構", "", ["DeepSeek V4-Flash 類", "DeepSeek V4-Pro 類", "封閉前沿代理", "DeepSeek V4 家族內插（Flash 與 Pro 之間）"], None, "Decision", "D5；Andy 2026-09-30 確認"),
+      ("T", "總參數", "B", [284, 1600, 4000, 700], "#,##0", "Verified／Assumed", "V4-Flash 284B、V4-Pro 1.6T（模型卡，S27）；Astra 4T [Assumed，區間 2–10T]"),
+      ("A", "啟用參數", "B", [13, 49, 180, 30], "#,##0", "Verified／Assumed", "V4-Flash 13B、V4-Pro 49B；Astra 180B [Assumed，區間 60–250B]"),
+      ("L", "層數", "層", [43, 61, 100, 53], "#,##0", "Verified／Assumed", "V4-Pro 61（config.json）；V4-Flash 43（二手）；Astra [Assumed]"),
+      ("d", "d_model", "", [4096, 7168, 12288, 6144], "#,##0", "Verified／Assumed", "V4-Pro 7168；V4-Flash 4096（官方 config.json hidden_size，v5.13 讀原文）；Astra [Assumed]"),
+      ("hq", "query heads", "", [64, 128, 96, 96], "#,##0", "Verified／Assumed", "V4-Pro 128；V4-Flash 64（官方 config.json num_attention_heads，v5.13 讀原文）；Astra [Assumed]"),
+      ("hd", "head_dim", "", [512, 512, 128, 512], "#,##0", "Verified／Assumed", "V4 單一 512 維 KV head；Astra 128"),
+      ("E", "routed experts", "", [256, 384, 512, 320], "#,##0", "Verified／Assumed", ""),
+      ("k", "每 token 啟用 routed experts", "", [6, 6, 16, 6], "#,##0", "Verified／Assumed", ""),
+      ("s", "shared experts", "", [1, 1, 1, 1], "#,##0", "Verified", ""),
+      ("V", "vocab", "", [129280, 129280, 200000, 129280], "#,##0", "Verified／Assumed", ""),
+      ("ff", "全注意力層比例", "%", [0.5, 0.5, 1, 0.5], "0%", "Verified／Assumed", "V4：CSA 與 HCA 約各半；Astra 全層注意力"),
+      ("cap", "全注意力層跨度上限（0＝全上下文）", "tok", [4224, 4224, 0, 3200], "#,##0", "Derived", "V4 CSA：top-k 1,024 壓縮塊 × 4 ＋ 128 窗口"),
+      ("comp", "其他層壓縮比", "x", [128, 128, 1, 128], "#,##0", "Verified", "V4 HCA 128× 壓縮"),
+      ("win", "其他層滑動窗", "tok", [128, 128, 0, 128], "#,##0", "Verified", ""),
+      ("kvsel", "Astra KV 情境（1 混合／2 全層 MLA／3 GQA-8）", "選擇", [None, None, 2, None], "0", "Decision", "J1：基準 2（Andy 2026-09-30 確認）"),
       # v5.13 (D): rows 21–23 are formulas of the KV inputs at the bottom of the sheet (rows "KV 推導輸入"); values unchanged
-      ("kv1", "KV bytes/token — 情境 1", "B", [None, None, None], "#,##0", "Derived（公式）", "Luna／Sol＝每層 KV bytes × 層數；Astra 混合＝MLA 層比例 × MLA 每層 KV 元素 × 層數 × 每元素 bytes（v5.13 改公式，值不變）"),
-      ("kv2", "KV bytes/token — 情境 2", "B", [None, None, None], "#,##0", "Derived（公式）", "Astra 全層 MLA＝MLA 每層 KV 元素 × 層數 × 每元素 bytes"),
-      ("kv3", "KV bytes/token — 情境 3", "B", [None, None, None], "#,##0", "Derived（公式）", "Astra GQA＝KV heads × head_dim × 2（K、V）× 層數 × 每元素 bytes"),
+      ("kv1", "KV bytes/token — 情境 1", "B", [None, None, None, None], "#,##0", "Derived（公式）", "Luna／Sol＝每層 KV bytes × 層數；Astra 混合＝MLA 層比例 × MLA 每層 KV 元素 × 層數 × 每元素 bytes（v5.13 改公式，值不變）"),
+      ("kv2", "KV bytes/token — 情境 2", "B", [None, None, None, None], "#,##0", "Derived（公式）", "Astra 全層 MLA＝MLA 每層 KV 元素 × 層數 × 每元素 bytes"),
+      ("kv3", "KV bytes/token — 情境 3", "B", [None, None, None, None], "#,##0", "Derived（公式）", "Astra GQA＝KV heads × head_dim × 2（K、V）× 層數 × 每元素 bytes"),
     ]
     r = 5
     for key, lab, unit, vals, fmt, tag, note in rows:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals):
+        for c, v in zip(TC, vals):
             if v is not None: put(ws, f"{c}{r}", v, fmt=fmt)
-        put(ws, f"F{r}", tag, F_NOTE); put(ws, f"G{r}", note, F_NOTE)
+        put(ws, f"{ARCH_TAG}{r}", tag, F_NOTE); put(ws, f"{ARCH_NOTE}{r}", note, F_NOTE)
         R[key] = r; r += 1
-    section(ws, r, "導出", 7); r += 1
+    section(ws, r, "導出", 8); r += 1
     der = [
       ("kv", "KV bytes/token（採用）", "B", "=CHOOSE(IF({c}{kvsel}=\"\",1,{c}{kvsel}),{c}{kv1},{c}{kv2},{c}{kv3})", "#,##0"),
       ("emb", "Embedding＋LM head 參數", "B", "={c}{V}*{c}{d}*2/1E9", "#,##0.00"),
@@ -222,39 +325,39 @@ def arch(wb):
     for key, lab, unit, f, fmt in der:
         R[key] = r
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c in "CDE":
+        for c in TC:
             m = {k: v for k, v in R.items()}; m["c"] = c
             put(ws, f"{c}{r}", f.format(**m), fmt=fmt, fill=FILL_KEY if key == "kv" else None)
         r += 1
-    put(ws, f"G{R['pe']}", "由公開總參數與啟用參數反推，確保總數吻合（v4 方法）", F_NOTE)
+    put(ws, f"{ARCH_NOTE}{R['pe']}", "由公開總參數與啟用參數反推，確保總數吻合（v4 方法）", F_NOTE)
     # v5.12 (A): the context length of the display row above moved out of the formula into a named input (value unchanged)
     R["ctx"] = r
     put(ws, f"A{r}", "上下文長度（上一列顯示用）"); put(ws, f"B{r}", "tok")
     put(ws, f"C{r}", 128000, fmt="#,##0")
-    put(ws, f"F{r}", "結構選擇", F_NOTE)
-    put(ws, f"G{r}", "顯示列的口徑：128,000（非 131,072）；三層級共用本格（CST_CtxKV）。不影響任何產出", F_NOTE)
+    put(ws, f"{ARCH_TAG}{r}", "結構選擇", F_NOTE)
+    put(ws, f"{ARCH_NOTE}{r}", "顯示列的口徑：128,000（非 131,072）；三層級共用本格（CST_CtxKV）。不影響任何產出", F_NOTE)
     wb.defined_names["CST_CtxKV"] = DefinedName("CST_CtxKV", attr_text=f"Arch!$C${r}")
     # v5.13 (D): inputs behind KV rows 21–23 (formerly hand-computed constants; defaults reproduce the same values)
     r += 1
-    section(ws, r, "KV 推導輸入（v5.13 D：第 21–23 列由此計算）", 7); r += 1
+    section(ws, r, "KV 推導輸入（v5.13 D：第 21–23 列由此計算）", 8); r += 1
     kin = [
-      ("kvl", "每層 KV bytes/token（壓縮後平均，FP8）", "B", [65, 65, None], "Assumed",
+      ("kvl", "每層 KV bytes/token（壓縮後平均，FP8）", "B", [65, 65, None, 65], "Assumed",
        "v4 推導值；V4 官方 config：KV head 512（SRC_MOD_009）、CSA 壓縮 4×、HCA 128×、滑動窗 128，以結構重算會改值，Stage 2 處理"),
-      ("mla", "MLA 每層 KV 元素數（Astra 情境 1、2）", "元素", [None, None, 576], "Analogy", "比照 DeepSeek-V3 MLA：512 latent＋64 RoPE（SRC_MOD_028）"),
-      ("mix", "MLA 層比例（Astra 情境 1 混合）", "%", [None, None, 0.26], "Assumed", "混合注意力：其餘層為線性注意力（KV 不隨上下文成長，本列不計）"),
-      ("gqa", "GQA KV heads（Astra 情境 3）", "個", [None, None, 8], "Assumed", "GQA-8（結構選擇）"),
-      ("kvb", "KV 每元素 bytes（FP8；三層級共用）", "B", [1, None, None], "原始數據", "FP8 每元素 1 byte（SRC_HW_055）"),
+      ("mla", "MLA 每層 KV 元素數（Astra 情境 1、2）", "元素", [None, None, 576, None], "Analogy", "比照 DeepSeek-V3 MLA：512 latent＋64 RoPE（SRC_MOD_028）"),
+      ("mix", "MLA 層比例（Astra 情境 1 混合）", "%", [None, None, 0.26, None], "Assumed", "混合注意力：其餘層為線性注意力（KV 不隨上下文成長，本列不計）"),
+      ("gqa", "GQA KV heads（Astra 情境 3）", "個", [None, None, 8, None], "Assumed", "GQA-8（結構選擇）"),
+      ("kvb", "KV 每元素 bytes（FP8；三層級共用）", "B", [1, None, None, None], "原始數據", "FP8 每元素 1 byte（SRC_HW_055）"),
     ]
     for key, lab, unit, vals, tag, note in kin:
         R[key] = r
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals):
+        for c, v in zip(TC, vals):
             if v is not None: put(ws, f"{c}{r}", v, fmt="0%" if key == "mix" else "#,##0")
-        put(ws, f"F{r}", tag, F_NOTE); put(ws, f"G{r}", note, F_NOTE)
+        put(ws, f"{ARCH_TAG}{r}", tag, F_NOTE); put(ws, f"{ARCH_NOTE}{r}", note, F_NOTE)
         r += 1
     kb = f"$C${R['kvb']}"
     for key in ("kv1", "kv2", "kv3"):
-        for c in "CD":
+        for c in "CD" + TC_LAST:      # v21.11: Terra (F) follows the V4 per-layer KV rule of Luna／Sol (design 3.1: 65 B per layer)
             put(ws, f"{c}{R[key]}", f"={c}{R['kvl']}*{c}{R['L']}", F_CALC, fmt="#,##0")
     put(ws, f"E{R['kv1']}", f"=E{R['mix']}*E{R['mla']}*E{R['L']}*{kb}", F_CALC, fmt="#,##0")
     put(ws, f"E{R['kv2']}", f"=E{R['mla']}*E{R['L']}*{kb}", F_CALC, fmt="#,##0")
@@ -266,7 +369,7 @@ def serving(wb):
     ws = wb.create_sheet("Serving", 4)
     title(ws, "Serving — 服務設定與各層級 SLO（主流：分離式 P/D、wide EP、attention DP、NVFP4、MTP、前綴快取）",
           "藍字＝輸入。SLO 依 J3 採市場觀測輸出速度（Artificial Analysis 2026-09，S26）")
-    for c, w in zip("ABCDEF", [44, 14, 16, 16, 16, 90]): ws.column_dimensions[c].width = w
+    for c, w in zip("ABCDEFG", [44, 14, 16, 16, 16, 90, 90]): ws.column_dimensions[c].width = w      # F stays wide: rows 5-18 keep 說明 in F
     put(ws, "A4", "全域設定", F_BOLD); put(ws, "B4", "單位", F_BOLD); put(ws, "C4", "值", F_BOLD); put(ws, "D4", "標記", F_BOLD); put(ws, "E4", "", F_BOLD); put(ws, "F4", "說明", F_BOLD)
     g = [
       (5, "服務架構", "", "分離式 P/D＋wide EP＋attention DP", None, "Decision", "D6 與 Block 2 命題"),
@@ -288,22 +391,24 @@ def serving(wb):
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit); put(ws, f"C{r}", v, fmt=fmt)
         put(ws, f"D{r}", tag, F_NOTE); put(ws, f"F{r}", note, F_NOTE)
     ws["C17"].fill = PatternFill("solid", fgColor="FFFFFF00"); ws["C18"].fill = PatternFill("solid", fgColor="FFFFFF00")
-    section(ws, 19, "各層級 SLO 與參考任務", 6)  # row 18 used by derating
-    for c, v in zip("ABCDEF", ["項目", "單位", "=Arch!C4", "=Arch!D4", "=Arch!E4", "說明"]):
+    section(ws, 19, "各層級 SLO 與參考任務", 7)  # row 18 used by derating
+    for c, v in zip("AB" + TC + SERV_NOTE, ["項目", "單位"] + [f"=Arch!{c}4" for c in TC] + ["說明"]):
         put(ws, f"{c}20", v, F_HLINK if "!" in v else F_BOLD)
+    # v21.11 (B1): Terra in column F (design 3.2; J11 SLO = sqrt(AA 77 x OpenRouter 59) = 67.4, range 59-90; J12 ISL／OSL 16,384／2,048, range 8K-32K／1K-4K;
+    # TTFT 3 s, range 2-5). Blue code defaults; the 說明 column moves F -> G on rows 20-26 only. Rows 25-26 were deleted in v14.0 (Q1) and stay deleted.
     t = [
-      (21, "SLO：每用戶 decode 速度下限", "tok/s", [120, 65, 55], "#,##0", "Verified-measured（市場觀測）：GPT-5.6 Luna 約 120、GPT-5.6 Sol 約 68、GPT-6 Astra 約 52–56、Opus 5 約 54 tok/s（S26）。區間 Luna 100–300、Sol 50–100、Astra 30–75"),
-      (22, "TTFT 上限（只作檢查）", "s", [2, 3, 5], "0.0", "Assumed"),
-      (23, "參考 ISL（每次請求輸入）", "tok", [8192, 16384, 32768], "#,##0", "Assumed：Astra 用於長任務；上下文敏感度見 Sens_Perf"),
-      (24, "參考 OSL（含思考）", "tok", [1024, 2048, 4096], "#,##0", "Assumed"),
-      (25, "decode 平均上下文", "tok", ["=C23+C24/2", "=D23+D24/2", "=E23+E24/2"], "#,##0", "Derived"),
-      (26, "prefill 平均位置", "tok", ["=C23/2", "=D23/2", "=E23/2"], "#,##0", "Derived"),
+      (21, "SLO：每用戶 decode 速度下限", "tok/s", [120, 65, 55, 67.4], "#,##0", "Verified-measured（市場觀測）：GPT-5.6 Luna 約 120、GPT-5.6 Sol 約 68、GPT-6 Astra 約 52–56、Opus 5 約 54 tok/s（S26）。區間 Luna 100–300、Sol 50–100、Astra 30–75"),
+      (22, "TTFT 上限（只作檢查）", "s", [2, 3, 5, 3], "0.0", "Assumed"),
+      (23, "參考 ISL（每次請求輸入）", "tok", [8192, 16384, 32768, 16384], "#,##0", "Assumed：Astra 用於長任務；上下文敏感度見 Sens_Perf"),
+      (24, "參考 OSL（含思考）", "tok", [1024, 2048, 4096, 2048], "#,##0", "Assumed"),
+      (25, "decode 平均上下文", "tok", ["=C23+C24/2", "=D23+D24/2", "=E23+E24/2", "=F23+F24/2"], "#,##0", "Derived"),
+      (26, "prefill 平均位置", "tok", ["=C23/2", "=D23/2", "=E23/2", "=F23/2"], "#,##0", "Derived"),
     ]
     for r, lab, unit, vals, fmt, note in t:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
-        put(ws, f"F{r}", note, F_NOTE)
-    for c in "CDE": ws[f"{c}21"].fill = FILL_KEY
+        for c, v in zip(TC, vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"{SERV_NOTE}{r}", note, F_NOTE)
+    for c in TC: ws[f"{c}21"].fill = FILL_KEY
     import v519
     v519.serving_input(ws)        # v5.19 X1: CTL_ProdDerate on row 28 (after the existing content; nothing moves)
     return ws
@@ -591,6 +696,7 @@ def calib(wb, SP, AR):
 ```python
 # Perf-like column generator: same row logic for Perf (15 cols) and Sens_Perf (scenario cols)
 from common import *
+from tiers import TC_LAST
 
 def perf_rows(SP, AR, CAL, TR, cache=True):
     """v9.0 M1 (D9): cache=True (Perf, Sens_Perf and their _Prod mirrors) counts only the FRESH input ISL x (1 - B4_CacheHit) in prefill time (TTFT, GPU-s per request, prefill GPU share);
@@ -598,8 +704,8 @@ def perf_rows(SP, AR, CAL, TR, cache=True):
     Row spec: (key, label, unit, fmt, template) ; '§' key = section header. Templates use {X} and row keys."""
     I = lambda sheet, rng, idx: f"=INDEX({sheet}!{rng},{{X}}${idx})"
     sp = lambda r: I("Spec_Rack", f"$C${r}:$G${r}", 6)
-    ar = lambda r: I("Arch", f"$C${r}:$E${r}", 7)
-    sv = lambda r: I("Serving", f"$C${r}:$E${r}", 7)
+    ar = lambda r: I("Arch", f"$C${r}:${TC_LAST}${r}", 7)          # v21.11: tier columns C:F (Terra = F)
+    sv = lambda r: I("Serving", f"$C${r}:${TC_LAST}${r}", 7)
     fr = "({X}{isl}*(1-B4_CacheHit))" if cache else "{X}{isl}"      # fresh (non-cached) input tokens per reference request
     ft = "；v9.0 D9：prefill 只計新鮮輸入 ISL × (1 − B4_CacheHit)" if cache else ""
     return [
@@ -755,28 +861,31 @@ def write_perf(ws, cols, SP, AR, CAL, TR, start=9, overrides=None, label_col_wid
 ```python
 from common import *
 from perf import write_perf
+from tiers import TIERS, NT, NT_LIVE, NG, TC, TC_LAST, GT_COLS, GT_LAST, GT_GENS_TIERS, gt_index
 
 GEN_NAMES_IDX = [1, 2, 3, 4, 5]
-COLS15 = [L(i) for i in range(3, 18)]  # C..Q
+COLS15 = [L(i) for i in range(3, 18)]  # C..Q: generation × cost scenario (DC_Cost, Unit_Cost, Interface, Fleet_1GW …); NOT generation × tier since v21.11 (that is tiers.GT_COLS, C..V)
 
 def perf_sheet(wb, SP, AR, CAL, TR):
     ws = wb.create_sheet("Perf", 6)
     title(ws, "Perf — 每架產出引擎（世代 × 層級；各層級 SLO 與參考任務；100% 利用率）",
-          "decode：每步時間＝固定延遲＋B × 每序列時間；在 SLO 下解出批次 B*，再受 HBM 容量限制。prefill 為算力受限。黃底為關鍵輸出")
+          "decode：每步時間＝固定延遲＋B × 每序列時間；在 SLO 下解出批次 B*，再受 HBM 容量限制。prefill 為算力受限。黃底為關鍵輸出。"
+          f"v21.11 起 C–{GT_LAST} 欄＝5 世代 × 4 層級（Luna、Sol、Astra、Terra；欄序＝{NT}×(世代−1)＋層級）；Terra 欄尚無契約名稱讀取（v22.0 啟用）")
     put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
-    for i, X in enumerate(COLS15):
-        g, t = i // 3 + 1, i % 3 + 1
+    for X, (g, t) in zip(GT_COLS, GT_GENS_TIERS):
         put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
         put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
         ws.column_dimensions[X].width = 13
-    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR)
-    # VR-eq row (15-col layout only)
-    section(ws, r, "K. VR-eq（每 GW 產出 ÷ VR200 同層級）", 17); r += 1
+    R, r = write_perf(ws, GT_COLS, SP, AR, CAL, TR)
+    # VR-eq row (generation × tier layout only): VR200 is generation 4, so the same tier sits at position NT*3 + tier
+    section(ws, r, "K. VR-eq（每 GW 產出 ÷ VR200 同層級）", 2 + len(GT_COLS)); r += 1
     R["vreq"] = r
     put(ws, f"A{r}", "VR-eq 係數"); put(ws, f"B{r}", "x")
-    for X in COLS15:
-        put(ws, f"{X}{r}", f"=IF(AND(ISNUMBER({X}{R['gwtot']}),ISNUMBER(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7))),IF(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7)>0,{X}{R['gwtot']}/INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7),0),\"SLO 不可達\")", fmt="0.00", fill=FILL_KEY)
+    g = f"$C${R['gwtot']}:${GT_LAST}${R['gwtot']}"; vr = f"INDEX({g},{NT * 3}+{{X}}$7)"
+    for X in GT_COLS:
+        v = vr.format(X=X)
+        put(ws, f"{X}{r}", f"=IF(AND(ISNUMBER({X}{R['gwtot']}),ISNUMBER({v})),IF({v}>0,{X}{R['gwtot']}/{v},0),\"SLO 不可達\")", fmt="0.00", fill=FILL_KEY)
     ws.freeze_panes = "C8"
     return R
 
@@ -802,7 +911,8 @@ SCEN = [  # label, vr overrides, gb overrides, tier
 def sens_sheet(wb, SP, AR, CAL, TR):
     ws = wb.create_sheet("Sens_Perf", 7)
     title(ws, "Sens_Perf — VR200 對 GB300 的單變數敏感度（先看敏感度，再看基準）",
-          "每組兩欄：左 VR200、右 GB300。黃底藍字＝該情境改動的輸入。GB300 為校準世代，VR200 的 η_d 與每層延遲為沿用值 [Analogy]，故 VR 專屬情境只動 VR 欄")
+          "每組兩欄：左 VR200、右 GB300。黃底藍字＝該情境改動的輸入。GB300 為校準世代，VR200 的 η_d 與每層延遲為沿用值 [Analogy]，故 VR 專屬情境只動 VR 欄。"
+          "v21.11：Terra（第四層級）不在本敏感度表（各情境仍為 Sol／Astra；設計 R11，待 Project 判斷是否加 Terra 情境）")
     cols, ov = [], {}
     for i, (lab, vo, go, t) in enumerate(SCEN):
         xv, xg = L(3 + 2 * i), L(4 + 2 * i)
@@ -812,7 +922,7 @@ def sens_sheet(wb, SP, AR, CAL, TR):
         for X, g in ((xv, 4), (xg, 3)):
             put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
             put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-            put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+            put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
             ws.column_dimensions[X].width = 12.5
     ws.row_dimensions[3].height = 44
     put(ws, "A3", "情境", F_BOLD); put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD)
@@ -846,10 +956,12 @@ def unit_cost(wb, PR):
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
         for X in COLS15: put(ws, f"{X}{r}", f.format(X=X), fmt=fmt)
     r = 12
-    tiers = ["Luna（低層）", "Sol（中層）", "Astra（頂層）"]
-    for t in (1, 2, 3):
-        section(ws, r, f"{tiers[t-1]}", 17); r += 1
-        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:$Q${PR[key]},3*({{X}}$6-1)+{t})"
+    # v21.11 (B1): one block per tier (Terra = block 4 after Astra; nothing above moves). Perf is read with the generation × tier index NT*(g-1)+t;
+    # the cost-scenario index of DC_Cost (3*(g-1)+k) is a different 3 and is untouched (design R1). The Terra block has no reader yet (v22.0 B3).
+    for t in range(1, NT + 1):
+        tn = TIERS[t - 1][1]
+        section(ws, r, tn + ("（v21.11 預備：v22.0 啟用；本區尚無下游讀取）" if t > NT_LIVE else ""), 17); r += 1
+        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:${GT_LAST}${PR[key]},{gt_index('{X}$6', t)})"
         rows = [
           ("gsf", "GPU 秒／M 新鮮 prefill", "GPU-s", "#,##0.0", pl("gsf")),
           ("gsc", "GPU 秒／M 快取命中 prefill", "GPU-s", "#,##0.000", pl("gsc")),
@@ -862,8 +974,10 @@ def unit_cost(wb, PR):
           ("cdu", "decode（含思考 token）$/M — 經濟、基準利用率", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{cd}),{X}{cd}/{X}$10,{X}{cd})"),
           ("cda", "decode（含思考 token）$/M — 會計、100%", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{gsd}),{X}$9/3600*{X}{gsd},\"SLO 不可達\")"),
           ("cref", "參考請求混合 $/M 總 token — 經濟、100%", "$/M", "#,##0.000",
-           f"=IF(ISNUMBER({{X}}{{cd}}),(Serving!${'CDE'[t-1]}$23*{{X}}{{cf}}+Serving!${'CDE'[t-1]}$24*{{X}}{{cd}})/(Serving!${'CDE'[t-1]}$23+Serving!${'CDE'[t-1]}$24),{{X}}{{cd}})"),
+           f"=IF(ISNUMBER({{X}}{{cd}}),(Serving!${TC[t-1]}$23*{{X}}{{cf}}+Serving!${TC[t-1]}$24*{{X}}{{cd}})/(Serving!${TC[t-1]}$23+Serving!${TC[t-1]}$24),{{X}}{{cd}})"),
         ]
+        if t > NT_LIVE:
+            rows = rows[:-1]      # the cref row was deleted in v14.0 (Q1) for the three existing blocks; the Terra block does not create it
         for key, lab, unit, fmt, tpl in rows:
             U[(t, key)] = r
             put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
@@ -945,7 +1059,7 @@ def workload(wb, U):
     section(ws, 42, "每任務成本（$／任務；經濟口徑、基準成本情境、基準利用率；不含快取儲存，含儲存者見 Harness 頁）", 8)
     r = 43
     for gname, col in (("VR200", "M"), ("GB300", "J")):
-        for t, tn in zip((1, 2, 3), ("Luna", "Sol", "Astra")):
+        for t, tn in enumerate([k for k, _ in TIERS[:NT_LIVE]], start=1):      # v21.11: live tiers (Workload rows 43+ do not move)
             put(ws, f"A{r}", f"{gname} × {tn}"); put(ws, f"B{r}", "$")
             cf, cc, cd = U[(t, "cfu")], U[(t, "ccu")], U[(t, "cdu")]
             for c in "CDEFG":
@@ -989,6 +1103,7 @@ def nonnv(wb):
 from common import *
 from perf import write_perf
 from outputs import COLS15
+from tiers import TC, TC_LAST, NT, NT_LIVE, GT_COLS, GT_LAST, GT_GENS_TIERS, PB_SCEN, PB_SCEN_TIERS, gt_index
 from openpyxl.workbook.defined_name import DefinedName
 
 # ---------------------------------------------------------------- Tech_Registry
@@ -1089,6 +1204,9 @@ def tech_registry(wb):
 
 # ---------------------------------------------------------------- Train_In
 ROUT_LUNA, ROUT_SOL, ROUT_ASTRA = 2.36, 2.36, 9.6   # v5.6: 由 v5.5 的 2, 2, 8 重校，維持 VR200 上 RL ÷ 預訓練 GPU 小時（J9 (a)）
+ROUT_TERRA = 2.36      # v21.11 (B1): Terra RL rollout output token, design 3.4 (same as the Luna／Sol base; range 1.5-5 T)
+# v21.11 (B1): Terra column F of Train_In rows 25-38: mark and range (design docs/plan/20261105_v22.0_Terra第四層級_設計.md 3.4), written in column G
+TERRA_TI_NOTES = ['Analogy；區間 25–45 T（V4-Flash 32、V4-Pro 33，同族）', 'Analogy；區間 4,096–8,192（同 V4）', 'Assumed；區間 1–3 T（1.05M 上下文；介於 Sol 與 Astra 之間）', 'Assumed（三層級相同）', 'Assumed；區間 0.01–0.3 T（同 Luna／Sol）', 'Assumed（同 Luna／Sol）', 'Assumed；區間 10–40（三層級相同）', 'Assumed；區間 4,096–16,384（同 Sol）', 'Assumed；區間 8,192–32,768（同 Sol）', 'Assumed；區間 1.5–5 T（同 Luna／Sol 基準）', 'Assumed；區間 0.05–1 T（三層級相同）', 'Assumed；3＝Astra（區間 2–3；系統卡稱與 Astra 相同類型的資料與訓練）', 'Assumed；區間 1–3 T（Luna 1、Sol 2 之間）', 'Assumed；區間 0.02–0.05 T（Luna 0.02、Sol 0.05 之間）']
 
 def train_in(wb):
     ws = wb.create_sheet("Train_In")
@@ -1135,31 +1253,33 @@ def train_in(wb):
     r += 2
     section(ws, r, "各層級", 8); r += 1
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
-    for c, t in zip("CDE", "CDE"): put(ws, f"{c}{r}", f"=Arch!{t}4", F_HLINK)
+    for c in TC: put(ws, f"{c}{r}", f"=Arch!{c}4", F_HLINK)
+    put(ws, f"G{r}", "Terra 標記與區間（v21.11）", F_BOLD)
     put(ws, f"H{r}", "說明", F_BOLD); r += 1
     t = [
-      ("ptok", "預訓練 token", "T", [32, 33, 60], "#,##0.0", "Verified：V4-Flash 32T、V4-Pro 33T（S35）；Astra [Assumed，區間 30–100T；J8 以 Arch 一致為基準，前沿錨點見 Checks]"),
-      ("pseq", "預訓練序列長（dense 注意力）", "tok", [4096, 4096, 8192], "#,##0", "V4：4K → 16K 漸增，其間以 dense 注意力訓練（S35）；多數 token 在 4K [Assumed，區間 4K–16K]"),
-      ("ltok", "長上下文延伸 token", "T", [1, 1, 2], "#,##0.0", "Assumed，區間 0.3–3T（V4 未揭露）"),
-      ("lseq", "長上下文延伸序列長（稀疏注意力路徑）", "tok", [131072, 131072, 131072], "#,##0", "Assumed"),
-      ("stok", "SFT token", "T", [0.05, 0.05, 0.1], "#,##0.00", "Assumed，區間 0.01–0.3T"),
-      ("sseq", "SFT 序列長", "tok", [16384, 16384, 16384], "#,##0", "Assumed"),
-      ("bs", "批次推論速度下限（rollout、合成、評測）", "tok/s", [20, 20, 20], "#,##0", "取代互動 SLO；過低時長尾拉長牆鐘時間 [Assumed，區間 10–40]"),
-      ("risl", "rollout 參考輸入（prompt＋工具結果）", "tok", [4096, 8192, 16384], "#,##0", "Assumed"),
-      ("rosl", "rollout 參考輸出（含思考）", "tok", [8192, 16384, 32768], "#,##0", "Assumed：推理與代理任務的長輸出"),
-      ("rout", "RL rollout 輸出 token（含各領域專家）", "T", [ROUT_LUNA, ROUT_SOL, ROUT_ASTRA], "#,##0.00",
+      ("ptok", "預訓練 token", "T", [32, 33, 60, 33], "#,##0.0", "Verified：V4-Flash 32T、V4-Pro 33T（S35）；Astra [Assumed，區間 30–100T；J8 以 Arch 一致為基準，前沿錨點見 Checks]"),
+      ("pseq", "預訓練序列長（dense 注意力）", "tok", [4096, 4096, 8192, 4096], "#,##0", "V4：4K → 16K 漸增，其間以 dense 注意力訓練（S35）；多數 token 在 4K [Assumed，區間 4K–16K]"),
+      ("ltok", "長上下文延伸 token", "T", [1, 1, 2, 1.5], "#,##0.0", "Assumed，區間 0.3–3T（V4 未揭露）"),
+      ("lseq", "長上下文延伸序列長（稀疏注意力路徑）", "tok", [131072, 131072, 131072, 131072], "#,##0", "Assumed"),
+      ("stok", "SFT token", "T", [0.05, 0.05, 0.1, 0.05], "#,##0.00", "Assumed，區間 0.01–0.3T"),
+      ("sseq", "SFT 序列長", "tok", [16384, 16384, 16384, 16384], "#,##0", "Assumed"),
+      ("bs", "批次推論速度下限（rollout、合成、評測）", "tok/s", [20, 20, 20, 20], "#,##0", "取代互動 SLO；過低時長尾拉長牆鐘時間 [Assumed，區間 10–40]"),
+      ("risl", "rollout 參考輸入（prompt＋工具結果）", "tok", [4096, 8192, 16384, 8192], "#,##0", "Assumed"),
+      ("rosl", "rollout 參考輸出（含思考）", "tok", [8192, 16384, 32768, 16384], "#,##0", "Assumed：推理與代理任務的長輸出"),
+      ("rout", "RL rollout 輸出 token（含各領域專家）", "T", [ROUT_LUNA, ROUT_SOL, ROUT_ASTRA, ROUT_TERRA], "#,##0.00",
        "J9：由下而上輸入；基準值校到 VR200 上 RL ÷ 預訓練 GPU 小時約 Luna／Sol 0.3、Astra 1.0（結果見 Training rlH 列與 Checks）；v5.6 因 rollout 效率 0.6→0.85 由 2／2／8 上調為 2.36／2.36／9.6，GPU 小時不變（Andy 決定 (a)）。外部點：R1 約 5%、Grok 4 約 1 倍（S40、S42；GPU 小時或預算口徑）。區間：Luna／Sol 0.3–6T、Astra 2.5–25T"),
-      ("dtok", "On-policy 蒸餾：學生 rollout 輸出 token", "T", [0.2, 0.2, 0.2], "#,##0.00", "Assumed，區間 0.05–1T"),
-      ("dtea", "蒸餾教師層級（1／2／3）", "選擇", [1, 2, 3], "0", "V4 做法：同尺寸各領域專家為教師 [Interested-party，S35]"),
-      ("syn", "合成資料生成 token", "T", [1, 2, 3], "#,##0.0", "Assumed，區間 0.5–10T"),
-      ("ev", "評測 token", "T", [0.02, 0.05, 0.1], "#,##0.00", "Assumed"),
+      ("dtok", "On-policy 蒸餾：學生 rollout 輸出 token", "T", [0.2, 0.2, 0.2, 0.2], "#,##0.00", "Assumed，區間 0.05–1T"),
+      ("dtea", "蒸餾教師層級（1／2／3）", "選擇", [1, 2, 3, 3], "0", "V4 做法：同尺寸各領域專家為教師 [Interested-party，S35]"),
+      ("syn", "合成資料生成 token", "T", [1, 2, 3, 1.5], "#,##0.0", "Assumed，區間 0.5–10T"),
+      ("ev", "評測 token", "T", [0.02, 0.05, 0.1, 0.03], "#,##0.00", "Assumed"),
     ]
-    for key, lab, unit, vals, fmt, note in t:
+    for (key, lab, unit, vals, fmt, note), tnote in zip(t, TERRA_TI_NOTES):
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        for c, v in zip(TC, vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"G{r}", tnote, F_NOTE, wrap=True)      # v21.11: Terra (F) mark and range (design 3.4); G was empty on these rows
         put(ws, f"H{r}", note, F_NOTE, wrap=True)
         T[key] = r; r += 1
-    for c in "CDE": ws[f"{c}{T['rout']}"].fill = FILL_KEY
+    for c in TC: ws[f"{c}{T['rout']}"].fill = FILL_KEY
     r += 1
     section(ws, r, "外部錨點（Checks 用；不進推導）", 8); r += 1
     a = [
@@ -1182,26 +1302,25 @@ def train_in(wb):
 def perf_batch(wb, SP, AR, CAL, TR, TI):
     ws = wb.create_sheet("Perf_Batch")
     title(ws, "Perf_Batch — 批次推論引擎（RL rollout、蒸餾、合成資料、評測）：與 Perf 同一套公式，只換速度下限與參考任務",
-          "C–Q 欄＝世代 × 層級基準；R、S 欄＝VR200 以 FP8 rollout 的情境（J12 替代）。綠字＝連結 Train_In（非情境改動）；黃底＝情境改動。Perf_Batch 為訓練端批次推論，無服務快取（prefill 計全 ISL，不乘 1 − B4_CacheHit；v9.0 D9、v10.0 N4）")
+          "C–Q 欄＝世代 × 層級基準；R、S 欄＝VR200 以 FP8 rollout 的情境（J12 替代）。綠字＝連結 Train_In（非情境改動）；黃底＝情境改動。Perf_Batch 為訓練端批次推論，無服務快取（prefill 計全 ISL，不乘 1 − B4_CacheHit；v9.0 D9、v10.0 N4）"
+          .replace("C–Q 欄", f"C–{GT_LAST} 欄（v21.11 起 5 世代 × 4 層級，Terra 尚無契約名稱讀取）").replace("R、S 欄", f"{PB_SCEN[0]}、{PB_SCEN[1]} 欄"))
     put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
     put(ws, "A3", "欄位", F_BOLD)
-    cols = COLS15 + ["R", "S"]
-    for i, X in enumerate(cols):
-        if i < 15: gi, t = i // 3 + 1, i % 3 + 1
-        else: gi, t = 4, i - 13
+    cols = GT_COLS + PB_SCEN      # v21.11: C..V generation × tier, W／X the FP8 rollout scenario (v21.10: C..Q, R／S)
+    for X, (gi, t) in zip(cols, GT_GENS_TIERS + [(4, t) for t in PB_SCEN_TIERS]):
         put(ws, f"{X}6", gi, fmt="0"); put(ws, f"{X}7", t, fmt="0")
         put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
         ws.column_dimensions[X].width = 13
-    put(ws, "R3", "情境：FP8 rollout", F_BOLD); put(ws, "S3", "情境：FP8 rollout", F_BOLD)
-    link = {"s": f"=INDEX(Train_In!$C${TI['bs']}:$E${TI['bs']},{{X}}$7)",
-            "isl": f"=INDEX(Train_In!$C${TI['risl']}:$E${TI['risl']},{{X}}$7)",
-            "osl": f"=INDEX(Train_In!$C${TI['rosl']}:$E${TI['rosl']},{{X}}$7)"}
-    ov = {X: dict(link) for X in COLS15}
-    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR, overrides=ov, ov_link=True, cache=False)      # v9.0 M1: batch inference keeps the full ISL (no serving cache hit)
-    # scenario columns (FP8 rollout on VR200): re-write the same rows into R, S with extra overrides
+    for X in PB_SCEN: put(ws, f"{X}3", "情境：FP8 rollout", F_BOLD)
+    link = {"s": f"=INDEX(Train_In!$C${TI['bs']}:${TC_LAST}${TI['bs']},{{X}}$7)",
+            "isl": f"=INDEX(Train_In!$C${TI['risl']}:${TC_LAST}${TI['risl']},{{X}}$7)",
+            "osl": f"=INDEX(Train_In!$C${TI['rosl']}:${TC_LAST}${TI['rosl']},{{X}}$7)"}
+    ov = {X: dict(link) for X in GT_COLS}
+    R, r = write_perf(ws, GT_COLS, SP, AR, CAL, TR, overrides=ov, ov_link=True, cache=False)      # v9.0 M1: batch inference keeps the full ISL (no serving cache hit)
+    # scenario columns (FP8 rollout on VR200): re-write the same rows into W, X with extra overrides
     fp8 = {"P": f"=Spec_Rack!$F${SP['tfp8']}", "be": 1, "bn": 1}
-    for X in ("R", "S"):
+    for X in PB_SCEN:
         rr = 9
         from perf import perf_rows
         spec = perf_rows(SP, AR, CAL, TR, cache=False)
@@ -1220,7 +1339,7 @@ def perf_batch(wb, SP, AR, CAL, TR, TI):
                 mm = dict(m); mm["X"] = X
                 put(ws, f"{X}{rr}", tpl.format(**mm), fmt=fmt)
             rr += 1
-    section(ws, r, "L. 批次推論的有效 MFU（接受 token 的模型 FLOPs ÷ 峰值）", 19); r += 1
+    section(ws, r, "L. 批次推論的有效 MFU（接受 token 的模型 FLOPs ÷ 峰值）", 2 + len(cols)); r += 1
     R["mfu4"], R["mfu8"] = r, r + 1
     put(ws, f"A{r}", "decode 有效 MFU（對 Perf 計算用峰值）"); put(ws, f"B{r}", "%")
     put(ws, f"A{r+1}", "decode 有效 MFU（對 FP8 訓練峰值）"); put(ws, f"B{r+1}", "%")
@@ -1232,14 +1351,14 @@ def perf_batch(wb, SP, AR, CAL, TR, TI):
 
 # ---------------------------------------------------------------- Training engine
 def train_rows(SP, AR, TI, PB, TR):
-    ti = lambda k: f"=INDEX(Train_In!$C${TI[k]}:$E${TI[k]},{{X}}$7)"
+    ti = lambda k: f"=INDEX(Train_In!$C${TI[k]}:${TC_LAST}${TI[k]},{{X}}$7)"
     tg = lambda k: f"=INDEX(Train_In!$C${TI[k]}:$G${TI[k]},{{X}}$6)"
     tgl = lambda k: f"=Train_In!$C${TI[k]}"
     sp = lambda row: f"=INDEX(Spec_Rack!$C${row}:$G${row},{{X}}$6)"
-    ar = lambda row: f"=INDEX(Arch!$C${row}:$E${row},{{X}}$7)"
-    dc = lambda row: f"=INDEX(DC_Cost!$C${row}:$Q${row},3*({{X}}$6-1)+2)"
-    pb = lambda k: f"=INDEX(Perf_Batch!$C${PB[k]}:$Q${PB[k]},3*({{X}}$6-1)+{{X}}$7)"
-    pbt = lambda k, tier: f"=INDEX(Perf_Batch!$C${PB[k]}:$Q${PB[k]},3*({{X}}$6-1)+{{X}}{{{tier}}})"
+    ar = lambda row: f"=INDEX(Arch!$C${row}:${TC_LAST}${row},{{X}}$7)"
+    dc = lambda row: f"=INDEX(DC_Cost!$C${row}:$Q${row},3*({{X}}$6-1)+2)"      # generation × cost scenario (3 = cost scenarios, not tiers; R1)
+    pb = lambda k: f"=INDEX(Perf_Batch!$C${PB[k]}:${GT_LAST}${PB[k]},{gt_index('{X}$6', '{X}$7')})"      # generation × tier (J3)
+    pbt = lambda k, tier: f"=INDEX(Perf_Batch!$C${PB[k]}:${GT_LAST}${PB[k]},{gt_index('{X}$6', '{X}{' + tier + '}')})"
     hk = lambda code: f"={TR[code]}"
     sparse = lambda pos: ("={X}{ff}*IF({X}{cap}=0," + pos + ",MIN(" + pos + ",{X}{cap}))+(1-{X}{ff})*(" + pos + "/{X}{comp}+{X}{win})")
     gpuh = lambda C, k="1": "={X}{" + C + "}/({X}{pk}*1E15*{X}{mfu}*" + k + "*{X}{gp})/3600"
@@ -1404,24 +1523,25 @@ def hdr15(ws, cols, gens_tiers):
     for X, (g, t) in zip(cols, gens_tiers):
         put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
         put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
         ws.column_dimensions[X].width = 13
 
 def training_sheet(wb, SP, AR, TI, PB, TR):
     ws = wb.create_sheet("Training")
     title(ws, "Training — 訓練與研發計畫的 GPU 小時、成本、1 GW 年占比（世代 × 層級；下游預設 VR200，GB300 並列，J13）",
           "推論型運算以 Perf_Batch 計價；反向傳播型以訓練峰值 × MFU × goodput 計價。後訓練占比同時列 FLOPs 與 GPU 小時口徑（一級追蹤指標）")
-    hdr15(ws, COLS15, [(i // 3 + 1, i % 3 + 1) for i in range(15)])
-    R, r = write_train(ws, COLS15, SP, AR, TI, PB, TR)
-    section(ws, r, "L. 模型家族合計（同世代三層級；J10 研發歸屬的總額）", 17); r += 1
+    hdr15(ws, GT_COLS, GT_GENS_TIERS)      # v21.11: C..V = 5 generations × 4 tiers
+    R, r = write_train(ws, GT_COLS, SP, AR, TI, PB, TR)
+    section(ws, r, "L. 模型家族合計（同世代三層級；J10 研發歸屬的總額）", 2 + len(GT_COLS)); r += 1
     for key, lab, unit, fmt, src in [("fHfin", "家族最終訓練 GPU 小時", "GPU-hr", "#,##0", "Hfin"),
                                      ("fHprog", "家族研發計畫 GPU 小時", "GPU-hr", "#,##0", "Hprog"),
                                      ("fUprog", "家族研發計畫成本 — 經濟", "$M", "#,##0", "Uprog"),
                                      ("fGWp", "家族研發計畫占 1 GW 一年", "%", "0.00%", "GWp")]:
         R[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for X in COLS15:
-            rg = f"$C${R[src]}:$Q${R[src]}"      # v6.0 D8-3: any unreachable tier in the family makes the family total text (SUMPRODUCT would raise #VALUE!)
-            put(ws, f"{X}{r}", f'=IF(COUNT(INDEX({rg},1,3*({X}$6-1)+1):INDEX({rg},1,3*({X}$6-1)+3))=3,SUMIF($C$6:$Q$6,{X}$6,{rg}),"SLO 不可達")', fmt=fmt, fill=FILL_KEY)
+        for X in GT_COLS:
+            rg = f"$C${R[src]}:${GT_LAST}${R[src]}"      # v6.0 D8-3: any unreachable tier in the family makes the family total text (SUMPRODUCT would raise #VALUE!)
+            a, b = f"INDEX({rg},1,{gt_index(X + '$6', 1)})", f"INDEX({rg},1,{gt_index(X + '$6', NT_LIVE)})"      # v21.11: live tiers only (rows deleted in v14.0 Q1 anyway)
+            put(ws, f"{X}{r}", f'=IF(COUNT({a}:{b})={NT_LIVE},SUM({a}:{b}),"SLO 不可達")', fmt=fmt, fill=FILL_KEY)
         r += 1
     ws.freeze_panes = "C8"
     return R
@@ -1433,13 +1553,13 @@ SCEN_T = [  # label, overrides applied to both columns (Sol, Astra); special "fp
  ("NVFP4 訓練峰值（J7 替代）", {"pk8": "=INDEX(Spec_Rack!$C${tfp4}:$G${tfp4},{X}$6)"}),
  ("預訓練 token × 0.5", {"htok": 0.5}),
  ("預訓練 token × 1.67", {"htok": 1.67}),
- ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 0.3}),
- ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 3}),
+ ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$F${rout},{X}$7)*{X}$8", "_mult": 0.3}),
+ ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$F${rout},{X}$7)*{X}$8", "_mult": 3}),
  ("rollout 效率 0.6（v5.5 混合現況；rollout token 不變）", {"reff": 0.6}),
  ("rollout 效率 0.95（rollout token 不變）", {"reff": 0.95}),
  ("rollout 精度 FP8（J12 替代）", "fp8"),
- ("合成資料 token × 0", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 0}),
- ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 3}),
+ ("合成資料 token × 0", {"Dsy": "=INDEX(Train_In!$C${syn}:$F${syn},{X}$7)*{X}$8", "_mult": 0}),
+ ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$F${syn},{X}$7)*{X}$8", "_mult": 3}),
  ("研發倍數 4.4（MiniMax）", {"rdm": 4.4}),
  ("研發倍數 10.4（OpenAI）", {"rdm": 10.4}),
  ("goodput 0.80", {"gp": 0.8}),
@@ -1454,7 +1574,7 @@ SNAP_MOVES = [(("Sens_Train", ("合成資料 token", 0), c), ("Sens_Train", (MUL
 def sens_train(wb, SP, AR, TI, PB, TR):
     ws = wb.create_sheet("Sens_Train")
     title(ws, "Sens_Train — 訓練與研發計畫的單變數敏感度（VR200；每組左 Sol、右 Astra；先看敏感度，再看基準）",
-          "黃底藍字＝該情境改動的輸入。L 節為對基準欄（C、D）的比值")
+          "黃底藍字＝該情境改動的輸入。L 節為對基準欄（C、D）的比值。v21.11：Terra（第四層級）不在本敏感度表（設計 R11，待 Project 判斷是否加 Terra 情境）")
     cols, ov, gt = [], {}, []
     put(ws, f"A{MULT_ROW}", MULT_LABEL, F_BOLD); put(ws, f"B{MULT_ROW}", "x")
     for i, (lab, o) in enumerate(SCEN_T):
@@ -1467,8 +1587,8 @@ def sens_train(wb, SP, AR, TI, PB, TR):
             else: put(ws, f"{X}{MULT_ROW}", m, fmt="0.00", fill=PatternFill("solid", fgColor="FFFFFF00"))
         if isinstance(o, dict): o = {k: v for k, v in o.items() if not k.startswith("_")}
         if o == "fp8":
-            ov[xs] = {k: f"=Perf_Batch!R{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
-            ov[xa] = {k: f"=Perf_Batch!S{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
+            ov[xs] = {k: f"=Perf_Batch!{PB_SCEN[0]}{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}      # v21.11: R -> W
+            ov[xa] = {k: f"=Perf_Batch!{PB_SCEN[1]}{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}      # v21.11: S -> X
         else:
             oo = {k: (v.replace("{tfp4}", str(SP["tfp4"])).replace("{rout}", str(TI["rout"])).replace("{syn}", str(TI["syn"])) if isinstance(v, str) else v)
                   for k, v in o.items()}
@@ -1496,6 +1616,7 @@ def sens_train(wb, SP, AR, TI, PB, TR):
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
 from outputs import COLS15
+from tiers import TIERS_LIVE, NT_LIVE, GT_LAST, gt_index, gt_col, live_ranges
 import v520
 import v521
 import v522
@@ -1554,6 +1675,7 @@ import v2170
 import v2180
 import v2190
 import v21100
+import v21110
 
 def interface(wb, PR, U):
     ws = wb["Interface"]
@@ -1563,10 +1685,10 @@ def interface(wb, PR, U):
     put(ws, "A3", v520.X5_NOTE, F_NOTE)     # v5.20 X5: row 3 was empty, no row moves
     section(ws, 17, "B. Block 2 產出（依層級；100%＝理想上限；下游以自身利用率換算）", 17)
     r = 18; names = []
-    tiers = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+    tiers = TIERS_LIVE      # v21.11: Interface B stays on the live tiers; Terra rows are Interface R (v22.0 B3, J14)
     for t, (tk, tn) in enumerate(tiers, start=1):
         put(ws, f"A{r}", tn, F_BOLD); r += 1
-        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:$Q${PR[key]},3*(Unit_Cost!{{X}}$6-1)+{t})"
+        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:${GT_LAST}${PR[key]},{gt_index('Unit_Cost!{X}$6', t)})"      # generation × tier index (J3); not the cost-scenario 3 (R1)
         rows = [
           (f"IF_TokRack_{tk}", "每架總 tok/s（參考任務 P:D）", "tok/s", "#,##0", pl("rtot")),
           (f"IF_TokRackD_{tk}", "每架 decode tok/s", "tok/s", "#,##0", pl("rdec")),
@@ -1607,8 +1729,8 @@ def checks(wb, CAL, PR, SR, U):
       ("第二來源：GB300 interactive 模型 ÷ MLPerf（DeepSeek-R1）", f"=Calib!C{CAL['mR']}", "1.00", "x", "<1：本模型低於 MLPerf，InferenceX 校準未比 MLPerf 樂觀", "S31、S32"),
       ("第二來源：VR200 ÷ GB300 模型 對 MLPerf", f"=Calib!C{CAL['mVR']}", f"=Calib!C{CAL['mVRm']}", "x", "兩者接近即支持 VR 沿用 GB300 效率係數", "S32"),
       ("來源衝突：GB300 ÷ GB200 模型 對 MLPerf", f"=Calib!C{CAL['mGB']}", f"=Calib!D{CAL['mGB']}", "x", "InferenceX 1.7–2.8、MLPerf 約 1.05、模型居中", "S20、S31"),
-      ("能量閉合：各欄最大閉合比", f"=MAX(Perf!C{PR['close']}:Q{PR['close']})", "≤ 100%", "%", "超過代表產出或能量常數有誤", "Perf J 節"),
-      ("SLO 或 TTFT 不可達的欄數（15 欄中）", f"=COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"SLO 不可達\")+COUNTIF(Perf!C{PR['bind']}:Q{PR['bind']},\"TTFT 不可達\")", "—", "欄", "0＝15 欄皆可達；v6.2 起 TTFT 納入可達判斷：v6.2–v8.0 基準下 Hopper × Astra 首 token 時間約 6.1 秒，高於上限 5 秒，計 1 欄；v9.0 起快取命中進 prefill 產能（只計新鮮輸入），該欄約 2.7 秒、符合上限，基準為 0", "Perf G 節（綁定約束列）"),
+      ("能量閉合：各欄最大閉合比", f"=MAX({live_ranges('Perf', PR['close'])})", "≤ 100%", "%", "超過代表產出或能量常數有誤", "Perf J 節"),
+      ("SLO 或 TTFT 不可達的欄數（15 欄中）", f"=COUNTIFS(Perf!C{PR['bind']}:{GT_LAST}{PR['bind']},\"SLO 不可達\",Perf!C7:{GT_LAST}7,\"<={NT_LIVE}\")+COUNTIFS(Perf!C{PR['bind']}:{GT_LAST}{PR['bind']},\"TTFT 不可達\",Perf!C7:{GT_LAST}7,\"<={NT_LIVE}\")", "—", "欄", "0＝15 欄皆可達；v6.2 起 TTFT 納入可達判斷：v6.2–v8.0 基準下 Hopper × Astra 首 token 時間約 6.1 秒，高於上限 5 秒，計 1 欄；v9.0 起快取命中進 prefill 產能（只計新鮮輸入），該欄約 2.7 秒、符合上限，基準為 0", "Perf G 節（綁定約束列）"),
       ("牌價空間：V4-Pro 8K/1K 牌價 ÷ GB300 Sol 成本（基準利用率）", f"=((8*1.32+3.96)/9)/((8*Unit_Cost!J{U[(2,'cfu')]}+Unit_Cost!J{U[(2,'cdu')]})/9)", "—", "x", "DeepSeek V4-Pro API 牌價 $1.32／$3.96（2026-09 價格追蹤站；記錄於 Tokenomics v4 活頁簿預設表）；只說明空間，不代表 DeepSeek 毛利", "S27"),
     ]
     put(ws, "A13", "項目", F_BOLD); put(ws, "B13", "本模型", F_BOLD); put(ws, "C13", "外部參照", F_BOLD)
@@ -1660,7 +1782,7 @@ def readme(wb):
     ws = wb["README"]
     rows = [
       ("用途", "回答：每 1 GW IT 電力，各世代可容納多少機架、資本支出與持有成本（Block 1）；各層級 SLO 下的產出與依『世代 × 層級 × token 類型』的每 M token 成本（Block 2）；各層級代表模型的訓練與研發計畫需要多少 GPU 小時、成本與 1 GW 年，其中後訓練占多少（Block 3）；每 GW 的理論營收（理想上限）、含中國廠商的單價前緣、訓練攤提、快取儲存與 1 GW 參考機隊（Block 4）；harness 對每個成功任務的 token、成本與成功率的影響（Block 5）。實際營收（需求、市占、訂閱方案）在下游。"),
-      ("版本", v21100.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
+      ("版本", v21110.README_VERSION + "X1：Interface G 節新增七列生產折減並列輸出 IF_FullCost_Luna／Sol／Astra_Prod、IF_RevGW_Luna／Sol／Astra_Prod、IF_RevGWFleet_Prod，由新輸入格 CTL_ProdDerate（Serving!C28，預設 0.85）驅動，推導鏈以 8 個 *_Prod 鏡像頁重算，Checks X1 自我檢查；Serving!C18 維持 1.0（G0-11）；X2：Gov_Map P 欄升段 11 格；Decisions 新增 X1、X2；既有模型頁、Interface 既有列、L1 數值逐格不變；工作單 docs/workorders/20261006_v5.19.md）。以下為 v5.18（Stage 2 第一批寫入，工作單 docs/workorders/20261005_v5.18.md r2：SRC 等級依 S1 (a)、G15、H1 規則升級並登錄 DB_Evidence；Train_In C44、Calib C69 改公式；SRC_PERF_009／010 改為內插值；Arch KV 區間、Hopper 占機隊 0.57、Train_In C21 Hopper 倍數 1.0、SRC_MOD_015 拆為 Flash／Pro 兩筆；VR200 機架功率與價格、GB200／GB300 機架功率更新；Rubin Ultra 欄改為單架 72 封裝並新增 SRC_HW_061–064、SRC_MOD_054；Workload／Serving 區間依 Copilot 追蹤擴大；Gov_Map P 欄改 B 法「O＋L1」分段；Checks 第 21 列改述為 InferenceX 內部常數）。以下為 v5.17（收尾小項：L1!I43 讀法文字改為「依定義 ≥ 1」；數值與公式不變）。以下為 v5.16（L1 Answers 修正：第 5 題新增理論毛利率兩列（L1_Ans5_GM 毛利口徑、L1_Ans5_FullMargin 全成本口徑；毛利口徑附 2025 推論毛利隱含值對照）；第 6 題拆為 FLOPs 口徑（L1_Ans6）與 GPU 小時口徑（L1_Ans6_GPUh）；第 7 題改為 OpenAI 單價 ÷ 前緣單價；第 8 題改連 IF_HarR_Sol（選定 ÷ 標準）；L1 欄位約定：D＝基準、E＝低、F＝高，無區間時 E＝F＝D；Checks 新增 H3（L1 的 E ≤ D ≤ F 檢查，WARN）。模型頁、Interface、SRC、Gov_Map 不動）。以下為 v5.15（Block 6 Alloc：研發與服務的算力配置。新增 Alloc_In（輸入：N_major、N_refresh、k、服務世代組合、g、API 全年平均比例、每則提示 token 數、免費占比；全部 Assumed 或 Decision，附區間，登錄 Gov_Map）與 Alloc（需求 D → 服務 GW → 研發 GW → Q1、Q2 → 校準反推 → 外部對照 → 敏感度表）；Interface F 節新增 IF_AllocQ1、IF_AllocQ1_R2、IF_AllocQ2、IF_AllocServeGW、IF_AllocRDGW、IF_AllocDemand、IF_AllocImpliedNk；L1 新增 Answers 9 題（L1_Ans1–9）與外部對照 3 列；SRC_Demand 新增 SRC_DEM_010–013，DB_Evidence 新增 E166–E169，Decisions 新增 A9、A10 並將 A1–A8 狀態改為「v5.15 已建」；Checks 新增 H 節（H1 世代組合合計、H2 敏感度自我檢查），計入 GOV_Errors；既有模型頁、Interface 既有列、既有 L1 列的數值逐格不變）。以下為 v5.14（L1 第 O、P 欄加檢查 D 欄是否為數字：v5.13 在 SLO 不可達情境（生產折減 0.7、Tech_Registry T07–T09 開啟）下 L1!O35、P35 出現錯誤值，CC 第 13 輪發現；SRC 各頁 X 欄的比對範圍改為與 SRC_Index 相同（最後一筆紀錄＋50 列），全簿重算約減三成；基準數值不變；Block 6 改為 v5.15）。以下為 v5.13（切片二 B–E 包：Source 遷入、Gov_Map 擴及切片二頁、模型邏輯、寫回 Andy 審閱；v5.13 E：v5.11、C 包、D 包審閱檔 Andy 2026-10-03 全部依建議，寫入 Gov_Map 與 Decisions（原話 83 項確認、CV1 維持 4×HGX、G0-9 文字修正、輪數下限與快取命中區間修正）；Block 6 於 v5.14。v5.13 D：Arch 第 21–23 列 KV bytes 改公式（新增「KV 推導輸入」5 列），Arch C9、C10 連結 V4-Flash 官方 config（SRC_MOD_052、053），Cap_In 中國廠商旗標改公式，Checks 的外部比對移入 L1（新增 7 列）、樣本外實測值連結 SRC_Perf；數值不變。v5.13 C：切片二頁 515 個數值藍字格登錄 Gov_Map 129 列（分類、可比 SRC、區間、理由；Andy 2026-10-03 審閱「all ok」），Checks E12 擴及全部範圍。v5.13 B：新增 SRC_Price 44、SRC_Cap 21、SRC_Harness 15、SRC_Demand 9 筆（Stage 0 審閱的等級與立場），S30 一手原文補登 SRC_Perf 11 筆；Cap_In、Har_In、Workload 第 40 列 75 格改連結 SRC（值相等者），Checks C9:C10、最終訓練占研發區間、OpenAI 2025 對帳常數改連結 SRC_Price／SRC_Demand；數值逐格不變。以下為 v5.12（工程基礎）：新增 SRC_Index（各 SRC 頁 ID 依序堆疊），Gov_Map 的 SRC 狀態與等級改為每列 1 次 MATCH；SRC 各頁 X 欄改以 AH 同指標鍵比對；Checks 加 E13；Sources 更名 Sources_Legacy；公式內常數移到具名輸入格（CST_CtxKV、CST_STMult、CST_Eps、CST_MainMin），Sens_Train 情境倍數統一放在第 8 列；數值逐格不變。以下為 v5.11：Block 1＋2＋3＋4＋5＋治理 Stage 1 切片一；v5.11 建第 0 層 Source：SRC_HW、SRC_DC、SRC_Model、SRC_Perf（164 筆），模型頁原始數據改以公式連結 SRC_ID（數值逐格不變），DB_Evidence 加狀態與 SRC_ID 欄並登錄遷移紀錄，新增 Decisions、Gov_Map、L1 與 Checks G 節治理檢查；F14：Interface 與模型頁的每 GW 值除以 Inputs!E5，DC_Cost 改標為設施合計；v5.10 加成功任務成本前緣的可靠度下限 p_min（M1 (b)），Interface E 節增列每次嘗試成本、有效時間範圍與前緣；v5.9 加 Block 5：Har_In、Harness、Sens_Har，Workload 改為 harness 參數組，Block 4 補 SLO 不可達保護、K6 預設 (c)、機隊層級貢獻列、中國廠商旗標；v5.8 加 Block 4：Cap_In、Capability、Price_Frontier、Cache_Store、Fleet_1GW、Amortize、Theory_Rev、Sens_Rev；v5.2 加第二來源驗證與生產折減；v5.3、v5.4 依 CC 回饋補具名範圍與驗證表；v5.5 加 Block 3：Tech_Registry、Train_In、Perf_Batch、Training、Sens_Train，並更正 Hopper FP8 峰值；v5.6 非同步 RL 併入基準、補 TR_ 與訓練世代具名範圍；v5.7 改為 Excel 優先：輸入值由 Excel 擁有，新增 DB_Evidence 證據登錄表）。v4 的 Config／TL_Param／WP_Param／Revenue_Model 由 Arch、Serving、Workload、Calib、Perf、Unit_Cost 取代。"),
       ("電力口徑", "GW＝IT 關鍵電力（Andy 2026-09-30 確認）。設施電力＝IT × PUE，於 DC_Cost 與 Interface 並列。v5.11 起 DC_Cost 為設施合計（Inputs!E5 GW）；Interface、L1 與模型頁的每 GW 值一律除以 E5（F14）。"),
       ("資料架構（v5.11）", "DB_Evidence（所有新訊息入口）→ 擇優 → SRC_*（第 0 層：只存原始訊息；SRC_ID 具名範圍）→ 模型頁（原始數據以公式連結 SRC；Analogy、Assumed、Decision 留在模型頁並登錄於 Gov_Map）→ Checks G 節（治理檢查，ERROR 必須為 0）→ L1（常用推算值，即時公式，附外部對照）／Interface（推算構件）→ 下游。規劃書：repo docs/plan/Tokenomics_governance_plan.md。"),
       ("Excel 擁有的治理頁（v5.11）", "SRC_HW、SRC_DC、SRC_Model、SRC_Perf、SRC_Price、SRC_Cap、SRC_Harness、SRC_Demand（v5.13）、Decisions、DB_Evidence，以及 Gov_Map 的 A–P 欄：builder 只在不存在時建立，之後不覆寫（v5.13 起既有 SRC 頁的新紀錄只在 ID 不存在時附加；Gov_Map 判斷欄的更新只在該格仍為舊值時寫入）。builder 每次重建：模型頁的 SRC 連結（gov_seed.FORMULA_MAP、gov_seed2.FORMULA_MAP2）、SRC 的 X–Z 與 AH 檢查欄、Gov_Map 的 Q–AF 欄、SRC_Index（v5.12）、L1、Checks G 節，以及 SRC_／L1_／GOV_／IDX_ 具名範圍；v5.12 起新輸入格的 Gov_Map 列只在未登錄時附加。"),
@@ -1684,7 +1806,7 @@ def readme(wb):
       ("Block 5 決策", "L1 參數組取代單一 token 倍數；L2 METR 型成功率＋覆寫欄；L3 增強檔不入基準（w＝0）；L4 harness 不影響每 GW 營收；L5 每成功任務成本＝每次嘗試 ÷ p；L6 非 GPU 成本不入第 0 層；L7 情境值只採中立方同條件實測；M1 (b) 成功任務成本前緣只比較成功率 ≥ 可靠度下限 p_min（基準 50%）者，無合格時回傳「無合格」，不設下限的前緣列為對照。"),
       ("來源原則", "SemiAnalysis（含 InferenceX）資料一律須有第二來源佐證並標記 Interested-party；目前第二來源為 MLPerf（MLCommons 稽核，NVIDIA 提交）與 DeepSeek 自揭（待查）。"),
       ("未結事項", "(1) VR200 報價是否含網路（S11）。(2) 所有來源待 Andy 查核。(3) Rubin Ultra 為推估。(4) J6 基準利用率暫用 60%、生產折減暫用 1.0，皆待 Andy 給值。(5) VR200 無實測，η_d 與每層延遲沿用 GB300。(6) 交接錨點 6,182 屬舊軟體（vLLM 無 MTP），已改為 GB300 最新前緣兩點校準。(7) 快取儲存成本已於 v5.8 Cache_Store 加入（儲存層與保留時間為 Assumed）。(8) Hopper 峰值更正為 FP8 1,979 TF，η_d 與 η_p 倍數同步減半以維持產出；S30 口徑待查後重推。(9) Block 3 的 Astra token、RL rollout 量、研發倍數皆為 Analogy／Assumed，看 Sens_Train。(10) v5.6：非同步 RL 併入基準（rollout 效率 0.85），RL rollout token 重校以維持 GPU 小時錨點（J9 (a)）。(11) v5.8：K6 下游攤提預設於 v5.9 定為 (c)；Claude Opus 5.5、Kimi K3、MiniMax M3 的能力指數未取得，不參與前緣；Anthropic、Moonshot、Alibaba、MiniMax 價格為二手；METR 檢查未入表；Google 未列入候選。(12) v5.9：METR 尚未發布 GPT-6 各層級時間範圍（以 GPT-5.6 Sol、Mythos Preview 類比）；任務長度為 Assumed；ARC 金額衝突與 Opus 5 harness 歸屬待核；harness 用於 RL rollout 與非 GPU 成本延後。"),
-      ("生產折減並列輸出（v5.19 X1）", "Serving!C18（J15）維持 1.0（G0-11），模型的基準輸出不變。Interface G 節並列七列 _Prod 輸出，以 CTL_ProdDerate（Serving!C28，預設 0.85＝區間 0.7–1.0 的中點，情境值）重算：從 Serving!C18 進入模型的兩處（Perf、Perf_Batch 第 50 列）起，到 Theory_Rev 七個輸出列為止的公式鏈，逐格鏡像到 *_Prod 頁（同位置；只改兩處：鏈上參照改讀 *_Prod、第 50 列改讀 CTL_ProdDerate）。右側 S:AG 為檢查副本（第 50 列＝Serving!C18），Checks X1 比對七列是否等於基準列。_Prod 輸出的口徑同 D 節對應列；SLO 不可達時為文字。"),
+      ("生產折減並列輸出（v5.19 X1）", "Serving!C18（J15）維持 1.0（G0-11），模型的基準輸出不變。Interface G 節並列七列 _Prod 輸出，以 CTL_ProdDerate（Serving!C28，預設 0.85＝區間 0.7–1.0 的中點，情境值）重算：從 Serving!C18 進入模型的兩處（Perf、Perf_Batch 第 50 列）起，到 Theory_Rev 七個輸出列為止的公式鏈，逐格鏡像到 *_Prod 頁（同位置；只改兩處：鏈上參照改讀 *_Prod、第 50 列改讀 CTL_ProdDerate）。右側 X 欄起為檢查副本（v21.11 起；v5.19–v21.10 為 S:AG；第 50 列＝Serving!C18），Checks X1 比對七列是否等於基準列。_Prod 輸出的口徑同 D 節對應列；SLO 不可達時為文字。"),
       ("Interface 攤提耦合（v5.20 X5）", v520.X5_NOTE),
       v526.README_NAMES,      # v5.26: Interface I section names (appended; no README row moves)
       v530.README_ROW,        # v5.29: output contract and four-layer waterfall (appended); v5.30 X15: rewritten for the running product
@@ -1735,7 +1857,7 @@ def readme(wb):
     for i, (a, b) in enumerate(rows):
         r = 4 + i
         put(ws, f"A{r}", a, F_BOLD); put(ws, f"B{r}", b, wrap=True)
-    put(ws, "A1", "Tokenomics " + v21100.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
+    put(ws, "A1", "Tokenomics " + v21110.README_TITLE, F_TITLE)     # v5.35; v5.34; v5.33; v5.32; v5.31; v5.30; v5.29: version from v527.VERSION (same source as B5); Block 6, L1, Interface added
     put(ws, "A2", "第 0 層規格來源。理論營收為理想上限；實際營收在下游模型。", F_NOTE)
 
 # ---------------------------------------------------------------- Block 3 additions (v5.5)
@@ -1744,10 +1866,10 @@ def interface_b3(wb, TRN, start, TI):
     r = start
     section(ws, r, "C. Block 3 產出（依層級；欄＝世代 × 成本情境；GPU 小時不隨成本情境變動；下游預設 VR200、GB300 並列，J13）", 17); r += 1
     names = []
-    tiers = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+    tiers = TIERS_LIVE      # v21.11: see interface()
     for t, (tk, tn) in enumerate(tiers, start=1):
         put(ws, f"A{r}", tn, F_BOLD); r += 1
-        tl = lambda key: f"=INDEX(Training!$C${TRN[key]}:$Q${TRN[key]},3*(Unit_Cost!{{X}}$6-1)+{t})"
+        tl = lambda key: f"=INDEX(Training!$C${TRN[key]}:${GT_LAST}${TRN[key]},{gt_index('Unit_Cost!{X}$6', t)})"
         rows = [
           (f"IF_TrainGPUh_{tk}", "最終訓練 GPU 小時（單一模型）", "GPU-hr", "#,##0", tl("Hfin")),
           (f"IF_TrainCost_{tk}", "最終訓練成本 — 經濟（依成本情境）", "$M", "#,##0.0", "=IF(ISNUMBER(" + tl("Hfin")[1:] + "),"+ tl("Hfin")[1:] + "*Unit_Cost!{X}$8/1E6," + tl("Hfin")[1:] + ")"),
@@ -1779,7 +1901,8 @@ def interface_b3(wb, TRN, start, TI):
 def checks_b3(wb, TRN, TI, CAL, PB):
     ws = wb["Checks"]
     r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
-    section(ws, r0, "Block 3 檢查（VR200＝N 欄 Astra、M 欄 Sol；GB300＝K、J）", 6)
+    section(ws, r0, f"Block 3 檢查（VR200＝{gt_col(4, 3)} 欄 Astra、{gt_col(4, 2)} 欄 Sol；GB300＝{gt_col(3, 3)}、{gt_col(3, 2)}）", 6)
+    N, M, K = gt_col(4, 3), gt_col(4, 2), gt_col(3, 3)      # v21.11: Training is generation × 4 tiers (v21.10: N, M, K)
     put(ws, f"A{r0+1}", "項目", F_BOLD); put(ws, f"B{r0+1}", "本模型", F_BOLD); put(ws, f"C{r0+1}", "外部參照", F_BOLD)
     put(ws, f"D{r0+1}", "單位", F_BOLD); put(ws, f"E{r0+1}", "判讀", F_BOLD); put(ws, f"F{r0+1}", "來源", F_BOLD)
     T = lambda k, col: f"Training!{col}{TRN[k]}"
@@ -1788,17 +1911,17 @@ def checks_b3(wb, TRN, TI, CAL, PB):
     rows = [
       ("DeepSeek V3 推導 MFU（H800、FP8 分母）", v3, "=Training!C" + str(TRN["mfu"]), "%",
        "外部參照欄＝本模型 Hopper 採用 MFU；兩者接近即 Hopper 倍數 0.8 成立", "S44"),
-      ("RL ÷ 預訓練 GPU 小時：VR200 Astra", f"={T('rlH','N')}", f"=Train_In!$C${TI['grok']}", "x",
+      ("RL ÷ 預訓練 GPU 小時：VR200 Astra", f"={T('rlH',N)}", f"=Train_In!$C${TI['grok']}", "x",
        "J9 基準 1.0；參照為 Grok 4 宣稱（口徑不明）", "S42"),
-      ("RL ÷ 預訓練 GPU 小時：VR200 Sol", f"={T('rlH','M')}", f"=Train_In!$C${TI['r1rl']}", "x",
+      ("RL ÷ 預訓練 GPU 小時：VR200 Sol", f"={T('rlH',M)}", f"=Train_In!$C${TI['r1rl']}", "x",
        "J9 基準 0.3；參照為 R1（2025-01）", "S40"),
-      ("RL 有效 MFU：VR200 Astra", f"={T('rlmfu','N')}", "0.01–0.10", "%", "交接第 3 節區間；本模型為推導值", "交接"),
-      ("後訓練占比：GPU 小時口徑 − FLOPs 口徑（VR200 Astra）", f"=IF(AND(ISNUMBER({T('psH','N')}),ISNUMBER({T('psF','N')})),{T('psH','N')}-{T('psF','N')},{T('psH','N')})", "≥ 0", "%",
+      ("RL 有效 MFU：VR200 Astra", f"={T('rlmfu',N)}", "0.01–0.10", "%", "交接第 3 節區間；本模型為推導值", "交接"),
+      ("後訓練占比：GPU 小時口徑 − FLOPs 口徑（VR200 Astra）", f"=IF(AND(ISNUMBER({T('psH',N)}),ISNUMBER({T('psF',N)})),{T('psH',N)}-{T('psF',N)},{T('psH',N)})", "≥ 0", "%",
        "RL 有效 MFU 低於預訓練，GPU 小時占比必然較高", "Training I 節"),
       ("最終訓練 ÷ 研發計畫", f"=1/Train_In!$C${TI['rdm']}", "9.6%–22.6%", "%", "Epoch 三家公司區間", "S38"),
-      ("前沿錨點中值（5e26）反推 Astra 預訓練 token", f"=Train_In!$C${TI['an2']}/({T('Fpt','N')}*1E9)/1E12",
-       f"=Training!N{TRN['Dp']}", "T", "J8：差距大代表 Astra 啟用參數或 token 假設偏低；錨點低／高值見 Train_In", "S39"),
-      ("Astra 最終訓練占 1 GW 一年：VR200 ／ GB300", f"={T('GWf','N')}", f"={T('GWf','K')}", "%", "本模型 VR200 值；外部參照欄為 GB300", "Training"),
+      ("前沿錨點中值（5e26）反推 Astra 預訓練 token", f"=Train_In!$C${TI['an2']}/({T('Fpt',N)}*1E9)/1E12",
+       f"=Training!{N}{TRN['Dp']}", "T", "J8：差距大代表 Astra 啟用參數或 token 假設偏低；錨點低／高值見 Train_In", "S39"),
+      ("Astra 最終訓練占 1 GW 一年：VR200 ／ GB300", f"={T('GWf',N)}", f"={T('GWf',K)}", "%", "本模型 VR200 值；外部參照欄為 GB300", "Training"),
     ]
     return r0 + 2, rows
 
@@ -1865,11 +1988,12 @@ def evidence_sheet(wb):
 # K13 all Chinese vendors (open-weight flag); K14 international USD prices.
 # New formulas reference key quantities through named ranges (B4_ = Block 4 internal / display; IF_ = downstream).
 from common import *
+from tiers import gt_col, NT_LIVE
 from outputs import COLS15
 from openpyxl.workbook.defined_name import DefinedName
 
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
-TC = "CDE"                      # tier columns on Cap_In / Price_Frontier summary
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
+from tiers import TC_LIVE as TC      # tier columns on Cap_In / Price_Frontier summary (v21.11: from builder/tiers.py; live tiers "CDE")
 
 def nm(wb, n, ref):
     wb.defined_names[n] = DefinedName(n, attr_text=ref)
@@ -2114,7 +2238,7 @@ def capability(wb, K, P, TRN, TI):
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
     for t, (tk, tn) in enumerate(TIERS): put(ws, f"{TC[t]}{r}", tn, F_BOLD)
     put(ws, f"G{r}", "說明", F_BOLD); r += 1
-    tcol = "LMN"   # Training VR200 base columns: L/M/N = VR200 Luna/Sol/Astra
+    tcol = [gt_col(4, t + 1) for t in range(NT_LIVE)]   # Training VR200 base columns (v21.10: L/M/N = VR200 Luna/Sol/Astra; v21.11: O/P/Q from tiers.gt_col)
     rows = [
       ("flop", "最終訓練 FLOPs（預訓練＋後訓練；Training Cfin）", "FLOP", lambda t: f"=Training!{tcol[t]}{TRN['Cfin']}", "0.00E+00", "Block 3"),
       ("lflop", "log10 FLOPs", "", lambda t: f"=LN({TC[t]}{{flop}})/LN(10)", "0.00", ""),
@@ -2574,7 +2698,8 @@ def evidence_b4(wb):
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
 
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+from tiers import TIERS as TIERS_ALL, TC as TC_ALL
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 TK = "CDEFG"                                   # task columns (Workload C–G)
 NA = '"SLO 不可達"'
 GENS = [("VR200", "M"), ("GB300", "J")]         # Unit_Cost / Cache_Store base-cost columns (J13: VR200 default, GB300 alongside)
@@ -2667,15 +2792,17 @@ def har_in(wb, TR):
     r += 1
     section(ws, r, "C. 成功率（L2：METR 型 p＝1 ÷（1＋（任務長度 ÷（層級 50% 時間範圍 × harness 倍數））^β））", 9); r += 1
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
-    for c, h in zip("CDE", [tn for _, tn in TIERS]): put(ws, f"{c}{r}", h, F_BOLD)
+    for c, h in zip(TC_ALL, [tn for _, tn in TIERS_ALL]): put(ws, f"{c}{r}", h, F_BOLD)      # v21.11: Terra header in F (B5_H50 names stay C:E until v21.12／v22.0)
     put(ws, f"H{r}", "標記", F_BOLD); put(ws, f"I{r}", "說明", F_BOLD); r += 1
+    # v21.11 (B1): Terra (F) 50% time horizon 6 hr, range 3-10 (design 3.7, Analogy: OpenAI self-reported agent evals put Terra close to Sol).
+    # Not read yet: B5_H50／_Lo／_Hi stay 1×3 (C:E) in v21.11; the shape change and the success-override row 58 are v21.12 (B2) scope.
     for key, lab, vals, tag, note in [
-        ("h50", "50% 時間範圍 基準", (1.5, 8, 16), "Analogy",
+        ("h50", "50% 時間範圍 基準", (1.5, 8, 16, 6), "Analogy",
          "METR TH1.1：GPT-5.6 Sol 11.3 小時、Claude Mythos Preview 17.4 小時（最高；套件 16 小時以上量不準）（S59）。GPT-6 各層級未發布；Luna 無對應錨點"),
-        ("h50lo", "50% 時間範圍 低", (0.5, 4, 11), "Analogy", ""),
-        ("h50hi", "50% 時間範圍 高", (4, 12, 40), "Analogy", "Astra 高值參照 Mythos 級以 ECI 推估 18.8–40 小時（第三方，S59）")]:
+        ("h50lo", "50% 時間範圍 低", (0.5, 4, 11, 3), "Analogy", ""),
+        ("h50hi", "50% 時間範圍 高", (4, 12, 40, 10), "Analogy", "Astra 高值參照 Mythos 級以 ECI 推估 18.8–40 小時（第三方，S59）")]:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", "hr")
-        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt="0.0")
+        for c, v in zip(TC_ALL, vals): put(ws, f"{c}{r}", v, fmt="0.0")
         put(ws, f"H{r}", tag, F_NOTE); put(ws, f"I{r}", note, F_NOTE, wrap=True); H[key] = r; r += 1
     put(ws, f"A{r}", "斜率 β（C＝基準、D＝低、E＝高）"); put(ws, f"B{r}", "x")
     for c, v in zip("CDE", (0.75, 0.65, 1.0)): put(ws, f"{c}{r}", v, fmt="0.00")
@@ -3078,13 +3205,14 @@ def evidence_b5(wb):
 # Alloc_In: every number is an Excel-owned blue input (restored by preserve.py from the base workbook).
 # Alloc: formulas only; key quantities are named ranges (AL_ = display only, IF_Alloc* = downstream via Interface F).
 from common import *
+from tiers import GT_LAST, gt_index      # v21.11: Training is generation × 4 tiers (index NT*(g-1)+t); Alloc stays on the three live tiers (B2 scope)
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 SLO = "SLO 不可達"
 SPEND_SID = "SRC_DEM_004"    # v5.36 B1: OpenAI-side inference spend (8.4; 7.5–8.8) drives the spend route; was SRC_DEM_018 (Microsoft-side 12.6, now a comparison row) in v5.29–v5.35. v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 GENX = "整代不可達"      # v6.3 K2: a generation with mix share > 0 whose tiers are all unreachable -> text flag (the generation mix is an observed fleet fact, never transferred)
 
 
@@ -3275,9 +3403,9 @@ def alloc(wb, AIN):
     tr = wb["Training"]
     r104 = _row_of(tr, "後訓練 GPU 小時（SFT＋RL＋蒸餾）"); r18 = _row_of(tr, "每 GW GPU 數")
     line("post", "後訓練 GPU 小時（SFT＋RL＋蒸餾；單一模型；Training 頁）", "GPU-hr",
-         {**{c: f"=INDEX(Training!$C${r104}:$Q${r104},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "#,##0",
+         {**{c: f"=INDEX(Training!$C${r104}:${GT_LAST}${r104},{gt_index('AL_TrainGen', c + str(R['tier']))})" for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "#,##0",
          note="Training 第 104 列「後訓練 GPU 小時（SFT＋RL＋蒸餾）」，不含第 105 列；依訓練世代與層級取值；依欄 A 標籤定位（工作單 r3 更正 2）")
-    line("gpugw", "每 GW GPU 數（訓練世代）", "顆", {c: f"=INDEX(Training!$C${r18}:$Q${r18},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "#,##0")
+    line("gpugw", "每 GW GPU 數（訓練世代）", "顆", {c: f"=INDEX(Training!$C${r18}:${GT_LAST}${r18},{gt_index('AL_TrainGen', c + str(R['tier']))})" for c in "CDE"}, "#,##0")
     line("ref", "改版計畫 GW 年＝後訓練 GPU 小時 × 研發倍數 ÷（每 GW GPU 數 × 8,760）", "GW·年",
          {**{c: f'=IF(ISNUMBER({c}{R["post"]}),{c}{R["post"]}*IF_RDMult/({c}{R["gpugw"]}*8760),{c}{R["post"]})' for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "0.0000",
          note="改版（refresh）計畫：後訓練 GPU 小時 × 研發倍數（IF_RDMult，A2）；GW 年換算同 Training「占 1 GW 一年」")
@@ -19569,12 +19697,20 @@ from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_NOTE, FILL_KEY, FILL_SEC
 
 C18 = "=Serving!$C$18"
 SEED_COLS = range(3, 18)                                   # C:Q (5 generations x 3 columns); also the span of the Theory_Rev targets
+from tiers import RELAID, GT_COLS
+GT_SPAN = range(3, 3 + len(GT_COLS))                       # v21.11: Perf／Perf_Batch／Training are generation × 4 tiers, C:V
+
+
+def span(sheet):
+    """Columns that can hold chain cells on a source sheet (v21.11: C:V on the re-laid generation × tier sheets, C:Q elsewhere)."""
+    return GT_SPAN if sheet in RELAID else SEED_COLS
 PROD_SHEETS = ["Perf_Prod", "Perf_Batch_Prod", "Training_Prod", "Unit_Cost_Prod", "Interface_Prod", "Fleet_1GW_Prod", "Amortize_Prod", "Theory_Rev_Prod"]
 SRC_SHEETS = [x[:-len("_Prod")] for x in PROD_SHEETS]
 # (Theory_Rev row, Interface name of the baseline row, new name)
 TARGETS = [(18, "IF_FullCost_Luna"), (36, "IF_FullCost_Sol"), (54, "IF_FullCost_Astra"),
            (11, "IF_RevGW_Luna"), (29, "IF_RevGW_Sol"), (47, "IF_RevGW_Astra"), (67, "IF_RevGWFleet")]
-SHIFT = 16                                                 # check copy: columns S:AG (C+16 … Q+16)
+SHIFT = 21                                                 # check copy: columns X onwards (C+21; v21.11 widened from 16 because Perf／Perf_Batch／Training span C:V)
+COPY_FROM = L(3 + SHIFT)                                   # "X"
 SUFFIX = "_Prod"
 NEW_INPUT_ROW = 28                                         # Serving row of CTL_ProdDerate (after the existing content, no shifts)
 CTL_DEFAULT = 0.85
@@ -19711,7 +19847,7 @@ def mirror_formula(f, cur, S, names, shift):
 def build_chain(wb):
     """Create the *_Prod sheets; returns info for the report (cell counts, sheets, rows)."""
     S, cells, names, seeds = chain_cells(wb)
-    assert S and all(3 <= c <= 17 for (_, c, _) in S), "chain must live in columns C:Q"
+    assert S and all(c in span(sh) for (sh, c, _) in S), "chain must live in columns C:Q (C:V on the generation × tier sheets)"
     for key in S:
         assert mirror_formula(cells[key], key[0], set(), names, 0) is not None
     # tokenizer round trip must reproduce every formula (guards the rewrite)
@@ -19724,14 +19860,15 @@ def build_chain(wb):
         src = wb[s]; ws = wb.create_sheet(s + SUFFIX)
         title(ws, f"{s}{SUFFIX} — {s} 的鏡像（v5.19 X1：生產折減並列輸出）",
               "同位置鏡像：公式逐格同 " + s + "，只改兩處——(1) 讀到鏈上其他格者改讀本組 *_Prod 頁；(2) Perf_Prod 與 Perf_Batch_Prod 第 50 列改讀 CTL_ProdDerate（Serving!C28），"
-              "其餘仍讀原頁。右側 S:AG 為自我檢查副本（第 50 列＝Serving!C18，Checks X1）。只含從 Serving!C18 的進入點（兩個第 50 列）算到七個 _Prod 輸出所需的列。")
-        for c in "ABCDEFGHIJKLMNOPQ":
+              f"其餘仍讀原頁。右側 {COPY_FROM}:{L(span(s)[-1] + SHIFT)} 為自我檢查副本（第 50 列＝Serving!C18，Checks X1）。只含從 Serving!C18 的進入點（兩個第 50 列）算到七個 _Prod 輸出所需的列。")
+        for i in range(1, span(s)[-1] + 1):
+            c = L(i)
             if src.column_dimensions[c].width: ws.column_dimensions[c].width = src.column_dimensions[c].width
-        for i in range(19, 34): ws.column_dimensions[L(i)].width = src.column_dimensions["C"].width or 12
+        for i in span(s): ws.column_dimensions[L(i + SHIFT)].width = src.column_dimensions["C"].width or 12
         ws.freeze_panes = src.freeze_panes
         for blk, shift in (("主", 0), ("檢查副本", SHIFT)):
             for r in (4, 5, 6, 7):                                    # header band (links; copies of the source header rows)
-                for c in SEED_COLS:
+                for c in span(s):
                     sc = src.cell(r, c)
                     if sc.value is not None:
                         put(ws, f"{L(c + shift)}{r}", f"={_qs(s)}!{L(c)}{r}", fmt=sc.number_format, fill=copy(sc.fill) if sc.fill.fill_type else None)
@@ -19744,7 +19881,7 @@ def build_chain(wb):
                 if v is None: continue
                 put(ws, f"{L(c)}{r}", f"={_qs(s)}!{L(c)}{r}" if isinstance(v, str) and v.startswith("=") else v,
                     F_NOTE if c == 2 else None)
-            for c in SEED_COLS:
+            for c in span(s):
                 key = (s, c, r)
                 if key not in S: continue
                 sc = src.cell(r, c)
@@ -19799,7 +19936,7 @@ def checks_x1(wb, made):
     r += 1
     put(ws, f"A{r}", "X1"); put(ws, f"B{r}", "生產折減並列輸出的自我檢查：替代值改回 Serving!C18 時，七個 _Prod 列不等於對應基準列的格數"); put(ws, f"C{r}", "ERROR", F_BOLD)
     put(ws, f"D{r}", f"=SUM(Theory_Rev{SUFFIX}!C{flag_rows[0]}:Q{flag_rows[-1]})", fmt="0")
-    put(ws, f"E{r}", f"Theory_Rev_Prod 第 {flag_rows[0]}–{flag_rows[-1]} 列 × C:Q（7 × 15＝105 格；檢查副本在 S:AG，不需手動改輸入）", F_NOTE)
+    put(ws, f"E{r}", f"Theory_Rev_Prod 第 {flag_rows[0]}–{flag_rows[-1]} 列 × C:Q（7 × 15＝105 格；檢查副本在 {COPY_FROM}:{L(17 + SHIFT)}，不需手動改輸入）", F_NOTE)
     ref = wb.defined_names["GOV_Errors"].attr_text.split("!")[1].replace("$", "")
     cell = ws[ref]
     if f"D{r}" not in str(cell.value): cell.value = f"{cell.value}+D{r}"
@@ -20411,7 +20548,8 @@ from common import put, F_NOTE, F_BOLD, F_CALC, F_LINK, section
 VERSION = "20261007_Tokenomics_v5.23"      # single source of the version string: README!B5 and README!A1 (finish.readme)
 DATE = "2026-10-07"
 V = "v5.23"
-COLS15 = [chr(c) for c in range(ord("C"), ord("Q") + 1)]    # Perf_Batch C:Q (5 generations x 3 tiers)
+COLS15 = [chr(c) for c in range(ord("C"), ord("Q") + 1)]    # v21.10 Perf_Batch C:Q (5 generations x 3 tiers); kept for reference
+from tiers import GT_COLS      # v21.11: Perf_Batch generation × tier columns C..V
 
 # ------------------------------------------------------------------ X10: Calib section I (five generation multipliers)
 CALIB_PREV_END = 152                        # Calib ends at row 152 in v5.22; section I starts after one blank row
@@ -20454,7 +20592,7 @@ SUFFIX = "*INDEX(CAL_BatchEtaD,1,{X}$6)"
 def perf_batch_etad(wb):
     """Append the multiplier to the 15 base cells. Asserts the formula is still the v5.22 one (or already carries the suffix)."""
     ws = wb["Perf_Batch"]; n = 0
-    for X in COLS15:
+    for X in GT_COLS:      # v21.11: the generation × tier columns C..V (v21.10: C..Q); the FP8 scenario columns keep their own formula
         c = ws[f"{X}{ROW_ETAD}"]; old = f"=INDEX(Calib!$C$70:$G$70,{X}$6)*{X}52*{X}50"; add = SUFFIX.format(X=X)
         if c.value == old + add: continue
         assert c.value == old, f"Perf_Batch!{X}{ROW_ETAD} is {c.value!r}, expected {old!r}"
@@ -25009,7 +25147,8 @@ DEC = "docs/reports/20261015_稽核判斷會議_決定.md"
 ANDY = "Andy 2026-10-15 稽核判斷會議逐題決定（" + DEC + "）"
 SLO = "SLO 不可達"
 COLS = range(3, 18)
-TIERS = ["Luna", "Sol", "Astra"]
+from tiers import TIERS_LIVE as _TL
+TIERS = [k for k, _ in _TL]      # v21.11: single source (builder/tiers.py); live tiers only
 NOTE_ALIAS = "過渡別名＝IFW_{}_Life；下一個主版刪除"
 
 
@@ -26213,6 +26352,7 @@ README_ROW = ("世代價格門檻、遺留項（v7.0）",
 import re
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+from tiers import GT_LAST, gt_index, gt_col
 import v533
 import v535
 import v603
@@ -26335,7 +26475,7 @@ def cap_in_m(wb, l_sec):
     put(ws, f"A{r}", "M-4. Astra Epoch 上限的隱含 token（D14）：Epoch 1.0e27 為 GPT-6 Astra 叢集總算力（含後訓練，上限）；全算為預訓練時 token＝FLOP ÷（6 × 啟用參數）。基準 token 60T 與參數 180B 不變；差距分配不在本段決定", F_BOLD); r += 1
     for n, nm_ in ((180, None), (400, 400), (800, 800)):
         put(ws, f"A{r}", LAB_N(n), wrap=True); put(ws, f"B{r}", "B 參數")
-        if nm_ is None: put(ws, f"C{r}", "=Training!$N$22", F_LINK, fmt="0")
+        if nm_ is None: put(ws, f"C{r}", f"=Training!${gt_col(4, 3)}$22", F_LINK, fmt="0")      # VR200 × Astra (v21.10: $N$22)
         else: put(ws, f"C{r}", nm_, F_IN, fmt="0", fill=FILL_KEY)
         put(ws, f"F{r}", "Derived（連結 Arch）" if nm_ is None else "Assumed")
         put(ws, f"G{r}", ("連結 Training 第 22 列（Astra 啟用參數，Arch 基準）" if nm_ is None else "2Q 報告第 4.2 節的敏感度情境（參數放大則隱含 token 縮小）；不進任何計算，只用於下列隱含 token 列"), F_NOTE)
@@ -26407,8 +26547,8 @@ def alloc_sections(wb, R):
         row(f"j_fam{t}", f"家族計畫 GW 年 — {tn}（IF_ProgGWyr_{tk}；各世代；含研發倍數）", "GW·年",
             {c: f"=INDEX(IF_ProgGWyr_{tk},1,{col(c)})" for c in CF}, "0.00000")
     for t, (tk, tn) in enumerate(TIERS, 1):
-        p = lambda c, t=t: f"INDEX(Training!$C${r104}:$Q${r104},3*({gi(c)}-1)+{t})"
-        g_ = lambda c, t=t: f"INDEX(Training!$C${r18}:$Q${r18},3*({gi(c)}-1)+{t})"
+        p = lambda c, t=t: f"INDEX(Training!$C${r104}:${GT_LAST}${r104},{gt_index(gi(c), t)})"      # v21.11: generation × tier index (J3)
+        g_ = lambda c, t=t: f"INDEX(Training!$C${r18}:${GT_LAST}${r18},{gt_index(gi(c), t)})"
         row(f"j_ref{t}", f"改版計畫 GW 年 — {tn}（後訓練 GPU 小時 × 研發倍數 ÷（每 GW GPU 數 × 8,760）；各世代）", "GW·年",
             {c: f'=IF(AND(ISNUMBER({p(c)}),ISNUMBER({g_(c)})),{p(c)}*IF_RDMult/({g_(c)}*8760),"{SLO}")' for c in CF}, "0.00000")
     nums = lambda c: ",".join(f"ISNUMBER({c}{AM[k]})" for k in ("j_fam1", "j_fam2", "j_fam3", "j_ref1", "j_ref2", "j_ref3"))
@@ -26937,6 +27077,7 @@ README_ROW = ("D9 快取進產能與 2-3 後續（v9.0）",
 #      (Hopper H200, GB200); SRC_Perf／SRC_Harness records for the new reference values.
 #   N4 label notes (Perf_Batch, Perf TTFT, kappa, free share), literal payback reading marked inconsistent.
 # Every write to an Excel-owned cell is guarded (text not yet present ／ cell still holds its v9.0 value).
+from tiers import gt_pos      # v21.11: TRN_ names are generation × 4 tiers (VR200 Luna／Sol at positions 13／14; v21.10: 10／11)
 import re
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
@@ -27196,9 +27337,9 @@ def checks_v(wb, CAL):
          "SRC_PERF_062（LMSYS／SGLang，96×H100，輸入 2,000，ITL 約 100 ms；Atlas Cloud 有商業動機）；v10.2 E3：模型值改為 Calib J 節 F 欄（條件對齊：DeepSeek-V3 規模、輸入 2,000、ITL 100 ms＝10 tok/s/user，批次由速度下限與 HBM 決定）；不用於校準"),
         ("V8", "LMSYS GB200 decode（條件對齊）：GB200——模型 decode tok/s/GPU ÷ 實測，通過帶 0.5–2.0", f"=Calib!G{CAL['J']['jD']}", "=SRC_PERF_063", None, 0.5, 2.0,
          "SRC_PERF_063（LMSYS／SGLang，GB200 NVL72，NVFP4，輸入 2,000，decode 48 rank，無 TPOT；與 NVIDIA 合作，Interested-party 成分高）；v10.2 E3：模型值改為 Calib J 節 G 欄（條件對齊，同 V7）；不用於校準"),
-        ("V9", "RL ÷ 預訓練 GPU 小時：Luna（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,10)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3,
+        ("V9", "RL ÷ 預訓練 GPU 小時：Luna（VR200）——通過帶 0.1–0.3", f"=INDEX(TRN_RLRatioH,1,{gt_pos(4, 1)})", "=SRC_PERF_064", "=C{r}", 0.1, 0.3,
          "對照值＝Olmo 3（AI2）RL ÷ 預訓練約 0.11（SRC_PERF_064）；DeepSeek-V3.2 ≥ 0.1（SRC_PERF_065）；帶 0.1–0.3（3A 第 3 節）；模型值＝Training 第 78 列（J9 目標約 0.3，基準校準值，不是證據）"),
-        ("V10", "RL ÷ 預訓練 GPU 小時：Sol（VR200）——通過帶 0.1–0.3", "=INDEX(TRN_RLRatioH,1,11)", "=SRC_PERF_064", "=C{r}", 0.1, 0.3, "同上；Sol"),
+        ("V10", "RL ÷ 預訓練 GPU 小時：Sol（VR200）——通過帶 0.1–0.3", f"=INDEX(TRN_RLRatioH,1,{gt_pos(4, 2)})", "=SRC_PERF_064", "=C{r}", 0.1, 0.3, "同上；Sol"),
         ("V11", "harness 輪數倍數 ≥ 1（Coding agent；選定檔案；SWE Atlas：原生 scaffold 工具呼叫多 1.5–2 倍，只判方向）", "=INDEX(B5_SelT,1,5)", "=SRC_HAR_016_Lo", "=C{r}", 1, None,
          "SRC_HAR_016（SWE Atlas arXiv 2605.08366：原生 scaffold 對 mini-SWE-agent 工具呼叫 1.5–2 倍）；基準 0.7（Har_In 第 12 列，Q3＝R1）預期失敗，如實顯示，不調輸入；工具呼叫數不等於輪數，只作方向證據"),
         ("V12", "樣本外：GB300 SGLang＋MTP 50 tok/s——模型 ÷ 實測 ±10%（Checks B15）", "—", "=Checks!C15", "=Checks!B15", 0.9, 1.1, "SRC_PERF_004；Checks B15 原判準「±10% 內視為前緣形狀成立」"),
@@ -28110,6 +28251,8 @@ def checks_header(wb):
 #       B26 and B36 counted again as V16/V17.
 #   E4  Perf_Batch R-S columns kept (Sens_Train W59:X62 reads them): header and registry notes say so.
 # Every write to an Excel-owned cell is guarded (old value / old text). Minor version: no new contract name.
+from tiers import PB_SCEN
+from inputs import SERV_NOTE
 import re
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
@@ -28400,7 +28543,10 @@ def gov_update(ws, append_text):
     rep("Calib", "F120", "H", "SRC_PERF_026", "SRC_PERF_076")
     rep("Calib", "F120", "E", "MLPerf 實測輸出 tok/s/GPU（總量 ÷ 72）", "MLPerf v6.0 server GB300 NVL72（NVIDIA 72 GPU）每 GPU（V3 對照）")
     n += append_text(ws[f"N{r}"], " ｜v10.2 E3：V3 對照由 Nebius 8 GPU 單機 8,064（SRC_PERF_026）改為同輪 NVIDIA 72 GPU 機櫃 5,562（SRC_PERF_076）；SRC_PERF_026 保留作單機參考")
-    r = _gm_row(ws, "Perf_Batch", "R19:S20"); assert ws[f"A{r}"].value == "GM558"
+    import v21110
+    try: r = _gm_row(ws, "Perf_Batch", "R19:S20")
+    except KeyError: r = _gm_row(ws, "Perf_Batch", v21110.gm_key("Perf_Batch", "R19:S20"))      # v21.11: registration moved to W19:X20
+    assert ws[f"A{r}"].value == "GM558"
     n += append_text(ws[f"N{r}"], " ｜v10.2 E4（ETA-E4；Andy 2026-10-16 18:22 決定 (b)）：R–S 欄保留，只供敏感度情境（Sens_Train W59:X62 讀取；不進任何 IF_／L1_ 輸出）；取代 4-1 的『刪除』")
     return n
 
@@ -28414,12 +28560,12 @@ def apply(wb, append_text):
     log = {}
     ws = wb["Perf_Batch"]
     n = 0
-    for ref in ("R3", "S3"):
+    for ref in (f"{c}3" for c in PB_SCEN):      # v21.11: the FP8 rollout scenario columns are W／X (v21.10: R／S)
         if ws[ref].value == "情境：FP8 rollout":
             ws[ref].value = E4_HDR; n += 1
     n += append_text(ws["A2"], E4_A2)
     sv = wb["Serving"]
-    if sv["F21"].value != SLO_TXT: sv["F21"].value = SLO_TXT; n += 1
+    if sv[f"{SERV_NOTE}21"].value != SLO_TXT: sv[f"{SERV_NOTE}21"].value = SLO_TXT; n += 1      # v21.11: Serving 說明 of rows 20-24 is column G (Terra in F)
     log["perf_batch"] = n
     s = wb["SRC_Perf"]; k = 0
     for rr in range(5, s.max_row + 1):
@@ -28576,10 +28722,10 @@ def cap_in_patch(wb):
 
 
 # ================================================================== F1／F4: notes, marks (end of build, idempotent)
-PHYS = {   # (sheet, row): (note column or None = purpose column, text)
+PHYS = {   # (sheet, row): (note column or None = purpose column, text); v21.11: Arch 說明 is H (Terra in F)
     ("Spec_Rack", 27): ("H", "物理慣例：÷8＝Gb/s 換 GB/s（8 bit／byte），不外露"),
     ("Spec_Rack", 34): ("H", "物理慣例：×8＝pJ/bit 換 pJ/byte（8 bit／byte），不外露"),
-    ("Arch", 30): ("G", "物理慣例：係數 4＝注意力 QKᵀ 與 AV 各 2 FLOPs／MAC，共 4，不外露"),
+    ("Arch", 30): ("H", "物理慣例：係數 4＝注意力 QKᵀ 與 AV 各 2 FLOPs／MAC，共 4，不外露"),
     ("Training", 34): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露；若日後要改為 Tech_Registry 條目再外露"),
     ("Training", 41): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露"),
     ("Training", 48): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露"),
@@ -29751,7 +29897,8 @@ def gov_update(ws, append_text):
     row_of = {ws.cell(r, 1).value: r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value}
     for g in D15["gov"]:
         r = row_of[g["gm"]]
-        assert (ws.cell(r, 3).value, ws.cell(r, 4).value) == (g["page"], g["cell"]), (g["gm"], ws.cell(r, 3).value, ws.cell(r, 4).value)
+        import v21110      # v21.11: the registrations of the re-laid generation × tier sheets moved to their 20-column range
+        assert (ws.cell(r, 3).value, ws.cell(r, 4).value) in ((g["page"], g["cell"]), (g["page"], v21110.gm_key(g["page"], g["cell"]))), (g["gm"], ws.cell(r, 3).value, ws.cell(r, 4).value)
         ids = g["ids"]
         if ids and _is_blank(ws.cell(r, 10).value):
             ws.cell(r, 10).value = ids[0]; n += 1
@@ -29832,10 +29979,11 @@ def notes(wb, append_text):
     log = {}
     # Arch F6:F8 (revision 9: original wording kept in G of the same row)
     ws = wb["Arch"]; n = 0
+    from inputs import ARCH_TAG, ARCH_NOTE      # v21.11: Arch 標記／說明 are G／H (Terra in F); v13.1–v21.10: F／G
     for r in (6, 7, 8):
-        if ws[f"F{r}"].value == "Verified／Assumed":
-            ws[f"F{r}"].value = "Assumed"; n += 1
-        n += append_text(ws[f"G{r}"], f" ｜v13.1 更正（修訂九，Decisions D15-10）：標記欄原字樣『Verified／Assumed』更正為『Assumed』（以 Gov_Map 為準；Luna／Sol 欄數值連結 SRC_MOD，Astra 欄無公開來源）")
+        if ws[f"{ARCH_TAG}{r}"].value == "Verified／Assumed":
+            ws[f"{ARCH_TAG}{r}"].value = "Assumed"; n += 1
+        n += append_text(ws[f"{ARCH_NOTE}{r}"], f" ｜v13.1 更正（修訂九，Decisions D15-10）：標記欄原字樣『Verified／Assumed』更正為『Assumed』（以 Gov_Map 為準；Luna／Sol 欄數值連結 SRC_MOD，Astra 欄無公開來源）")
     log["arch_marks"] = n
     # SRC_PERF_060 (Excel-owned): note in 備註 W; 狀態 O stays Active
     sp = wb["SRC_Perf"]; n = 0
@@ -29982,6 +30130,7 @@ README_ROW = ("D15 來源補齊與區間時效指紋（v13.1）",
 #   Q5  用途 marks for the 155 kept display rows (builder/v1400_data.json) and for the cells that became dead through Q1 (v1400_marks.json).
 # Every write to an Excel-owned cell is guarded (old value / old text).
 import json
+import re
 from pathlib import Path
 
 import openpyxl
@@ -29990,6 +30139,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.styles import PatternFill
 
 from common import put, F_NOTE, F_BOLD, F_CALC, section
+from tiers import GT_LAST, NT_LIVE, PB_SCEN, gt_index
 import v1310
 
 VERSION = "20261017_Tokenomics_v14.0"      # single source of the version string: README!B5 and README!A1 (finish.readme)
@@ -30038,11 +30188,23 @@ def _purpose_col(ws, create=True):
     return col
 
 
+def _widen(e):
+    """v21.11: a deleted tier row also covers the Terra cell the builder now writes (Arch／Serving C:E -> C:F; Training C:Q -> C:V).
+    The 用途 note keeps the v14.0 range text."""
+    from tiers import TC_LAST, RELAID
+    rng = e["range"]
+    if e["sheet"] in ("Arch", "Serving") and re.fullmatch(r"C\d+:E\d+", rng):
+        return rng.replace(":E", ":" + TC_LAST)
+    if e["sheet"] in RELAID and re.fullmatch(r"C\d+:Q\d+", rng):
+        return rng.replace(":Q", ":" + GT_LAST)
+    return rng
+
+
 def delete_cells(wb):
     n_cells = n_rows = 0
     for e in DATA["delete"]:
         ws = wb[e["sheet"]]
-        for r, c in _cells(e["range"]):
+        for r, c in _cells(_widen(e)):
             cell = ws.cell(r, c)
             if cell.value is not None:
                 cell.value = None; cell.fill = NO_FILL; n_cells += 1
@@ -30085,7 +30247,7 @@ def purpose_marks(wb):
 M_TITLE = ("M. 契約補名（v14.0，工作單 4-3B Q2）：18 個名稱中的 11 個 IF_ 名稱；其餘 7 個 L1_ 序列名稱在 Cap_In（見下游契約文件）。"
            "Luna／Sol／Astra 是模型層級（低／中／頂），不是世代；欄＝世代 × 成本情境（任務別列：欄 C–G＝Workload 任務）。"
            "每列標明層級與 token 類型；『混合』＝該值本身是跨 token 類型的混合比值，不能拆回單一類型")
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 GM_ROW = {"Luna": 24, "Sol": 42, "Astra": 60}
 
 
@@ -30107,7 +30269,7 @@ def interface_m(wb):
     name_it("IF_TaskTokMult", f"Interface!$C${r}:$G${r}"); made.append(("IF_TaskTokMult", r)); r += 1
     for t, (tk, tn) in enumerate(TIERS, start=1):
         put(ws, f"A{r}", tn, F_BOLD); r += 1
-        pick = lambda row: "=INDEX(Training!$C${0}:$Q${0},3*(Unit_Cost!{{X}}$6-1)+{1})".format(row, t)
+        pick = lambda row: "=INDEX(Training!$C${0}:${2}${0},{1})".format(row, gt_index("Unit_Cost!{X}$6", t), GT_LAST)      # v21.11: generation × tier index (J3)
         rows = [
             (f"IF_TrainFLOP_{tk}", f"最終訓練 FLOPs（{tn[:tn.index('（')]}層級；單一模型；預訓練側＋後訓練＋合成資料＋評測；訓練側，無 token 類型；不隨成本情境變動）",
              "FLOP", FLOPS_FMT, pick(109)),
@@ -30150,15 +30312,22 @@ def series_names(wb):
     return [n for n, *_ in SER_NAMES]
 
 
+# v21.11 (B1): Perf C..V and Perf_Batch C..X; the counts stay on the live tiers (row 7 = tier index <= NT_LIVE) so the v21.10 values hold
+_PM, _BM = f"(Perf!$C$7:${GT_LAST}$7<={NT_LIVE})", f"(Perf_Batch!$C$7:${PB_SCEN[-1]}$7<={NT_LIVE})"
+_P = lambda r: f"Perf!$C${r}:${GT_LAST}${r}"
+_B = lambda r: f"Perf_Batch!$C${r}:${PB_SCEN[-1]}${r}"
+V23_C = (f"=IFERROR(SUMPRODUCT({_PM}*({_P(87)}>0)*({_P(89)}<{_P(41)}*(1-0.000000001)))"
+         f"+SUMPRODUCT({_BM}*({_B(87)}>0)*({_B(89)}<{_B(41)}*(1-0.000000001))),1)")
+V23_D = f"=SUMPRODUCT({_PM}*({_P(87)}>0))+SUMPRODUCT({_BM}*({_B(87)}>0))"
+
+
 # ================================================================== Q4: Checks V23–V26 and D104／D140
 def v_items(wb):
     """Items in the format of v1000.checks_v: (id, label, C, D, E, lower, upper, note). F = 1 if lower <= E <= upper."""
     E_NUM = '=IF(ISNUMBER(C{r}),C{r},"—")'
     return [
         ("V23", "實際每用戶 decode 速度 ≥ SLO（Perf 與 Perf_Batch 第 89 列對第 41 列；可達欄中低於 SLO 的欄數＝0；全部層級，token 類型＝decode token）【恆等式（非驗證）；v14.1 R2】",
-         "=IFERROR(SUMPRODUCT((Perf!$C$87:$Q$87>0)*(Perf!$C$89:$Q$89<Perf!$C$41:$Q$41*(1-0.000000001)))"
-         "+SUMPRODUCT((Perf_Batch!$C$87:$S$87>0)*(Perf_Batch!$C$89:$S$89<Perf_Batch!$C$41:$S$41*(1-0.000000001))),1)",
-         "=SUMPRODUCT(--(Perf!$C$87:$Q$87>0))+SUMPRODUCT(--(Perf_Batch!$C$87:$S$87>0))",
+         V23_C, V23_D,
          '=IF(AND(ISNUMBER(C{r}),ISNUMBER(D{r})),IF(D{r}>0,C{r},1),"—")', 0, 0,
          "v14.0 4-3B Q4（A 段第 4 節）：模型值＝低於 SLO 的可達欄數（Perf 15 欄＋Perf_Batch 17 欄；B*＝0 的不可達欄不計）；對照值＝可達欄數（為 0 時本項判失敗，防止空轉）。"
          "結構性恆成立（B* ＝ MIN(SLO 限制批次, 記憶體限制批次)），程式或公式被改壞時才會失敗；專屬測試改寫 Perf!C87 公式（無法只靠改輸入使其失敗，見報告）"),
@@ -30947,8 +31116,10 @@ B20_NOTE74 = "；v15.0 B20 口徑：本列『推論型』標籤下以 trainer GP
 def b20_labels(wb, append_text):
     ws = wb["Training"]
     n = 0
+    import v1030
+    pc = v1030._purpose_col(ws)      # v21.11: Training's 用途 column is W (20 generation × tier columns); v15.0–v21.10: R
     for r, txt in ((74, B20_NOTE74), (97, B20_NOTE), (100, B20_NOTE)):
-        n += append_text(ws[f"R{r}"], txt)
+        n += append_text(ws.cell(r, pc), txt)
     return n
 
 
@@ -33617,9 +33788,11 @@ def apply(wb, append_text):
     log["r018"] = n
     # Arch!G17 label (text only)
     a = wb["Arch"]
-    if a["G17"].value != G17_NEW:
-        assert a["G17"].value == G17_OLD, a["G17"].value
-        a["G17"].value = G17_NEW; log["g17"] = 1
+    from inputs import ARCH_NOTE      # v21.11: Arch 說明 is column H (Terra in F); v19.1–v21.10: G
+    g17 = f"{ARCH_NOTE}17"
+    if a[g17].value != G17_NEW:
+        assert a[g17].value == G17_OLD, a[g17].value
+        a[g17].value = G17_NEW; log["g17"] = 1
     log["evidence"] = evidence_append(wb)
     ws = wb["Decisions"]
     if not any(ws.cell(r, 1).value == "SL54-01" for r in range(5, ws.max_row + 1)):
@@ -36972,6 +37145,167 @@ README_VERSION = (VERSION + "（次版，底版 v21.9：" + WO + "——v21.10�
 README_TITLE = V + v2190.README_TITLE[len(v2190.V):]
 ```
 
+## v21110.py
+
+```python
+# v21.11 (= v22.0 segment B1「結構一」; design docs/plan/20261105_v22.0_Terra第四層級_設計.md, section 6.1 row B1; branch claude/v22-b1).
+# Module name v21110 (= v21.11.0): builder/v2111*.py would read as v21.1.x (v21.10 report, 待 Project 判斷 1).
+# Andy's authorization (2026-11-05): 「完整第四層級」; the J1–J15 recommendations of the design are adopted as defaults (「照建議」).
+#
+# STRUCTURAL version: every existing value stays the same; no IF_／IFW_／L1_／RNG_／CAP_ name is added or removed; the shapes of DRV_* (16) and
+# TRN_* (15) names change from 1×15 to 1×20. What the builder now does differently lives where the tier dimension lives (builder/tiers.py is the
+# single source of the tier list):
+#   S1  Arch: Terra column F (design 3.1, J4 V4-family interpolation); 標記／說明 move F／G -> G／H. Gov_Map reason formulas =Arch!$G$6／$G$7／$G$10
+#       follow to $H$ (gov_update below; guarded: only formulas still pointing at $G$ of an Arch row).
+#   S2  Serving rows 20-24: Terra in F (design 3.2, J11／J12); 說明 F -> G on those rows.  Train_In rows 23-38: Terra in F (design 3.4), Terra mark
+#       and range in G.  Har_In rows 47-50: Terra in F (design 3.7). Row 58 (Terra success override, B5_SuccOvr_Terra) is v21.12 (B2) scope.
+#   S3  Perf, Perf_Batch, Training (and their *_Prod copies): 20 generation × tier columns C..V, index 4*(g-1)+t (J3 (a)); Perf_Batch FP8 scenario
+#       R／S -> W／X; *_Prod check copies from column X (SHIFT 16 -> 21). Sens_Perf／Sens_Train keep their scenario layout (Sol／Astra only).
+#   S4  Readers of those sheets switch to the generation × tier index (Unit_Cost, Interface B／C／M, Alloc C／J, Training, Sens_Train, L1, Cap_In M-4,
+#       Checks); the cost-scenario 3*(g-1)+k uses are untouched (design R1).
+#   S5  preserve: blue inputs of the re-laid sheets follow their (generation, tier) when the base has the old 15-column layout (R2／R13; build.py).
+#   S6  Unit_Cost Terra block (rows 51-61); no reader yet -> 用途 marks「預備」(R8).
+#   S7  Version files: README B5／A1, Load_Bearing!C3, Decisions SL68-01; ranges／fingerprint JSON regenerated.
+from openpyxl.utils import get_column_letter as L
+
+from common import put, F_CALC, F_NOTE
+import tiers
+import v1410
+import v21100
+
+VERSION = "20261105_Tokenomics_v21.11"      # single source of the version string: README!B5 and README!A1 (finish.readme); Load_Bearing!C3 (load_bearing_date)
+DATE = "2026-11-05"
+DASH = "—"
+V = "v21.11"
+DESIGN = "docs/plan/20261105_v22.0_Terra第四層級_設計.md"
+WO = f"v22.0 B1 段（結構一）：設計文件 {DESIGN} 第 6.1 節 B1 列（chat 端派工）"
+DEC_ID = "SL68-01"
+DEC_BY = ("Andy 2026-11-05：「完整第四層級」；設計文件第 4 節 J1–J15 依建議預設值執行（「照建議」）。"
+          "本段（B1）為結構變更：既有值逐值不變")
+
+# ---------------------------------------------------------------- Gov_Map (Excel-owned A–P; guarded, idempotent)
+# Registered ranges of the re-laid sheets (column D). The old keys stay in gov.gm_append's "have" set so a rebuild never re-registers them.
+GM_RANGES = [("Perf", "C6:Q6", "C6:V6"), ("Perf", "C7:Q7", "C7:V7"), ("Training", "C6:Q6", "C6:V6"), ("Training", "C7:Q7", "C7:V7"),
+             ("Perf_Batch", "C6:S6", "C6:X6"), ("Perf_Batch", "C7:S7", "C7:X7"), ("Perf_Batch", "R19:S20", "W19:X20")]
+GM_OLD_KEYS = {(sh, old) for sh, old, _ in GM_RANGES}
+ARCH_ROWS = range(5, 39)
+
+
+def gm_key(sheet, cell):
+    """The current Gov_Map key of a registration that v21.11 moved (for lookups written against the v21.10 key)."""
+    for sh, old, new in GM_RANGES:
+        if (sh, old) == (sheet, cell):
+            return new
+    return cell
+
+
+def gov_update(ws, append_text):
+    n = 0
+    for r in range(5, ws.max_row + 1):
+        sh, cell = ws[f"C{r}"].value, ws[f"D{r}"].value
+        for s2, old, new in GM_RANGES:
+            if (sh, cell) == (s2, old):
+                ws[f"D{r}"].value = new; n += 1
+                append_text(ws[f"N{r}"], f" ｜{V}：登錄範圍 {old} → {new}（世代 × 層級頁改為 20 欄，Terra 第四層級；{DECISION_REF}）")
+        c = ws[f"N{r}"]
+        if isinstance(c.value, str) and c.value.startswith("=") and "Arch!$G$" in c.value:
+            import re
+            m = re.findall(r"Arch!\$G\$(\d+)", c.value)
+            if m and all(int(x) in ARCH_ROWS for x in m):
+                c.value = re.sub(r"Arch!\$G\$(\d+)", r"Arch!$H$\1", c.value); n += 1
+    return n
+
+
+DECISION_REF = f"Decisions {DEC_ID}"
+
+
+# ---------------------------------------------------------------- 用途 marks for the Terra cells nobody reads yet (R8)
+PREP = "預備（v21.11 結構一）：Terra 第四層級，v22.0 啟用前尚無下游讀取"
+
+
+# Perf rows whose Terra cells only feed the energy-closure check (Checks「能量閉合：各欄最大閉合比」reads the live tiers, tiers.live_ranges)
+PERF_ENERGY_KEYS = ("gpuw", "ehbm", "rpre", "eflop", "elink", "fpt", "bpt", "cpt", "Edec", "Epre", "pphys", "close")
+PERF_PREP = (f"預備（v21.11 結構一）：本列 Terra 欄（{'、'.join(tiers.gt_col(g, tiers.NT) for g in range(1, tiers.NG + 1))}）只通到 Checks 能量閉合，"
+             "該檢查目前只讀 Luna／Sol／Astra（tiers.NT_LIVE＝3，既有值不變），v22.0 起納入")
+
+
+def _perf_labels():
+    import collections
+    from perf import perf_rows
+    d = collections.defaultdict(int)
+    tr = collections.defaultdict(str)
+    return {item[0]: item[1] for item in perf_rows(d, d, d, tr) if item[0] != "§"}
+
+
+def purpose_marks(wb):
+    import v1400
+    n = 0
+    ws = wb["Perf"]
+    pc = v1400._purpose_col(ws)
+    labs = _perf_labels()
+    want = {labs[k] for k in PERF_ENERGY_KEYS}
+    for r in range(8, ws.max_row + 1):
+        if ws.cell(r, 1).value in want:
+            c = ws.cell(r, pc)
+            if c.value in (None, ""):
+                put(ws, f"{L(pc)}{r}", PERF_PREP, F_NOTE); n += 1
+            elif PERF_PREP not in str(c.value):
+                c.value = f"{c.value} ｜{PERF_PREP}"; n += 1
+    ws = wb["Unit_Cost"]
+    pc = v1400._purpose_col(ws)
+    first = None
+    for r in range(1, ws.max_row + 1):
+        if isinstance(ws.cell(r, 1).value, str) and ws.cell(r, 1).value.startswith(tiers.TIERS[-1][1]):
+            first = r; break
+    assert first, "Unit_Cost Terra block not found"
+    for r in range(first + 1, ws.max_row + 1):
+        if ws.cell(r, 3).value is not None:
+            put(ws, f"{L(pc)}{r}", PREP + f"（C{r}:Q{r}）", F_NOTE); n += 1
+    return n
+
+
+# ---------------------------------------------------------------- Load_Bearing!C3 (same rule as v21.10: the date of the version file name)
+def load_bearing_date(wb):
+    ws = wb["Load_Bearing"]
+    assert str(ws["A3"].value).startswith("建置日"), ws["A3"].value
+    d = VERSION.split("_", 1)[0]
+    assert len(d) == 8 and d.isdigit(), VERSION
+    put(ws, "C3", f"{d[:4]}-{d[4:6]}-{d[6:]}", F_CALC)
+
+
+# ---------------------------------------------------------------- Decisions SL68-01
+def _decisions():
+    return [[DEC_ID, V, "v22.0 B1（結構一）：GPT-6.1 Terra 第四層級的計算結構（Block 1–3），既有值逐值不變",
+             "依設計文件 " + DESIGN + "（J1 (a) 索引 4、J2 (a) F 欄、J3 (a) 20 欄、J4 (a) V4 家族內插、J11 (a)、J12）："
+             "builder 以 builder/tiers.py 為層級清單單一來源（Luna、Sol、Astra、Terra；NT＝4；契約與跨層級合計仍為 3 層，NT_LIVE＝3，v22.0 B3 改 4）。"
+             "Arch 插入 Terra 欄 F（標記／說明移 G／H；Gov_Map 理由欄 =Arch!$G$6／$G$7／$G$10 隨之改 $H$）；Serving 第 21–24 列、Train_In 第 25–38 列、"
+             "Har_In 第 48–50 列 F 欄寫入 Terra 輸入（藍字，設計第 3 節基準值；區間寫在說明欄）；Perf、Perf_Batch、Training 及其 _Prod 鏡像改為 5 世代 × 4 層級 20 欄（C–V，"
+             "索引 4×(世代−1)＋層級），Perf_Batch FP8 情境欄 R／S → W／X，_Prod 檢查副本自 X 欄起；讀取這些頁的公式改用新索引（成本情境的 3×(世代−1)＋k 不動）；"
+             "Unit_Cost 新增 Terra 區（無下游讀取，用途標「預備」）；輸入保存（preserve）在舊 15 欄底稿時依（世代、層級）對照欄位。"
+             "不建立任何 Terra 的 IF_／L1_ 名稱；Cap_In、Price_Frontier、Fleet_1GW、Amortize、Theory_Rev、Alloc 與組合不加 Terra（B2）。"
+             "Sens_Perf／Sens_Train 維持 Sol／Astra 情境（Terra 不在敏感度表，頁首註明，待 Project 判斷 R11）。"
+             "DRV_*（16）與 TRN_*（15）形狀 1×15 → 1×20；其餘具名範圍值逐值不變。依據：" + DEC_BY,
+             DATE, DEC_BY, "v21.11 已建",
+             "builder/tiers.py；Arch F–H；Serving F21:G24；Train_In F25:G38；Har_In F47:F50；Perf／Perf_Batch／Training C–V（＋W／X）；*_Prod；Unit_Cost 第 51–61 列；Gov_Map N／D 欄",
+             WO, "否"]]
+
+
+def apply(wb, append_text):
+    log = {"marks": purpose_marks(wb)}
+    ws = wb["Decisions"]
+    if not any(ws.cell(r, 1).value == DEC_ID for r in range(5, ws.max_row + 1)):
+        log["decisions"] = v1410.decisions_append(wb, _decisions())
+    return log
+
+
+# ---------------------------------------------------------------- README
+_prev = v21100.README_VERSION.split("_Tokenomics_", 1)[1]
+README_VERSION = (VERSION + "（結構版，底版 v21.10：" + WO + "——v21.11：GPT-6.1 Terra 第四層級的計算結構（Block 1–3）；所有既有具名範圍與契約名稱的值不變，"
+                  "DRV_／TRN_ 名稱由 15 欄改 20 欄（5 世代 × 4 層級）；Arch、Serving、Train_In、Har_In 加 Terra 欄 F（設計第 3 節輸入值）；"
+                  "Perf、Perf_Batch、Training 與 _Prod 鏡像改為 20 欄；Unit_Cost 加 Terra 區（預備）；Terra 尚無 IF_／L1_ 名稱（v22.0 啟用）；Decisions SL68-01。）以下為 " + _prev)
+README_TITLE = V + v21100.README_TITLE[len(v21100.V):]
+```
+
 ## gov_decisions.py
 
 ```python
@@ -37314,6 +37648,8 @@ import re
 from openpyxl.styles import PatternFill
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_TITLE, F_NOTE, FILL_SEC, FILL_KEY, WRAP, L, title, section
+from tiers import gt_col, TIERS_LIVE
+import v21110
 from gov_seed import SRC_RECORDS, PERF_ATTR, EVID_MIG, EVID_UPD, FORMULA_MAP, GOV_MAP
 from gov_decisions import DECISIONS
 from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP_UPD, GOV_MAP_V513C, GOV_MAP_UPD_E, DEC_UPD
@@ -37659,6 +37995,7 @@ def _find_row(ws, label):
 def gm_append(wb, ws):
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
     have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
+    have |= v21110.GM_OLD_KEYS      # v21.11: registrations of the re-laid sheets moved to the 20-column ranges; the old keys are never re-registered
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
@@ -37680,6 +38017,7 @@ def gm_append_c(wb, ws):
     The row's column-A label must still match: a moved or renamed row stops the build instead of registering the wrong cell."""
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
     have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
+    have |= v21110.GM_OLD_KEYS      # v21.11: registrations of the re-laid sheets moved to the 20-column ranges; the old keys are never re-registered
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
@@ -37735,7 +38073,7 @@ def gov_map(wb, src_index):
     n_rp = v535.gov_map_repoint(wb, ws)      # v5.35 B5: GM629–GM633 (Cap_In H10 cells that moved one row down) re-pointed before the cell-keyed append (label guard; 0 on a v5.35-based rebuild)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text) + v1200.gov_update(ws, v518._append_text) + v1300.gov_update(ws, v518._append_text) + v1310.gov_update(ws, v518._append_text) + v1520.gov_update(ws, v518._append_text) + v1530.gov_update(ws, v518._append_text) + v1910.gov_update(ws, v518._append_text)      # v15.3: GM634／635／638／639 Derived (E1／E2), GM636 N, GM685 K／M／N (C2); v15.2: GM342 B3 range and Derived (V2), GM457 M, GM644 N; v13.1: D15 J／H completion, GM346 O sentence; v13.0: C68 category Assumed + v13.0-前 column; v12.0: D156 range, C68 correction; v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text) + v1200.gov_update(ws, v518._append_text) + v1300.gov_update(ws, v518._append_text) + v1310.gov_update(ws, v518._append_text) + v1520.gov_update(ws, v518._append_text) + v1530.gov_update(ws, v518._append_text) + v1910.gov_update(ws, v518._append_text) + v21110.gov_update(ws, v518._append_text)      # v21.11: D ranges of the re-laid generation × tier sheets, Arch!$G$ -> $H$ reasons; v15.3: GM634／635／638／639 Derived (E1／E2), GM636 N, GM685 K／M／N (C2); v15.2: GM342 B3 range and Derived (V2), GM457 M, GM644 N; v13.1: D15 J／H completion, GM346 O sentence; v13.0: C68 category Assumed + v13.0-前 column; v12.0: D156 range, C68 correction; v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -37786,6 +38124,10 @@ GENCOL = {"Hopper": 1, "GB200": 4, "GB300": 7, "VR200": 10}     # Interface colu
 COST_RNG = "成本角落情境（低成本／高成本欄）"
 UTIL_RNG = "利用率 40–80%（Sens_Rev 情境值；J6 區間）"
 
+_AQ = gt_col(4, 3)      # v21.11: Training VR200 × Astra column (v21.10: N)
+_ASTRA_PRE = f"=Training!${_AQ}$31*Training!${_AQ}$34*1E21"
+
+
 def _rows_l1(wb):
     R = []
     for g, c0 in GENCOL.items():
@@ -37812,7 +38154,7 @@ def _rows_l1(wb):
                   f"=INDEX(IF_GPUhrEcon,1,{c0})", f"=INDEX(IF_GPUhrEcon,1,{c0+2})", "$/GPU-hr", COST_RNG,
                   "每 GW 年持有成本 ÷（GPU 數 × 8,760）", "機架價格、IT 折舊年限、WACC", "機架價格：3 級", *ext, "IF_GPUhrEcon", "Interface 第 14 列",
                   "外部為 SemiAnalysis TCO（假設未公開，須第二來源）；CoreWeave 公開價對照於 v5.12（SRC_Price）" if ext[0] != DASH else DASH))
-    for tier in ("Luna", "Sol", "Astra"):
+    for tier in [k for k, _ in TIERS_LIVE]:      # v21.11: single source (builder/tiers.py); Terra L1 rows are v22.0 B3
         for g in ("VR200", "GB300"):
             c0 = GENCOL[g]
             R.append((f"CostDec_{tier}_{g}", f"decode（含思考）每 M token 成本 — {tier}（{g}）", "經濟口徑、100% 利用率、SLO 下", f"=INDEX(IF_CostDec_{tier},1,{c0+1})",
@@ -37841,11 +38183,11 @@ def _rows_l1(wb):
               "=INDEX(IF_GPUhrEcon,1,8)", "=INDEX(IF_GPUhrEcon,1,7)", "=INDEX(IF_GPUhrEcon,1,9)", "$/GPU-hr", COST_RNG,
               "外部為第三方推算的租金門檻（85% 利用率、9.12% 資金成本、6 年）；本模型為 100% 時數的持有成本", "機架價格、IT 折舊年限、WACC",
               "外部：2 級、機型未明", "SRC_PRC_002", "=SRC_PRC_002", "=SRC_PRC_002", "IF_GPUhrEcon", "Interface 第 14 列；Checks 第 10 列", "外部值機型未明"))
-    R.append(("RLshare_Sol_VR200", "RL ÷ 預訓練 GPU 小時（Sol，VR200）", "J9 基準；非同步 RL（T10）", "=Training!$M$78", "=Sens_Train!$O$78",
+    R.append(("RLshare_Sol_VR200", "RL ÷ 預訓練 GPU 小時（Sol，VR200）", "J9 基準；非同步 RL（T10）", f"=Training!${gt_col(4, 2)}$78", "=Sens_Train!$O$78",
               "=Sens_Train!$Q$78", "x", "RL rollout token ×0.3–×3（Sens_Train 情境倍數）", "後訓練算力的主要追蹤指標：RL 用掉的 GPU 小時相對預訓練的倍數",
               "rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "SRC_MOD_034", "=SRC_MOD_034/SRC_MOD_040",
               "=SRC_MOD_034/SRC_MOD_040", "TRN_RLRatioH", "Training 第 78 列；Checks 第 34 列", "外部為 DeepSeek R1（2025-01）÷ V3 預訓練，代表較早期的 RL 規模"))
-    R.append(("RLshare_Astra_VR200", "RL ÷ 預訓練 GPU 小時（Astra，VR200）", "J9 基準；非同步 RL（T10）", "=Training!$N$78", "=Sens_Train!$P$78",
+    R.append(("RLshare_Astra_VR200", "RL ÷ 預訓練 GPU 小時（Astra，VR200）", "J9 基準；非同步 RL（T10）", f"=Training!${gt_col(4, 3)}$78", "=Sens_Train!$P$78",
               "=Sens_Train!$R$78", "x", "RL rollout token ×0.3–×3（Sens_Train 情境倍數）", "同上；Astra 基準校到約 1（RL 與預訓練同量級）",
               "rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "SRC_MOD_036", "=SRC_MOD_036", "=SRC_MOD_036",
               "TRN_RLRatioH", "Training 第 78 列；Checks 第 33 列", "外部為 xAI 宣稱 Grok 4 RL 達「預訓練規模」，口徑（GPU 小時或 FLOPs）不明"))
@@ -37858,8 +38200,7 @@ def _rows_l1(wb):
               "=Checks!$B${rev}", "=Checks!$B${rev}", "=Checks!$B${rev}", "$B/GW/年", "無區間（單一對帳值）", "同量級即機隊配置與單價可閉合；2025 實際單價高於 2026 快照",
               "OpenAI 有效單價、機隊配置（K7）", ("Hopper 占機隊：Analogy（Epoch 轉述 NVIDIA 出貨 4/7；全球口徑）" if v518.step_on("D4") else "Hopper 占機隊：Assumed"), "SRC_DEM_007", "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)",
               "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)", DASH, "Checks 第 43 列", "外部 GW 口徑未明（D1）"))
-    R.append(("PretrainFLOP_Astra", "Astra 預訓練算力", "J8 基準（啟用參數 × 預訓練 token）", "=Training!$N$31*Training!$N$34*1E21",
-              "=Training!$N$31*Training!$N$34*1E21", "=Training!$N$31*Training!$N$34*1E21", "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
+    R.append(("PretrainFLOP_Astra", "Astra 預訓練算力", "J8 基準（啟用參數 × 預訓練 token）", _ASTRA_PRE, _ASTRA_PRE, _ASTRA_PRE, "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
               "訓練 FLOPs/token × token；與前沿錨點 2e26–2e27 的差距即 J8 缺口", "Astra 啟用參數、預訓練 token", "Astra 架構：Assumed", v525.L1_ASTRA_SID,
               v527.L1_ASTRA_ELO, v527.L1_ASTRA_EHI, DASH, "Training 第 31、34 列；Checks 第 38 列", v525.L1_ASTRA_GAP))      # v5.25 X12: SRC_MOD_033 (Grok-3) -> SRC_MOD_055 (GPT-6 Astra)
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
@@ -38105,6 +38446,20 @@ if "Sources" in wb.sheetnames and "Sources_Legacy" not in wb.sheetnames:
                                         "新來源一律先登錄 DB_Evidence，擇優寫入 SRC_*）")
 # ---- v5.7 Excel-first: snapshot every input cell (blue font) before the rebuild ----
 SNAP = snapshot(wb)
+# ---- v21.11 (R2／R13): Perf／Perf_Batch／Training moved from 15 to 20 generation × tier columns. On a base with the old layout (DRV_Tier ends at
+#      column Q) the blue inputs of those sheets (generation／tier index rows 6–7, Perf_Batch FP8 overrides) follow their (generation, tier) to the
+#      new column; on a v21.11-or-later base nothing is remapped (idempotent).
+import tiers
+SNAP_RELAID = 0
+if tiers.old_layout(wb):
+    _moved = {}
+    for _k in [k for k in SNAP if k[0] in tiers.RELAID]:
+        _m = tiers.old_col_map(_k[0])
+        if _k[2] in _m:
+            _moved[(_k[0], _k[1], _m[_k[2]])] = SNAP.pop(_k); SNAP_RELAID += 1      # collected first: old and new columns overlap
+    assert not set(_moved) & set(SNAP), "relaid input keys collide"
+    SNAP.update(_moved)
+print("v21.11 relaid inputs remapped:", SNAP_RELAID)
 # ---- v5.12 (A): inputs that moved to another row keep their Excel value (restore stays unmatched 0) ----
 from training import SNAP_MOVES
 for _old, _new in SNAP_MOVES:
@@ -38328,11 +38683,12 @@ ck["E10"].value = '="參照 ÷ 本模型＝"&TEXT(C10/B10,"0.00")'
 from openpyxl.workbook.defined_name import DefinedName
 def nm(n, ref): wb.defined_names[n] = DefinedName(n, attr_text=ref)
 nm("IF_HdrGen", "Interface!$C$4:$Q$4"); nm("IF_HdrCost", "Interface!$C$5:$Q$5")
-nm("DRV_Gen", "Perf!$C$4:$Q$4"); nm("DRV_Tier", "Perf!$C$5:$Q$5")
+GL = tiers.GT_LAST      # v21.11: DRV_／TRN_ are generation × tier, C..V (20 columns)
+nm("DRV_Gen", f"Perf!$C$4:${GL}$4"); nm("DRV_Tier", f"Perf!$C$5:${GL}$5")
 for n, k in [("DRV_FlopDec","Fd"),("DRV_FlopPre","Fp"),("DRV_WeightGB","W"),("DRV_TfixMs","tfix"),("DRV_SeqMs","ceff"),
              ("DRV_SeqBind","cbind"),("DRV_Batch","B"),("DRV_Bind","bind"),("DRV_DecTokGPU","D"),("DRV_PreTokGPU","Pp"),
              ("DRV_PreShare","psh"),("DRV_RackTok","rtot"),("DRV_GWTok","gwtot"),("DRV_Close","close")]:
-    nm(n, f"Perf!$C${PR[k]}:$Q${PR[k]}")
+    nm(n, f"Perf!$C${PR[k]}:${GL}${PR[k]}")
 nm("CAL_EtaD", f"Calib!$C${CAL['etad_fit']}"); nm("CAL_TlayerUs", f"Calib!$C${CAL['tl_fit']}")
 nm("CAL_F_Label", f"Calib!$C${CAL['lab']}:$I${CAL['lab']}")
 for n, k in [("CAL_F_Gen","gn"),("CAL_F_Eng","eng"),("CAL_F_Speed","s"),("CAL_F_Meas","T"),("CAL_F_Model","vT"),("CAL_F_Basis","basis")]:
@@ -38346,8 +38702,8 @@ nm("CAL_H_Ratio", f"Calib!$C${CAL['mR']}:$F${CAL['mR']}")
 for n, k in [("TRN_FlopTokPre","Fpt"),("TRN_FlopPre","Cp"),("TRN_GPUhPre","Hp"),("TRN_GPUhRL","Hrl"),("TRN_RLMFU","rlmfu"),
              ("TRN_RLRatioH","rlH"),("TRN_RLRatioF","rlF"),("TRN_GPUhFinal","Hfin"),("TRN_PostShareF","psF"),("TRN_PostShareH","psH"),
              ("TRN_InferShare","Ish"),("TRN_GPUhProg","Hprog"),("TRN_GWyrProg","GWp")]:
-    nm(n, f"Training!$C${TRN[k]}:$Q${TRN[k]}")
-nm("TRN_Gen", "Training!$C$4:$Q$4"); nm("TRN_Tier", "Training!$C$5:$Q$5")
+    nm(n, f"Training!$C${TRN[k]}:${GL}${TRN[k]}")
+nm("TRN_Gen", f"Training!$C$4:${GL}$4"); nm("TRN_Tier", f"Training!$C$5:${GL}$5")
 # ---- v5.6: Tech_Registry display-only named ranges (TR_；網站唯讀表用，下游不得連結) ----
 r0, r1 = TR["_rows"]; h0, h1 = TR["_hooks"]
 for n, c in [("TR_ID","A"),("TR_Tech","B"),("TR_Hook","C"),("TR_Acts","D"),("TR_Lo","E"),("TR_Base","F"),("TR_Hi","G"),
@@ -38401,7 +38757,8 @@ print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)
-v21100.load_bearing_date(wb)       # v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
+import v21110
+v21110.load_bearing_date(wb)       # v21.11: C3 = date of the v21.11 version file name; was v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
 CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
 CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
@@ -38519,6 +38876,8 @@ V2190 = v2190.apply(wb, v518._append_text)       # v21.9: NonNV L6／L7／L8／L
 print("v2190 v21.9:", V2190)
 V21100 = v21100.apply(wb, v518._append_text)       # v21.10: NonNV L6／L7／L8／L9／A2, Interface A368, Inputs H23 text; SRC_DC_004 grade／一手; DB_Evidence E450 related SRC, E560; Decisions SL67-01
 print("v21100 v21.10:", V21100)
+V21110 = v21110.apply(wb, v518._append_text)       # v21.11: Unit_Cost Terra 用途 marks「預備」, Decisions SL68-01
+print("v21110 v21.11:", V21110)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

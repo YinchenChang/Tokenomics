@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+import v21110_allow      # v21.11（v22.0 B1）：世代 × 層級 15 → 20 欄的位置換算（R10）
 
 from conftest import model_path
 from v2110_allow import v218_names      # v21.8：高成本欄與治理連帶的名稱（IFC_Conf 等；test_v2180 看守）
@@ -148,7 +149,7 @@ def test_named_ranges(model, lo):
 
 
 def test_display_names_alignment(model, lo):
-    """表頭與推導鏈名稱的形狀：DRV_ 皆 15 欄且與 DRV_Gen／DRV_Tier 對齊；IF_Hdr 與 IF_ 輸出欄數一致。"""
+    """表頭與推導鏈名稱的形狀：DRV_ 皆 20 欄（v21.11 起 5 世代 × 4 層級；v21.10 為 15 欄，R10 有意識更新）且與 DRV_Gen／DRV_Tier 對齊；IF_Hdr 與 IF_ 輸出欄數一致。"""
     eng = lo.view({})
     n = EXPECT["drv_columns"]
     for name in eng.names:
@@ -156,8 +157,8 @@ def test_display_names_alignment(model, lo):
             v = eng.get_name(name)
             assert isinstance(v, list) and len(v) == n, f"{name} 欄數 {len(v)}"
     assert len(eng.get_name("IF_HdrGen")) == len(eng.get_name("IF_HdrCost")) == len(eng.get_name("IF_TokGW_Luna"))
-    assert eng.get_name("DRV_Gen") == eng.get_name("IF_HdrGen")            # 世代欄順序一致
-    for name in eng.names:                                                 # TRN_ 皆 15 欄，且與 TRN_Gen／TRN_Tier 及 DRV_ 的世代、層級順序一致
+    assert v21110_allow.narrow("DRV_Gen", eng.get_name("DRV_Gen")) == eng.get_name("IF_HdrGen")            # 世代欄順序一致（v21.11：DRV_ 20 欄取 Luna／Sol／Astra 三欄後與 IF_HdrGen 的 15 欄相同；IF_Hdr 是世代 × 成本情境）
+    for name in eng.names:                                                 # TRN_ 皆 20 欄（v21.11），且與 TRN_Gen／TRN_Tier 及 DRV_ 的世代、層級順序一致
         if name.startswith("TRN_"):
             v = eng.get_name(name)
             assert isinstance(v, list) and len(v) == n, f"{name} 欄數 {len(v)}"
@@ -543,7 +544,7 @@ def test_batch_etad_expected_values(model, lo):
         sh, rg = dn.attr_text.rsplit("!", 1)
         c1, r1, c2, r2 = range_boundaries(rg.replace("$", ""))
         want = [prev[sh.strip("'")].cell(r, c).value for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
-        got = _flat(eng.get_name(n))
+        got = v21110_allow.narrow(n, _flat(eng.get_name(n)))      # v21.11（R10）：DRV_／TRN_ 20 欄取回 v5.22 的 15 欄排列後比較
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             bad.append(n)
     assert not bad, f"k＝1 時與 v5.22 不符的具名範圍：{bad[:20]}"
@@ -554,14 +555,15 @@ def test_batch_etad_expected_values(model, lo):
     assert by == {"IF_": 36, "L1_": 12, "AL_": 0, "TRN_": 8} and sum(n.endswith("_Prod") for n in changed) == 3, by       # 82＝IF 38＋L1 21＋TRN 8＋AL 15
     assert not [n for n in changed if n.startswith(("TR_", "IF_RevGW")) or n.endswith("_Life") or n == "IF_TrainGenDefault"]
     for n, idx in EXPECT_BATCH_075.items():
-        a, b = base.get_name(n), eng.get_name(n)
+        a, b = v21110_allow.narrow(n, base.get_name(n)), v21110_allow.narrow(n, eng.get_name(n))      # v21.11：TRN_GPUhRL 的位置 10–12 為 15 欄排列
         for k, v in idx.items():
             assert abs(a[k - 1] / b[k - 1] - 1 - v) < 6e-5, (n, k, a[k - 1] / b[k - 1] - 1, v)
     for n, v in EXPECT_BATCH_075_SCALAR.items():
         a, b = base.get_name(n), eng.get_name(n)
         a, b = (a[0], b[0]) if isinstance(a, list) else (a, b)
         assert abs(a / b - 1 - v) < 6e-5, (n, a / b - 1, v)
-    for col_vr, col_gb, want in zip("LMN", "IJK", EXPECT_BATCH_075_RATIO):
+    for col_vr, col_gb, want in zip("LMN", "IJK", EXPECT_BATCH_075_RATIO):      # v21.11：Perf_Batch 欄位換算為 20 欄排列（VR200 O/P/Q、GB300 K/L/M）
+        col_vr, col_gb = v21110_allow.col("Perf_Batch", col_vr), v21110_allow.col("Perf_Batch", col_gb)
         assert abs(base.get("Perf_Batch", f"{col_vr}88") / base.get("Perf_Batch", f"{col_gb}88") - want) < 6e-4
     for n in ("IF_RevGW_Luna", "IF_RevGW_Sol", "IF_RevGW_Astra", "IF_RevGWFleet"):          # 營收不經 Perf_Batch 第 53 列
         assert all(_same(a, b) for a, b in zip(_flat(base.get_name(n)), _flat(eng.get_name(n)))), n

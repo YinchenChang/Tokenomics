@@ -55,14 +55,19 @@ def _csv():
     return {(r[0], r[1]): r for r in rows}
 
 
+# v21.11（v22.0 B1，R10）：v21.10 已移到 archive；本檔改為看守封存的 v21.10 檔本身（v21.9 → v21.10 的改變）。
+# 現行 v21.11 是結構版（Terra 第四層級的欄位重排），對 v21.10 的逐值相等由 test_v21110 以鍵對齊比較看守。
+V2110 = REPO / "model" / "archive" / "20261104_Tokenomics_v21.10.xlsx"
+
+
 @pytest.fixture(scope="module")
 def wbf():
-    return openpyxl.load_workbook(model_path())
+    return openpyxl.load_workbook(V2110)
 
 
 @pytest.fixture(scope="module")
 def wbv():
-    return openpyxl.load_workbook(model_path(), data_only=True)
+    return openpyxl.load_workbook(V2110, data_only=True)
 
 
 @pytest.fixture(scope="module")
@@ -167,8 +172,8 @@ def test_v21100_w2_text(wbf, pf):
 
 # ---------------------------------------------------------------- 4. W3
 def test_v21100_load_bearing_date_is_version_date(wbf, wbv):
-    """追加 14：Load_Bearing!C3＝版本檔名（model/CURRENT）的日期。"""
-    stem = (REPO / "model" / "CURRENT").read_text(encoding="utf-8").strip()
+    """追加 14：Load_Bearing!C3＝版本檔名的日期（v21.11 起看守封存的 v21.10 檔；現行版由 test_v21110 看守）。"""
+    stem = V2110.name
     d = stem.split("_", 1)[0]
     assert wbf["Load_Bearing"]["C3"].value == f"{d[:4]}-{d[4:6]}-{d[6:8]}"
     assert v21100.VERSION + ".xlsx" == stem      # builder 的版本常數與 CURRENT 一致
@@ -219,7 +224,7 @@ def test_v21100_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")
+    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")      # v21.11：lo 讀現行版
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

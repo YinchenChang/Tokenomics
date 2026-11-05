@@ -11,7 +11,8 @@ from common import put, F_NOTE, F_BOLD, F_CALC, F_LINK, section
 VERSION = "20261007_Tokenomics_v5.23"      # single source of the version string: README!B5 and README!A1 (finish.readme)
 DATE = "2026-10-07"
 V = "v5.23"
-COLS15 = [chr(c) for c in range(ord("C"), ord("Q") + 1)]    # Perf_Batch C:Q (5 generations x 3 tiers)
+COLS15 = [chr(c) for c in range(ord("C"), ord("Q") + 1)]    # v21.10 Perf_Batch C:Q (5 generations x 3 tiers); kept for reference
+from tiers import GT_COLS      # v21.11: Perf_Batch generation × tier columns C..V
 
 # ------------------------------------------------------------------ X10: Calib section I (five generation multipliers)
 CALIB_PREV_END = 152                        # Calib ends at row 152 in v5.22; section I starts after one blank row
@@ -54,7 +55,7 @@ SUFFIX = "*INDEX(CAL_BatchEtaD,1,{X}$6)"
 def perf_batch_etad(wb):
     """Append the multiplier to the 15 base cells. Asserts the formula is still the v5.22 one (or already carries the suffix)."""
     ws = wb["Perf_Batch"]; n = 0
-    for X in COLS15:
+    for X in GT_COLS:      # v21.11: the generation × tier columns C..V (v21.10: C..Q); the FP8 scenario columns keep their own formula
         c = ws[f"{X}{ROW_ETAD}"]; old = f"=INDEX(Calib!$C$70:$G$70,{X}$6)*{X}52*{X}50"; add = SUFFIX.format(X=X)
         if c.value == old + add: continue
         assert c.value == old, f"Perf_Batch!{X}{ROW_ETAD} is {c.value!r}, expected {old!r}"

@@ -19,6 +19,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+import v21110_allow      # v21.11（v22.0 B1）：DRV_／TRN_ 與 RNG_Dem004_* 的參照位址改變、值不變（test_v21110 看守；R10）
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "builder"))
@@ -105,7 +106,7 @@ def test_v2180_names(wbf, wbv, pw):
             continue
         sh, cells = _cells(t)
         if wbf.defined_names[name].attr_text != t:
-            assert name.startswith("IDX_Src"), name      # SRC_Index 延長
+            assert name.startswith("IDX_Src") or v21110_allow.ref_moved(name), name      # SRC_Index 延長；v21.11：DRV_／TRN_ 1×15 → 1×20、RNG_Dem004_* 下移（值不變，test_v21110 看守）
             continue
         diff = [(r, c) for r, c in cells if not _eq(pw[sh].cell(r, c).value, wbv[sh].cell(r, c).value)]
         if not diff:
@@ -227,7 +228,7 @@ def test_v2180_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.8（次版，底版 v21.7：" in b5 and "以下為 v21.7（次版，底版 v21.6：" in b5      # v21.9：B5 開頭為 v21.9 段（test_v2190 看守）
-    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.10")
+    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.11")
 
 
 # ---------------------------------------------------------------- 5. GOV
@@ -235,7 +236,7 @@ def test_v2180_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")      # v21.9：版本字串（test_v2190 看守）
+    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")      # v21.9：版本字串（test_v2190 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

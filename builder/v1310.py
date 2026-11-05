@@ -177,7 +177,8 @@ def gov_update(ws, append_text):
     row_of = {ws.cell(r, 1).value: r for r in range(5, ws.max_row + 1) if ws.cell(r, 1).value}
     for g in D15["gov"]:
         r = row_of[g["gm"]]
-        assert (ws.cell(r, 3).value, ws.cell(r, 4).value) == (g["page"], g["cell"]), (g["gm"], ws.cell(r, 3).value, ws.cell(r, 4).value)
+        import v21110      # v21.11: the registrations of the re-laid generation × tier sheets moved to their 20-column range
+        assert (ws.cell(r, 3).value, ws.cell(r, 4).value) in ((g["page"], g["cell"]), (g["page"], v21110.gm_key(g["page"], g["cell"]))), (g["gm"], ws.cell(r, 3).value, ws.cell(r, 4).value)
         ids = g["ids"]
         if ids and _is_blank(ws.cell(r, 10).value):
             ws.cell(r, 10).value = ids[0]; n += 1
@@ -258,10 +259,11 @@ def notes(wb, append_text):
     log = {}
     # Arch F6:F8 (revision 9: original wording kept in G of the same row)
     ws = wb["Arch"]; n = 0
+    from inputs import ARCH_TAG, ARCH_NOTE      # v21.11: Arch 標記／說明 are G／H (Terra in F); v13.1–v21.10: F／G
     for r in (6, 7, 8):
-        if ws[f"F{r}"].value == "Verified／Assumed":
-            ws[f"F{r}"].value = "Assumed"; n += 1
-        n += append_text(ws[f"G{r}"], f" ｜v13.1 更正（修訂九，Decisions D15-10）：標記欄原字樣『Verified／Assumed』更正為『Assumed』（以 Gov_Map 為準；Luna／Sol 欄數值連結 SRC_MOD，Astra 欄無公開來源）")
+        if ws[f"{ARCH_TAG}{r}"].value == "Verified／Assumed":
+            ws[f"{ARCH_TAG}{r}"].value = "Assumed"; n += 1
+        n += append_text(ws[f"{ARCH_NOTE}{r}"], f" ｜v13.1 更正（修訂九，Decisions D15-10）：標記欄原字樣『Verified／Assumed』更正為『Assumed』（以 Gov_Map 為準；Luna／Sol 欄數值連結 SRC_MOD，Astra 欄無公開來源）")
     log["arch_marks"] = n
     # SRC_PERF_060 (Excel-owned): note in 備註 W; 狀態 O stays Active
     sp = wb["SRC_Perf"]; n = 0

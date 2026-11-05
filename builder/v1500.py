@@ -219,8 +219,10 @@ B20_NOTE74 = "；v15.0 B20 口徑：本列『推論型』標籤下以 trainer GP
 def b20_labels(wb, append_text):
     ws = wb["Training"]
     n = 0
+    import v1030
+    pc = v1030._purpose_col(ws)      # v21.11: Training's 用途 column is W (20 generation × tier columns); v15.0–v21.10: R
     for r, txt in ((74, B20_NOTE74), (97, B20_NOTE), (100, B20_NOTE)):
-        n += append_text(ws[f"R{r}"], txt)
+        n += append_text(ws.cell(r, pc), txt)
     return n
 
 

@@ -21,6 +21,7 @@ import pytest
 from openpyxl.utils import range_boundaries
 
 from conftest import model_path
+import v21110_allow      # v21.11（v22.0 B1）：DRV_／TRN_ 與 RNG_Dem004_* 的參照位址改變、值不變（test_v21110 看守；R10）
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "builder"))
@@ -101,6 +102,8 @@ def test_v2190_names(wbf, wbv, pw):
         t = d.attr_text
         if "!" not in t or "," in t:
             continue
+        if v21110_allow.ref_moved(name):
+            continue      # v21.11（R10）：DRV_／TRN_ 形狀 1×15 → 1×20、RNG_Dem004_* 下移 62 列，值不變（test_v21110 看守）
         assert wbf.defined_names[name].attr_text == t, name      # 參照位址不變
         sh, cells = _cells(t)
         diff = [(r, c) for r, c in cells if not _eq(pw[sh].cell(r, c).value, wbv[sh].cell(r, c).value)]
@@ -212,7 +215,7 @@ def test_v2190_evidence_decisions_readme(wbf):
     assert "以下為 v21.9（次版，底版 v21.8：" in b5 and "以下為 v21.8（次版，底版 v21.7：" in b5      # v21.10：B5 開頭為 v21.10 段（test_v21100 看守）
     assert "契約名稱值改變者只有 IF_NonNV_Out_TPU、IF_NonNV_Out_Trn（各 3 格）與版本字串" in b5
     assert v2190.HIGH_ANCHOR + v2190.HIGH_ADD + "；基準與低成本欄不變" in b5      # W3 第 2 點：v21.8 段補連帶
-    assert str(rm["A1"].value).startswith("Tokenomics v21.10")
+    assert str(rm["A1"].value).startswith("Tokenomics v21.11")
 
 
 # ---------------------------------------------------------------- 6. GOV
@@ -220,7 +223,7 @@ def test_v2190_gov_counts(lo):
     v = lo.view({})
     assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.10") and str(v.get_name("RNG_Current")).endswith("v21.10")
+    assert str(v.get_name("RNG_Version")).endswith("v21.11") and str(v.get_name("RNG_Current")).endswith("v21.11")
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

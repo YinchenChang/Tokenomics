@@ -18,6 +18,7 @@
 import re
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
+from tiers import GT_LAST, gt_index, gt_col
 import v533
 import v535
 import v603
@@ -140,7 +141,7 @@ def cap_in_m(wb, l_sec):
     put(ws, f"A{r}", "M-4. Astra Epoch 上限的隱含 token（D14）：Epoch 1.0e27 為 GPT-6 Astra 叢集總算力（含後訓練，上限）；全算為預訓練時 token＝FLOP ÷（6 × 啟用參數）。基準 token 60T 與參數 180B 不變；差距分配不在本段決定", F_BOLD); r += 1
     for n, nm_ in ((180, None), (400, 400), (800, 800)):
         put(ws, f"A{r}", LAB_N(n), wrap=True); put(ws, f"B{r}", "B 參數")
-        if nm_ is None: put(ws, f"C{r}", "=Training!$N$22", F_LINK, fmt="0")
+        if nm_ is None: put(ws, f"C{r}", f"=Training!${gt_col(4, 3)}$22", F_LINK, fmt="0")      # VR200 × Astra (v21.10: $N$22)
         else: put(ws, f"C{r}", nm_, F_IN, fmt="0", fill=FILL_KEY)
         put(ws, f"F{r}", "Derived（連結 Arch）" if nm_ is None else "Assumed")
         put(ws, f"G{r}", ("連結 Training 第 22 列（Astra 啟用參數，Arch 基準）" if nm_ is None else "2Q 報告第 4.2 節的敏感度情境（參數放大則隱含 token 縮小）；不進任何計算，只用於下列隱含 token 列"), F_NOTE)
@@ -212,8 +213,8 @@ def alloc_sections(wb, R):
         row(f"j_fam{t}", f"家族計畫 GW 年 — {tn}（IF_ProgGWyr_{tk}；各世代；含研發倍數）", "GW·年",
             {c: f"=INDEX(IF_ProgGWyr_{tk},1,{col(c)})" for c in CF}, "0.00000")
     for t, (tk, tn) in enumerate(TIERS, 1):
-        p = lambda c, t=t: f"INDEX(Training!$C${r104}:$Q${r104},3*({gi(c)}-1)+{t})"
-        g_ = lambda c, t=t: f"INDEX(Training!$C${r18}:$Q${r18},3*({gi(c)}-1)+{t})"
+        p = lambda c, t=t: f"INDEX(Training!$C${r104}:${GT_LAST}${r104},{gt_index(gi(c), t)})"      # v21.11: generation × tier index (J3)
+        g_ = lambda c, t=t: f"INDEX(Training!$C${r18}:${GT_LAST}${r18},{gt_index(gi(c), t)})"
         row(f"j_ref{t}", f"改版計畫 GW 年 — {tn}（後訓練 GPU 小時 × 研發倍數 ÷（每 GW GPU 數 × 8,760）；各世代）", "GW·年",
             {c: f'=IF(AND(ISNUMBER({p(c)}),ISNUMBER({g_(c)})),{p(c)}*IF_RDMult/({g_(c)}*8760),"{SLO}")' for c in CF}, "0.00000")
     nums = lambda c: ",".join(f"ISNUMBER({c}{AM[k]})" for k in ("j_fam1", "j_fam2", "j_fam3", "j_ref1", "j_ref2", "j_ref3"))

@@ -1,27 +1,30 @@
 from common import *
 from perf import write_perf
+from tiers import TIERS, NT, NT_LIVE, NG, TC, TC_LAST, GT_COLS, GT_LAST, GT_GENS_TIERS, gt_index
 
 GEN_NAMES_IDX = [1, 2, 3, 4, 5]
-COLS15 = [L(i) for i in range(3, 18)]  # C..Q
+COLS15 = [L(i) for i in range(3, 18)]  # C..Q: generation × cost scenario (DC_Cost, Unit_Cost, Interface, Fleet_1GW …); NOT generation × tier since v21.11 (that is tiers.GT_COLS, C..V)
 
 def perf_sheet(wb, SP, AR, CAL, TR):
     ws = wb.create_sheet("Perf", 6)
     title(ws, "Perf — 每架產出引擎（世代 × 層級；各層級 SLO 與參考任務；100% 利用率）",
-          "decode：每步時間＝固定延遲＋B × 每序列時間；在 SLO 下解出批次 B*，再受 HBM 容量限制。prefill 為算力受限。黃底為關鍵輸出")
+          "decode：每步時間＝固定延遲＋B × 每序列時間；在 SLO 下解出批次 B*，再受 HBM 容量限制。prefill 為算力受限。黃底為關鍵輸出。"
+          f"v21.11 起 C–{GT_LAST} 欄＝5 世代 × 4 層級（Luna、Sol、Astra、Terra；欄序＝{NT}×(世代−1)＋層級）；Terra 欄尚無契約名稱讀取（v22.0 啟用）")
     put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
-    for i, X in enumerate(COLS15):
-        g, t = i // 3 + 1, i % 3 + 1
+    for X, (g, t) in zip(GT_COLS, GT_GENS_TIERS):
         put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
         put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
         ws.column_dimensions[X].width = 13
-    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR)
-    # VR-eq row (15-col layout only)
-    section(ws, r, "K. VR-eq（每 GW 產出 ÷ VR200 同層級）", 17); r += 1
+    R, r = write_perf(ws, GT_COLS, SP, AR, CAL, TR)
+    # VR-eq row (generation × tier layout only): VR200 is generation 4, so the same tier sits at position NT*3 + tier
+    section(ws, r, "K. VR-eq（每 GW 產出 ÷ VR200 同層級）", 2 + len(GT_COLS)); r += 1
     R["vreq"] = r
     put(ws, f"A{r}", "VR-eq 係數"); put(ws, f"B{r}", "x")
-    for X in COLS15:
-        put(ws, f"{X}{r}", f"=IF(AND(ISNUMBER({X}{R['gwtot']}),ISNUMBER(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7))),IF(INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7)>0,{X}{R['gwtot']}/INDEX($C${R['gwtot']}:$Q${R['gwtot']},9+{X}$7),0),\"SLO 不可達\")", fmt="0.00", fill=FILL_KEY)
+    g = f"$C${R['gwtot']}:${GT_LAST}${R['gwtot']}"; vr = f"INDEX({g},{NT * 3}+{{X}}$7)"
+    for X in GT_COLS:
+        v = vr.format(X=X)
+        put(ws, f"{X}{r}", f"=IF(AND(ISNUMBER({X}{R['gwtot']}),ISNUMBER({v})),IF({v}>0,{X}{R['gwtot']}/{v},0),\"SLO 不可達\")", fmt="0.00", fill=FILL_KEY)
     ws.freeze_panes = "C8"
     return R
 
@@ -47,7 +50,8 @@ SCEN = [  # label, vr overrides, gb overrides, tier
 def sens_sheet(wb, SP, AR, CAL, TR):
     ws = wb.create_sheet("Sens_Perf", 7)
     title(ws, "Sens_Perf — VR200 對 GB300 的單變數敏感度（先看敏感度，再看基準）",
-          "每組兩欄：左 VR200、右 GB300。黃底藍字＝該情境改動的輸入。GB300 為校準世代，VR200 的 η_d 與每層延遲為沿用值 [Analogy]，故 VR 專屬情境只動 VR 欄")
+          "每組兩欄：左 VR200、右 GB300。黃底藍字＝該情境改動的輸入。GB300 為校準世代，VR200 的 η_d 與每層延遲為沿用值 [Analogy]，故 VR 專屬情境只動 VR 欄。"
+          "v21.11：Terra（第四層級）不在本敏感度表（各情境仍為 Sol／Astra；設計 R11，待 Project 判斷是否加 Terra 情境）")
     cols, ov = [], {}
     for i, (lab, vo, go, t) in enumerate(SCEN):
         xv, xg = L(3 + 2 * i), L(4 + 2 * i)
@@ -57,7 +61,7 @@ def sens_sheet(wb, SP, AR, CAL, TR):
         for X, g in ((xv, 4), (xg, 3)):
             put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
             put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-            put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+            put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
             ws.column_dimensions[X].width = 12.5
     ws.row_dimensions[3].height = 44
     put(ws, "A3", "情境", F_BOLD); put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD)
@@ -91,10 +95,12 @@ def unit_cost(wb, PR):
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
         for X in COLS15: put(ws, f"{X}{r}", f.format(X=X), fmt=fmt)
     r = 12
-    tiers = ["Luna（低層）", "Sol（中層）", "Astra（頂層）"]
-    for t in (1, 2, 3):
-        section(ws, r, f"{tiers[t-1]}", 17); r += 1
-        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:$Q${PR[key]},3*({{X}}$6-1)+{t})"
+    # v21.11 (B1): one block per tier (Terra = block 4 after Astra; nothing above moves). Perf is read with the generation × tier index NT*(g-1)+t;
+    # the cost-scenario index of DC_Cost (3*(g-1)+k) is a different 3 and is untouched (design R1). The Terra block has no reader yet (v22.0 B3).
+    for t in range(1, NT + 1):
+        tn = TIERS[t - 1][1]
+        section(ws, r, tn + ("（v21.11 預備：v22.0 啟用；本區尚無下游讀取）" if t > NT_LIVE else ""), 17); r += 1
+        pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:${GT_LAST}${PR[key]},{gt_index('{X}$6', t)})"
         rows = [
           ("gsf", "GPU 秒／M 新鮮 prefill", "GPU-s", "#,##0.0", pl("gsf")),
           ("gsc", "GPU 秒／M 快取命中 prefill", "GPU-s", "#,##0.000", pl("gsc")),
@@ -107,8 +113,10 @@ def unit_cost(wb, PR):
           ("cdu", "decode（含思考 token）$/M — 經濟、基準利用率", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{cd}),{X}{cd}/{X}$10,{X}{cd})"),
           ("cda", "decode（含思考 token）$/M — 會計、100%", "$/M", "#,##0.000", "=IF(ISNUMBER({X}{gsd}),{X}$9/3600*{X}{gsd},\"SLO 不可達\")"),
           ("cref", "參考請求混合 $/M 總 token — 經濟、100%", "$/M", "#,##0.000",
-           f"=IF(ISNUMBER({{X}}{{cd}}),(Serving!${'CDE'[t-1]}$23*{{X}}{{cf}}+Serving!${'CDE'[t-1]}$24*{{X}}{{cd}})/(Serving!${'CDE'[t-1]}$23+Serving!${'CDE'[t-1]}$24),{{X}}{{cd}})"),
+           f"=IF(ISNUMBER({{X}}{{cd}}),(Serving!${TC[t-1]}$23*{{X}}{{cf}}+Serving!${TC[t-1]}$24*{{X}}{{cd}})/(Serving!${TC[t-1]}$23+Serving!${TC[t-1]}$24),{{X}}{{cd}})"),
         ]
+        if t > NT_LIVE:
+            rows = rows[:-1]      # the cref row was deleted in v14.0 (Q1) for the three existing blocks; the Terra block does not create it
         for key, lab, unit, fmt, tpl in rows:
             U[(t, key)] = r
             put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
@@ -190,7 +198,7 @@ def workload(wb, U):
     section(ws, 42, "每任務成本（$／任務；經濟口徑、基準成本情境、基準利用率；不含快取儲存，含儲存者見 Harness 頁）", 8)
     r = 43
     for gname, col in (("VR200", "M"), ("GB300", "J")):
-        for t, tn in zip((1, 2, 3), ("Luna", "Sol", "Astra")):
+        for t, tn in enumerate([k for k, _ in TIERS[:NT_LIVE]], start=1):      # v21.11: live tiers (Workload rows 43+ do not move)
             put(ws, f"A{r}", f"{gname} × {tn}"); put(ws, f"B{r}", "$")
             cf, cc, cd = U[(t, "cfu")], U[(t, "ccu")], U[(t, "cdu")]
             for c in "CDEFG":

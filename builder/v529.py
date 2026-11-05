@@ -351,6 +351,9 @@ def _ranges(rows, col, sheet="Gov_Map"):
 
 
 def _layer(sec, label):
+    if sec == "R":      # v22.0 (J14): Interface R (Terra) rows name the section of their Luna／Sol／Astra counterparts（對應 X 節）
+        m = re.search(r"（對應 ([A-Z]) 節）", label)
+        sec = m.group(1) if m else sec
     if "[IF_Util]" in label: return "IF_Util"
     if sec == "B": return "100%"
     if sec == "G": return "CTL_ProdDerate"

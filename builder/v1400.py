@@ -127,7 +127,7 @@ def purpose_marks(wb):
 M_TITLE = ("M. 契約補名（v14.0，工作單 4-3B Q2）：18 個名稱中的 11 個 IF_ 名稱；其餘 7 個 L1_ 序列名稱在 Cap_In（見下游契約文件）。"
            "Luna／Sol／Astra 是模型層級（低／中／頂），不是世代；欄＝世代 × 成本情境（任務別列：欄 C–G＝Workload 任務）。"
            "每列標明層級與 token 類型；『混合』＝該值本身是跨 token 類型的混合比值，不能拆回單一類型")
-from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
+from tiers import TIERS_ROWS as TIERS      # v22.0: TIERS_ROWS (Terra blocks sit below); v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 GM_ROW = {"Luna": 24, "Sol": 42, "Astra": 60}
 
 

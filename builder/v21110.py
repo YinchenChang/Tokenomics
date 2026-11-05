@@ -70,13 +70,16 @@ DECISION_REF = f"Decisions {DEC_ID}"
 
 
 # ---------------------------------------------------------------- 用途 marks for the Terra cells nobody reads yet (R8)
-PREP = "預備（v21.11 結構一）：Terra 第四層級，v22.0 啟用前尚無下游讀取"
+PREP = ("Terra 第四層級（v21.11 建置；v22.0 啟用：Interface R 節 IF_*_Terra 讀本區）" if tiers.NT_LIVE == tiers.NT
+        else "預備（v21.11 結構一）：Terra 第四層級，v22.0 啟用前尚無下游讀取")
 
 
 # Perf rows whose Terra cells only feed the energy-closure check (Checks「能量閉合：各欄最大閉合比」reads the live tiers, tiers.live_ranges)
 PERF_ENERGY_KEYS = ("gpuw", "ehbm", "rpre", "eflop", "elink", "fpt", "bpt", "cpt", "Edec", "Epre", "pphys", "close")
-PERF_PREP = (f"預備（v21.11 結構一）：本列 Terra 欄（{'、'.join(tiers.gt_col(g, tiers.NT) for g in range(1, tiers.NG + 1))}）只通到 Checks 能量閉合，"
-             "該檢查目前只讀 Luna／Sol／Astra（tiers.NT_LIVE＝3，既有值不變），v22.0 起納入")
+PERF_PREP = ((f"Terra 第四層級：本列 Terra 欄（{'、'.join(tiers.gt_col(g, tiers.NT) for g in range(1, tiers.NG + 1))}）只通到 Checks 能量閉合，"
+              "v22.0 起該檢查納入 Terra（tiers.NT_LIVE＝4）") if tiers.NT_LIVE == tiers.NT else
+             (f"預備（v21.11 結構一）：本列 Terra 欄（{'、'.join(tiers.gt_col(g, tiers.NT) for g in range(1, tiers.NG + 1))}）只通到 Checks 能量閉合，"
+              "該檢查目前只讀 Luna／Sol／Astra（tiers.NT_LIVE＝3，既有值不變），v22.0 起納入"))
 
 
 def _perf_labels():

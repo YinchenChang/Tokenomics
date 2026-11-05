@@ -2,7 +2,7 @@
 from common import *
 from perf import write_perf
 from outputs import COLS15
-from tiers import TC, TC_LAST, NT, NT_LIVE, GT_COLS, GT_LAST, GT_GENS_TIERS, PB_SCEN, PB_SCEN_TIERS, gt_index
+from tiers import TC, TC_LAST, NT, NT_ROWS, GT_COLS, GT_LAST, GT_GENS_TIERS, PB_SCEN, PB_SCEN_TIERS, gt_index
 from openpyxl.workbook.defined_name import DefinedName
 
 # ---------------------------------------------------------------- Tech_Registry
@@ -107,6 +107,11 @@ ROUT_TERRA = 2.36      # v21.11 (B1): Terra RL rollout output token, design 3.4 
 # v21.11 (B1): Terra column F of Train_In rows 25-38: mark and range (design docs/plan/20261105_v22.0_Terra第四層級_設計.md 3.4), written in column G
 TERRA_TI_NOTES = ['Analogy；區間 25–45 T（V4-Flash 32、V4-Pro 33，同族）', 'Analogy；區間 4,096–8,192（同 V4）', 'Assumed；區間 1–3 T（1.05M 上下文；介於 Sol 與 Astra 之間）', 'Assumed（三層級相同）', 'Assumed；區間 0.01–0.3 T（同 Luna／Sol）', 'Assumed（同 Luna／Sol）', 'Assumed；區間 10–40（三層級相同）', 'Assumed；區間 4,096–16,384（同 Sol）', 'Assumed；區間 8,192–32,768（同 Sol）', 'Assumed；區間 1.5–5 T（同 Luna／Sol 基準）', 'Assumed；區間 0.05–1 T（三層級相同）', 'Assumed；3＝Astra（區間 2–3；系統卡稱與 Astra 相同類型的資料與訓練）', 'Assumed；區間 1–3 T（Luna 1、Sol 2 之間）', 'Assumed；區間 0.02–0.05 T（Luna 0.02、Sol 0.05 之間）']
 
+# v22.0 (B3; B1 report section 5 item 4, B2 report section 5 item 1): the tier-code labels name the fourth code (J1 (a): Terra = index 4).
+# The A-column label is the input-preservation key, so the Excel values follow the label through SNAP_MOVES (below).
+GTIER_LABEL_OLD, DTEA_LABEL_OLD = "合成資料生成層級（1 Luna／2 Sol／3 Astra）", "蒸餾教師層級（1／2／3）"
+GTIER_LABEL, DTEA_LABEL = "合成資料生成層級（1 Luna／2 Sol／3 Astra／4 Terra）", "蒸餾教師層級（1 Luna／2 Sol／3 Astra／4 Terra）"
+
 def train_in(wb):
     ws = wb.create_sheet("Train_In")
     title(ws, "Train_In — 訓練輸入（藍字＝輸入；Analogy／Assumed 一律附區間）",
@@ -129,7 +134,7 @@ def train_in(wb):
        "J10。Epoch：最終訓練占研發支出 OpenAI 9.6%、MiniMax 22.6%、Z.ai 12.3%（S38）＝4.4–10.4 倍；取 8。以支出為口徑，已含實驗的低利用率，故乘在 GPU 小時上"),
       ("rdmode", "研發歸屬", "", "家族合計乘一次，依最終訓練 GPU 小時比例分攤", None, "Decision",
        "J10。比例分攤下，各層級分得＝該層級最終訓練 × 倍數；Training J 節另列家族合計"),
-      ("gtier", "合成資料生成層級（1 Luna／2 Sol／3 Astra）", "選擇", 3, "0", "Assumed", "以頂層模型生成；區間 2–3"),
+      ("gtier", GTIER_LABEL, "選擇", 3, "0", "Assumed", "以頂層模型生成；區間 2–3"),
       ("gdef", "下游預設訓練世代（世代索引）", "索引", 4, "0", "Decision", "J13：Andy 2026-09-30 決定 VR200（索引 4）；具名範圍 IF_TrainGenDefault"),
       ("galt", "並列訓練世代（世代索引）", "索引", 3, "0", "Decision", "J13：GB300（索引 3）並列；具名範圍 IF_TrainGenAlt"),
     ]
@@ -168,7 +173,7 @@ def train_in(wb):
       ("rout", "RL rollout 輸出 token（含各領域專家）", "T", [ROUT_LUNA, ROUT_SOL, ROUT_ASTRA, ROUT_TERRA], "#,##0.00",
        "J9：由下而上輸入；基準值校到 VR200 上 RL ÷ 預訓練 GPU 小時約 Luna／Sol 0.3、Astra 1.0（結果見 Training rlH 列與 Checks）；v5.6 因 rollout 效率 0.6→0.85 由 2／2／8 上調為 2.36／2.36／9.6，GPU 小時不變（Andy 決定 (a)）。外部點：R1 約 5%、Grok 4 約 1 倍（S40、S42；GPU 小時或預算口徑）。區間：Luna／Sol 0.3–6T、Astra 2.5–25T"),
       ("dtok", "On-policy 蒸餾：學生 rollout 輸出 token", "T", [0.2, 0.2, 0.2, 0.2], "#,##0.00", "Assumed，區間 0.05–1T"),
-      ("dtea", "蒸餾教師層級（1／2／3）", "選擇", [1, 2, 3, 3], "0", "V4 做法：同尺寸各領域專家為教師 [Interested-party，S35]"),
+      ("dtea", DTEA_LABEL, "選擇", [1, 2, 3, 3], "0", "V4 做法：同尺寸各領域專家為教師 [Interested-party，S35]"),
       ("syn", "合成資料生成 token", "T", [1, 2, 3, 1.5], "#,##0.0", "Assumed，區間 0.5–10T"),
       ("ev", "評測 token", "T", [0.02, 0.05, 0.1, 0.03], "#,##0.00", "Assumed"),
     ]
@@ -439,8 +444,8 @@ def training_sheet(wb, SP, AR, TI, PB, TR):
         R[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
         for X in GT_COLS:
             rg = f"$C${R[src]}:${GT_LAST}${R[src]}"      # v6.0 D8-3: any unreachable tier in the family makes the family total text (SUMPRODUCT would raise #VALUE!)
-            a, b = f"INDEX({rg},1,{gt_index(X + '$6', 1)})", f"INDEX({rg},1,{gt_index(X + '$6', NT_LIVE)})"      # v21.11: live tiers only (rows deleted in v14.0 Q1 anyway)
-            put(ws, f"{X}{r}", f'=IF(COUNT({a}:{b})={NT_LIVE},SUM({a}:{b}),"SLO 不可達")', fmt=fmt, fill=FILL_KEY)
+            a, b = f"INDEX({rg},1,{gt_index(X + '$6', 1)})", f"INDEX({rg},1,{gt_index(X + '$6', NT_ROWS)})"      # v22.0: NT_ROWS (values unchanged); v21.11: live tiers only (rows deleted in v14.0 Q1 anyway)
+            put(ws, f"{X}{r}", f'=IF(COUNT({a}:{b})={NT_ROWS},SUM({a}:{b}),"SLO 不可達")', fmt=fmt, fill=FILL_KEY)
         r += 1
     ws.freeze_panes = "C8"
     return R
@@ -469,6 +474,7 @@ MULT_LABEL = "情境倍數（×；黃底藍字＝作用中，乘在該情境改�
 # v5.11 had the "合成資料 token × 0" scenario written as a blue 0 on the synthetic-token row; v5.12 moves it to MULT_ROW.
 # build.py remaps that snapshot key so an Excel-edited value is carried over (restore stays unmatched 0).
 SNAP_MOVES = [(("Sens_Train", ("合成資料 token", 0), c), ("Sens_Train", (MULT_LABEL, 0), c)) for c in (25, 26)]   # Y, Z
+SNAP_MOVES += [(("Train_In", (old, 0), c), ("Train_In", (new, 0), c)) for old, new in ((GTIER_LABEL_OLD, GTIER_LABEL), (DTEA_LABEL_OLD, DTEA_LABEL)) for c in range(2, 9)]   # v22.0: tier-code labels name 4＝Terra
 
 def sens_train(wb, SP, AR, TI, PB, TR):
     ws = wb.create_sheet("Sens_Train")

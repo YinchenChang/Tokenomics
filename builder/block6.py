@@ -10,7 +10,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 SLO = "SLO 不可達"
 SPEND_SID = "SRC_DEM_004"    # v5.36 B1: OpenAI-side inference spend (8.4; 7.5–8.8) drives the spend route; was SRC_DEM_018 (Microsoft-side 12.6, now a comparison row) in v5.29–v5.35. v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
-from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
+from tiers import TIERS_ROWS as TIERS      # v22.0: TIERS_ROWS (Terra blocks sit below); v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 GENX = "整代不可達"      # v6.3 K2: a generation with mix share > 0 whose tiers are all unreachable -> text flag (the generation mix is an observed fleet fact, never transferred)
 
 

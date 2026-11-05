@@ -74,7 +74,7 @@ def l1_rows_new():
         sub_row("M_API", "收入面 m — API 路線（2026 Q2）", 206, "L1_MAPI", "0.813"),
         sub_row("M_Sub", "收入面 m — 消費訂閱路線（2026 Q2）", 207, "L1_MSub", "6.146"),
         sub_row("M_Seat", "收入面 m — 商用席次路線（2026 Q2）", 208, "L1_MSeat", "2.634"),
-        ("PxEff_2026", "2026 快照付費 token 混合有效單價（層級組合 Luna／Sol／Astra × 有效牌價；= 表列牌價 ×（1 − d））",
+        ("PxEff_2026", "2026 快照付費 token 混合有效單價（層級組合 Luna／Sol／Astra／Terra × 有效牌價；= 表列牌價 ×（1 − d））",
          "Cap_In!$E$205；2026 快照（B4_MixPaid 加權的 IF_PriceRef）", f"={C}!$E$205", _t(NR), _t(NR), "$/M", NR, "v18.0：L1_M 的分母單價；2026 年用 2026 快照（1.961），2025 年用 CAP_Price25Mix（1.359）",
          "層級組合 B4_MixPaid、IF_PriceRef_*、B4_Disc、AL_Kappa", "牌價：C1 官方牌價；組合：Assumed", *NONE_EXT, "Cap_In 第 205 列、第 90 列", "Cap_In 第 205 列（E 欄）", "顯示用"),
         ("PxList_2026", "2026 快照付費 token 混合表列牌價（＝有效單價 ÷（1 − B4_Disc））",
@@ -83,9 +83,10 @@ def l1_rows_new():
          "L1_PxEff_2026；B4_Disc", "L1 本頁", "顯示用"),
         ("TokGW_PaidCap_VR200", "VR200 每 GW 付費產能（100% 利用率、全部作付費服務；層級組合 B4_MixPaid 調和平均）",
          "1 ÷ Σ（層級占比 ÷ 該層級 IF_TokGW 的 VR200 基準欄）；IF_TokGW 第 11 欄＝VR200 基準（同 L1_FleetProdRatio 取法）",
-         "=1/(INDEX(B4_MixPaid,1,1)/INDEX(IF_TokGW_Luna,1,11)+INDEX(B4_MixPaid,1,2)/INDEX(IF_TokGW_Sol,1,11)+INDEX(B4_MixPaid,1,3)/INDEX(IF_TokGW_Astra,1,11))",
+         "=1/(INDEX(B4_MixPaid,1,1)/INDEX(IF_TokGW_Luna,1,11)+INDEX(B4_MixPaid,1,2)/INDEX(IF_TokGW_Sol,1,11)+INDEX(B4_MixPaid,1,3)/INDEX(IF_TokGW_Astra,1,11)"
+         "+INDEX(B4_MixPaid,1,4)/INDEX(IF_TokGW_Terra,1,11))",      # v22.0 (B3): fourth term (Terra), B2 report section 5 item 2
          _t(NR), _t(NR), "M tok/GW/年", NR, "v18.0：理想上限（利用率 100%、全部付費）；Q 的基底。約 2.53 × 10¹⁷ token／GW／年",
-         "IF_TokGW_Luna／Sol／Astra、B4_MixPaid", "各層級每 GW 產能：roofline 推導（Derived）；組合：Assumed", *NONE_EXT, "Interface 第 21–23 列；B4_MixPaid", "L1 本頁",
+         "IF_TokGW_Luna／Sol／Astra／Terra（v22.0 起四項）、B4_MixPaid", "各層級每 GW 產能：roofline 推導（Derived）；組合：Assumed", *NONE_EXT, "Interface 第 21、31、41 列與 R 節 IF_TokGW_Terra；B4_MixPaid", "L1 本頁",
          "100% 利用率不是實際；實際見 L1_TokGW_PaidPQ_VR200"),
         ("TokGW_PaidPQ_VR200", "VR200 每 GW 付費 token 實際產出 Q（M tok／年）",
          "＝PaidCap × B4_Serve ×（1 − B4_Free）× AL_UtilActual × L1_FleetProdRatio；Q 側付費切分用支出口徑（chat 端 16:53）",

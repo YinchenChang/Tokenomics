@@ -1,6 +1,6 @@
 from common import *
 from perf import write_perf
-from tiers import TIERS, NT, NT_LIVE, NG, TC, TC_LAST, GT_COLS, GT_LAST, GT_GENS_TIERS, gt_index
+from tiers import TIERS, NT, NT_LIVE, NT_ROWS, NG, TC, TC_LAST, GT_COLS, GT_LAST, GT_GENS_TIERS, gt_index
 
 GEN_NAMES_IDX = [1, 2, 3, 4, 5]
 COLS15 = [L(i) for i in range(3, 18)]  # C..Q: generation × cost scenario (DC_Cost, Unit_Cost, Interface, Fleet_1GW …); NOT generation × tier since v21.11 (that is tiers.GT_COLS, C..V)
@@ -9,7 +9,7 @@ def perf_sheet(wb, SP, AR, CAL, TR):
     ws = wb.create_sheet("Perf", 6)
     title(ws, "Perf — 每架產出引擎（世代 × 層級；各層級 SLO 與參考任務；100% 利用率）",
           "decode：每步時間＝固定延遲＋B × 每序列時間；在 SLO 下解出批次 B*，再受 HBM 容量限制。prefill 為算力受限。黃底為關鍵輸出。"
-          f"v21.11 起 C–{GT_LAST} 欄＝5 世代 × 4 層級（Luna、Sol、Astra、Terra；欄序＝{NT}×(世代−1)＋層級）；Terra 欄尚無契約名稱讀取（v22.0 啟用）")
+          f"v21.11 起 C–{GT_LAST} 欄＝5 世代 × 4 層級（Luna、Sol、Astra、Terra；欄序＝{NT}×(世代−1)＋層級）；Terra 欄 v22.0 起由 Interface R 節契約名稱（IF_*_Terra）讀取")
     put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
     for X, (g, t) in zip(GT_COLS, GT_GENS_TIERS):
         put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
@@ -99,7 +99,7 @@ def unit_cost(wb, PR):
     # the cost-scenario index of DC_Cost (3*(g-1)+k) is a different 3 and is untouched (design R1). The Terra block has no reader yet (v22.0 B3).
     for t in range(1, NT + 1):
         tn = TIERS[t - 1][1]
-        section(ws, r, tn + ("（v21.11 預備：v22.0 啟用；本區尚無下游讀取）" if t > NT_LIVE else ""), 17); r += 1
+        section(ws, r, tn + ("（v21.11 建置；v22.0 啟用：Interface R 節 IF_*_Terra 讀本區）" if t > NT_ROWS else ""), 17); r += 1
         pl = lambda key: f"=INDEX(Perf!$C${PR[key]}:${GT_LAST}${PR[key]},{gt_index('{X}$6', t)})"
         rows = [
           ("gsf", "GPU 秒／M 新鮮 prefill", "GPU-s", "#,##0.0", pl("gsf")),
@@ -115,7 +115,7 @@ def unit_cost(wb, PR):
           ("cref", "參考請求混合 $/M 總 token — 經濟、100%", "$/M", "#,##0.000",
            f"=IF(ISNUMBER({{X}}{{cd}}),(Serving!${TC[t-1]}$23*{{X}}{{cf}}+Serving!${TC[t-1]}$24*{{X}}{{cd}})/(Serving!${TC[t-1]}$23+Serving!${TC[t-1]}$24),{{X}}{{cd}})"),
         ]
-        if t > NT_LIVE:
+        if t > NT_ROWS:
             rows = rows[:-1]      # the cref row was deleted in v14.0 (Q1) for the three existing blocks; the Terra block does not create it
         for key, lab, unit, fmt, tpl in rows:
             U[(t, key)] = r
@@ -198,7 +198,7 @@ def workload(wb, U):
     section(ws, 42, "每任務成本（$／任務；經濟口徑、基準成本情境、基準利用率；不含快取儲存，含儲存者見 Harness 頁）", 8)
     r = 43
     for gname, col in (("VR200", "M"), ("GB300", "J")):
-        for t, tn in enumerate([k for k, _ in TIERS[:NT_LIVE]], start=1):      # v21.11: live tiers (Workload rows 43+ do not move)
+        for t, tn in enumerate([k for k, _ in TIERS[:NT_ROWS]], start=1):      # v22.0: NT_ROWS; v21.11: live tiers (Workload rows 43+ do not move)
             put(ws, f"A{r}", f"{gname} × {tn}"); put(ws, f"B{r}", "$")
             cf, cc, cd = U[(t, "cfu")], U[(t, "ccu")], U[(t, "cdu")]
             for c in "CDEFG":

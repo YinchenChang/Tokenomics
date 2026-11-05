@@ -22,6 +22,7 @@ N_TITLE = ("N. P×Q 取數（v19.0）：下游公司模型做「營收＝P × Q�
 PCT = "0.0%"
 
 TIERS = (("Luna", 1), ("Sol", 2), ("Astra", 3))
+TIERS_MIX = TIERS + (("Terra", 4),)      # v22.0 (B3; B2 report section 5 item 2): IF_TokGWPaidMix is the four-tier harmonic mean (IF_MixPaid_Terra／IF_TokGW_Terra are Interface R names, J14)
 
 # (name, label, unit, fmt, C, D, E)  D／E None = no range
 SCALARS = [
@@ -34,7 +35,7 @@ SCALARS = [
     ("IF_UtilActual", "實際利用率（營運口徑；實際產出＝產能 × 本列；基準／低／高）", "x", "0.00", "=AL_UtilActual", "=AL_UtilActual_Lo", "=AL_UtilActual_Hi"),
     ("IF_ProdDerate", "生產折減（線性；＝CTL_ProdDerate；其他世代的重解比待補，下游暫用本列；基準）", "x", "0.00", "=CTL_ProdDerate", None, None),
     ("IF_FleetProdRatio_VR200", "VR200 生產折減重解比（＝L1_FleetProdRatio；重解 SLO 後 VR200 每 GW 產出 ÷ 理想產出；僅 VR200；基準）", "x", "0.00000", "=L1_FleetProdRatio", None, None),
-    ("IF_PxEffMix", "付費層級組合的有效牌價 — 2026 快照（＝表列 ×（1 − IF_Disc）；Luna／Sol／Astra 依 IF_MixPaid_* 加權；基準）", "$/M", "0.00000", "=Cap_In!$C$90", None, None),
+    ("IF_PxEffMix", "付費層級組合的有效牌價 — 2026 快照（＝表列 ×（1 − IF_Disc）；Luna／Sol／Astra／Terra 依 IF_MixPaid_* 加權（v22.0 起四項）；基準）", "$/M", "0.00000", "=Cap_In!$C$90", None, None),
     ("IF_PxEffMix25", "付費層級組合的有效牌價 — 2025 年度（CAP_Price25Mix；各層級 2025 年度加權單價 ×（1 − IF_Disc）；基準／低／高）", "$/M", "0.00000", "=CAP_Price25Mix", "=Cap_In!$D$281", "=Cap_In!$E$281"),
     ("IF_LTotalDisc", "L（新世代自身起點、折現；＝L1_LTotalDisc；壽命期年均產出占第一年的比例；基準／低／高）", "x", "0.00000", "=L1_LTotalDisc", "=L1_LTotalDisc_Lo", "=L1_LTotalDisc_Hi"),
     ("IF_LTotalFleetVDisc", "L（2025 機隊、世代起點、折現；＝L1_LTotalFleetVDisc；基準／低／高）", "x", "0.00000", "=L1_LTotalFleetVDisc", "=L1_LTotalFleetVDisc_Lo", "=L1_LTotalFleetVDisc_Hi"),
@@ -42,15 +43,15 @@ SCALARS = [
 
 PAID_MIX = "IF_TokGWPaidMix"
 PAID_MIX_LAB = ("付費層級組合下每 GW 年產能（100% 利用、全部付費；層級占比調和平均；實際＝× 服務占比 IF_ServeShare ×（1 − 免費占比 IF_FreeShare）× 實際利用率 × 生產折減；"
-                "欄 C–Q＝5 世代 × 3 成本情境，同 IF_TokGW_*；token 類型＝付費 token 混合：新鮮輸入＋快取輸入＋輸出）")
+                "欄 C–Q＝5 世代 × 3 成本情境，同 IF_TokGW_*；v22.0 起四層級 Luna／Sol／Astra／Terra；token 類型＝付費 token 混合：新鮮輸入＋快取輸入＋輸出）")
 
 
 def _paid_mix(k):
     """k: 1-based column position inside C:Q. Non-numeric (or non-positive) denominator parts return AL_UnavailTxt."""
-    tg = {t: f"INDEX(IF_TokGW_{t},1,{k})" for t, _ in TIERS}
-    ok = ",".join([f"ISNUMBER(IF_MixPaid_{t})" for t, _ in TIERS] + [f"ISNUMBER({tg[t]})" for t, _ in TIERS])
-    pos = ",".join(f"{tg[t]}>0" for t, _ in TIERS)
-    den = "+".join(f"IF_MixPaid_{t}/{tg[t]}" for t, _ in TIERS)
+    tg = {t: f"INDEX(IF_TokGW_{t},1,{k})" for t, _ in TIERS_MIX}
+    ok = ",".join([f"ISNUMBER(IF_MixPaid_{t})" for t, _ in TIERS_MIX] + [f"ISNUMBER({tg[t]})" for t, _ in TIERS_MIX])
+    pos = ",".join(f"{tg[t]}>0" for t, _ in TIERS_MIX)
+    den = "+".join(f"IF_MixPaid_{t}/{tg[t]}" for t, _ in TIERS_MIX)
     return f"=IF(AND({ok}),IF(AND({pos}),1/({den}),AL_UnavailTxt),AL_UnavailTxt)"
 
 

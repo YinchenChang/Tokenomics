@@ -14,7 +14,7 @@ from common import *
 from openpyxl.workbook.defined_name import DefinedName
 
 from tiers import TIERS as TIERS_ALL, TC as TC_ALL
-from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
+from tiers import TIERS_ROWS as TIERS      # v22.0: TIERS_ROWS (Terra blocks sit below); v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 TK = "CDEFG"                                   # task columns (Workload C–G)
 NA = '"SLO 不可達"'
 GENS = [("VR200", "M"), ("GB300", "J")]         # Unit_Cost / Cache_Store base-cost columns (J13: VR200 default, GB300 alongside)

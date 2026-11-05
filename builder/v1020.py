@@ -7,6 +7,8 @@
 #       B26 and B36 counted again as V16/V17.
 #   E4  Perf_Batch R-S columns kept (Sens_Train W59:X62 reads them): header and registry notes say so.
 # Every write to an Excel-owned cell is guarded (old value / old text). Minor version: no new contract name.
+from tiers import PB_SCEN
+from inputs import SERV_NOTE
 import re
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_NOTE, F_BOLD, F_CALC, F_LINK, FILL_KEY, section
@@ -297,7 +299,10 @@ def gov_update(ws, append_text):
     rep("Calib", "F120", "H", "SRC_PERF_026", "SRC_PERF_076")
     rep("Calib", "F120", "E", "MLPerf 實測輸出 tok/s/GPU（總量 ÷ 72）", "MLPerf v6.0 server GB300 NVL72（NVIDIA 72 GPU）每 GPU（V3 對照）")
     n += append_text(ws[f"N{r}"], " ｜v10.2 E3：V3 對照由 Nebius 8 GPU 單機 8,064（SRC_PERF_026）改為同輪 NVIDIA 72 GPU 機櫃 5,562（SRC_PERF_076）；SRC_PERF_026 保留作單機參考")
-    r = _gm_row(ws, "Perf_Batch", "R19:S20"); assert ws[f"A{r}"].value == "GM558"
+    import v21110
+    try: r = _gm_row(ws, "Perf_Batch", "R19:S20")
+    except KeyError: r = _gm_row(ws, "Perf_Batch", v21110.gm_key("Perf_Batch", "R19:S20"))      # v21.11: registration moved to W19:X20
+    assert ws[f"A{r}"].value == "GM558"
     n += append_text(ws[f"N{r}"], " ｜v10.2 E4（ETA-E4；Andy 2026-10-16 18:22 決定 (b)）：R–S 欄保留，只供敏感度情境（Sens_Train W59:X62 讀取；不進任何 IF_／L1_ 輸出）；取代 4-1 的『刪除』")
     return n
 
@@ -311,12 +316,12 @@ def apply(wb, append_text):
     log = {}
     ws = wb["Perf_Batch"]
     n = 0
-    for ref in ("R3", "S3"):
+    for ref in (f"{c}3" for c in PB_SCEN):      # v21.11: the FP8 rollout scenario columns are W／X (v21.10: R／S)
         if ws[ref].value == "情境：FP8 rollout":
             ws[ref].value = E4_HDR; n += 1
     n += append_text(ws["A2"], E4_A2)
     sv = wb["Serving"]
-    if sv["F21"].value != SLO_TXT: sv["F21"].value = SLO_TXT; n += 1
+    if sv[f"{SERV_NOTE}21"].value != SLO_TXT: sv[f"{SERV_NOTE}21"].value = SLO_TXT; n += 1      # v21.11: Serving 說明 of rows 20-24 is column G (Terra in F)
     log["perf_batch"] = n
     s = wb["SRC_Perf"]; k = 0
     for rr in range(5, s.max_row + 1):

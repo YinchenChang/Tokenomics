@@ -13,6 +13,8 @@ import re
 from openpyxl.styles import PatternFill
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_TITLE, F_NOTE, FILL_SEC, FILL_KEY, WRAP, L, title, section
+from tiers import gt_col, TIERS_LIVE
+import v21110
 from gov_seed import SRC_RECORDS, PERF_ATTR, EVID_MIG, EVID_UPD, FORMULA_MAP, GOV_MAP
 from gov_decisions import DECISIONS
 from gov_seed2 import SRC_RECORDS2, PERF_ATTR2, EVID_MIG2, FORMULA_MAP2, GOV_MAP_UPD, GOV_MAP_V513C, GOV_MAP_UPD_E, DEC_UPD
@@ -358,6 +360,7 @@ def _find_row(ws, label):
 def gm_append(wb, ws):
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
     have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
+    have |= v21110.GM_OLD_KEYS      # v21.11: registrations of the re-laid sheets moved to the 20-column ranges; the old keys are never re-registered
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
@@ -379,6 +382,7 @@ def gm_append_c(wb, ws):
     The row's column-A label must still match: a moved or renamed row stops the build instead of registering the wrong cell."""
     have = {(ws[f"C{r}"].value, ws[f"D{r}"].value) for r in range(5, ws.max_row + 1)}
     have |= {("Har_In", "C12:G12"), ("Train_In", "C34:E34")}     # v10.1 4-1：GM481 縮為 C12:D12、GM540 停用後，原登錄範圍不得重新補登
+    have |= v21110.GM_OLD_KEYS      # v21.11: registrations of the re-laid sheets moved to the 20-column ranges; the old keys are never re-registered
     ids = [ws[f"A{r}"].value for r in range(5, ws.max_row + 1) if isinstance(ws[f"A{r}"].value, str) and ws[f"A{r}"].value.startswith("GM")]
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
@@ -434,7 +438,7 @@ def gov_map(wb, src_index):
     n_rp = v535.gov_map_repoint(wb, ws)      # v5.35 B5: GM629–GM633 (Cap_In H10 cells that moved one row down) re-pointed before the cell-keyed append (label guard; 0 on a v5.35-based rebuild)
     gm_append(wb, ws)
     n_c = gm_append_c(wb, ws)
-    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text) + v1200.gov_update(ws, v518._append_text) + v1300.gov_update(ws, v518._append_text) + v1310.gov_update(ws, v518._append_text) + v1520.gov_update(ws, v518._append_text) + v1530.gov_update(ws, v518._append_text) + v1910.gov_update(ws, v518._append_text)      # v15.3: GM634／635／638／639 Derived (E1／E2), GM636 N, GM685 K／M／N (C2); v15.2: GM342 B3 range and Derived (V2), GM457 M, GM644 N; v13.1: D15 J／H completion, GM346 O sentence; v13.0: C68 category Assumed + v13.0-前 column; v12.0: D156 range, C68 correction; v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
+    n_upd = gm_update(ws) + v518.gov_update(ws) + v519.gov_update(ws, v518._append_text) + v520.gov_update(ws, v518._append_text) + v521.gov_update(ws, v518._append_text) + v525.gov_update(ws, v518._append_text) + v527.gov_update(ws, v518._append_text) + v529.gov_update(ws, v518._append_text) + v531.gov_update(ws, v518._append_text) + v532.gov_update(ws, v518._append_text) + v533.gov_update(ws, v518._append_text) + v534.gov_update(ws, v518._append_text) + v536.gov_update(ws, v518._append_text) + v601.gov_update(ws, v518._append_text) + v603.gov_update(ws, v518._append_text) + v700.gov_update(ws, v518._append_text) + v1020.gov_update(ws, v518._append_text) + v1200.gov_update(ws, v518._append_text) + v1300.gov_update(ws, v518._append_text) + v1310.gov_update(ws, v518._append_text) + v1520.gov_update(ws, v518._append_text) + v1530.gov_update(ws, v518._append_text) + v1910.gov_update(ws, v518._append_text) + v21110.gov_update(ws, v518._append_text)      # v21.11: D ranges of the re-laid generation × tier sheets, Arch!$G$ -> $H$ reasons; v15.3: GM634／635／638／639 Derived (E1／E2), GM636 N, GM685 K／M／N (C2); v15.2: GM342 B3 range and Derived (V2), GM457 M, GM644 N; v13.1: D15 J／H completion, GM346 O sentence; v13.0: C68 category Assumed + v13.0-前 column; v12.0: D156 range, C68 correction; v10.2: E2 Serving C21:E21 rows, E4 GM558 note; v6.3: J1 r1 range text; v6.1: D3／D6／D10／D13／Q3 judgement columns; v5.36: GM596／597 pricing-multiple range text and reason (X46); v5.34: GM441／GM442 (B4_Disc) range text 0.1–0.4 and notes (J20); v5.33: GM594／GM590／GM586／GM587 notes, GM586 range text; v5.32: GM594 reason (append); v5.31: X16／X17 judgement updates (Inputs D30:F30, Spec_Rack E11:E13); v5.29: X14 notes, GM586 range text, GM453 note (r2: stays on 004) and 反轉門檻 column header; v5.27: X13 notes; v5.25: GM248 range, X12 notes; v5.18: judgement columns, P (B method), D5 ranges; v5.19: X2 P promotions
     # ---- builder-owned columns Q..AF
     n = 0; static_raw_hard = 0
     for r in range(5, ws.max_row + 1):
@@ -485,6 +489,10 @@ GENCOL = {"Hopper": 1, "GB200": 4, "GB300": 7, "VR200": 10}     # Interface colu
 COST_RNG = "成本角落情境（低成本／高成本欄）"
 UTIL_RNG = "利用率 40–80%（Sens_Rev 情境值；J6 區間）"
 
+_AQ = gt_col(4, 3)      # v21.11: Training VR200 × Astra column (v21.10: N)
+_ASTRA_PRE = f"=Training!${_AQ}$31*Training!${_AQ}$34*1E21"
+
+
 def _rows_l1(wb):
     R = []
     for g, c0 in GENCOL.items():
@@ -511,7 +519,7 @@ def _rows_l1(wb):
                   f"=INDEX(IF_GPUhrEcon,1,{c0})", f"=INDEX(IF_GPUhrEcon,1,{c0+2})", "$/GPU-hr", COST_RNG,
                   "每 GW 年持有成本 ÷（GPU 數 × 8,760）", "機架價格、IT 折舊年限、WACC", "機架價格：3 級", *ext, "IF_GPUhrEcon", "Interface 第 14 列",
                   "外部為 SemiAnalysis TCO（假設未公開，須第二來源）；CoreWeave 公開價對照於 v5.12（SRC_Price）" if ext[0] != DASH else DASH))
-    for tier in ("Luna", "Sol", "Astra"):
+    for tier in [k for k, _ in TIERS_LIVE]:      # v21.11: single source (builder/tiers.py); Terra L1 rows are v22.0 B3
         for g in ("VR200", "GB300"):
             c0 = GENCOL[g]
             R.append((f"CostDec_{tier}_{g}", f"decode（含思考）每 M token 成本 — {tier}（{g}）", "經濟口徑、100% 利用率、SLO 下", f"=INDEX(IF_CostDec_{tier},1,{c0+1})",
@@ -540,11 +548,11 @@ def _rows_l1(wb):
               "=INDEX(IF_GPUhrEcon,1,8)", "=INDEX(IF_GPUhrEcon,1,7)", "=INDEX(IF_GPUhrEcon,1,9)", "$/GPU-hr", COST_RNG,
               "外部為第三方推算的租金門檻（85% 利用率、9.12% 資金成本、6 年）；本模型為 100% 時數的持有成本", "機架價格、IT 折舊年限、WACC",
               "外部：2 級、機型未明", "SRC_PRC_002", "=SRC_PRC_002", "=SRC_PRC_002", "IF_GPUhrEcon", "Interface 第 14 列；Checks 第 10 列", "外部值機型未明"))
-    R.append(("RLshare_Sol_VR200", "RL ÷ 預訓練 GPU 小時（Sol，VR200）", "J9 基準；非同步 RL（T10）", "=Training!$M$78", "=Sens_Train!$O$78",
+    R.append(("RLshare_Sol_VR200", "RL ÷ 預訓練 GPU 小時（Sol，VR200）", "J9 基準；非同步 RL（T10）", f"=Training!${gt_col(4, 2)}$78", "=Sens_Train!$O$78",
               "=Sens_Train!$Q$78", "x", "RL rollout token ×0.3–×3（Sens_Train 情境倍數）", "後訓練算力的主要追蹤指標：RL 用掉的 GPU 小時相對預訓練的倍數",
               "rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "SRC_MOD_034", "=SRC_MOD_034/SRC_MOD_040",
               "=SRC_MOD_034/SRC_MOD_040", "TRN_RLRatioH", "Training 第 78 列；Checks 第 34 列", "外部為 DeepSeek R1（2025-01）÷ V3 預訓練，代表較早期的 RL 規模"))
-    R.append(("RLshare_Astra_VR200", "RL ÷ 預訓練 GPU 小時（Astra，VR200）", "J9 基準；非同步 RL（T10）", "=Training!$N$78", "=Sens_Train!$P$78",
+    R.append(("RLshare_Astra_VR200", "RL ÷ 預訓練 GPU 小時（Astra，VR200）", "J9 基準；非同步 RL（T10）", f"=Training!${gt_col(4, 3)}$78", "=Sens_Train!$P$78",
               "=Sens_Train!$R$78", "x", "RL rollout token ×0.3–×3（Sens_Train 情境倍數）", "同上；Astra 基準校到約 1（RL 與預訓練同量級）",
               "rollout token（J9）、rollout 效率、RL trainer MFU", "rollout token：Assumed（J9 校準值）", "SRC_MOD_036", "=SRC_MOD_036", "=SRC_MOD_036",
               "TRN_RLRatioH", "Training 第 78 列；Checks 第 33 列", "外部為 xAI 宣稱 Grok 4 RL 達「預訓練規模」，口徑（GPU 小時或 FLOPs）不明"))
@@ -557,8 +565,7 @@ def _rows_l1(wb):
               "=Checks!$B${rev}", "=Checks!$B${rev}", "=Checks!$B${rev}", "$B/GW/年", "無區間（單一對帳值）", "同量級即機隊配置與單價可閉合；2025 實際單價高於 2026 快照",
               "OpenAI 有效單價、機隊配置（K7）", ("Hopper 占機隊：Analogy（Epoch 轉述 NVIDIA 出貨 4/7；全球口徑）" if v518.step_on("D4") else "Hopper 占機隊：Assumed"), "SRC_DEM_007", "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)",
               "=SRC_DEM_007/((SRC_DEM_008+SRC_DEM_009)/2)", DASH, "Checks 第 43 列", "外部 GW 口徑未明（D1）"))
-    R.append(("PretrainFLOP_Astra", "Astra 預訓練算力", "J8 基準（啟用參數 × 預訓練 token）", "=Training!$N$31*Training!$N$34*1E21",
-              "=Training!$N$31*Training!$N$34*1E21", "=Training!$N$31*Training!$N$34*1E21", "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
+    R.append(("PretrainFLOP_Astra", "Astra 預訓練算力", "J8 基準（啟用參數 × 預訓練 token）", _ASTRA_PRE, _ASTRA_PRE, _ASTRA_PRE, "FLOP", "無區間（J8 未結；token 區間見 Gov_Map Train_In E25）",
               "訓練 FLOPs/token × token；與前沿錨點 2e26–2e27 的差距即 J8 缺口", "Astra 啟用參數、預訓練 token", "Astra 架構：Assumed", v525.L1_ASTRA_SID,
               v527.L1_ASTRA_ELO, v527.L1_ASTRA_EHI, DASH, "Training 第 31、34 列；Checks 第 38 列", v525.L1_ASTRA_GAP))      # v5.25 X12: SRC_MOD_033 (Grok-3) -> SRC_MOD_055 (GPT-6 Astra)
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)

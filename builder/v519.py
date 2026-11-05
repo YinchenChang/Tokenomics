@@ -20,12 +20,20 @@ from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_NOTE, FILL_KEY, FILL_SEC
 
 C18 = "=Serving!$C$18"
 SEED_COLS = range(3, 18)                                   # C:Q (5 generations x 3 columns); also the span of the Theory_Rev targets
+from tiers import RELAID, GT_COLS
+GT_SPAN = range(3, 3 + len(GT_COLS))                       # v21.11: Perf／Perf_Batch／Training are generation × 4 tiers, C:V
+
+
+def span(sheet):
+    """Columns that can hold chain cells on a source sheet (v21.11: C:V on the re-laid generation × tier sheets, C:Q elsewhere)."""
+    return GT_SPAN if sheet in RELAID else SEED_COLS
 PROD_SHEETS = ["Perf_Prod", "Perf_Batch_Prod", "Training_Prod", "Unit_Cost_Prod", "Interface_Prod", "Fleet_1GW_Prod", "Amortize_Prod", "Theory_Rev_Prod"]
 SRC_SHEETS = [x[:-len("_Prod")] for x in PROD_SHEETS]
 # (Theory_Rev row, Interface name of the baseline row, new name)
 TARGETS = [(18, "IF_FullCost_Luna"), (36, "IF_FullCost_Sol"), (54, "IF_FullCost_Astra"),
            (11, "IF_RevGW_Luna"), (29, "IF_RevGW_Sol"), (47, "IF_RevGW_Astra"), (67, "IF_RevGWFleet")]
-SHIFT = 16                                                 # check copy: columns S:AG (C+16 … Q+16)
+SHIFT = 21                                                 # check copy: columns X onwards (C+21; v21.11 widened from 16 because Perf／Perf_Batch／Training span C:V)
+COPY_FROM = L(3 + SHIFT)                                   # "X"
 SUFFIX = "_Prod"
 NEW_INPUT_ROW = 28                                         # Serving row of CTL_ProdDerate (after the existing content, no shifts)
 CTL_DEFAULT = 0.85
@@ -162,7 +170,7 @@ def mirror_formula(f, cur, S, names, shift):
 def build_chain(wb):
     """Create the *_Prod sheets; returns info for the report (cell counts, sheets, rows)."""
     S, cells, names, seeds = chain_cells(wb)
-    assert S and all(3 <= c <= 17 for (_, c, _) in S), "chain must live in columns C:Q"
+    assert S and all(c in span(sh) for (sh, c, _) in S), "chain must live in columns C:Q (C:V on the generation × tier sheets)"
     for key in S:
         assert mirror_formula(cells[key], key[0], set(), names, 0) is not None
     # tokenizer round trip must reproduce every formula (guards the rewrite)
@@ -175,14 +183,15 @@ def build_chain(wb):
         src = wb[s]; ws = wb.create_sheet(s + SUFFIX)
         title(ws, f"{s}{SUFFIX} — {s} 的鏡像（v5.19 X1：生產折減並列輸出）",
               "同位置鏡像：公式逐格同 " + s + "，只改兩處——(1) 讀到鏈上其他格者改讀本組 *_Prod 頁；(2) Perf_Prod 與 Perf_Batch_Prod 第 50 列改讀 CTL_ProdDerate（Serving!C28），"
-              "其餘仍讀原頁。右側 S:AG 為自我檢查副本（第 50 列＝Serving!C18，Checks X1）。只含從 Serving!C18 的進入點（兩個第 50 列）算到七個 _Prod 輸出所需的列。")
-        for c in "ABCDEFGHIJKLMNOPQ":
+              f"其餘仍讀原頁。右側 {COPY_FROM}:{L(span(s)[-1] + SHIFT)} 為自我檢查副本（第 50 列＝Serving!C18，Checks X1）。只含從 Serving!C18 的進入點（兩個第 50 列）算到七個 _Prod 輸出所需的列。")
+        for i in range(1, span(s)[-1] + 1):
+            c = L(i)
             if src.column_dimensions[c].width: ws.column_dimensions[c].width = src.column_dimensions[c].width
-        for i in range(19, 34): ws.column_dimensions[L(i)].width = src.column_dimensions["C"].width or 12
+        for i in span(s): ws.column_dimensions[L(i + SHIFT)].width = src.column_dimensions["C"].width or 12
         ws.freeze_panes = src.freeze_panes
         for blk, shift in (("主", 0), ("檢查副本", SHIFT)):
             for r in (4, 5, 6, 7):                                    # header band (links; copies of the source header rows)
-                for c in SEED_COLS:
+                for c in span(s):
                     sc = src.cell(r, c)
                     if sc.value is not None:
                         put(ws, f"{L(c + shift)}{r}", f"={_qs(s)}!{L(c)}{r}", fmt=sc.number_format, fill=copy(sc.fill) if sc.fill.fill_type else None)
@@ -195,7 +204,7 @@ def build_chain(wb):
                 if v is None: continue
                 put(ws, f"{L(c)}{r}", f"={_qs(s)}!{L(c)}{r}" if isinstance(v, str) and v.startswith("=") else v,
                     F_NOTE if c == 2 else None)
-            for c in SEED_COLS:
+            for c in span(s):
                 key = (s, c, r)
                 if key not in S: continue
                 sc = src.cell(r, c)
@@ -250,7 +259,7 @@ def checks_x1(wb, made):
     r += 1
     put(ws, f"A{r}", "X1"); put(ws, f"B{r}", "生產折減並列輸出的自我檢查：替代值改回 Serving!C18 時，七個 _Prod 列不等於對應基準列的格數"); put(ws, f"C{r}", "ERROR", F_BOLD)
     put(ws, f"D{r}", f"=SUM(Theory_Rev{SUFFIX}!C{flag_rows[0]}:Q{flag_rows[-1]})", fmt="0")
-    put(ws, f"E{r}", f"Theory_Rev_Prod 第 {flag_rows[0]}–{flag_rows[-1]} 列 × C:Q（7 × 15＝105 格；檢查副本在 S:AG，不需手動改輸入）", F_NOTE)
+    put(ws, f"E{r}", f"Theory_Rev_Prod 第 {flag_rows[0]}–{flag_rows[-1]} 列 × C:Q（7 × 15＝105 格；檢查副本在 {COPY_FROM}:{L(17 + SHIFT)}，不需手動改輸入）", F_NOTE)
     ref = wb.defined_names["GOV_Errors"].attr_text.split("!")[1].replace("$", "")
     cell = ws[ref]
     if f"D{r}" not in str(cell.value): cell.value = f"{cell.value}+D{r}"

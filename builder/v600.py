@@ -22,7 +22,8 @@ DEC = "docs/reports/20261015_稽核判斷會議_決定.md"
 ANDY = "Andy 2026-10-15 稽核判斷會議逐題決定（" + DEC + "）"
 SLO = "SLO 不可達"
 COLS = range(3, 18)
-TIERS = ["Luna", "Sol", "Astra"]
+from tiers import TIERS_LIVE as _TL
+TIERS = [k for k, _ in _TL]      # v21.11: single source (builder/tiers.py); live tiers only
 NOTE_ALIAS = "過渡別名＝IFW_{}_Life；下一個主版刪除"
 
 

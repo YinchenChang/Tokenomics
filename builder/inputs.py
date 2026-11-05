@@ -1,6 +1,10 @@
 # Input sheets: Spec_Rack (Block 2 rows), Arch, Serving, Energy inputs
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
+from tiers import TIERS, TC, TC_LAST
+
+ARCH_TAG, ARCH_NOTE = "G", "H"      # v21.11: Terra takes column F, so 標記／來源說明 move from F／G to G／H (J2 (a); no blue input moves)
+SERV_NOTE = "G"                      # v21.11: Serving rows 20-24 說明 moves from F to G (Terra in F; rows 20-24 only)
 
 GENS = ["C", "D", "E", "F", "G"]          # Hopper, GB200, GB300, VR200, RU in Spec_Rack
 
@@ -72,42 +76,44 @@ def spec_rack(wb):
 
 def arch(wb):
     ws = wb.create_sheet("Arch", 3)
-    title(ws, "Arch — 三層級代表架構（D5：每層級一個代表；參數為公開模型卡或推估）",
-          "Luna／Sol 以公開權重模型為物理代表 [Analogy：對應封閉層級]；Astra 為封閉前沿代理，KV 以情境處理（J1）")
-    for c, w in zip("ABCDEFG", [30, 12, 16, 16, 18, 16, 80]): ws.column_dimensions[c].width = w
-    for c, v in zip("ABCDEFG", ["參數", "單位", "Luna（低層）", "Sol（中層）", "Astra（頂層）", "標記", "來源／說明"]):
+    title(ws, "Arch — 四層級代表架構（D5：每層級一個代表；參數為公開模型卡或推估）",
+          "Luna／Sol 以公開權重模型為物理代表 [Analogy：對應封閉層級]；Astra 為封閉前沿代理，KV 以情境處理（J1）；"
+          "Terra（F 欄，v21.11 起）＝DeepSeek V4 家族內插（Flash 與 Pro 之間，J4）[Analogy]，區間見 docs/plan/20261105_v22.0_Terra第四層級_設計.md 第 3.1 節；"
+          "v21.11 只建結構，Terra 欄尚無契約名稱讀取（v22.0 啟用）")
+    for c, w in zip("ABCDEFGH", [30, 12, 16, 16, 18, 18, 16, 80]): ws.column_dimensions[c].width = w
+    for c, v in zip("AB" + TC + ARCH_TAG + ARCH_NOTE, ["參數", "單位"] + [tn for _, tn in TIERS] + ["標記", "來源／說明"]):
         put(ws, f"{c}4", v, F_BOLD)
     R = {}
     rows = [
-      ("rep", "代表架構", "", ["DeepSeek V4-Flash 類", "DeepSeek V4-Pro 類", "封閉前沿代理"], None, "Decision", "D5；Andy 2026-09-30 確認"),
-      ("T", "總參數", "B", [284, 1600, 4000], "#,##0", "Verified／Assumed", "V4-Flash 284B、V4-Pro 1.6T（模型卡，S27）；Astra 4T [Assumed，區間 2–10T]"),
-      ("A", "啟用參數", "B", [13, 49, 180], "#,##0", "Verified／Assumed", "V4-Flash 13B、V4-Pro 49B；Astra 180B [Assumed，區間 60–250B]"),
-      ("L", "層數", "層", [43, 61, 100], "#,##0", "Verified／Assumed", "V4-Pro 61（config.json）；V4-Flash 43（二手）；Astra [Assumed]"),
-      ("d", "d_model", "", [4096, 7168, 12288], "#,##0", "Verified／Assumed", "V4-Pro 7168；V4-Flash 4096（官方 config.json hidden_size，v5.13 讀原文）；Astra [Assumed]"),
-      ("hq", "query heads", "", [64, 128, 96], "#,##0", "Verified／Assumed", "V4-Pro 128；V4-Flash 64（官方 config.json num_attention_heads，v5.13 讀原文）；Astra [Assumed]"),
-      ("hd", "head_dim", "", [512, 512, 128], "#,##0", "Verified／Assumed", "V4 單一 512 維 KV head；Astra 128"),
-      ("E", "routed experts", "", [256, 384, 512], "#,##0", "Verified／Assumed", ""),
-      ("k", "每 token 啟用 routed experts", "", [6, 6, 16], "#,##0", "Verified／Assumed", ""),
-      ("s", "shared experts", "", [1, 1, 1], "#,##0", "Verified", ""),
-      ("V", "vocab", "", [129280, 129280, 200000], "#,##0", "Verified／Assumed", ""),
-      ("ff", "全注意力層比例", "%", [0.5, 0.5, 1], "0%", "Verified／Assumed", "V4：CSA 與 HCA 約各半；Astra 全層注意力"),
-      ("cap", "全注意力層跨度上限（0＝全上下文）", "tok", [4224, 4224, 0], "#,##0", "Derived", "V4 CSA：top-k 1,024 壓縮塊 × 4 ＋ 128 窗口"),
-      ("comp", "其他層壓縮比", "x", [128, 128, 1], "#,##0", "Verified", "V4 HCA 128× 壓縮"),
-      ("win", "其他層滑動窗", "tok", [128, 128, 0], "#,##0", "Verified", ""),
-      ("kvsel", "Astra KV 情境（1 混合／2 全層 MLA／3 GQA-8）", "選擇", [None, None, 2], "0", "Decision", "J1：基準 2（Andy 2026-09-30 確認）"),
+      ("rep", "代表架構", "", ["DeepSeek V4-Flash 類", "DeepSeek V4-Pro 類", "封閉前沿代理", "DeepSeek V4 家族內插（Flash 與 Pro 之間）"], None, "Decision", "D5；Andy 2026-09-30 確認"),
+      ("T", "總參數", "B", [284, 1600, 4000, 700], "#,##0", "Verified／Assumed", "V4-Flash 284B、V4-Pro 1.6T（模型卡，S27）；Astra 4T [Assumed，區間 2–10T]"),
+      ("A", "啟用參數", "B", [13, 49, 180, 30], "#,##0", "Verified／Assumed", "V4-Flash 13B、V4-Pro 49B；Astra 180B [Assumed，區間 60–250B]"),
+      ("L", "層數", "層", [43, 61, 100, 53], "#,##0", "Verified／Assumed", "V4-Pro 61（config.json）；V4-Flash 43（二手）；Astra [Assumed]"),
+      ("d", "d_model", "", [4096, 7168, 12288, 6144], "#,##0", "Verified／Assumed", "V4-Pro 7168；V4-Flash 4096（官方 config.json hidden_size，v5.13 讀原文）；Astra [Assumed]"),
+      ("hq", "query heads", "", [64, 128, 96, 96], "#,##0", "Verified／Assumed", "V4-Pro 128；V4-Flash 64（官方 config.json num_attention_heads，v5.13 讀原文）；Astra [Assumed]"),
+      ("hd", "head_dim", "", [512, 512, 128, 512], "#,##0", "Verified／Assumed", "V4 單一 512 維 KV head；Astra 128"),
+      ("E", "routed experts", "", [256, 384, 512, 320], "#,##0", "Verified／Assumed", ""),
+      ("k", "每 token 啟用 routed experts", "", [6, 6, 16, 6], "#,##0", "Verified／Assumed", ""),
+      ("s", "shared experts", "", [1, 1, 1, 1], "#,##0", "Verified", ""),
+      ("V", "vocab", "", [129280, 129280, 200000, 129280], "#,##0", "Verified／Assumed", ""),
+      ("ff", "全注意力層比例", "%", [0.5, 0.5, 1, 0.5], "0%", "Verified／Assumed", "V4：CSA 與 HCA 約各半；Astra 全層注意力"),
+      ("cap", "全注意力層跨度上限（0＝全上下文）", "tok", [4224, 4224, 0, 3200], "#,##0", "Derived", "V4 CSA：top-k 1,024 壓縮塊 × 4 ＋ 128 窗口"),
+      ("comp", "其他層壓縮比", "x", [128, 128, 1, 128], "#,##0", "Verified", "V4 HCA 128× 壓縮"),
+      ("win", "其他層滑動窗", "tok", [128, 128, 0, 128], "#,##0", "Verified", ""),
+      ("kvsel", "Astra KV 情境（1 混合／2 全層 MLA／3 GQA-8）", "選擇", [None, None, 2, None], "0", "Decision", "J1：基準 2（Andy 2026-09-30 確認）"),
       # v5.13 (D): rows 21–23 are formulas of the KV inputs at the bottom of the sheet (rows "KV 推導輸入"); values unchanged
-      ("kv1", "KV bytes/token — 情境 1", "B", [None, None, None], "#,##0", "Derived（公式）", "Luna／Sol＝每層 KV bytes × 層數；Astra 混合＝MLA 層比例 × MLA 每層 KV 元素 × 層數 × 每元素 bytes（v5.13 改公式，值不變）"),
-      ("kv2", "KV bytes/token — 情境 2", "B", [None, None, None], "#,##0", "Derived（公式）", "Astra 全層 MLA＝MLA 每層 KV 元素 × 層數 × 每元素 bytes"),
-      ("kv3", "KV bytes/token — 情境 3", "B", [None, None, None], "#,##0", "Derived（公式）", "Astra GQA＝KV heads × head_dim × 2（K、V）× 層數 × 每元素 bytes"),
+      ("kv1", "KV bytes/token — 情境 1", "B", [None, None, None, None], "#,##0", "Derived（公式）", "Luna／Sol＝每層 KV bytes × 層數；Astra 混合＝MLA 層比例 × MLA 每層 KV 元素 × 層數 × 每元素 bytes（v5.13 改公式，值不變）"),
+      ("kv2", "KV bytes/token — 情境 2", "B", [None, None, None, None], "#,##0", "Derived（公式）", "Astra 全層 MLA＝MLA 每層 KV 元素 × 層數 × 每元素 bytes"),
+      ("kv3", "KV bytes/token — 情境 3", "B", [None, None, None, None], "#,##0", "Derived（公式）", "Astra GQA＝KV heads × head_dim × 2（K、V）× 層數 × 每元素 bytes"),
     ]
     r = 5
     for key, lab, unit, vals, fmt, tag, note in rows:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals):
+        for c, v in zip(TC, vals):
             if v is not None: put(ws, f"{c}{r}", v, fmt=fmt)
-        put(ws, f"F{r}", tag, F_NOTE); put(ws, f"G{r}", note, F_NOTE)
+        put(ws, f"{ARCH_TAG}{r}", tag, F_NOTE); put(ws, f"{ARCH_NOTE}{r}", note, F_NOTE)
         R[key] = r; r += 1
-    section(ws, r, "導出", 7); r += 1
+    section(ws, r, "導出", 8); r += 1
     der = [
       ("kv", "KV bytes/token（採用）", "B", "=CHOOSE(IF({c}{kvsel}=\"\",1,{c}{kvsel}),{c}{kv1},{c}{kv2},{c}{kv3})", "#,##0"),
       ("emb", "Embedding＋LM head 參數", "B", "={c}{V}*{c}{d}*2/1E9", "#,##0.00"),
@@ -120,39 +126,39 @@ def arch(wb):
     for key, lab, unit, f, fmt in der:
         R[key] = r
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c in "CDE":
+        for c in TC:
             m = {k: v for k, v in R.items()}; m["c"] = c
             put(ws, f"{c}{r}", f.format(**m), fmt=fmt, fill=FILL_KEY if key == "kv" else None)
         r += 1
-    put(ws, f"G{R['pe']}", "由公開總參數與啟用參數反推，確保總數吻合（v4 方法）", F_NOTE)
+    put(ws, f"{ARCH_NOTE}{R['pe']}", "由公開總參數與啟用參數反推，確保總數吻合（v4 方法）", F_NOTE)
     # v5.12 (A): the context length of the display row above moved out of the formula into a named input (value unchanged)
     R["ctx"] = r
     put(ws, f"A{r}", "上下文長度（上一列顯示用）"); put(ws, f"B{r}", "tok")
     put(ws, f"C{r}", 128000, fmt="#,##0")
-    put(ws, f"F{r}", "結構選擇", F_NOTE)
-    put(ws, f"G{r}", "顯示列的口徑：128,000（非 131,072）；三層級共用本格（CST_CtxKV）。不影響任何產出", F_NOTE)
+    put(ws, f"{ARCH_TAG}{r}", "結構選擇", F_NOTE)
+    put(ws, f"{ARCH_NOTE}{r}", "顯示列的口徑：128,000（非 131,072）；三層級共用本格（CST_CtxKV）。不影響任何產出", F_NOTE)
     wb.defined_names["CST_CtxKV"] = DefinedName("CST_CtxKV", attr_text=f"Arch!$C${r}")
     # v5.13 (D): inputs behind KV rows 21–23 (formerly hand-computed constants; defaults reproduce the same values)
     r += 1
-    section(ws, r, "KV 推導輸入（v5.13 D：第 21–23 列由此計算）", 7); r += 1
+    section(ws, r, "KV 推導輸入（v5.13 D：第 21–23 列由此計算）", 8); r += 1
     kin = [
-      ("kvl", "每層 KV bytes/token（壓縮後平均，FP8）", "B", [65, 65, None], "Assumed",
+      ("kvl", "每層 KV bytes/token（壓縮後平均，FP8）", "B", [65, 65, None, 65], "Assumed",
        "v4 推導值；V4 官方 config：KV head 512（SRC_MOD_009）、CSA 壓縮 4×、HCA 128×、滑動窗 128，以結構重算會改值，Stage 2 處理"),
-      ("mla", "MLA 每層 KV 元素數（Astra 情境 1、2）", "元素", [None, None, 576], "Analogy", "比照 DeepSeek-V3 MLA：512 latent＋64 RoPE（SRC_MOD_028）"),
-      ("mix", "MLA 層比例（Astra 情境 1 混合）", "%", [None, None, 0.26], "Assumed", "混合注意力：其餘層為線性注意力（KV 不隨上下文成長，本列不計）"),
-      ("gqa", "GQA KV heads（Astra 情境 3）", "個", [None, None, 8], "Assumed", "GQA-8（結構選擇）"),
-      ("kvb", "KV 每元素 bytes（FP8；三層級共用）", "B", [1, None, None], "原始數據", "FP8 每元素 1 byte（SRC_HW_055）"),
+      ("mla", "MLA 每層 KV 元素數（Astra 情境 1、2）", "元素", [None, None, 576, None], "Analogy", "比照 DeepSeek-V3 MLA：512 latent＋64 RoPE（SRC_MOD_028）"),
+      ("mix", "MLA 層比例（Astra 情境 1 混合）", "%", [None, None, 0.26, None], "Assumed", "混合注意力：其餘層為線性注意力（KV 不隨上下文成長，本列不計）"),
+      ("gqa", "GQA KV heads（Astra 情境 3）", "個", [None, None, 8, None], "Assumed", "GQA-8（結構選擇）"),
+      ("kvb", "KV 每元素 bytes（FP8；三層級共用）", "B", [1, None, None, None], "原始數據", "FP8 每元素 1 byte（SRC_HW_055）"),
     ]
     for key, lab, unit, vals, tag, note in kin:
         R[key] = r
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals):
+        for c, v in zip(TC, vals):
             if v is not None: put(ws, f"{c}{r}", v, fmt="0%" if key == "mix" else "#,##0")
-        put(ws, f"F{r}", tag, F_NOTE); put(ws, f"G{r}", note, F_NOTE)
+        put(ws, f"{ARCH_TAG}{r}", tag, F_NOTE); put(ws, f"{ARCH_NOTE}{r}", note, F_NOTE)
         r += 1
     kb = f"$C${R['kvb']}"
     for key in ("kv1", "kv2", "kv3"):
-        for c in "CD":
+        for c in "CD" + TC_LAST:      # v21.11: Terra (F) follows the V4 per-layer KV rule of Luna／Sol (design 3.1: 65 B per layer)
             put(ws, f"{c}{R[key]}", f"={c}{R['kvl']}*{c}{R['L']}", F_CALC, fmt="#,##0")
     put(ws, f"E{R['kv1']}", f"=E{R['mix']}*E{R['mla']}*E{R['L']}*{kb}", F_CALC, fmt="#,##0")
     put(ws, f"E{R['kv2']}", f"=E{R['mla']}*E{R['L']}*{kb}", F_CALC, fmt="#,##0")
@@ -164,7 +170,7 @@ def serving(wb):
     ws = wb.create_sheet("Serving", 4)
     title(ws, "Serving — 服務設定與各層級 SLO（主流：分離式 P/D、wide EP、attention DP、NVFP4、MTP、前綴快取）",
           "藍字＝輸入。SLO 依 J3 採市場觀測輸出速度（Artificial Analysis 2026-09，S26）")
-    for c, w in zip("ABCDEF", [44, 14, 16, 16, 16, 90]): ws.column_dimensions[c].width = w
+    for c, w in zip("ABCDEFG", [44, 14, 16, 16, 16, 90, 90]): ws.column_dimensions[c].width = w      # F stays wide: rows 5-18 keep 說明 in F
     put(ws, "A4", "全域設定", F_BOLD); put(ws, "B4", "單位", F_BOLD); put(ws, "C4", "值", F_BOLD); put(ws, "D4", "標記", F_BOLD); put(ws, "E4", "", F_BOLD); put(ws, "F4", "說明", F_BOLD)
     g = [
       (5, "服務架構", "", "分離式 P/D＋wide EP＋attention DP", None, "Decision", "D6 與 Block 2 命題"),
@@ -186,22 +192,24 @@ def serving(wb):
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit); put(ws, f"C{r}", v, fmt=fmt)
         put(ws, f"D{r}", tag, F_NOTE); put(ws, f"F{r}", note, F_NOTE)
     ws["C17"].fill = PatternFill("solid", fgColor="FFFFFF00"); ws["C18"].fill = PatternFill("solid", fgColor="FFFFFF00")
-    section(ws, 19, "各層級 SLO 與參考任務", 6)  # row 18 used by derating
-    for c, v in zip("ABCDEF", ["項目", "單位", "=Arch!C4", "=Arch!D4", "=Arch!E4", "說明"]):
+    section(ws, 19, "各層級 SLO 與參考任務", 7)  # row 18 used by derating
+    for c, v in zip("AB" + TC + SERV_NOTE, ["項目", "單位"] + [f"=Arch!{c}4" for c in TC] + ["說明"]):
         put(ws, f"{c}20", v, F_HLINK if "!" in v else F_BOLD)
+    # v21.11 (B1): Terra in column F (design 3.2; J11 SLO = sqrt(AA 77 x OpenRouter 59) = 67.4, range 59-90; J12 ISL／OSL 16,384／2,048, range 8K-32K／1K-4K;
+    # TTFT 3 s, range 2-5). Blue code defaults; the 說明 column moves F -> G on rows 20-26 only. Rows 25-26 were deleted in v14.0 (Q1) and stay deleted.
     t = [
-      (21, "SLO：每用戶 decode 速度下限", "tok/s", [120, 65, 55], "#,##0", "Verified-measured（市場觀測）：GPT-5.6 Luna 約 120、GPT-5.6 Sol 約 68、GPT-6 Astra 約 52–56、Opus 5 約 54 tok/s（S26）。區間 Luna 100–300、Sol 50–100、Astra 30–75"),
-      (22, "TTFT 上限（只作檢查）", "s", [2, 3, 5], "0.0", "Assumed"),
-      (23, "參考 ISL（每次請求輸入）", "tok", [8192, 16384, 32768], "#,##0", "Assumed：Astra 用於長任務；上下文敏感度見 Sens_Perf"),
-      (24, "參考 OSL（含思考）", "tok", [1024, 2048, 4096], "#,##0", "Assumed"),
-      (25, "decode 平均上下文", "tok", ["=C23+C24/2", "=D23+D24/2", "=E23+E24/2"], "#,##0", "Derived"),
-      (26, "prefill 平均位置", "tok", ["=C23/2", "=D23/2", "=E23/2"], "#,##0", "Derived"),
+      (21, "SLO：每用戶 decode 速度下限", "tok/s", [120, 65, 55, 67.4], "#,##0", "Verified-measured（市場觀測）：GPT-5.6 Luna 約 120、GPT-5.6 Sol 約 68、GPT-6 Astra 約 52–56、Opus 5 約 54 tok/s（S26）。區間 Luna 100–300、Sol 50–100、Astra 30–75"),
+      (22, "TTFT 上限（只作檢查）", "s", [2, 3, 5, 3], "0.0", "Assumed"),
+      (23, "參考 ISL（每次請求輸入）", "tok", [8192, 16384, 32768, 16384], "#,##0", "Assumed：Astra 用於長任務；上下文敏感度見 Sens_Perf"),
+      (24, "參考 OSL（含思考）", "tok", [1024, 2048, 4096, 2048], "#,##0", "Assumed"),
+      (25, "decode 平均上下文", "tok", ["=C23+C24/2", "=D23+D24/2", "=E23+E24/2", "=F23+F24/2"], "#,##0", "Derived"),
+      (26, "prefill 平均位置", "tok", ["=C23/2", "=D23/2", "=E23/2", "=F23/2"], "#,##0", "Derived"),
     ]
     for r, lab, unit, vals, fmt, note in t:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
-        put(ws, f"F{r}", note, F_NOTE)
-    for c in "CDE": ws[f"{c}21"].fill = FILL_KEY
+        for c, v in zip(TC, vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"{SERV_NOTE}{r}", note, F_NOTE)
+    for c in TC: ws[f"{c}21"].fill = FILL_KEY
     import v519
     v519.serving_input(ws)        # v5.19 X1: CTL_ProdDerate on row 28 (after the existing content; nothing moves)
     return ws

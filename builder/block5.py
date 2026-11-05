@@ -13,7 +13,8 @@
 from common import *
 from openpyxl.workbook.defined_name import DefinedName
 
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+from tiers import TIERS as TIERS_ALL, TC as TC_ALL
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 TK = "CDEFG"                                   # task columns (Workload C–G)
 NA = '"SLO 不可達"'
 GENS = [("VR200", "M"), ("GB300", "J")]         # Unit_Cost / Cache_Store base-cost columns (J13: VR200 default, GB300 alongside)
@@ -106,15 +107,17 @@ def har_in(wb, TR):
     r += 1
     section(ws, r, "C. 成功率（L2：METR 型 p＝1 ÷（1＋（任務長度 ÷（層級 50% 時間範圍 × harness 倍數））^β））", 9); r += 1
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
-    for c, h in zip("CDE", [tn for _, tn in TIERS]): put(ws, f"{c}{r}", h, F_BOLD)
+    for c, h in zip(TC_ALL, [tn for _, tn in TIERS_ALL]): put(ws, f"{c}{r}", h, F_BOLD)      # v21.11: Terra header in F (B5_H50 names stay C:E until v21.12／v22.0)
     put(ws, f"H{r}", "標記", F_BOLD); put(ws, f"I{r}", "說明", F_BOLD); r += 1
+    # v21.11 (B1): Terra (F) 50% time horizon 6 hr, range 3-10 (design 3.7, Analogy: OpenAI self-reported agent evals put Terra close to Sol).
+    # Not read yet: B5_H50／_Lo／_Hi stay 1×3 (C:E) in v21.11; the shape change and the success-override row 58 are v21.12 (B2) scope.
     for key, lab, vals, tag, note in [
-        ("h50", "50% 時間範圍 基準", (1.5, 8, 16), "Analogy",
+        ("h50", "50% 時間範圍 基準", (1.5, 8, 16, 6), "Analogy",
          "METR TH1.1：GPT-5.6 Sol 11.3 小時、Claude Mythos Preview 17.4 小時（最高；套件 16 小時以上量不準）（S59）。GPT-6 各層級未發布；Luna 無對應錨點"),
-        ("h50lo", "50% 時間範圍 低", (0.5, 4, 11), "Analogy", ""),
-        ("h50hi", "50% 時間範圍 高", (4, 12, 40), "Analogy", "Astra 高值參照 Mythos 級以 ECI 推估 18.8–40 小時（第三方，S59）")]:
+        ("h50lo", "50% 時間範圍 低", (0.5, 4, 11, 3), "Analogy", ""),
+        ("h50hi", "50% 時間範圍 高", (4, 12, 40, 10), "Analogy", "Astra 高值參照 Mythos 級以 ECI 推估 18.8–40 小時（第三方，S59）")]:
         put(ws, f"A{r}", lab); put(ws, f"B{r}", "hr")
-        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt="0.0")
+        for c, v in zip(TC_ALL, vals): put(ws, f"{c}{r}", v, fmt="0.0")
         put(ws, f"H{r}", tag, F_NOTE); put(ws, f"I{r}", note, F_NOTE, wrap=True); H[key] = r; r += 1
     put(ws, f"A{r}", "斜率 β（C＝基準、D＝低、E＝高）"); put(ws, f"B{r}", "x")
     for c, v in zip("CDE", (0.75, 0.65, 1.0)): put(ws, f"{c}{r}", v, fmt="0.00")

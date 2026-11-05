@@ -2,6 +2,7 @@
 from common import *
 from perf import write_perf
 from outputs import COLS15
+from tiers import TC, TC_LAST, NT, NT_LIVE, GT_COLS, GT_LAST, GT_GENS_TIERS, PB_SCEN, PB_SCEN_TIERS, gt_index
 from openpyxl.workbook.defined_name import DefinedName
 
 # ---------------------------------------------------------------- Tech_Registry
@@ -102,6 +103,9 @@ def tech_registry(wb):
 
 # ---------------------------------------------------------------- Train_In
 ROUT_LUNA, ROUT_SOL, ROUT_ASTRA = 2.36, 2.36, 9.6   # v5.6: 由 v5.5 的 2, 2, 8 重校，維持 VR200 上 RL ÷ 預訓練 GPU 小時（J9 (a)）
+ROUT_TERRA = 2.36      # v21.11 (B1): Terra RL rollout output token, design 3.4 (same as the Luna／Sol base; range 1.5-5 T)
+# v21.11 (B1): Terra column F of Train_In rows 25-38: mark and range (design docs/plan/20261105_v22.0_Terra第四層級_設計.md 3.4), written in column G
+TERRA_TI_NOTES = ['Analogy；區間 25–45 T（V4-Flash 32、V4-Pro 33，同族）', 'Analogy；區間 4,096–8,192（同 V4）', 'Assumed；區間 1–3 T（1.05M 上下文；介於 Sol 與 Astra 之間）', 'Assumed（三層級相同）', 'Assumed；區間 0.01–0.3 T（同 Luna／Sol）', 'Assumed（同 Luna／Sol）', 'Assumed；區間 10–40（三層級相同）', 'Assumed；區間 4,096–16,384（同 Sol）', 'Assumed；區間 8,192–32,768（同 Sol）', 'Assumed；區間 1.5–5 T（同 Luna／Sol 基準）', 'Assumed；區間 0.05–1 T（三層級相同）', 'Assumed；3＝Astra（區間 2–3；系統卡稱與 Astra 相同類型的資料與訓練）', 'Assumed；區間 1–3 T（Luna 1、Sol 2 之間）', 'Assumed；區間 0.02–0.05 T（Luna 0.02、Sol 0.05 之間）']
 
 def train_in(wb):
     ws = wb.create_sheet("Train_In")
@@ -148,31 +152,33 @@ def train_in(wb):
     r += 2
     section(ws, r, "各層級", 8); r += 1
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
-    for c, t in zip("CDE", "CDE"): put(ws, f"{c}{r}", f"=Arch!{t}4", F_HLINK)
+    for c in TC: put(ws, f"{c}{r}", f"=Arch!{c}4", F_HLINK)
+    put(ws, f"G{r}", "Terra 標記與區間（v21.11）", F_BOLD)
     put(ws, f"H{r}", "說明", F_BOLD); r += 1
     t = [
-      ("ptok", "預訓練 token", "T", [32, 33, 60], "#,##0.0", "Verified：V4-Flash 32T、V4-Pro 33T（S35）；Astra [Assumed，區間 30–100T；J8 以 Arch 一致為基準，前沿錨點見 Checks]"),
-      ("pseq", "預訓練序列長（dense 注意力）", "tok", [4096, 4096, 8192], "#,##0", "V4：4K → 16K 漸增，其間以 dense 注意力訓練（S35）；多數 token 在 4K [Assumed，區間 4K–16K]"),
-      ("ltok", "長上下文延伸 token", "T", [1, 1, 2], "#,##0.0", "Assumed，區間 0.3–3T（V4 未揭露）"),
-      ("lseq", "長上下文延伸序列長（稀疏注意力路徑）", "tok", [131072, 131072, 131072], "#,##0", "Assumed"),
-      ("stok", "SFT token", "T", [0.05, 0.05, 0.1], "#,##0.00", "Assumed，區間 0.01–0.3T"),
-      ("sseq", "SFT 序列長", "tok", [16384, 16384, 16384], "#,##0", "Assumed"),
-      ("bs", "批次推論速度下限（rollout、合成、評測）", "tok/s", [20, 20, 20], "#,##0", "取代互動 SLO；過低時長尾拉長牆鐘時間 [Assumed，區間 10–40]"),
-      ("risl", "rollout 參考輸入（prompt＋工具結果）", "tok", [4096, 8192, 16384], "#,##0", "Assumed"),
-      ("rosl", "rollout 參考輸出（含思考）", "tok", [8192, 16384, 32768], "#,##0", "Assumed：推理與代理任務的長輸出"),
-      ("rout", "RL rollout 輸出 token（含各領域專家）", "T", [ROUT_LUNA, ROUT_SOL, ROUT_ASTRA], "#,##0.00",
+      ("ptok", "預訓練 token", "T", [32, 33, 60, 33], "#,##0.0", "Verified：V4-Flash 32T、V4-Pro 33T（S35）；Astra [Assumed，區間 30–100T；J8 以 Arch 一致為基準，前沿錨點見 Checks]"),
+      ("pseq", "預訓練序列長（dense 注意力）", "tok", [4096, 4096, 8192, 4096], "#,##0", "V4：4K → 16K 漸增，其間以 dense 注意力訓練（S35）；多數 token 在 4K [Assumed，區間 4K–16K]"),
+      ("ltok", "長上下文延伸 token", "T", [1, 1, 2, 1.5], "#,##0.0", "Assumed，區間 0.3–3T（V4 未揭露）"),
+      ("lseq", "長上下文延伸序列長（稀疏注意力路徑）", "tok", [131072, 131072, 131072, 131072], "#,##0", "Assumed"),
+      ("stok", "SFT token", "T", [0.05, 0.05, 0.1, 0.05], "#,##0.00", "Assumed，區間 0.01–0.3T"),
+      ("sseq", "SFT 序列長", "tok", [16384, 16384, 16384, 16384], "#,##0", "Assumed"),
+      ("bs", "批次推論速度下限（rollout、合成、評測）", "tok/s", [20, 20, 20, 20], "#,##0", "取代互動 SLO；過低時長尾拉長牆鐘時間 [Assumed，區間 10–40]"),
+      ("risl", "rollout 參考輸入（prompt＋工具結果）", "tok", [4096, 8192, 16384, 8192], "#,##0", "Assumed"),
+      ("rosl", "rollout 參考輸出（含思考）", "tok", [8192, 16384, 32768, 16384], "#,##0", "Assumed：推理與代理任務的長輸出"),
+      ("rout", "RL rollout 輸出 token（含各領域專家）", "T", [ROUT_LUNA, ROUT_SOL, ROUT_ASTRA, ROUT_TERRA], "#,##0.00",
        "J9：由下而上輸入；基準值校到 VR200 上 RL ÷ 預訓練 GPU 小時約 Luna／Sol 0.3、Astra 1.0（結果見 Training rlH 列與 Checks）；v5.6 因 rollout 效率 0.6→0.85 由 2／2／8 上調為 2.36／2.36／9.6，GPU 小時不變（Andy 決定 (a)）。外部點：R1 約 5%、Grok 4 約 1 倍（S40、S42；GPU 小時或預算口徑）。區間：Luna／Sol 0.3–6T、Astra 2.5–25T"),
-      ("dtok", "On-policy 蒸餾：學生 rollout 輸出 token", "T", [0.2, 0.2, 0.2], "#,##0.00", "Assumed，區間 0.05–1T"),
-      ("dtea", "蒸餾教師層級（1／2／3）", "選擇", [1, 2, 3], "0", "V4 做法：同尺寸各領域專家為教師 [Interested-party，S35]"),
-      ("syn", "合成資料生成 token", "T", [1, 2, 3], "#,##0.0", "Assumed，區間 0.5–10T"),
-      ("ev", "評測 token", "T", [0.02, 0.05, 0.1], "#,##0.00", "Assumed"),
+      ("dtok", "On-policy 蒸餾：學生 rollout 輸出 token", "T", [0.2, 0.2, 0.2, 0.2], "#,##0.00", "Assumed，區間 0.05–1T"),
+      ("dtea", "蒸餾教師層級（1／2／3）", "選擇", [1, 2, 3, 3], "0", "V4 做法：同尺寸各領域專家為教師 [Interested-party，S35]"),
+      ("syn", "合成資料生成 token", "T", [1, 2, 3, 1.5], "#,##0.0", "Assumed，區間 0.5–10T"),
+      ("ev", "評測 token", "T", [0.02, 0.05, 0.1, 0.03], "#,##0.00", "Assumed"),
     ]
-    for key, lab, unit, vals, fmt, note in t:
+    for (key, lab, unit, vals, fmt, note), tnote in zip(t, TERRA_TI_NOTES):
         put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for c, v in zip("CDE", vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        for c, v in zip(TC, vals): put(ws, f"{c}{r}", v, fmt=fmt)
+        put(ws, f"G{r}", tnote, F_NOTE, wrap=True)      # v21.11: Terra (F) mark and range (design 3.4); G was empty on these rows
         put(ws, f"H{r}", note, F_NOTE, wrap=True)
         T[key] = r; r += 1
-    for c in "CDE": ws[f"{c}{T['rout']}"].fill = FILL_KEY
+    for c in TC: ws[f"{c}{T['rout']}"].fill = FILL_KEY
     r += 1
     section(ws, r, "外部錨點（Checks 用；不進推導）", 8); r += 1
     a = [
@@ -195,26 +201,25 @@ def train_in(wb):
 def perf_batch(wb, SP, AR, CAL, TR, TI):
     ws = wb.create_sheet("Perf_Batch")
     title(ws, "Perf_Batch — 批次推論引擎（RL rollout、蒸餾、合成資料、評測）：與 Perf 同一套公式，只換速度下限與參考任務",
-          "C–Q 欄＝世代 × 層級基準；R、S 欄＝VR200 以 FP8 rollout 的情境（J12 替代）。綠字＝連結 Train_In（非情境改動）；黃底＝情境改動。Perf_Batch 為訓練端批次推論，無服務快取（prefill 計全 ISL，不乘 1 − B4_CacheHit；v9.0 D9、v10.0 N4）")
+          "C–Q 欄＝世代 × 層級基準；R、S 欄＝VR200 以 FP8 rollout 的情境（J12 替代）。綠字＝連結 Train_In（非情境改動）；黃底＝情境改動。Perf_Batch 為訓練端批次推論，無服務快取（prefill 計全 ISL，不乘 1 − B4_CacheHit；v9.0 D9、v10.0 N4）"
+          .replace("C–Q 欄", f"C–{GT_LAST} 欄（v21.11 起 5 世代 × 4 層級，Terra 尚無契約名稱讀取）").replace("R、S 欄", f"{PB_SCEN[0]}、{PB_SCEN[1]} 欄"))
     put(ws, "A4", "世代", F_BOLD); put(ws, "A5", "層級", F_BOLD); put(ws, "A6", "世代索引", F_BOLD); put(ws, "A7", "層級索引", F_BOLD)
     put(ws, "A3", "欄位", F_BOLD)
-    cols = COLS15 + ["R", "S"]
-    for i, X in enumerate(cols):
-        if i < 15: gi, t = i // 3 + 1, i % 3 + 1
-        else: gi, t = 4, i - 13
+    cols = GT_COLS + PB_SCEN      # v21.11: C..V generation × tier, W／X the FP8 rollout scenario (v21.10: C..Q, R／S)
+    for X, (gi, t) in zip(cols, GT_GENS_TIERS + [(4, t) for t in PB_SCEN_TIERS]):
         put(ws, f"{X}6", gi, fmt="0"); put(ws, f"{X}7", t, fmt="0")
         put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
         ws.column_dimensions[X].width = 13
-    put(ws, "R3", "情境：FP8 rollout", F_BOLD); put(ws, "S3", "情境：FP8 rollout", F_BOLD)
-    link = {"s": f"=INDEX(Train_In!$C${TI['bs']}:$E${TI['bs']},{{X}}$7)",
-            "isl": f"=INDEX(Train_In!$C${TI['risl']}:$E${TI['risl']},{{X}}$7)",
-            "osl": f"=INDEX(Train_In!$C${TI['rosl']}:$E${TI['rosl']},{{X}}$7)"}
-    ov = {X: dict(link) for X in COLS15}
-    R, r = write_perf(ws, COLS15, SP, AR, CAL, TR, overrides=ov, ov_link=True, cache=False)      # v9.0 M1: batch inference keeps the full ISL (no serving cache hit)
-    # scenario columns (FP8 rollout on VR200): re-write the same rows into R, S with extra overrides
+    for X in PB_SCEN: put(ws, f"{X}3", "情境：FP8 rollout", F_BOLD)
+    link = {"s": f"=INDEX(Train_In!$C${TI['bs']}:${TC_LAST}${TI['bs']},{{X}}$7)",
+            "isl": f"=INDEX(Train_In!$C${TI['risl']}:${TC_LAST}${TI['risl']},{{X}}$7)",
+            "osl": f"=INDEX(Train_In!$C${TI['rosl']}:${TC_LAST}${TI['rosl']},{{X}}$7)"}
+    ov = {X: dict(link) for X in GT_COLS}
+    R, r = write_perf(ws, GT_COLS, SP, AR, CAL, TR, overrides=ov, ov_link=True, cache=False)      # v9.0 M1: batch inference keeps the full ISL (no serving cache hit)
+    # scenario columns (FP8 rollout on VR200): re-write the same rows into W, X with extra overrides
     fp8 = {"P": f"=Spec_Rack!$F${SP['tfp8']}", "be": 1, "bn": 1}
-    for X in ("R", "S"):
+    for X in PB_SCEN:
         rr = 9
         from perf import perf_rows
         spec = perf_rows(SP, AR, CAL, TR, cache=False)
@@ -233,7 +238,7 @@ def perf_batch(wb, SP, AR, CAL, TR, TI):
                 mm = dict(m); mm["X"] = X
                 put(ws, f"{X}{rr}", tpl.format(**mm), fmt=fmt)
             rr += 1
-    section(ws, r, "L. 批次推論的有效 MFU（接受 token 的模型 FLOPs ÷ 峰值）", 19); r += 1
+    section(ws, r, "L. 批次推論的有效 MFU（接受 token 的模型 FLOPs ÷ 峰值）", 2 + len(cols)); r += 1
     R["mfu4"], R["mfu8"] = r, r + 1
     put(ws, f"A{r}", "decode 有效 MFU（對 Perf 計算用峰值）"); put(ws, f"B{r}", "%")
     put(ws, f"A{r+1}", "decode 有效 MFU（對 FP8 訓練峰值）"); put(ws, f"B{r+1}", "%")
@@ -245,14 +250,14 @@ def perf_batch(wb, SP, AR, CAL, TR, TI):
 
 # ---------------------------------------------------------------- Training engine
 def train_rows(SP, AR, TI, PB, TR):
-    ti = lambda k: f"=INDEX(Train_In!$C${TI[k]}:$E${TI[k]},{{X}}$7)"
+    ti = lambda k: f"=INDEX(Train_In!$C${TI[k]}:${TC_LAST}${TI[k]},{{X}}$7)"
     tg = lambda k: f"=INDEX(Train_In!$C${TI[k]}:$G${TI[k]},{{X}}$6)"
     tgl = lambda k: f"=Train_In!$C${TI[k]}"
     sp = lambda row: f"=INDEX(Spec_Rack!$C${row}:$G${row},{{X}}$6)"
-    ar = lambda row: f"=INDEX(Arch!$C${row}:$E${row},{{X}}$7)"
-    dc = lambda row: f"=INDEX(DC_Cost!$C${row}:$Q${row},3*({{X}}$6-1)+2)"
-    pb = lambda k: f"=INDEX(Perf_Batch!$C${PB[k]}:$Q${PB[k]},3*({{X}}$6-1)+{{X}}$7)"
-    pbt = lambda k, tier: f"=INDEX(Perf_Batch!$C${PB[k]}:$Q${PB[k]},3*({{X}}$6-1)+{{X}}{{{tier}}})"
+    ar = lambda row: f"=INDEX(Arch!$C${row}:${TC_LAST}${row},{{X}}$7)"
+    dc = lambda row: f"=INDEX(DC_Cost!$C${row}:$Q${row},3*({{X}}$6-1)+2)"      # generation × cost scenario (3 = cost scenarios, not tiers; R1)
+    pb = lambda k: f"=INDEX(Perf_Batch!$C${PB[k]}:${GT_LAST}${PB[k]},{gt_index('{X}$6', '{X}$7')})"      # generation × tier (J3)
+    pbt = lambda k, tier: f"=INDEX(Perf_Batch!$C${PB[k]}:${GT_LAST}${PB[k]},{gt_index('{X}$6', '{X}{' + tier + '}')})"
     hk = lambda code: f"={TR[code]}"
     sparse = lambda pos: ("={X}{ff}*IF({X}{cap}=0," + pos + ",MIN(" + pos + ",{X}{cap}))+(1-{X}{ff})*(" + pos + "/{X}{comp}+{X}{win})")
     gpuh = lambda C, k="1": "={X}{" + C + "}/({X}{pk}*1E15*{X}{mfu}*" + k + "*{X}{gp})/3600"
@@ -417,24 +422,25 @@ def hdr15(ws, cols, gens_tiers):
     for X, (g, t) in zip(cols, gens_tiers):
         put(ws, f"{X}6", g, fmt="0"); put(ws, f"{X}7", t, fmt="0")
         put(ws, f"{X}4", f"=INDEX(Spec_Rack!$C$4:$G$4,{X}6)", F_HLINK)
-        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:$E$4,{X}7)", F_HLINK)
+        put(ws, f"{X}5", f"=INDEX(Arch!$C$4:${TC_LAST}$4,{X}7)", F_HLINK)
         ws.column_dimensions[X].width = 13
 
 def training_sheet(wb, SP, AR, TI, PB, TR):
     ws = wb.create_sheet("Training")
     title(ws, "Training — 訓練與研發計畫的 GPU 小時、成本、1 GW 年占比（世代 × 層級；下游預設 VR200，GB300 並列，J13）",
           "推論型運算以 Perf_Batch 計價；反向傳播型以訓練峰值 × MFU × goodput 計價。後訓練占比同時列 FLOPs 與 GPU 小時口徑（一級追蹤指標）")
-    hdr15(ws, COLS15, [(i // 3 + 1, i % 3 + 1) for i in range(15)])
-    R, r = write_train(ws, COLS15, SP, AR, TI, PB, TR)
-    section(ws, r, "L. 模型家族合計（同世代三層級；J10 研發歸屬的總額）", 17); r += 1
+    hdr15(ws, GT_COLS, GT_GENS_TIERS)      # v21.11: C..V = 5 generations × 4 tiers
+    R, r = write_train(ws, GT_COLS, SP, AR, TI, PB, TR)
+    section(ws, r, "L. 模型家族合計（同世代三層級；J10 研發歸屬的總額）", 2 + len(GT_COLS)); r += 1
     for key, lab, unit, fmt, src in [("fHfin", "家族最終訓練 GPU 小時", "GPU-hr", "#,##0", "Hfin"),
                                      ("fHprog", "家族研發計畫 GPU 小時", "GPU-hr", "#,##0", "Hprog"),
                                      ("fUprog", "家族研發計畫成本 — 經濟", "$M", "#,##0", "Uprog"),
                                      ("fGWp", "家族研發計畫占 1 GW 一年", "%", "0.00%", "GWp")]:
         R[key] = r; put(ws, f"A{r}", lab); put(ws, f"B{r}", unit)
-        for X in COLS15:
-            rg = f"$C${R[src]}:$Q${R[src]}"      # v6.0 D8-3: any unreachable tier in the family makes the family total text (SUMPRODUCT would raise #VALUE!)
-            put(ws, f"{X}{r}", f'=IF(COUNT(INDEX({rg},1,3*({X}$6-1)+1):INDEX({rg},1,3*({X}$6-1)+3))=3,SUMIF($C$6:$Q$6,{X}$6,{rg}),"SLO 不可達")', fmt=fmt, fill=FILL_KEY)
+        for X in GT_COLS:
+            rg = f"$C${R[src]}:${GT_LAST}${R[src]}"      # v6.0 D8-3: any unreachable tier in the family makes the family total text (SUMPRODUCT would raise #VALUE!)
+            a, b = f"INDEX({rg},1,{gt_index(X + '$6', 1)})", f"INDEX({rg},1,{gt_index(X + '$6', NT_LIVE)})"      # v21.11: live tiers only (rows deleted in v14.0 Q1 anyway)
+            put(ws, f"{X}{r}", f'=IF(COUNT({a}:{b})={NT_LIVE},SUM({a}:{b}),"SLO 不可達")', fmt=fmt, fill=FILL_KEY)
         r += 1
     ws.freeze_panes = "C8"
     return R
@@ -446,13 +452,13 @@ SCEN_T = [  # label, overrides applied to both columns (Sol, Astra); special "fp
  ("NVFP4 訓練峰值（J7 替代）", {"pk8": "=INDEX(Spec_Rack!$C${tfp4}:$G${tfp4},{X}$6)"}),
  ("預訓練 token × 0.5", {"htok": 0.5}),
  ("預訓練 token × 1.67", {"htok": 1.67}),
- ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 0.3}),
- ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$E${rout},{X}$7)*{X}$8", "_mult": 3}),
+ ("RL rollout token × 0.3", {"Rout": "=INDEX(Train_In!$C${rout}:$F${rout},{X}$7)*{X}$8", "_mult": 0.3}),
+ ("RL rollout token × 3", {"Rout": "=INDEX(Train_In!$C${rout}:$F${rout},{X}$7)*{X}$8", "_mult": 3}),
  ("rollout 效率 0.6（v5.5 混合現況；rollout token 不變）", {"reff": 0.6}),
  ("rollout 效率 0.95（rollout token 不變）", {"reff": 0.95}),
  ("rollout 精度 FP8（J12 替代）", "fp8"),
- ("合成資料 token × 0", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 0}),
- ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$E${syn},{X}$7)*{X}$8", "_mult": 3}),
+ ("合成資料 token × 0", {"Dsy": "=INDEX(Train_In!$C${syn}:$F${syn},{X}$7)*{X}$8", "_mult": 0}),
+ ("合成資料 token × 3", {"Dsy": "=INDEX(Train_In!$C${syn}:$F${syn},{X}$7)*{X}$8", "_mult": 3}),
  ("研發倍數 4.4（MiniMax）", {"rdm": 4.4}),
  ("研發倍數 10.4（OpenAI）", {"rdm": 10.4}),
  ("goodput 0.80", {"gp": 0.8}),
@@ -467,7 +473,7 @@ SNAP_MOVES = [(("Sens_Train", ("合成資料 token", 0), c), ("Sens_Train", (MUL
 def sens_train(wb, SP, AR, TI, PB, TR):
     ws = wb.create_sheet("Sens_Train")
     title(ws, "Sens_Train — 訓練與研發計畫的單變數敏感度（VR200；每組左 Sol、右 Astra；先看敏感度，再看基準）",
-          "黃底藍字＝該情境改動的輸入。L 節為對基準欄（C、D）的比值")
+          "黃底藍字＝該情境改動的輸入。L 節為對基準欄（C、D）的比值。v21.11：Terra（第四層級）不在本敏感度表（設計 R11，待 Project 判斷是否加 Terra 情境）")
     cols, ov, gt = [], {}, []
     put(ws, f"A{MULT_ROW}", MULT_LABEL, F_BOLD); put(ws, f"B{MULT_ROW}", "x")
     for i, (lab, o) in enumerate(SCEN_T):
@@ -480,8 +486,8 @@ def sens_train(wb, SP, AR, TI, PB, TR):
             else: put(ws, f"{X}{MULT_ROW}", m, fmt="0.00", fill=PatternFill("solid", fgColor="FFFFFF00"))
         if isinstance(o, dict): o = {k: v for k, v in o.items() if not k.startswith("_")}
         if o == "fp8":
-            ov[xs] = {k: f"=Perf_Batch!R{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
-            ov[xa] = {k: f"=Perf_Batch!S{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}
+            ov[xs] = {k: f"=Perf_Batch!{PB_SCEN[0]}{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}      # v21.11: R -> W
+            ov[xa] = {k: f"=Perf_Batch!{PB_SCEN[1]}{PB[k2]}" for k, k2 in (("gsdr", "gsd"), ("gsfr", "gsf"), ("fdb", "Fd"), ("fpb", "Fp"))}      # v21.11: S -> X
         else:
             oo = {k: (v.replace("{tfp4}", str(SP["tfp4"])).replace("{rout}", str(TI["rout"])).replace("{syn}", str(TI["syn"])) if isinstance(v, str) else v)
                   for k, v in o.items()}

@@ -125,10 +125,10 @@ def cap_in_patch(wb):
 
 
 # ================================================================== F1／F4: notes, marks (end of build, idempotent)
-PHYS = {   # (sheet, row): (note column or None = purpose column, text)
+PHYS = {   # (sheet, row): (note column or None = purpose column, text); v21.11: Arch 說明 is H (Terra in F)
     ("Spec_Rack", 27): ("H", "物理慣例：÷8＝Gb/s 換 GB/s（8 bit／byte），不外露"),
     ("Spec_Rack", 34): ("H", "物理慣例：×8＝pJ/bit 換 pJ/byte（8 bit／byte），不外露"),
-    ("Arch", 30): ("G", "物理慣例：係數 4＝注意力 QKᵀ 與 AV 各 2 FLOPs／MAC，共 4，不外露"),
+    ("Arch", 30): ("H", "物理慣例：係數 4＝注意力 QKᵀ 與 AV 各 2 FLOPs／MAC，共 4，不外露"),
     ("Training", 34): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露；若日後要改為 Tech_Registry 條目再外露"),
     ("Training", 41): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露"),
     ("Training", 48): (None, "物理慣例：3＝前向 1＋反向 2（訓練 FLOPs＝3 × 前向），不外露"),

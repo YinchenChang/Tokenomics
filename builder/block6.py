@@ -3,13 +3,14 @@
 # Alloc_In: every number is an Excel-owned blue input (restored by preserve.py from the base workbook).
 # Alloc: formulas only; key quantities are named ranges (AL_ = display only, IF_Alloc* = downstream via Interface F).
 from common import *
+from tiers import GT_LAST, gt_index      # v21.11: Training is generation × 4 tiers (index NT*(g-1)+t); Alloc stays on the three live tiers (B2 scope)
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 SLO = "SLO 不可達"
 SPEND_SID = "SRC_DEM_004"    # v5.36 B1: OpenAI-side inference spend (8.4; 7.5–8.8) drives the spend route; was SRC_DEM_018 (Microsoft-side 12.6, now a comparison row) in v5.29–v5.35. v5.29 X14 (k) r2: Azure-billing inference spend, used ONLY by the spend-route serving GW (C61, L1_ExtServeGW); ratios keep SRC_DEM_004 (json-consistent set)
 GENS = [("Hopper", 1), ("GB200", 2), ("GB300", 3), ("VR200", 4)]          # service-mix generations and their generation index (Spec_Rack order)
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
 GENX = "整代不可達"      # v6.3 K2: a generation with mix share > 0 whose tiers are all unreachable -> text flag (the generation mix is an observed fleet fact, never transferred)
 
 
@@ -200,9 +201,9 @@ def alloc(wb, AIN):
     tr = wb["Training"]
     r104 = _row_of(tr, "後訓練 GPU 小時（SFT＋RL＋蒸餾）"); r18 = _row_of(tr, "每 GW GPU 數")
     line("post", "後訓練 GPU 小時（SFT＋RL＋蒸餾；單一模型；Training 頁）", "GPU-hr",
-         {**{c: f"=INDEX(Training!$C${r104}:$Q${r104},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "#,##0",
+         {**{c: f"=INDEX(Training!$C${r104}:${GT_LAST}${r104},{gt_index('AL_TrainGen', c + str(R['tier']))})" for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "#,##0",
          note="Training 第 104 列「後訓練 GPU 小時（SFT＋RL＋蒸餾）」，不含第 105 列；依訓練世代與層級取值；依欄 A 標籤定位（工作單 r3 更正 2）")
-    line("gpugw", "每 GW GPU 數（訓練世代）", "顆", {c: f"=INDEX(Training!$C${r18}:$Q${r18},3*(AL_TrainGen-1)+{c}{R['tier']})" for c in "CDE"}, "#,##0")
+    line("gpugw", "每 GW GPU 數（訓練世代）", "顆", {c: f"=INDEX(Training!$C${r18}:${GT_LAST}${r18},{gt_index('AL_TrainGen', c + str(R['tier']))})" for c in "CDE"}, "#,##0")
     line("ref", "改版計畫 GW 年＝後訓練 GPU 小時 × 研發倍數 ÷（每 GW GPU 數 × 8,760）", "GW·年",
          {**{c: f'=IF(ISNUMBER({c}{R["post"]}),{c}{R["post"]}*IF_RDMult/({c}{R["gpugw"]}*8760),{c}{R["post"]})' for c in "CDE"}, "F": f'=IF(COUNT(C{r}:E{r})=3,SUM(C{r}:E{r}),"{SLO}")'}, "0.0000",
          note="改版（refresh）計畫：後訓練 GPU 小時 × 研發倍數（IF_RDMult，A2）；GW 年換算同 Training「占 1 GW 一年」")

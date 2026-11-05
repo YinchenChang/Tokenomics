@@ -114,9 +114,11 @@ def apply(wb, append_text):
     log["r018"] = n
     # Arch!G17 label (text only)
     a = wb["Arch"]
-    if a["G17"].value != G17_NEW:
-        assert a["G17"].value == G17_OLD, a["G17"].value
-        a["G17"].value = G17_NEW; log["g17"] = 1
+    from inputs import ARCH_NOTE      # v21.11: Arch 說明 is column H (Terra in F); v19.1–v21.10: G
+    g17 = f"{ARCH_NOTE}17"
+    if a[g17].value != G17_NEW:
+        assert a[g17].value == G17_OLD, a[g17].value
+        a[g17].value = G17_NEW; log["g17"] = 1
     log["evidence"] = evidence_append(wb)
     ws = wb["Decisions"]
     if not any(ws.cell(r, 1).value == "SL54-01" for r in range(5, ws.max_row + 1)):

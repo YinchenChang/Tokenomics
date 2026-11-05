@@ -8,11 +8,12 @@
 # K13 all Chinese vendors (open-weight flag); K14 international USD prices.
 # New formulas reference key quantities through named ranges (B4_ = Block 4 internal / display; IF_ = downstream).
 from common import *
+from tiers import gt_col, NT_LIVE
 from outputs import COLS15
 from openpyxl.workbook.defined_name import DefinedName
 
-TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "Astra（頂層）")]
-TC = "CDE"                      # tier columns on Cap_In / Price_Frontier summary
+from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); Block 4–6 pages stay on the live tiers until v21.12／v22.0
+from tiers import TC_LIVE as TC      # tier columns on Cap_In / Price_Frontier summary (v21.11: from builder/tiers.py; live tiers "CDE")
 
 def nm(wb, n, ref):
     wb.defined_names[n] = DefinedName(n, attr_text=ref)
@@ -257,7 +258,7 @@ def capability(wb, K, P, TRN, TI):
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
     for t, (tk, tn) in enumerate(TIERS): put(ws, f"{TC[t]}{r}", tn, F_BOLD)
     put(ws, f"G{r}", "說明", F_BOLD); r += 1
-    tcol = "LMN"   # Training VR200 base columns: L/M/N = VR200 Luna/Sol/Astra
+    tcol = [gt_col(4, t + 1) for t in range(NT_LIVE)]   # Training VR200 base columns (v21.10: L/M/N = VR200 Luna/Sol/Astra; v21.11: O/P/Q from tiers.gt_col)
     rows = [
       ("flop", "最終訓練 FLOPs（預訓練＋後訓練；Training Cfin）", "FLOP", lambda t: f"=Training!{tcol[t]}{TRN['Cfin']}", "0.00E+00", "Block 3"),
       ("lflop", "log10 FLOPs", "", lambda t: f"=LN({TC[t]}{{flop}})/LN(10)", "0.00", ""),

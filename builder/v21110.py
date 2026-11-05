@@ -140,8 +140,33 @@ def _decisions():
              WO, "否"]]
 
 
+def relaid_mark_ranges(wb):
+    """R9: 用途 marks on the re-laid sheets name their row span; C{r}:Q{r} -> C{r}:V{r}, Perf_Batch C{r}:S{r} -> C{r}:X{r} and R{r}:S{r} -> W{r}:X{r}.
+    The v14.0 deletion notes (已刪除…原範圍) keep the range that was deleted. Idempotent (the old spans no longer occur after the rewrite)."""
+    import re
+    import v1400
+    n = 0
+    for sh in tiers.RELAID:
+        ws = wb[sh]
+        pc = v1400._purpose_col(ws, create=False)
+        if pc is None:
+            continue
+        last = tiers.PB_SCEN[-1] if sh == "Perf_Batch" else tiers.GT_LAST
+        for r in range(4, ws.max_row + 1):
+            c = ws.cell(r, pc)
+            t = c.value
+            if not isinstance(t, str) or t.startswith("已刪除"):
+                continue
+            u = re.sub(r"\bC(\d+):(Q|S)\1\b", lambda m: f"C{m.group(1)}:{last}{m.group(1)}", t)
+            if sh == "Perf_Batch":
+                u = re.sub(r"\bR(\d+):S\1\b", lambda m: f"{tiers.PB_SCEN[0]}{m.group(1)}:{tiers.PB_SCEN[1]}{m.group(1)}", u)
+            if u != t:
+                c.value = u; n += 1
+    return n
+
+
 def apply(wb, append_text):
-    log = {"marks": purpose_marks(wb)}
+    log = {"marks": purpose_marks(wb), "mark_ranges": relaid_mark_ranges(wb)}
     ws = wb["Decisions"]
     if not any(ws.cell(r, 1).value == DEC_ID for r in range(5, ws.max_row + 1)):
         log["decisions"] = v1410.decisions_append(wb, _decisions())

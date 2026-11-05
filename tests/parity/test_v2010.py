@@ -227,7 +227,7 @@ def test_v2010_records(wbf):
     for key in ("本来就是应该用自己每个世代来算的", "m＝實收單價 ÷ 有效牌價", "07:34", "J1", "J6", "08:54"):
         assert key in txt, key
     rm = wbf["README"]
-    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
+    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and "v20.0（主版：" in str(rm["B5"].value) and str(rm["A1"].value).startswith(("Tokenomics v21.", "Tokenomics v22."))
     rows = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.1 LifeSelf 主口徑"]
     assert len(rows) == 1 and "L1_LDiscGen" in rm.cell(rows[0], 2).value and "L1_LTotalFleetVDisc" in rm.cell(rows[0], 2).value
     assert wbf.defined_names["L1_LDiscGen"].attr_text == "Cap_In!$C$322:$F$322"

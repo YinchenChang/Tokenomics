@@ -3,6 +3,7 @@
 範圍：全部情境（scenarios.yaml）的錯誤值與防空轉；具名範圍與形狀；各版本的期望值測試。
 `lo.view(inputs)` 回傳該組輸入重算後的唯讀檢視（介面同舊 Engine 的唯讀部分）；inputs={} 為基準。
 """
+USES_V22_INPUTS = True      # v22.0：讀 v22.0 原值（不套 conftest.V22_REVERT）
 import re
 from pathlib import Path
 

@@ -142,8 +142,39 @@ class LO:
             list(ex.map(self.view, todo))
 
 
+# v22.0（B3，R10）：v22.0 把 2026 付費組合改為 Luna 0.40／Sol 0.30／Astra 0.15／Terra 0.15、家族研發計入 Terra（設計 J6／J9）。
+# v22.0 以前各版的專屬測試釘的是「組合 0.40／0.45／0.15／0、B4_TerraFam＝0」下的值；這些模組的 lo 以下列三格改回 v21.12 輸入後重算
+# （v22.0 的結構不變；值的新舊對照由 test_v22000、契約快照與預期變動 CSV 看守）。宣告 USES_V22_INPUTS = True 的模組（test_parity、test_snapshot、
+# test_slim、test_v22000 等）讀 v22.0 原值。
+V22_REVERT = {"Cap_In!D31": 0.45, "Cap_In!F31": 0, "B4_TerraFam": 0}
+
+
+class Reverted:
+    """lo 的包裝：每個輸入組合都先套上 V22_REVERT（測試自己給的同一格以測試為準）。"""
+    def __init__(self, base):
+        self.base = base
+
+    def view(self, inputs: dict):
+        return self.base.view({**V22_REVERT, **inputs})
+
+    def prewarm(self, input_sets):
+        self.base.prewarm([{**V22_REVERT, **i} for i in input_sets])
+
+    def __getattr__(self, k):
+        return getattr(self.base, k)
+
+
+def _uses_v22(module) -> bool:
+    return bool(getattr(module, "USES_V22_INPUTS", False))
+
+
+@pytest.fixture
+def lo(lo_session, request):
+    return lo_session if _uses_v22(request.module) else Reverted(lo_session)
+
+
 @pytest.fixture(scope="session")
-def lo(request):
+def lo_session(request):
     """session 開始時，以 2 條執行緒預先算好「本次選到的測試」會用到的輸入組合（基準、被選到的情境，
     以及測試模組以 PREWARM 宣告的額外組合）；其餘組合第一次用到時才算。全套執行時即為 scenarios.yaml 全部情境＋額外組合。"""
     path = model_path()
@@ -153,7 +184,10 @@ def lo(request):
         sc = getattr(getattr(item, "callspec", None), "params", {}).get("sc")
         if sc is not None:
             sets.append(sc["inputs"])
-        sets.extend(getattr(item.module, "PREWARM", {}).get(item.originalname, []))
+        extra = list(getattr(item.module, "PREWARM", {}).get(item.originalname, []))
+        if not _uses_v22(item.module):      # v22.0：舊版測試的組合一律加上 V22_REVERT
+            extra = [{**V22_REVERT, **i} for i in extra] + [dict(V22_REVERT)]
+        sets.extend(extra)
     t0 = time.perf_counter()
     obj.prewarm(sets)
     print(f"\n[lo] 預先重算 {len(obj._cache)} 組輸入，{time.perf_counter() - t0:.0f} 秒", file=sys.stderr)

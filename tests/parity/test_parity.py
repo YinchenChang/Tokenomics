@@ -1436,6 +1436,7 @@ def test_v1300_ranges_equal_scenarios(model, lo):
     端點＝兩個端點情境（batch_gb200_lo：GB200 1.83；batch_range_lo：GB200 3.04、Hopper 3.74）每格的較小／較大者；
     名單也由重算決定：凡契約前綴（IF_／IFW_／IFC_／L1_／CHK_／CAP_）的名稱在任一端點情境下與基準不同，就必須有 RNG_ 區間（新出現受影響的名稱而沒有區間＝失敗）；
     基準與另外三個角落（batch_gb200_hi、batch_hopper_hi、batch_corner_x）都必須落在端點之內；AL_Rng*（v12.0 舊表，6 位小數）與新表一致（5e-6）。"""
+    lo = getattr(lo, "base", lo)      # v22.0：端點依 v22.0 原值（Terra 0.15、B4_TerraFam 1）重產，必須以 v22.0 輸入重算比對；套 V22_REVERT 時 Terra 付費 token＝0，6 個 Terra 攤提／全成本名稱不隨批次倍數變動，會誤報「多餘區間」
     base = lo.view({})
     hi_v, lo_v = lo.view(_scen_inputs("batch_gb200_lo")), lo.view(_scen_inputs("batch_range_lo"))
     corners = {s: lo.view(_scen_inputs(s)) for s in ("batch_gb200_hi", "batch_hopper_hi", "batch_corner_x")}
@@ -1445,8 +1446,8 @@ def test_v1300_ranges_equal_scenarios(model, lo):
     moved_vr = {n for n in contract if n not in moved and any(not _same(x, y) for sv in (vr_lo_v, vr_hi_v) for x, y in zip(_flat(base.get_name(n)), _flat(sv.get_name(n))))}
     have = _rng_pairs(base.names)
     assert moved | moved_vr == have and not (moved & moved_vr), ("缺區間", sorted((moved | moved_vr) - have), "多餘區間", sorted(have - (moved | moved_vr)))
-    assert len(moved) == 59 and sum(len(_flat(base.get_name(n))) for n in moved) == 647      # v14.0（4-3B）：53 → 59 個名稱、557 → 647 格（新增 IF_GMDefault_／IF_TrainInferShare_ 各 3 個；既有 53 個端點逐值不變）；v15.0：原 59 個名稱與 647 格不變
-    assert len(moved_vr) == 14 and len(have) == 73 and sum(len(_flat(base.get_name(n))) for n in have) == 661      # v15.0 T3-2：+12 個只經 VR200 欄的名稱、+12 格      # v19.1：12 → 14、659 → 661（CHK_VerifyFail/Pass 納入區間端點檔）
+    assert len(moved) == 73 and sum(len(_flat(base.get_name(n))) for n in moved) == 857      # v22.0：+14 個 Terra 名稱 × 15 格；      # v14.0（4-3B）：53 → 59 個名稱、557 → 647 格（新增 IF_GMDefault_／IF_TrainInferShare_ 各 3 個；既有 53 個端點逐值不變）；v15.0：原 59 個名稱與 647 格不變
+    assert len(moved_vr) == 14 and len(have) == 87 and sum(len(_flat(base.get_name(n))) for n in have) == 871      # v22.0：73 → 87、661 → 871；      # v15.0 T3-2：+12 個只經 VR200 欄的名稱、+12 格      # v19.1：12 → 14、659 → 661（CHK_VerifyFail/Pass 納入區間端點檔）
     bad, ncell = [], 0
     for n in sorted(moved_vr):      # v15.0：VR200 區間的端點＝兩個 VR200 情境每格的較小／較大者；基準 0.75 在其內
         b, a, c = (_flat(v.get_name(n)) for v in (base, vr_hi_v, vr_lo_v))
@@ -1473,7 +1474,7 @@ def test_v1300_ranges_equal_scenarios(model, lo):
                 x = _flat(cv.get_name(n))[i]
                 if not (lo_x[i] - tol <= x <= hi_x[i] + tol):
                     bad.append((n, i, f"角落 {s} 在區間外", x, lo_x[i], hi_x[i]))
-    assert ncell == 647      # v14.0：557 → 647
+    assert ncell == 857      # v22.0：+210（14 個 Terra 名稱 × 15 格）； v14.0：557 → 647
     assert bad == [], (len(bad), bad[:8])
     for al, rn in (("AL_RngRDGW_Lo", "RNG_IF_AllocRDGW_Lo"), ("AL_RngRDGW_Hi", "RNG_IF_AllocRDGW_Hi"), ("AL_RngQ1_Lo", "RNG_IF_AllocQ1_Lo"), ("AL_RngQ1_Hi", "RNG_IF_AllocQ1_Hi")):
         assert abs(base.get_name(al) - base.get_name(rn)) < 5e-3 * abs(base.get_name(rn)), (al, rn)      # v19.1：AL_Rng*（Alloc 的 v12.0 舊表，Excel 擁有的 6 位小數常數）是 C17＝4224 時的端點；C17＝2176 後與重產的 RNG_ 差 ≤ 0.2%（RDGW_Lo 最大）。是否更新舊表請 Project 判斷

@@ -2,6 +2,16 @@
 
 每次同步 Excel 新版本記錄：Excel 版本、commit、變動摘要。
 
+## 20261105_Tokenomics_v22.0.xlsx（取代 v21.12；**主版：v22.0 B3 段「啟用」——GPT-6.1 Terra 成為第四個現行層級；2026 付費組合 Luna 0.40／Sol 0.30／Astra 0.15／Terra 0.15、家族研發計入 Terra；新增 Terra 契約名稱（Interface R 節、L1 末端）；下游契約 v0.28**）
+
+- 分支 `claude/v22-b3`（底稿 B2 `claude/v22-b2`；PR 與 SHA 見報告）。報告：`docs/reports/20261105_v22.0_Terra第四層級.md`；進度檔：`docs/reports/20261105_v22.0_進度.md`。**不合併**。
+- builder：新模組 `builder/v22000.py`（組合與開關寫入〔舊值守衛〕、Terra 牌價連結 SRC_PRC_066–068、Interface R 節、L1 Terra 列、Terra *_Prod 鏈第二次 X1 鏡像、SRC／Gov_Map／DB_Evidence／Decisions、Checks Z4、版本字串）；`tiers.py` `NT_LIVE` 3 → 4，新增 `TIERS_ROWS`（既有三層級的列區塊；Terra 區塊在其下，J14）；`v1900`（`IF_TokGWPaidMix` 四項）、`v1800`（`L1_TokGW_PaidCap_VR200` 四項）；`training.py` 層級代碼標籤加「4 Terra」（`SNAP_MOVES`）；`v529._layer`／`v530.should_cap` 認得 R 節「對應 X 節」；B1／B2 的「預備」標籤與用途標記改為 v22.0 啟用字樣。
+- Excel（CC 以 builder 自 v21.12 產生，經 LibreOffice 重算存檔；冪等 0 差異）：Cap_In D31 0.45 → 0.30、F31 0 → 0.15、`B4_TerraFam` 0 → 1、F6:F8 與 E59:G59 改連 SRC_PRC_066–068（Alt → Active）；Interface R 節（第 384–461 列，66 個名稱）；L1 第 149–151 列；Alloc O 節 Terra 區間 14 名稱；Checks Z4；SRC_PERF_088／089、SRC_CAP_022／023（Alt，不連結）；DB_Evidence E561–E565；Decisions SL70-01、SL70-J01…J15。
+- 結果：`IF_PxEffMix` 1.943 → 1.825；`L1_M` 1.355 → 1.443（機械性上升，不是變現改善）；`L1_TokGW_PaidCap_VR200` +4.8%；`L1_RevGW_PQ_VR200` 49.51 → 51.75；`IF_RevGWFleet` −1.6%；`IF_FullCost_Sol` +3.2%、`IF_FullCostDefault_Sol` +13.5%（設計預估 ±1%，見報告）。2025 錨點除 `L1_MFleet_Lo`（+0.32%，待判斷）外逐值不變。
+- 驗收：LibreOffice 錯誤 0；restore unmatched 0、kept 59（重建時 62＝工作單三格）；GOV 0／133／183；`RNG_StaleFlag` 一致；預期變動 CSV（`docs/workorders/20261105_v22.0_預期變動.csv`，暫存複本預跑）2,794 格：2,764 格命中、29 格為區間過期旗標回原值、1 格（GOV_Warnings）可解釋。
+- 文件：區間端點與時效指紋重產；契約快照 `contract_snapshot_v22.0.json`；下游契約 v0.28；README；builder md 重產；比較工具 `tools/v22000_prerun.py`、`tools/cmp_v22000.py`。
+- 測試：新增 `tests/parity/test_v22000.py`；`test_v21120.py` 改為看守封存的 v21.12；`TIERS` 加 Terra、名稱數、公式格數、死格基準、版本字串更新（見報告）。
+
 ## 20261105_Tokenomics_v21.12.xlsx（取代 v21.11；**結構版：v22.0 B2 段「結構二」——GPT-6.1 Terra 第四層級進入 Block 4–6（價格、壽命、組合、前緣、機隊、攤提、營收、harness），Terra 付費／免費組合＝0、家族研發計入開關＝0，所有既有具名範圍與契約名稱的值不變；`B4_*`／`B5_H50*` 1×3 → 1×4；不新增任何 Terra 的 IF_／IFW_／L1_／RNG_ 名稱；不升契約版本（v0.27）**；依設計文件 `docs/plan/20261105_v22.0_Terra第四層級_設計.md` 第 6.1 節 B2，Andy 2026-11-05「完整第四層級」、J1–J15 照建議）
 
 - 分支 `claude/v22-b2`（底稿 B1 `claude/v22-b1`；PR 與 SHA 見報告）。報告：`docs/reports/20261105_v21.12_Terra結構二.md`；進度檔：`docs/reports/20261105_v22.0_進度.md`。**不合併**。

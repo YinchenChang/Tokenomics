@@ -63,8 +63,9 @@ def test_v1520_inputs_changed_and_guards_unchanged(wbf, lo):
     r = _row(sd, "SRC_DEM_004")
     assert [sd[f"{c}{r}"].value for c in "CDE"] == [8.4, 7.5, 8.8]
     prev = openpyxl.load_workbook(PREV)
-    for a in ("C31", "D31", "E31"):
+    for a in ("C31", "E31"):
         assert ci[a].value == prev["Cap_In"][a].value
+    assert prev["Cap_In"]["D31"].value == 0.45 and ci["D31"].value == 0.3      # v22.0（J6）：Sol 0.45 → 0.30（test_v22000 看守）
 
 
 def test_v1520_m_values_and_decomposition(lo):
@@ -97,9 +98,10 @@ def test_v1520_only_expected_names_changed(lo):
         if len(want) != len(got) or not all(_same(a, b) for a, b in zip(want, got)):
             changed.add(n)
     assert changed == CHANGED, (sorted(changed - CHANGED)[:20], sorted(CHANGED - changed)[:20])
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；在 conftest.V22_REVERT 下 RNG 區間過期 +1（端點依 v22.0 值重產）
     #      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
+    _a = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值
+    assert _a.get_name("RNG_StaleFlag") == "一致" and _a.get_name("RNG_OutCount") == 0
     assert v.get_name("LB_LiveCount") == 56 and len(_flat(v.get_name("LB_Rows"))) == 56
 
 

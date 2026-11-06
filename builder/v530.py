@@ -101,6 +101,10 @@ _TOK100 = re.compile(r"\[IFW_TokGW_\w+_100\]")
 
 
 def should_cap(sec, label, layer):
+    if sec == "R":      # v22.0 (J14): Interface R (Terra) rows follow the section of their counterparts
+        import re as _re
+        m = _re.search(r"（對應 ([A-Z]) 節）", label)
+        sec = m.group(1) if m else sec
     if sec == "B" and layer == "100%": return 1
     if sec == "D" and ("理論營收" in label or "付費服務營收" in label): return 1
     if sec == "L" and "[IFW_RevGW" in label: return 1      # v10.0 N1: IFW_*_LifeSelf revenue rows are upper-bound readings too

@@ -115,7 +115,9 @@ def test_v2190_names(wbf, wbv, pw):
             if miss:
                 bad.append((name, miss))
     assert bad == [], bad
-    assert changed == CHANGED | OTHER, sorted(changed ^ (CHANGED | OTHER))
+    changed -= {n for n in v21110_allow.B3_CHANGED if n not in CHANGED | OTHER}      # v22.0：v22.0 值改變者由 test_v22000 看守
+    _want = {n for n in CHANGED | OTHER if not v21110_allow.ref_moved(n)}      # v22.0：RNG_／IDX_Src 參照移動者在上方略過
+    assert changed == _want, sorted(changed ^ _want)
     iv = openpyxl.load_workbook(V219, data_only=True)["Interface"]      # v21.10：Interface 第 370、371 列改 FP8 對齊（test_v21100 看守）；這裡核對封存的 v21.9
     assert [iv[f"{c}370"].value for c in "CDE"] == [0.25, 0.35, 0.4]
     assert [iv[f"{c}371"].value for c in "CDE"] == [0.06, 0.14, 0.25]
@@ -215,15 +217,15 @@ def test_v2190_evidence_decisions_readme(wbf):
     assert "以下為 v21.9（次版，底版 v21.8：" in b5 and "以下為 v21.8（次版，底版 v21.7：" in b5      # v21.10：B5 開頭為 v21.10 段（test_v21100 看守）
     assert "契約名稱值改變者只有 IF_NonNV_Out_TPU、IF_NonNV_Out_Trn（各 3 格）與版本字串" in b5
     assert v2190.HIGH_ANCHOR + v2190.HIGH_ADD + "；基準與低成本欄不變" in b5      # W3 第 2 點：v21.8 段補連帶
-    assert str(rm["A1"].value).startswith("Tokenomics v21.12")
+    assert str(rm["A1"].value).startswith("Tokenomics v22.0")
 
 
 # ---------------------------------------------------------------- 6. GOV
 def test_v2190_gov_counts(lo):
-    v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
+    v = getattr(lo, "base", lo).view({})
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；v22.0 原值另 P1 +1（Cap_In K 節 2026 欄單價基準）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")
+    assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 

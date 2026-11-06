@@ -242,6 +242,8 @@ V518_LOG += v2180.inputs_update(wb)       # v21.8 W1: SRC_DC!C12 (SRC_DC_008, re
 import v2190
 V518_LOG += v2190.inputs_update(wb)       # v21.9 W1: NonNV B6:D6 0.6/0.8/1.1 -> 0.25/0.35/0.40, B7:D7 0.3/0.5/0.8 -> 0.06/0.14/0.25 (old-value guards; after restore, before gov_all)
 import v21100
+import v22000
+V518_LOG += v22000.inputs_update(wb)       # v22.0 B3 T3: Cap_In D31 0.45 -> 0.30, F31 0 -> 0.15, B4_TerraFam 0 -> 1, Terra prices -> SRC_PRC_066–068 (old-value guards; before gov_all)
 V518_LOG += v21100.inputs_update(wb)       # v21.10 W1: NonNV B6:D6 0.25/0.35/0.40 -> 0.35/0.66/0.84, B7:D7 0.06/0.14/0.25 -> 0.14/0.28/0.50 (FP8-aligned baseline; old-value guards; after v2190, before gov_all)
 evidence_sheet(wb)
 print("evidence rows added:", evidence_b4(wb), evidence_b5(wb))
@@ -334,13 +336,16 @@ v2000.interface_n_ext(wb)             # v20.0 W4: IF_ProdDerate_Lo／_Hi in D／
 import v2100
 IFOP = v2100.interface_op(wb)         # v21.0 W1／W2: Interface O (hardware 取數) and P (non-NVIDIA ratios) sections; appended last, before the contract columns are built
 v2110.interface_op_ext(wb)             # v21.1 W2: Interface rows 379-382 (IF_NonNV_Out_／Hold_ Ascend／Maia) and the P title tail
+TERRA_PROD = v22000.mirror_terra(wb, TERRA_LATE)      # v22.0 B3 T4: Terra Theory_Rev F rows mirrored onto the *_Prod sheets (second X1 pass)
+IFR = v22000.interface_r(wb, S4, A4, TERRA_LATE)      # v22.0 B3 T4: Interface R section (Terra contract names; below every existing row, J14)
+print("v22000 terra prod:", TERRA_PROD, "| interface R:", IFR["start"], "-", IFR["end"], "names:", len(IFR["made"]))
 SER14 = v1400.series_names(wb)         # v14.0 (4-3B Q2): L1_*_Ser／L1_MFleet_P25Lo／Hi series names on Cap_In
 print("v531 interface I2 from:", I2["start"], "names:", [n for n, _ in I2["made"]])
 DEPS = Deps(wb); GMC = gov_map_cells(wb)                 # built after every formula sheet exists (J rows included; R–U formulas are not precedents)
 IFC = v529.interface_contract(wb, DEPS, GMC, v530.should_cap)      # v5.30 X15 (c): "上限" flag extended to IFW_ revenue rows and IFW_TokGW_*_100
 LB = v529.load_bearing(wb, DEPS, GMC)
 import v21110
-v21120.load_bearing_date(wb)       # v21.12 (was v21110.load_bearing_date); v21.11: C3 = date of the v21.11 version file name; was v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
+v22000.load_bearing_date(wb)       # v22.0 (was v21120.load_bearing_date); v21.12 (was v21110.load_bearing_date); v21.11: C3 = date of the v21.11 version file name; was v21.10 follow-up 14 (engineering): Load_Bearing!C3 = date in the version file name (v21100.VERSION); v21.9 wrote its own constant (v2190.load_bearing_date)
 CK_K = v530.checks_k(wb, IFC, IFJ, LB)    # v5.29 Checks K with the v5.30 K2／K3 wording
 CK_M = v532.checks_m(wb)                  # v5.32 B3 (J4 (a)): Checks M1, WARN (after K; counted in GOV_Warnings)
 CK_M23 = v533.checks_m23(wb)              # v5.33 B4: Checks M2／M3, WARN (after M1; counted in GOV_Warnings)
@@ -463,6 +468,8 @@ print("v21110 v21.11:", V21110)
 V21120 = v21120.apply(wb, v518._append_text)       # v21.12: Checks Z3 (four-tier mix sums), Decisions SL69-01
 V21120["marks"] = v21120.purpose_marks(wb, {"cache": S4["terra_rows"], "fleet": F4["terra_rows"], "amort": A4["terra_rows"], "late": TERRA_LATE, "pf": P4})
 print("v21120 v21.12:", V21120)
+V22000 = v22000.apply(wb, v518._append_text)       # v22.0: Checks Z4, DB_Evidence E561–E565, SRC_CAP_008 note, Decisions SL70-*
+print("v22000 v22.0:", V22000)
 order = [n for n in ["README","Inputs","Spec_Rack","Arch","Serving","Workload","Calib","Tech_Registry","Perf","Sens_Perf","Unit_Cost","DC_Cost",
          "Train_In","Perf_Batch","Training","Sens_Train",
          "Cap_In","Price_Frontier","Cache_Store","Fleet_1GW","Amortize","Theory_Rev","Sens_Rev",

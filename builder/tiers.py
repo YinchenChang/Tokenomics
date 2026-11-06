@@ -2,8 +2,10 @@
 # Computation order Luna, Sol, Astra, Terra (Terra appended as index 4, J1 (a)); display order by price is a reading-version／site matter (B4).
 #
 #   TIERS      every tier the physical engine computes (Arch, Serving, Train_In, Perf, Perf_Batch, Training and their *_Prod copies, Unit_Cost blocks)
-#   TIERS_LIVE the tiers whose outputs feed contract names and cross-tier aggregates. v21.11 (B1) and v21.12 (B2) keep it at 3 so every existing
-#              value stays the same (Terra is computed but read by nothing that a contract name reads); v22.0 (B3) raises NT_LIVE to 4.
+#   TIERS_LIVE the tiers whose outputs feed contract names and cross-tier aggregates. v21.11 (B1) and v21.12 (B2) kept it at 3 so every existing
+#              value stayed the same; v22.0 (B3) raises NT_LIVE to 4 (Terra live: energy closure, unreachable count, V23 include Terra).
+#   TIERS_ROWS the tiers that own a row block inside the pre-v22.0 layouts (Interface B／C／D／E…, L1 tier rows, Block 4–6 tier blocks, Workload,
+#              Alloc 2025 family). Terra's rows are separate blocks below them (J14: Interface R section, L1 end), so existing rows never move.
 #   GT_COLS    generation × tier columns of Perf／Perf_Batch／Training (C..V = 5 generations × 4 tiers; index NT*(g-1)+t, J3 (a))
 from openpyxl.utils import get_column_letter as L, column_index_from_string as CI
 
@@ -11,10 +13,13 @@ TIERS = [("Luna", "Luna（低層）"), ("Sol", "Sol（中層）"), ("Astra", "As
 TIER_KEYS = [k for k, _ in TIERS]
 NT = len(TIERS)                     # 4
 NG = 5                              # generations (Hopper, GB200, GB300, VR200, Rubin Ultra)
-NT_LIVE = 3                         # v21.11／v21.12: 3; v22.0 B3: 4
+NT_LIVE = 4                         # v21.11／v21.12: 3; v22.0 B3: 4
 TIERS_LIVE = TIERS[:NT_LIVE]
+NT_ROWS = 3                         # tiers with a row block in the pre-v22.0 layouts (Luna, Sol, Astra); Terra blocks sit below (J14)
+TIERS_ROWS = TIERS[:NT_ROWS]
 TC = "".join(L(3 + i) for i in range(NT))          # "CDEF": tier columns on the input sheets (Arch, Serving rows 20-24, Train_In rows 24-38, Har_In rows 47-50)
-TC_LIVE = TC[:NT_LIVE]                              # "CDE"
+TC_LIVE = TC[:NT_LIVE]                              # "CDEF" (v22.0)
+TC_ROWS = TC[:NT_ROWS]                              # "CDE"
 TC_LAST = TC[-1]                                    # "F"
 GT_COLS = [L(i) for i in range(3, 3 + NG * NT)]     # C..V
 GT_LAST = GT_COLS[-1]                               # "V"
@@ -85,7 +90,8 @@ def old_layout(wb):
 TERRA = NT                          # tier index of Terra (J1 (a): appended as index 4)
 TERRA_KEY, TERRA_LAB = TIERS[-1]
 SRC = {}                            # {"PR": Perf rows, "U": Unit_Cost rows, "TRN": Training rows}
-PREP_B2 = "預備（v21.12 結構二）：Terra 第四層級，付費組合 Terra＝0、家族研發計入開關＝0，v22.0 啟用前尚無契約名稱讀取"
+PREP_B2 = ("Terra 第四層級（v21.12 建置；v22.0 啟用：付費組合 Terra 0.15、家族研發計入；契約名稱在 Interface R 節）" if NT_LIVE == NT
+           else "預備（v21.12 結構二）：Terra 第四層級，付費組合 Terra＝0、家族研發計入開關＝0，v22.0 啟用前尚無契約名稱讀取")
 
 
 def terra_src(stem, gen="Unit_Cost!{X}$6"):

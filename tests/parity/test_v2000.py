@@ -204,12 +204,13 @@ def test_v2000_stress_scenarios_no_error_values(lo):
 
 
 def test_v2000_governance_counts(lo):
-    v = lo.view({})
+    v = getattr(lo, "base", lo).view({})
     # Warnings 132 → 133：SRC_DEM_088（利害關係方、3 級）缺第二來源，W1 +1（真實狀態，chat 端接受；不補來源、不給免除）；H3 不變（CHK_L1Order＝0）
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；v22.0 原值另 P1 +1（Cap_In K 節 2026 欄單價基準）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0 and v.get_name("CHK_L1Order") == 0
     r = next(r for r in range(1, 400) if v.get("Checks", f"A{r}") == "P1")
-    assert v.get("Checks", f"D{r}") == 0 and v.get("Checks", f"C{r}") == "WARN"
+    _r = lo.view({})      # v22.0：P1 在 v22.0 原值為 1（Cap_In K 節 2026 欄單價基準，報告第 5 節第 2 項）；組合改回 v21.12 時為 0
+    assert _r.get("Checks", f"D{r}") == 0 and v.get("Checks", f"D{r}") == 1 and v.get("Checks", f"C{r}") == "WARN"
 
 
 # ---------------------------------------------------------------- static
@@ -238,7 +239,7 @@ def test_v2000_records(wbf):
     txt = d.cell(rd[0], 4).value + d.cell(rd[0], 6).value
     assert "產業校準錨點" in txt and "16:11" in txt and "20:57" in txt and "07:34" in txt
     rm = wbf["README"]
-    assert "v20.0（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")      # v20.1：現行版字串為 v20.1
+    assert "v20.0（主版：" in str(rm["B5"].value) and "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith(("Tokenomics v21.", "Tokenomics v22."))      # v20.1：現行版字串為 v20.1
     assert len([x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"]) == 1
     assert "L1_LReqFleet_Full" in str([rm.cell(x, 2).value for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v20.0 GW 優先校準"][0])
 

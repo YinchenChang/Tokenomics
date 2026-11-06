@@ -181,7 +181,7 @@ def test_v1700_decisions_readme(wbf):
     assert "L1_LReqFleet_IdNoK" in d.cell(_row(d, "SL50-01"), 4).value and "L1_LTotalFleetVDisc" in d.cell(_row(d, "SL50-02"), 4).value
     assert d.max_row < 1000      # Gov_Map AA 的 COUNTIF 範圍上限（$A$5:$A$1000）
     rd = wbf["README"]
-    assert "v21.0（主版：" in str(rd["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rd["B5"].value) and "v20.0（主版：" in str(rd["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rd["B5"].value) and "v19.0（主版：" in str(rd["B5"].value) and "v18.0（主版：" in str(rd["B5"].value) and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith("Tokenomics v21.")      # v19.0：版本字串隨版本；v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
+    assert "v21.0（主版：" in str(rd["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rd["B5"].value) and "v20.0（主版：" in str(rd["B5"].value) and "v19.1（次版，底版 v19.0：" in str(rd["B5"].value) and "v19.0（主版：" in str(rd["B5"].value) and "v18.0（主版：" in str(rd["B5"].value) and "v17.2（修補版：" in str(rd["B5"].value) and "v17.1（修補版，工程類：" in str(rd["B5"].value) and "v17.0（主版：" in str(rd["B5"].value) and str(rd["A1"].value).startswith(("Tokenomics v21.", "Tokenomics v22."))      # v19.0：版本字串隨版本；v18.0：版本字串隨版本      # v17.2：版本字串隨版本      # v17.1：版本字串隨版本，v17.0 說明保留在後
     rows = [r for r in range(4, rd.max_row + 1) if rd.cell(r, 1).value == "v17.0 回本判讀主口徑"]
     assert len(rows) == 1 and "世代起點、折現的機隊 L" in rd.cell(rows[0], 2).value and "不含 κ" in rd.cell(rows[0], 2).value
 
@@ -214,9 +214,10 @@ def test_v1700_only_new_names_and_nothing_else_changed(lo):
     for n, want in (("L1_LTotal", 0.659505673291395), ("L1_LReqFleet_Id", 0.357051772507014), ("L1_LTotalFleetV", 0.715894950036491),
                     ("L1_LReqFleet_IdNoK", 0.357051772507014), ("L1_LTotalDisc", 0.698844526610524), ("L1_MFleet", 0.947804246237318), ("IF_AllocServeGW", 0.89809617101894)):
         assert abs(v.get_name(n) - want) < 1e-9, n
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.1: 133 → 135 (SRC_DEM_089/090 lack a second source, W1 +2)      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；在 conftest.V22_REVERT 下 RNG 區間過期 +1（端點依 v22.0 值重產）
     #      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記，Z22 缺第二來源 1 → 0）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
-    assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
+    _a = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值
+    assert _a.get_name("RNG_StaleFlag") == "一致" and _a.get_name("RNG_OutCount") == 0
 
 
 def test_v1700_changed_cells_only_expected():

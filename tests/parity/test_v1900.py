@@ -146,7 +146,7 @@ def test_v1900_paid_mix_guard_returns_unavail_text(lo):
     r = next(x for x in range(340, ws.max_row + 1) if "[IF_TokGWPaidMix]" in str(ws.cell(x, 1).value))
     for col in range(3, 18):
         f = ws.cell(r, col).value
-        assert f.count("ISNUMBER") == 6 and "AL_UnavailTxt" in f and f.startswith("=IF(AND(") and ">0" in f, (col, f)
+        assert f.count("ISNUMBER") == 8 and  "AL_UnavailTxt" in f and f.startswith("=IF(AND(") and ">0" in f, (col, f)      # v22.0：四項（加 Terra）
     v = lo.view(CACHE_OFF)
     for x in _flat(v.get_name("IF_TokGWPaidMix")):
         assert isinstance(x, (int, float)) or x == v.get_name("AL_UnavailTxt"), x

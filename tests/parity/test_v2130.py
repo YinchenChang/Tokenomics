@@ -151,7 +151,7 @@ def test_v2130_unchanged_names(lo, pw, wbf):
         n_keep += 1
         if not (len(want) == len(got) and all(_eq(a, b) for a, b in zip(want, got))):
             bad.append(name)
-    assert n_keep > 40
+    assert n_keep > 25      # v22.0：v22.0 值改變的名稱改由 test_v22000 看守
     expect = KEEP_BUT_CHANGED - {"L1_CapexGW_VR200_Lo", "L1_HoldEconGW_VR200_Lo"}      # 這兩個不在 KEEP_EXACT 掃描範圍（下方另行點名）
     assert hit == expect, (sorted(hit - expect), sorted(expect - hit))
     assert bad == [], bad[:20]
@@ -201,7 +201,7 @@ def test_v2130_changed_set_is_exactly_expected(lo, pw, wbf):
     V214 -= v218_names()      # v21.8
     assert other == (CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - v218_names(), (sorted(other - CHANGED - LABEL_NAMES - INDEX_NAMES - V214), sorted((CHANGED | LABEL_NAMES | INDEX_NAMES | V214) - other))
     assert VERSION_NAMES <= rng
-    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")      # v21.9：版本字串      # v21.4：版本字串（原 v21.3）
+    assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")      # v21.9：版本字串      # v21.4：版本字串（原 v21.3）
     assert v.get_name("IF_FrontModel_Sol") == "GPT-6.1 Sol"
     # 名稱沒有增減（SRC_ID 名稱除外：SRC_HW_098／099 與 099 的 _Lo／_Hi）
     new_names = set(wbf.defined_names) - set(pw.defined_names)
@@ -285,18 +285,18 @@ def test_v2130_records(wbf):
         assert key in t5, key
     rm = wbf["README"]
     assert "以下為 v21.5（次版，底版 v21.4：" in str(rm["B5"].value) and "v21.4（次版，底版 v21.3：" in str(rm["B5"].value) and "v21.3（次版，底版 v21.2：" in str(rm["B5"].value) and "v21.2（次版，底版 v21.1：" in str(rm["B5"].value)      # v21.4：版本字串（原 v21.3）
-    assert str(rm["A1"].value).startswith("Tokenomics v21.12")      # v21.9
+    assert str(rm["A1"].value).startswith("Tokenomics v22.0")      # v21.9
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.3 機架價低端 7.5 與 Sol 快取價 0.10"]
     assert len(rr) == 1 and "7.5" in rm.cell(rr[0], 2).value
 
 
 # ---------------------------------------------------------------- 6. W6：指紋、區間、GOV
 def test_v2130_fingerprint_ranges_and_gov(lo, wbf):
-    v = lo.view({})
+    v = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值
     assert v.get_name("RNG_StaleFlag") == "一致"
     assert v.get_name("RNG_OutCount") == 0
-    assert v.get("Alloc", "C410") == 0
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
+    assert v.get("Alloc", "C452") == 0      # v22.0：O 節多 42 列（Terra 區間），原 C410 下移到 C452
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0：W1 +3、P1 +1（v22.0 原值）      # v21.8：第二來源 5 筆 W1 −5；I1 待判定 +1（test_v2180 看守）      # v21.4：W3 SRC_PRC_049 第二來源「免」，135 → 134（test_v2140 看守）
     # 指紋記錄值（Alloc P 節：A＝頁、B＝格、D＝記錄值）：F11 與 SRC_PRC_049 為葉格；SRC_PRC_007（C11）不再是葉格
     al = wbf["Alloc"]
     rec = {(al.cell(r, 1).value, al.cell(r, 2).value): al.cell(r, 4).value for r in range(400, al.max_row + 1) if al.cell(r, 1).value}      # v21.12：P 節多 30 葉格，不再以 1300 為上限
@@ -351,7 +351,7 @@ def test_v2130_diffs_only_expected_vs_v212():
     # SRC_Index：只因 SRC_HW 多兩列而重排（A:F 欄，第 102 列起）
     assert all(col(x) in "ABCDEF" and row(x) >= 102 for x in got["SRC_Index"])
     # Alloc：版本字串 C177、區間端點常數（數字對數字）、指紋記錄列（第 1233–1237 列的連結位址）
-    for t in d["Alloc"]:
+    for t in d.get("Alloc", []):      # v22.0：Alloc 差異已全落在 v218_cells（v21.7 → 現行）
         coord, x, y = t
         assert coord == "C177" or (_num(x) and _num(y)) or 1230 <= row(coord) <= 1240, t
-    assert "C177" in got["Alloc"] or "C177" in _v218.get("Alloc", set())      # v21.8：C177 也被 v21.8 改動（兩邊扣除）
+    assert "C177" in got.get("Alloc", set()) or "C177" in _v218.get("Alloc", set())      # v21.8：C177 也被 v21.8 改動（兩邊扣除）

@@ -1,4 +1,4 @@
-# Tokenomics 下游資料契約 v0.27（2026-10-24；對應 Tokenomics v21.12）
+# Tokenomics 下游資料契約 v0.28（2026-11-05；對應 Tokenomics v22.0）
 
 適用對象：OpenAI、CoreWeave、Nebius、Oracle、Anthropic、MiniMax 等公司模型，以及任何用到 AI 算力數據的產業或個股研究。依據：Decisions G8（邊界）、X13（規模分工）、X14（輸出契約，v5.29 工作單）；整合版評估報告 `docs/reports/20261008_eval_integrated.md`。
 
@@ -146,6 +146,34 @@
 - v21.10（次版；TPU、Trainium3 產出比基準改 FP8 對齊與 v21.9 核對的文字治理修正，工作單 `docs/workorders/20261104_v21.10_TPU產出比改FP8對齊與文字修正.md` r0，分支 `claude/v21-10`，Decisions SL67-01；依查核 `docs/evidence/20261104_TPU產出比查核/` 與 Andy 2026-11-04「需要我决定的都按照你的建议去执行」＝建議甲）：**沒有新增或刪除契約名稱，SRC 名稱也不增減。** 契約名稱的值改變只有 `IF_NonNV_Out_TPU`（`NonNV` B6:D6：0.25／0.35／0.40 → 0.35／0.66／0.84）與 `IF_NonNV_Out_Trn`（`NonNV` B7:D7：0.06／0.14／0.25 → 0.14／0.28／0.50）各 3 格，以及版本字串 `RNG_Version`／`RNG_Current`；口徑：基準＝FP8 對齊（VR200 也以 FP8 比，PR #172 E 節方法一），低端＝各晶片最高原生精度的基準值（即 v21.9 基準），高端＝FP8 對齊高端。理由：TK 引擎把推論當算力受限，原生精度口徑等於給 TPU、Trn3 固定 2 倍懲罰；外部實測不支持 4 bit 好處只歸 NVIDIA；TPU v7 的同代是 GB300。每 token 成本比基準（`NonNV` H 欄，非契約名稱）TPU 2.0 → 1.061、Trn3 4.357 → 2.179；最佳角落 TPU 0.774、Trn3 0.90；最差角落 TPU 2.571、Trn3 5.0。持有比（`IF_NonNV_Hold_*`）、Cerebras 與 OpenAI 客製列不變；回本、m、L、持有成本、P×Q 不讀這兩列。治理名稱（非下游讀取）：SRC 索引的等級鏡像（SRC_DC_004 等級 3 → 1）、`LB_Days`（`Load_Bearing!C3` 改由版本檔名日期帶出）。下游：company-models Alphabet、Amazon 的基準讀 `IF_NonNV_Hold_*`，`IF_NonNV_Out_*` 只在敏感度「收入改按產出比」列，目標價不變（Sens 列會變）；**Anthropic 模型的基準讀產出比，值會變**（chat 端另建 v0.1.9）；AI半導體 快照只鏡像（合併後由 chat 端以 `交流/` 告知）。
 - v21.11（結構版；v22.0 B1 段「結構一」：GPT-6.1 Terra 第四層級的計算結構，設計文件 `docs/plan/20261105_v22.0_Terra第四層級_設計.md`，分支 `claude/v22-b1`，Decisions SL68-01；Andy 2026-11-05「完整第四層級」、J1–J15 照建議）：**沒有新增或刪除契約名稱，契約名稱的值全部不變**（只有版本字串 `RNG_Version`／`RNG_Current` 與建置日 `LB_Days`）。Terra 的物理計算欄已在 Perf、Perf_Batch、Training（世代 × 層級改為 20 欄，索引 4×(世代−1)＋層級）與 Arch、Serving、Train_In、Har_In、Unit_Cost 建立，但**尚無任何 `IF_`／`IFW_`／`L1_` 名稱**（v22.0 B3 建立，屆時契約升 v0.28）。禁止連結的顯示名稱（DRV_ 開頭 16 個、TRN_ 開頭 15 個）形狀 1×15 → 1×20；若有下游違規以位置讀取，位置已改變。`RNG_Dem004_*`（Alloc Q 節）的參照列號 +62（Alloc P 節時效指紋增加 Terra 輸入格），值不變。下游：不需同步（值不變）。
 - v21.12（結構版；v22.0 B2 段「結構二」：GPT-6.1 Terra 進入 Block 4–6，分支 `claude/v22-b2`，Decisions SL69-01）：**沒有新增或刪除契約名稱，契約名稱的值全部不變**（只有版本字串 `RNG_Version`／`RNG_Current`）。Terra 付費、免費組合先為 0（Sol 維持 0.45），家族研發的 Terra 計入開關先為 0；v22.0 B3 啟用時 `IF_MixPaid_Sol` 等會改變，且**付費組合將是四項合計 1**（`IF_MixPaid_Luna／Sol／Astra` 三項不再合計 1，R12）。禁止連結的 `B4_` 名稱形狀改變：`B4_PriceIn／_PriceCache／_PriceOut／_Life／_MixPaid／_MixFree／_ISL／_OSL／_EffIn／_EffCache／_EffOut／_EffRef／_FrontRef`、`B5_H50*` 由 1×3 改 1×4（第 4 欄＝Terra），`B4_Mkt*` 由 13 列改 14 列；以 INDEX 1–3 讀 `B4_MixPaid` 的下游（例：Anthropic `a5.py`、`tk_link.py`，屬違規連結）目前仍讀到相同值。新增內部名稱 `B4_MixPaid25`／`B4_MixFree25`（2025 口徑組合）、`B4_TerraFam`、`CAP_TokGWPaidMix25`、`B5_SuccOvr_Terra`（皆非契約名稱）。2025 錨點（`CAP_Price25Mix`、`L1_TokPaid_GW25`、Alloc 各名稱）改讀 2025 口徑組合，值不變。`RNG_Dem004_*` 參照列號再 +30（時效指紋增加 Terra 輸入格），值不變。下游：不需同步（值不變）。
+
+- v22.0（**主版，契約改變**；v22.0 B3 段「啟用」：GPT-6.1 Terra 成為第四個現行層級，設計文件 `docs/plan/20261105_v22.0_Terra第四層級_設計.md`，分支 `claude/v22-b3`，Decisions SL70-01、SL70-J01…J15；Andy 2026-11-05「完整第四層級」、J1–J15 照建議；本契約升 **v0.28**）：
+  （1）**新增 107 個名稱**：Terra 契約名稱 `IF_*_Terra` 52 個、`IFW_*_Terra_*` 14 個（Interface **R 節**，在全部既有列之下；既有各節的列與名稱位置不動，J14）、`L1_CostDec_Terra_VR200`／`_GB300`、`L1_RevGW_Terra_VR200`（各含 `_Lo`／`_Hi`，共 9 個，L1 末端第 149–151 列）、`RNG_IF_*_Terra_*_Lo`／`_Hi` 28 個（14 個 Terra 名稱的批次口徑區間端點），另 4 個 SRC 紀錄名稱。**不建** `CAP_Px25_Terra*`（2025 無 Terra，J5）、`L1_RLshare_Terra*`、`L1_PretrainFLOP_Terra*`（J13）。每個 Terra 名稱的口徑、單位與欄位與同名的 Luna／Sol／Astra 名稱相同（R 節列名註明「對應 X 節」）。
+  （2）**層級組合不再是三項合計 1**：付費組合 Luna 0.40／Sol **0.30**／Astra 0.15／**Terra 0.15**（原 Sol 0.45；Terra 區間 0.05–0.30，同量由 Sol 增減）、免費組合 Terra 0。`IF_MixPaid_Luna`＋`_Sol`＋`_Astra`＝0.85，**下游以三個 `IF_MixPaid_*` 合計當 1 者必須加讀 `IF_MixPaid_Terra`**（`IF_MixFree_Terra`＝0）。四項合計＝1 由 Checks Z3／Z4 看守。
+  （3）**數值改變的既有契約前綴名稱 167 個**（`IF_` 36、`IFW_` 16、`L1_` 69、`GOV_` 2、`RNG_` 44 含版本字串；另內部名稱 `AL_` 3、`B4_` 2）（逐格舊值、新值見 `docs/workorders/20261105_v22.0_預期變動.csv` 與報告 `docs/reports/20261105_v22.0_Terra第四層級.md` 表 1）。主要：`IF_PxEffMix`／`L1_PxEff_2026` 1.943 → 1.825（−6.1%）；`L1_M` 1.355 → 1.443（+6.4%；**有效牌價變便宜造成的機械性上升，不是變現改善**——P×Q 的「有效牌價 × m」不變）；`IF_TokGWPaidMix`、`L1_TokGW_PaidCap_VR200` +4.8%（改四項調和平均）；`L1_RevGW_PQ_VR200` 49.51 → 51.75（+4.5%）；`IF_RevGWFleet` −1.6%（VR200 基準欄）；`IF_MixPaid_Sol` 0.45 → 0.30；攤提與全成本：`IF_FullCost_Sol` +3.2%、`IF_FullCostDefault_Sol` +13.5%、`IF_FullCostDefault_Luna` −6.5%、`_Astra` −10.0%（Sol 壽命期付費 token −30.4%（Amortize C21 1.555×10⁹ → 1.082×10⁹；組合占比下降三分之一，0.45 → 0.30）使自下而上攤提上升，家族研發計入 Terra 使 K6 縮放倍數改變；設計預估約 ±1%，實際較大，見報告）。
+  （4）**不變**：既有三層級的物理產出（`IF_TokGW_*`、`IF_CostDec_*`、`IF_TokRack*`、`IF_Train*`、`IF_Prog*` 等）、`IF_RevGW_Luna／Sol／Astra`（單層理論營收）、`IF_Price*`、`IF_FrontRef_*`／`IF_FrontModel_*`（Terra 能力指數空白，不參與其他層級前緣，J7 (b)）、`IF_AmortTD_*`、`IF_HoldEcon`、DC_Cost 構件、`IF_NonNV_*`；2025 錨點（`L1_MFleet`、`L1_LReqFleet`、`L1_LReqFleet_Full`、`L1_M_2025`、`CAP_Price25Mix`、`IF_PxEffMix25`、`IF_Alloc*` 等）逐值不變——**例外** `L1_MFleet_Lo`（+0.32%）與同源的 `L1_LReqFleet_Hi`、`L1_TokCeiling*`、`L1_PriceRealFleet_Lo`（經 `AL_ProdRatioPaid` 讀到 2026 組合，列為待判斷）。
+  （6）**形狀改變**：`IFC_Conf`／`IFC_Layer`／`IFC_Updated`／`IFC_Use` 範圍由 Interface R6:R382 延伸為 R6:R461（加入 R 節 Terra 列；既有列的值不變）。
+  （7）**警告**：「`L1_TokLedger_2026Q2` 在 v22.0 混用兩種價格基準（Cap_In E209 2026 價 vs E223 `B4_PriceFleet` 2025 組合），暫不可用」（Checks P1 WARN；下一版處理）。
+  （8）**注意**：「`IF_FullCostDefault_Terra` 0.1518 高於 Sol 0.1280（Terra 被當成獨立研發計畫）」——Terra 的研發計畫以獨立計畫計入家族（J9），是否改為 Sol／Astra 的衍生計畫待 Andy 判斷。
+  （5）**下游預設層級維持 Sol**（J8）：`IF_FullCostDefault_Sol`、`IF_GMDefault_*` 的用法不變。OpenAI 模型的 top／mid／low 對應由該模型自己決定。`B4_MixPaid`（禁止連結；Anthropic 模型現讀之）形狀已於 v21.12 改 1×4，第 2 格（Sol）0.45 → 0.30。
+
+  Terra 名稱（VR200 基準成本欄，v22.0 值；完整清單見 `tests/parity/fixtures/v22000_new_names.json`）：
+
+| 名稱 | 位置 | 單位 | 層級／token 類型 | 值（VR200 基準） |
+|---|---|---|---|---|
+| `IF_TokGW_Terra` | Interface R 節 | M tok/GW/年（100%） | Terra；總 token（參考請求 P:D） | 5.108×10¹¹（Sol 3.190×10¹¹、Luna 1.229×10¹²） |
+| `IF_CostDec_Terra` | Interface R 節 | $/M | Terra；decode（含思考）token；經濟、100% | 0.180（Luna 0.075、Sol 0.284） |
+| `IF_PriceRef_Terra`／`IF_FrontRef_Terra` | Interface R 節（單格） | $/M | Terra；參考請求混合（新鮮＋快取＋輸出）；OpenAI 有效價／前緣 | 0.784／0.784（前緣＝自身，J7 (b)） |
+| `IF_RevGW_Terra` | Interface R 節 | $B/GW/年 | Terra 單層理論營收（基準利用率；上限，不得作預測） | 240.3 |
+| `IF_FullCost_Terra`／`IF_FullCostDefault_Terra` | Interface R 節 | $/M | Terra；參考請求混合；全成本（自下而上／K6 預設 (c)） | 0.0527／0.1518 |
+| `IF_RevGWFleet_Terra` | Interface R 節 | $B/年 | 1 GW 參考機隊中 Terra 的付費營收貢獻 | 4.21 |
+| `IF_MixPaid_Terra`／`IF_MixFree_Terra` | Interface R 節（單格） | % | Terra 付費／免費 token 占比 | 0.15／0 |
+| `IF_Life_Terra` | Interface R 節（單格） | 月 | Terra 商業壽命 | 9（區間 4–18，J10） |
+| `IFW_RevGW_Terra_100`／`_Util`／`_Prod`／`_Life`／`_LifeSelf`、`IFW_TokGW_Terra_*`、`IFW_RevGWFront_Terra_*` | Interface R 節 | 同 J／L 節 | 四層瀑布與自算 L×m（定義同第 2 條） | `IFW_RevGW_Terra_Prod` 194.2 |
+| `L1_CostDec_Terra_VR200`／`_GB300` | L1 第 149／150 列 | $/M | 同 `IF_CostDec_Terra`；E／F＝低／高成本情境 | 0.180（0.136–0.261）／0.243 |
+| `L1_RevGW_Terra_VR200` | L1 第 151 列 | $B/GW/年 | 同 `IF_RevGW_Terra`；E／F＝利用率 40%／80% | 240.3（160.2–320.4） |
+
+  Terra 架構未公開，以 DeepSeek V4 家族內插（總參數 700B、啟用 30B；Analogy／Assumed，J4）；架構低／高端使 Terra 每 GW 產能約 8.1×10¹¹／3.1×10¹¹、`L1_RevGW_PQ_VR200` 53.3／49.2（報告第 3 節）。下游讀 Terra 名稱時應同時讀區間（`RNG_IF_*_Terra_*` 與報告敏感度），不得把基準值當作已觀測值。
 
 ## 6. 權威歸屬（v0.24 新增；依《情境卡產生規則》R1.6.1 第 13 條）
 

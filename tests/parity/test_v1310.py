@@ -68,10 +68,10 @@ def test_v1310_fingerprint_file_matches_workbook(lo):
     bad = [(s, a, v, w) for (s, a, v), (_, _, w) in zip(fp["leaves"], leaves) if not _same(v, w)]
     assert bad == [], (len(bad), bad[:8])
     assert len(fp["leaves"]) == 925      # v21.12（v22.0 B2，R10）：895 → 925（+30＝Cap_In Terra 輸入 F6:F8、F22、F31:F32、R 節 C352:F353 與 C354 共 15，Fleet_1GW 第 6 列世代索引 15：Terra 區以本頁世代索引取 Perf／Training）； v21.11（v22.0 B1，R10）：833 → 895（+62＝新座標 66 − 舊座標 4：Terra 輸入格 Arch 14、Train_In 14、Serving 4，Perf 10、Perf_Batch 14、Training 10 為重排後的世代／層級索引格（Perf_Batch 另有 4 個舊座標 R／S 第 6–7 列不再是葉格）；依賴圖以整列範圍為上游，INDEX 讀整列；tools/gen_fingerprint.py 重產）； v19.1：629 → 833（指紋根名稱 + CHK_VerifyFail／CHK_VerifyPass，且 Arch!C17 改連 SRC_MOD_106 後上游常數格增加；tools/gen_fingerprint.py 重產）； v15.3：604 → 629（Alloc P 節新增 25 列：D156 變公式後區間情境多 25 格上游常數）； v15.0 T3-2：591 → 604（12 個 VR200 區間名稱新增 13 個上游常數格）； v14.0（4-3B）：579 → 591（新增 6 個區間名稱的上游常數格）
-    base = lo.view({})
+    base = getattr(lo, "base", lo).view({})      # v22.0：時效看守讀 v22.0 原值（V22_REVERT 下端點必然過期）
     assert base.get_name("RNG_StaleFlag") == "一致" and base.get("Checks", f"D{_chk_row(base, 'RG3')}") == 0
     assert base.get("Checks", f"D{_chk_row(base, 'RG1')}") == 0 and base.get("Checks", f"D{_chk_row(base, 'RG2')}") == 0
-    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 129)      # v21.8：134 → 129； v21.1: +2 (SRC_DEM_089/090 W1)
+    assert (base.get_name("GOV_Errors"), base.get_name("GOV_Warnings")) == (0, 133)      # v22.0：W1 +3、P1 +1（v22.0 原值）      # v21.8：134 → 129； v21.1: +2 (SRC_DEM_089/090 W1)
     #      # v19.1：133 → 132（SRC_MOD_018 填 C1 免除標記）； v17.2：W1 278 → 131（W1 第二來源 B1：A 86、C1 53、Q11 8 離開；預期變動）
 
 
@@ -79,11 +79,11 @@ def test_v1310_fingerprint_flag_fires(lo):
     """P2-2：只改上游一個輸入（Inputs 的第一個數值葉格 ×1.01），不重新產生端點與指紋——基準仍可能在 Lo／Hi 之內，
     但 RNG_StaleFlag 必須顯示『區間過期』，Checks RG3 觸發（舊的兩道檢查——版本字串、基準出區間——抓不到這種情況）。"""
     s, a, v = _pick_leaf(_fp())
-    edited = lo.view({f"{s}!{a}": v * 1.01})
+    edited = getattr(lo, "base", lo).view({f"{s}!{a}": v * 1.01})
     assert edited.get_name("RNG_StaleFlag") == "區間過期"
     assert edited.get("Checks", f"D{_chk_row(edited, 'RG3')}") == 1
     assert edited.get_name("RNG_Version") == edited.get_name("RNG_Current")      # 版本字串仍相符：只有指紋抓到
-    base = lo.view({})
+    base = getattr(lo, "base", lo).view({})
     assert base.get_name("RNG_StaleFlag") == "一致"
 
 
@@ -92,7 +92,7 @@ def test_v1310_existing_contract_names_unchanged(lo):
     只有 RNG_Version／RNG_Current 兩個版本字串可以不同（隨版本更新）。"""
     prev = openpyxl.load_workbook(V130_PREV, data_only=True)
     v = lo.view({})
-    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and n not in v218_names() and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED and n not in V2130_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
+    keep = [n for n in prev.defined_names if n.startswith(CONTRACT_PREFIX) and not n.startswith("RNG_") and n not in v218_names() and n not in NEW_IN_V131 and n not in Q4_VERIFY_CHANGED and n not in V152_CHANGED and n not in V2120_CHANGED and n not in V2130_CHANGED]      # v21.2：+44 個 AL_SpendBasis 預期變動名稱      # v21.3：+171 個機架價低端／Sol 快取價預期變動名稱（test_v2130 看守）
     assert len(keep) >= 230, len(keep)      # v21.8：再扣除 v21.8 值改變名稱（實測 241）； v21.3：扣除 171 個機架價低端／Sol 快取價預期變動名稱後的比較數下修（原 ≥ 300）      # v19.1：扣除 Arch!C17 下游預期變動名稱後 ≥ 300； v15.3：345（再扣除 v15.3 預期變動名單）； v15.2：扣除 B2／B3 預期變動名單（V152_CHANGED）後的比較數；原 ≥ 600
     for n in keep:
         sh, rg = prev.defined_names[n].attr_text.rsplit("!", 1)

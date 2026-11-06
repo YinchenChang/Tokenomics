@@ -79,7 +79,7 @@ def arch(wb):
     title(ws, "Arch — 四層級代表架構（D5：每層級一個代表；參數為公開模型卡或推估）",
           "Luna／Sol 以公開權重模型為物理代表 [Analogy：對應封閉層級]；Astra 為封閉前沿代理，KV 以情境處理（J1）；"
           "Terra（F 欄，v21.11 起）＝DeepSeek V4 家族內插（Flash 與 Pro 之間，J4）[Analogy]，區間見 docs/plan/20261105_v22.0_Terra第四層級_設計.md 第 3.1 節；"
-          "v21.11 只建結構，Terra 欄尚無契約名稱讀取（v22.0 啟用）")
+          "v21.11 建結構，v22.0 啟用（Interface R 節 IF_*_Terra 讀 Terra 欄）")
     for c, w in zip("ABCDEFGH", [30, 12, 16, 16, 18, 18, 16, 80]): ws.column_dimensions[c].width = w
     for c, v in zip("AB" + TC + ARCH_TAG + ARCH_NOTE, ["參數", "單位"] + [tn for _, tn in TIERS] + ["標記", "來源／說明"]):
         put(ws, f"{c}4", v, F_BOLD)

@@ -84,7 +84,7 @@ def cap_in_r(wb, prev):
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
     for c, g in zip("CDEF", ("Hopper", "GB200", "GB300", "VR200")): put(ws, f"{c}{r}", g, F_BOLD)
     r += 1
-    tiers3 = [k for k, _ in tiers.TIERS_LIVE]
+    tiers3 = [k for k, _ in tiers.TIERS_ROWS]      # v22.0: 2025 basis stays three-tier (J5)
     for i, c in enumerate("CDEF"):
         k = GEN_COLS[i]
         tg = {t: f"INDEX(IF_TokGW_{t},1,{k})" for t in tiers3}
@@ -113,36 +113,36 @@ def theory_rev_terra(wb, F, A, T):
     from block4 import IF as IFX
     r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
     r = r0
-    section(ws, r, f"F. {TL}（v21.12 預備：v22.0 名稱 IF_RevGW_Terra、IF_FullCost_Terra 等；1 GW 只服務本層級；付費組合 Terra＝0，機隊貢獻為 0）", 17); r += 1
+    section(ws, r, f"F. {TL}（v21.12 建置；v22.0 啟用：契約名稱 IF_RevGW_Terra、IF_FullCost_Terra 等在 Interface R 節；1 GW 只服務本層級）", 17); r += 1
     t3 = TT - 1
     tg = tiers.terra_src("TokGW", "{X}$6")
     _row15(ws, r, "每 GW 產出（基準利用率；SLO 不可達時為文字）", "M tok/年", f"=IF(ISNUMBER({tg}),{tg}*IF_Util,{tg})", "#,##0"); tok = r; r += 1
-    _row15(ws, r, "理論營收 — OpenAI 有效單價（v22.0 名稱 IF_RevGW_Terra）", "$B/年", f"=IF(ISNUMBER({{X}}{tok}),{{X}}{tok}*INDEX(B4_EffRef,1,{TT})/1E9,{{X}}{tok})", "#,##0.0", key=True)
+    _row15(ws, r, "理論營收 — OpenAI 有效單價（→ IF_RevGW_Terra）", "$B/年", f"=IF(ISNUMBER({{X}}{tok}),{{X}}{tok}*INDEX(B4_EffRef,1,{TT})/1E9,{{X}}{tok})", "#,##0.0", key=True)
     rev = r; r += 1
-    _row15(ws, r, "理論營收 — 前緣單價（v22.0 名稱 IF_RevGWFront_Terra）", "$B/年", f"=IF(ISNUMBER({{X}}{tok}),{{X}}{tok}*INDEX(B4_FrontRef,1,{TT})/1E9,{{X}}{tok})", "#,##0.0")
+    _row15(ws, r, "理論營收 — 前緣單價（→ IF_RevGWFront_Terra）", "$B/年", f"=IF(ISNUMBER({{X}}{tok}),{{X}}{tok}*INDEX(B4_FrontRef,1,{TT})/1E9,{{X}}{tok})", "#,##0.0")
     revf = r; r += 1
     _row15(ws, r, "年持有成本 — 經濟（IF_HoldEcon）", "$B/年", f"={IFX('IF_HoldEcon')}", "#,##0.0"); hold = r; r += 1
     _row15(ws, r, "理論營收 ÷ 持有成本", "x", f"=IF(ISNUMBER({{X}}{rev}),{{X}}{rev}/{{X}}{hold},{{X}}{rev})", "0.0", key=True); r += 1
     _row15(ws, r, "前緣營收 ÷ 持有成本", "x", f"=IF(ISNUMBER({{X}}{revf}),{{X}}{revf}/{{X}}{hold},{{X}}{revf})", "0.0"); r += 1
     _row15(ws, r, "服務成本 $/M（參考請求，含快取儲存，基準利用率）", "$/M", f"=Amortize!{{X}}{A[f'sc{t3}']}", "#,##0.0000"); sc = r; r += 1
     g = lambda am: f"=IF(AND(ISNUMBER({{X}}{sc}),ISNUMBER(Amortize!{{X}}{am})),{{X}}{sc}+Amortize!{{X}}{am},{NA})"
-    _row15(ws, r, "全成本 $/M（服務＋自下而上攤提；v22.0 名稱 IF_FullCost_Terra）", "$/M", g(A[f'bu{t3}']), "#,##0.0000", key=True); fc = r; r += 1
+    _row15(ws, r, "全成本 $/M（服務＋自下而上攤提；→ IF_FullCost_Terra）", "$/M", g(A[f'bu{t3}']), "#,##0.0000", key=True); fc = r; r += 1
     _row15(ws, r, "全成本 $/M（服務＋由上而下攤提）", "$/M", g(A[f'td{t3}']), "#,##0.0000"); fct = r; r += 1
-    _row15(ws, r, "全成本 $/M（服務＋K6 預設 (c) 攤提；v22.0 名稱 IF_FullCostDefault_Terra）", "$/M", g(A[f'dc{t3}']), "#,##0.0000", key=True); fcd = r; r += 1
+    _row15(ws, r, "全成本 $/M（服務＋K6 預設 (c) 攤提；→ IF_FullCostDefault_Terra）", "$/M", g(A[f'dc{t3}']), "#,##0.0000", key=True); fcd = r; r += 1
     gm = lambda x, price: f"=IF(ISNUMBER({{X}}{x}),1-{{X}}{x}/INDEX({price},1,{TT}),{NA})"
     _row15(ws, r, "理論毛利率（OpenAI 單價；不含攤提，可與公司揭露毛利率比較）", "%", gm(sc, "B4_EffRef"), "0%"); r += 1
     _row15(ws, r, "理論毛利率（OpenAI 單價；自下而上全成本）", "%", gm(fc, "B4_EffRef"), "0%"); r += 1
     _row15(ws, r, "理論毛利率（OpenAI 單價；由上而下全成本）", "%", gm(fct, "B4_EffRef"), "0%"); r += 1
-    _row15(ws, r, "理論毛利率（OpenAI 單價；K6 預設 (c) 全成本）", "%", gm(fcd, "B4_EffRef"), "0%", key=True); r += 1
+    _row15(ws, r, "理論毛利率（OpenAI 單價；K6 預設 (c) 全成本）", "%", gm(fcd, "B4_EffRef"), "0%", key=True); gmd = r; r += 1
     _row15(ws, r, "理論毛利率（前緣單價；由上而下全成本）", "%", gm(fct, "B4_FrontRef"), "0%"); r += 1
     ok = f"Fleet_1GW!{{X}}{F['ok']}=1"
     p3 = f"Fleet_1GW!{{X}}{F['p3']}"
-    _row15(ws, r, f"機隊付費服務營收 {TL} 貢獻 — OpenAI 有效單價（v22.0 名稱 IF_RevGWFleet_Terra；已計入 B 節第 {T['fl']} 列合計）", "$B/年",
+    _row15(ws, r, f"機隊付費服務營收 {TL} 貢獻 — OpenAI 有效單價（→ IF_RevGWFleet_Terra；已計入 B 節第 {T['fl']} 列合計）", "$B/年",
            f"=IF(AND({ok},ISNUMBER({p3})),{p3}*INDEX(B4_EffRef,1,{TT})/1E9,{NA})", "#,##0.00"); flt = r; r += 1
-    _row15(ws, r, f"機隊付費服務營收 {TL} 貢獻 — 前緣單價（v22.0 名稱 IF_RevGWFleetFront_Terra；已計入 B 節第 {T['flf']} 列合計）", "$B/年",
+    _row15(ws, r, f"機隊付費服務營收 {TL} 貢獻 — 前緣單價（→ IF_RevGWFleetFront_Terra；已計入 B 節第 {T['flf']} 列合計）", "$B/年",
            f"=IF(AND({ok},ISNUMBER({p3})),{p3}*INDEX(B4_FrontRef,1,{TT})/1E9,{NA})", "#,##0.00"); flft = r; r += 1
     put(ws, f"A{r}", "註：本節不建「理論營收 — 100% 利用率」與 C 節每任務營收列（既有三層級的同類列於 v14.0 刪除，Workload 亦無 Terra 每任務成本）", F_NOTE)
-    return {"first": r0, "last": r, "rev": rev, "fc": fc, "fcd": fcd, "flt": flt, "flft": flft}
+    return {"first": r0, "last": r, "tok": tok, "rev": rev, "revf": revf, "fc": fc, "fcd": fcd, "gmd": gmd, "flt": flt, "flft": flft}
 
 
 def checks_closure(wb, T, TT_rows):
@@ -166,7 +166,7 @@ def harness_terra(wb, U, S, R):
     ws = wb["Harness"]
     r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
     r = r0
-    section(ws, r, f"J. {TL}（v21.12 預備：v22.0 名稱 IF_TaskSucc_Terra、IF_CostSucc*_Terra、IF_HarR_Terra 等；H 節成功任務成本前緣仍只比較 Luna／Sol／Astra）", 8); r += 1
+    section(ws, r, f"J. {TL}（v21.12 建置；v22.0 啟用：契約名稱 IF_TaskSucc_Terra、IF_CostSucc*_Terra、IF_HarR_Terra 等在 Interface R 節；H 節成功任務成本前緣仍只比較 Luna／Sol／Astra）", 8); r += 1
     out = {}
     for sk, sn in block5.SETS:
         out[f"p_{sk}"] = r
@@ -211,7 +211,7 @@ def sens_har_terra(wb, U, S, SH, HT):
             cols.append(c)
     r0 = max(c.row for row in ws.iter_rows() for c in row if c.value is not None) + 2
     r = r0
-    put(ws, f"A{r}", f"{TL}（v21.12 預備：v22.0 啟用；各欄同上方情境）", F_BOLD); r += 1
+    put(ws, f"A{r}", f"{TL}（v21.12 建置，v22.0 啟用；各欄同上方情境）", F_BOLD); r += 1
     rows = {}
     k = 5
     col = "M"

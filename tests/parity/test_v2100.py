@@ -194,8 +194,8 @@ def test_v2100_diffs_only_expected_vs_v201():
     d = {k: v for k, v in d.items() if v}
     allowed = {"Alloc", "Checks", "Decisions", "Interface", "L1", "NonNV", "README", "Alloc_In", "Cap_In", "DB_Evidence", "Gov_Map", "Load_Bearing", "SRC_Demand", "SRC_Index"}      # v21.1：另加的頁由 test_v2110 看守
     assert set(d) <= allowed | set(v213_cells()), set(d) - allowed - set(v213_cells())      # v21.3：另加 Spec_Rack／SRC_HW／SRC_Price（W1／W2，test_v2130 看守）
-    assert strip("Alloc", [t[0] for t in d["Alloc"]]) == strip("Alloc", ["C177", "D1020", "D1021", "D1022"])      # v21.3：兩邊扣掉區間端點常數與指紋記錄列（W6，test_v2130 看守）；      # 版本字串；v21.2：D1020:D1022 指紋記錄值（test_v2120 看守）
-    assert sorted(t[0] for t in d["Checks"]) == sorted({"D118", "D119", "D86", "E118"} - _v218.get("Checks", set())), d["Checks"]      # v21.8：D86 也被 v21.8 改動（兩邊扣除）      # v21.3：D86 同一格（W6，test_v2130 看守）      # v21.1：D86（SRC 範圍計數公式隨新紀錄延伸）      # 契約欄檢查的範圍 R6:R361 → R6:R378（builder 自動延伸）
+    assert strip("Alloc", [t[0] for t in d.get("Alloc", [])]) == strip("Alloc", ["C177", "D1020", "D1021", "D1022"])      # v21.3：兩邊扣掉區間端點常數與指紋記錄列（W6，test_v2130 看守）；      # 版本字串；v21.2：D1020:D1022 指紋記錄值（test_v2120 看守）
+    assert sorted(t[0] for t in d.get("Checks", [])) == sorted({"D118", "D119", "D86", "E118"} - _v218.get("Checks", set()) - _v218.get("Checks", set())), d.get("Checks")      # v21.8：D86 也被 v21.8 改動（兩邊扣除）      # v21.3：D86 同一格（W6，test_v2130 看守）      # v21.1：D86（SRC 範圍計數公式隨新紀錄延伸）      # 契約欄檢查的範圍 R6:R361 → R6:R378（builder 自動延伸）
     assert [t[0] for t in d["NonNV"] if t[0][0] == "M" and int(t[0][1:]) <= 9] == [f"M{r}" for r in range(5, 10)]      # v21.1：NonNV 其餘變動（A1、L5:L9、第 10–11 列）由 test_v2110 看守
     r93 = int(b.defined_names["L1_PriceReqBE"].attr_text.split("$")[-1])
     assert sorted(t[0] for t in d["L1"] if int(re.sub(r"[A-Z]+", "", t[0])) <= 144 and t[0] != "T4") == sorted([f"{c}{r93}" for c in "CIJK"] + ["C71", "H71", "K71"] + [f"I{r}" for r in range(128, 137)]), [t[0] for t in d["L1"]]      # v21.4：I128:I136（W1／W2，test_v2140 看守）； v21.3：I128:I131（W5，test_v2130 看守）； v21.2：第 71 列 C／H／K（test_v2120 看守）      # v21.1：T4 表頭與第 145 列以後由 test_v2110 看守
@@ -216,7 +216,7 @@ def test_v2100_records_and_text(wbf):
     for key in ("先做 Tokenomics V 二十一", "你這樣的規劃，我是認同的", "R1.6.1 第 13 條", "同步請求回覆", "R4R5與權威歸屬"):
         assert key in txt, key
     rm = wbf["README"]
-    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith("Tokenomics v21.")
+    assert "v21.0（主版：" in str(rm["B5"].value) and "v20.1（次版，底版 v20.0：" in str(rm["B5"].value) and str(rm["A1"].value).startswith(("Tokenomics v21.", "Tokenomics v22."))
     rr = [x for x in range(4, rm.max_row + 1) if rm.cell(x, 1).value == "v21.0 硬體取數與 NonNV"]
     assert len(rr) == 1 and "IF_RackPrice" in rm.cell(rr[0], 2).value and "IF_NonNV_Out_" in rm.cell(rr[0], 2).value
     ws = wbf["Interface"]

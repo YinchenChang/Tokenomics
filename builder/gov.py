@@ -13,7 +13,8 @@ import re
 from openpyxl.styles import PatternFill
 from openpyxl.workbook.defined_name import DefinedName
 from common import put, F_IN, F_CALC, F_LINK, F_BOLD, F_TITLE, F_NOTE, FILL_SEC, FILL_KEY, WRAP, L, title, section
-from tiers import gt_col, TIERS_LIVE
+from tiers import gt_col, TIERS_ROWS      # v22.0: TIERS_ROWS (Terra L1 rows are appended at the end of L1, J14)
+import v22000
 import v21110
 from gov_seed import SRC_RECORDS, PERF_ATTR, EVID_MIG, EVID_UPD, FORMULA_MAP, GOV_MAP
 from gov_decisions import DECISIONS
@@ -129,7 +130,7 @@ def src_append(wb):
     """v5.13: records of SRC_RECORDS2 whose sheet already exists (S30 → SRC_Perf) are appended after its last record, only when
     the ID is absent anywhere on that sheet (Excel-owned afterwards; an ID Andy deleted or renamed is not re-added if its row moved)."""
     added = []
-    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb) + v2130.src_new_records(wb) + v2180.src_new_records(wb):      # v17.2: W1 second sources (Alt); v21.8: v2180 records
+    for rec in SRC_RECORDS2 + SRC_RECORDS3 + v518.src_new_records() + v521.src_new_records() + v525.src_new_records() + v527.src_new_records() + v529.src_new_records() + v531.src_new_records() + v532.src_new_records() + v533.src_new_records() + v534.src_new_records() + v535.src_new_records() + v536.src_new_records() + v1000.src_new_records() + v1020.src_new_records() + v1100.src_new_records() + v1310.src_new_records() + v1500.src_new_records() + v1720.src_new_records(wb) + v1910.src_new_records(wb) + v2000.src_new_records(wb) + v2110.src_new_records(wb) + v2130.src_new_records(wb) + v2180.src_new_records(wb) + v22000.src_new_records(wb):      # v22.0: SRC_PERF_088／089, SRC_CAP_022／023 (Alt); v17.2: W1 second sources (Alt); v21.8: v2180 records
         ws = wb[rec["sheet"]]
         ids = {ws.cell(r, 1).value for r in range(5, ws.max_row + 1)}
         if rec["id"] in ids: continue
@@ -387,7 +388,7 @@ def gm_append_c(wb, ws):
     nxt = max(int(x[2:]) for x in ids) + 1 if ids else 1
     r = max([rr for rr in range(5, ws.max_row + 1) if ws[f"C{rr}"].value] or [4]) + 1
     added = 0
-    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb) + v1200.gov_map_rows(wb) + v1600.gov_map_rows(wb) + v2000.gov_map_rows(wb) + v2110.gov_map_rows(wb):
+    for g in GOV_MAP_V513C + GOV_MAP_V515 + v519.GOV_MAP_V519 + v522.GOV_MAP_V522 + v523.GOV_MAP_V523 + v529.gov_map_rows(wb) + v531.gov_map_rows(wb) + v532.gov_map_rows(wb) + v533.gov_map_rows(wb) + v534.gov_map_rows(wb) + v535.gov_map_rows(wb) + v536.gov_map_rows(wb) + v601.gov_map_rows(wb) + v602.gov_map_rows(wb) + v700.gov_map_rows(wb) + v800.gov_map_rows(wb) + v1030.gov_map_rows(wb) + v1100.gov_map_rows(wb) + v1200.gov_map_rows(wb) + v1600.gov_map_rows(wb) + v2000.gov_map_rows(wb) + v2110.gov_map_rows(wb) + v22000.gov_map_rows(wb):
         if (g["sheet"], g["cell"]) in have: continue
         first = g["cell"].split(":")[0]
         row = int(re.sub(r"[A-Z]+", "", first))
@@ -519,7 +520,7 @@ def _rows_l1(wb):
                   f"=INDEX(IF_GPUhrEcon,1,{c0})", f"=INDEX(IF_GPUhrEcon,1,{c0+2})", "$/GPU-hr", COST_RNG,
                   "每 GW 年持有成本 ÷（GPU 數 × 8,760）", "機架價格、IT 折舊年限、WACC", "機架價格：3 級", *ext, "IF_GPUhrEcon", "Interface 第 14 列",
                   "外部為 SemiAnalysis TCO（假設未公開，須第二來源）；CoreWeave 公開價對照於 v5.12（SRC_Price）" if ext[0] != DASH else DASH))
-    for tier in [k for k, _ in TIERS_LIVE]:      # v21.11: single source (builder/tiers.py); Terra L1 rows are v22.0 B3
+    for tier in [k for k, _ in TIERS_ROWS]:      # v22.0: Terra rows at the L1 end (v22000.l1_rows_new); v21.11: single source (builder/tiers.py); Terra L1 rows are v22.0 B3
         for g in ("VR200", "GB300"):
             c0 = GENCOL[g]
             R.append((f"CostDec_{tier}_{g}", f"decode（含思考）每 M token 成本 — {tier}（{g}）", "經濟口徑、100% 利用率、SLO 下", f"=INDEX(IF_CostDec_{tier},1,{c0+1})",
@@ -571,7 +572,7 @@ def _rows_l1(wb):
     from block6 import l1_rows_b6            # v5.15: Answers 1–9 and external comparisons (Block 6)
     R += l1_rows_b6(R, DASH, COST_RNG, UTIL_RNG)
     R = v527.l1_rows(R)             # v5.27 X13 (d): L1_Ans3 external comparison -> SRC_DEM_006 (D:F unchanged)
-    return v2130.l1_patch(v2120.l1_patch(v2100.l1_patch(v2010.l1_patch(v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new() + v1600.l1_rows_new() + v1700.l1_rows_new() + v2000.l1_patch(v1800.l1_rows_new()) + v2000.l1_rows_new())) + v2110.l1_rows_new()))   # v21.3 W5: L1 I128:I131 token-ledger text (v2130.l1_patch); v21.2 W1: L1 C71／H71 text (v2120.l1_patch); v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
+    return v2130.l1_patch(v2120.l1_patch(v2100.l1_patch(v2010.l1_patch(v1000.l1_patch(v810.l1_patch(v800.l1_patch(v700.l1_patch(v536.l1_patch(v530.l1_rows(R + v529.l1_rows_new(wb)) + v531.l1_rows_new() + v532.l1_rows_new() + v533.l1_rows_new() + v534.l1_rows_new() + v535.l1_rows_new()) + v536.l1_rows_new()) + v700.l1_rows_new()) + v800.l1_rows_new())) + v1000.l1_rows_new() + v1600.l1_rows_new() + v1700.l1_rows_new() + v2000.l1_patch(v1800.l1_rows_new()) + v2000.l1_rows_new())) + v2110.l1_rows_new() + v22000.l1_rows_new()))   # v22.0: Terra L1 rows at the L1 end (J14); v21.3 W5: L1 I128:I131 token-ledger text (v2130.l1_patch); v21.2 W1: L1 C71／H71 text (v2120.l1_patch); v9.0 M6: L1_ExtServeGW main basis, demand-route m labels (v810.l1_patch); v8.0: L1_MFleet_Px2026／Price25Mix／PriceFleet25／FleetBreakeven2025／LReqFleet_VR200／LReqFleet_Id／AstraExtTok_*B (appended last); v5.35: L1_LPrice／LDemote／LTotal／LReqFleet (appended last); v5.34: L1_MAPI／MSub／MSeat／MixFactorAPI／TokPerPromptClose／MAPI_Anthropic (appended last); v5.33 J7: L1_MFleet／L1_TokCeiling (appended last); v5.32 J2: L1_MImplied／L1_MImplied_Ext (appended last); v5.31 X20: L1_CapexITMW_GB300_vsIREN (appended last; no L1 name moves); v5.30 X15 (b): L1_HoldEconMW_* without /1000; v5.29 X14 (c)–(g), (m): fleet break-even／margin, per-MW, generation ratios, harness vs generation, Astra external, scale factors, gap decomposition
 
 def l1_sheet(wb):
     global _REV_ROW

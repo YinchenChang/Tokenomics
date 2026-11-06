@@ -8,12 +8,12 @@
 # K13 all Chinese vendors (open-weight flag); K14 international USD prices.
 # New formulas reference key quantities through named ranges (B4_ = Block 4 internal / display; IF_ = downstream).
 from common import *
-from tiers import gt_col, NT_LIVE
+from tiers import gt_col, NT_ROWS      # v22.0: NT_ROWS (pre-v22.0 row layout; Terra is live through its own blocks)
 from outputs import COLS15
 from openpyxl.workbook.defined_name import DefinedName
 
-from tiers import TIERS_LIVE as TIERS      # v21.11: single source (builder/tiers.py); live tiers (contract names, existing rows)
-from tiers import TC_LIVE as TC      # tier columns on Cap_In / Price_Frontier summary (v21.11: from builder/tiers.py; live tiers "CDE")
+from tiers import TIERS_ROWS as TIERS      # v21.11: single source (builder/tiers.py); v22.0: the tiers with row blocks (Terra blocks sit below, J14)
+from tiers import TC_ROWS as TC      # v22.0: TC_ROWS; tier columns on Cap_In / Price_Frontier summary (v21.11: from builder/tiers.py; live tiers "CDE")
 import tiers as _T                   # v21.12 (B2): Terra blocks (tiers.TIERS, tiers.TERRA, tiers.terra_src)
 TC4 = _T.TC                          # "CDEF": the four tier columns of the Cap_In tier tables (A／C／D sections) and Price_Frontier B–D
 TT = _T.TERRA                        # 4
@@ -316,7 +316,7 @@ def capability(wb, K, P, TRN, TI):
     put(ws, f"A{r}", "項目", F_BOLD); put(ws, f"B{r}", "單位", F_BOLD)
     for t, (tk, tn) in enumerate(TIERS): put(ws, f"{TC[t]}{r}", tn, F_BOLD)
     put(ws, f"G{r}", "說明", F_BOLD); r += 1
-    tcol = [gt_col(4, t + 1) for t in range(NT_LIVE)]   # Training VR200 base columns (v21.10: L/M/N = VR200 Luna/Sol/Astra; v21.11: O/P/Q from tiers.gt_col)
+    tcol = [gt_col(4, t + 1) for t in range(NT_ROWS)]   # Training VR200 base columns (v21.10: L/M/N = VR200 Luna/Sol/Astra; v21.11: O/P/Q from tiers.gt_col)
     rows = [
       ("flop", "最終訓練 FLOPs（預訓練＋後訓練；Training Cfin）", "FLOP", lambda t: f"=Training!{tcol[t]}{TRN['Cfin']}", "0.00E+00", "Block 3"),
       ("lflop", "log10 FLOPs", "", lambda t: f"=LN({TC[t]}{{flop}})/LN(10)", "0.00", ""),
@@ -372,9 +372,9 @@ def cache_store(wb):
         row15(ws, r, "儲存 ÷ 快取命中載入成本（IF_CostCache）", "x", f"=IF({IF(f'IF_CostCache_{tk}')}>0,{{X}}{S[tk]}/{IF(f'IF_CostCache_{tk}')},0)", "0.00"); r += 1
         row15(ws, r, "儲存 ÷ OpenAI 快取輸入有效價", "%", f"={{X}}{S[tk]}/INDEX(B4_EffCache,1,{t+1})", "0.00%"); r += 2
     # v21.12 (B2): Terra block after Astra (nothing above moves). No IF_ name yet: the IF_CostCache counterpart is read from Unit_Cost (tiers.terra_src).
-    section(ws, r, TLAB + "（v21.12 預備：v22.0 啟用）", 17); r += 1
+    section(ws, r, TLAB + "（v21.12 建置；v22.0 啟用）", 17); r += 1
     row15(ws, r, "KV bytes/token（Arch 採用列）", "B", f"=Arch!${TC4[TT - 1]}$25", "#,##0"); kv = r; r += 1
-    row15(ws, r, "儲存 $/M 快取命中 token（v22.0 名稱 IF_CacheStore_Terra）", "$/M",
+    row15(ws, r, "儲存 $/M 快取命中 token（→ Interface R 節 IF_CacheStore_Terra）", "$/M",
           f"={{X}}{kv}*1E6/1E9*{{X}}${S['sel']}*B4_Retain/B4_Hits", "#,##0.00000", key=True); S[TKEY] = r; r += 1
     # the two ratio rows of the live blocks were deleted in v14.0 (Q1, dead display rows); the Terra block does not create them
     S["terra_rows"] = (kv, r - 1)
@@ -422,7 +422,7 @@ def fleet(wb, K):
           f"=IF({{X}}{F['ok']}=1,SUM({{X}}{F['g0']},{{X}}{F['g1']},{{X}}{F['g2']},{{X}}{F['g3']})-{{X}}{F['sv']},\"SLO 不可達\")", "0.000000"); F["chk"] = r; r += 2
     section(ws, r, "C. 與 Block 3 一致性", 17); r += 1
     pg = [IF(f"IF_ProgGWyr_{tk}") for tk, _ in TIERS] + [_T.terra_src("ProgGWyr", "{X}$6")]
-    row15(ws, r, "家族研發計畫占 1 GW 年（Luna＋Sol＋Astra＋Terra × 計入開關 B4_TerraFam；v21.12 起四層級，開關基準 0）", "%",
+    row15(ws, r, "家族研發計畫占 1 GW 年（Luna＋Sol＋Astra＋Terra × 計入開關 B4_TerraFam；v21.12 起四層級；開關 v22.0 起為 1）", "%",
           "=IF(COUNT(" + ",".join(pg) + f")={NA4}," + "+".join(pg[:3]) + f"+B4_TerraFam*{pg[3]}" + ',"SLO 不可達")', "0.00%"); F["fam"] = r; r += 1
     row15(ws, r, "隱含每 GW 年可容納的家族研發計畫數（訓練＋研發 ÷ 家族計畫）", "個", f"=IF(ISNUMBER({{X}}{F['fam']}),{{X}}{F['tr']}/{{X}}{F['fam']},{{X}}{F['fam']})", "0.0", key=True)
     F["nprog"] = r; r += 1
@@ -442,7 +442,7 @@ def fleet(wb, K):
         row15(ws, r, f"{tn} 免費有效權重（重新正規化後）", "%", f"=IF({{X}}{WF}>0,INDEX(B4_MixFree,1,{t+1})*{{X}}{RC[t]}/{{X}}{WF},0)", "0.0%"); assert r == EF[t]; r += 1
     r += 1
     assert r == E0, (r, E0)
-    section(ws, r, f"E. {TLAB}（v21.12 預備：付費、免費組合 Terra＝0，本節各列目前為 0；v22.0 啟用）", 17); r += 1
+    section(ws, r, f"E. {TLAB}（v21.12 建置；v22.0 啟用：付費組合 Terra 0.15、免費組合 Terra 0）", 17); r += 1
     t = TT - 1
     row15(ws, r, f"{TLAB} 可達旗標（每 GW 產出為數值且 > 0＝1）", "旗標", f"=IF(ISNUMBER({tok(t)}),IF({tok(t)}>0,1,0),0)", "0"); assert r == RC[t]; r += 1
     row15(ws, r, f"{TLAB} 付費有效權重（重新正規化後）", "%", f"=IF({{X}}{WP}>0,INDEX(B4_MixPaid,1,{TT})*{{X}}{RC[t]}/{{X}}{WP},0)", "0.0%"); assert r == EP[t]; r += 1
@@ -460,7 +460,7 @@ def amortize(wb, F, P, S):
     title(ws, "Amortize — 訓練攤提（K6：自下而上、由上而下並列；下游預設 (c)＝由上而下總額 × 自下而上權重，Andy 2026-10-01）",
           "自下而上＝層級研發計畫成本 ÷（1 GW 參考機隊在商業壽命內服務的該層級 token）；由上而下＝機隊訓練占比 X ÷（1−X）× 服務成本。"
           "前者同時是『回本所需單價溢價』（K4 (d)）。(c)、(d) 只改變層級間分配，總額同由上而下。"
-          "v21.12：Terra 區在 K6 之後；K6 總額為四層級（Terra 自下而上總額 × 家族研發計入開關 B4_TerraFam，基準 0）")
+          "v21.12：Terra 區在 K6 之後；K6 總額為四層級（Terra 自下而上總額 × 家族研發計入開關 B4_TerraFam；v22.0 起為 1）")
     head15(ws)
     A = {}
     NA = '"SLO 不可達"'
@@ -469,7 +469,7 @@ def amortize(wb, F, P, S):
 
     def block(t, tn, label_bu, label_td, r):
         """one tier block (rows as v21.11); returns next row"""
-        row15(ws, r, "研發計畫成本（IF_ProgCost）" if t < 3 else "研發計畫成本（Training Terra 欄 × 持有成本；v22.0 名稱 IF_ProgCost_Terra）", "$M",
+        row15(ws, r, "研發計畫成本（IF_ProgCost）" if t < 3 else "研發計畫成本（Training Terra 欄 × 持有成本；同 Interface R 節 IF_ProgCost_Terra）", "$M",
               f"={ifr('ProgCost', t)}", "#,##0.0"); pc = r; A[f"pc{t}"] = r; r += 1
         p_, f_ = f"Fleet_1GW!{{X}}{F[f'p{t}']}", f"Fleet_1GW!{{X}}{F[f'f{t}']}"
         row15(ws, r, "年服務 token（付費＋免費）", "M tok/年", f"=IF({num(p_, f_)},{p_}+{f_},{NA})", "#,##0"); A[f"yr{t}"] = r; r += 1
@@ -503,8 +503,8 @@ def amortize(wb, F, P, S):
     TB = k6 + 1 + 4 + 2 * len(TIERS) + 1 + 1 + 1          # K6 header, 4 totals, (c)／(d) per live tier, (d) share, note, empty row
     t3 = TT - 1
     r = TB
-    section(ws, r, f"{TLAB}（v21.12 預備：付費組合 Terra＝0，年服務 token 為 0；K6 總額已含本區，自下而上總額 × 家族研發計入開關 B4_TerraFam）", 17); r += 1
-    r = block(t3, TLAB, "自下而上攤提＝回本所需單價溢價（分母＝付費 token；v22.0 名稱 IF_AmortBU_Terra）", "由上而下攤提（v22.0 名稱 IF_AmortTD_Terra）", r)
+    section(ws, r, f"{TLAB}（v21.12 建置；v22.0 啟用：付費組合 Terra 0.15；K6 總額已含本區，自下而上總額 × 家族研發計入開關 B4_TerraFam）", 17); r += 1
+    r = block(t3, TLAB, "自下而上攤提＝回本所需單價溢價（分母＝付費 token；→ IF_AmortBU_Terra）", "由上而下攤提（→ IF_AmortTD_Terra）", r)
     row15(ws, r, "回本所需溢價 ÷ 觀測層級價差（Terra − Luna OpenAI 有效混合單價；依價格排序 Luna < Terra < Sol）", "%",
           f"=IF(ISNUMBER({{X}}{A[f'bu{t3}']}),{{X}}{A[f'bu{t3}']}/(INDEX(B4_EffRef,1,{TT})-INDEX(B4_EffRef,1,1)),{NA})", "0.000%"); r += 1
     tdc = r      # (c)／(d) rows of Terra filled after the K6 totals exist
@@ -546,8 +546,8 @@ def amortize(wb, F, P, S):
     put(ws, f"A{r}", "註：(c) 保留由上而下的總額（與觀測支出一致），層級間依物理計畫成本分配；縮放倍數與 Fleet_1GW『隱含家族研發計畫數』同源（J8）。"
                      "若 J8 低估集中於 Astra，(c) 對 Astra 仍偏低。(d) 為聯合成本的相對售價法。毛利率另列不含攤提口徑，以便與公司揭露比較", F_NOTE)
     assert r + 2 == TB, (r, TB)
-    cd_rows(t3, TLAB, f"{TLAB}：(c) 由上而下總額 × 自下而上權重（v22.0 名稱 IF_AmortDefault_Terra）",
-            f"{TLAB}：(d) 由上而下總額 × 營收權重（分母＝付費 token；v22.0 名稱 IF_AmortRev_Terra）", tdc)
+    cd_rows(t3, TLAB, f"{TLAB}：(c) 由上而下總額 × 自下而上權重（→ IF_AmortDefault_Terra）",
+            f"{TLAB}：(d) 由上而下總額 × 營收權重（分母＝付費 token；→ IF_AmortRev_Terra）", tdc)
     A["terra_rows"] = (TB, TE)
     return A
 

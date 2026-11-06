@@ -107,7 +107,7 @@ def test_v2180_names(wbf, wbv, pw):
             continue
         sh, cells = _cells(t)
         if wbf.defined_names[name].attr_text != t:
-            assert name.startswith("IDX_Src") or v21110_allow.ref_moved(name), name      # SRC_Index 延長；v21.11：DRV_／TRN_ 1×15 → 1×20、RNG_Dem004_* 下移（值不變，test_v21110 看守）
+            assert name.startswith(("IDX_Src", "IFC_")) or v21110_allow.ref_moved(name), name      # v22.0：IFC_ 延伸到 Interface R 節      # SRC_Index 延長；v21.11：DRV_／TRN_ 1×15 → 1×20、RNG_Dem004_* 下移（值不變，test_v21110 看守）
             continue
         diff = [(r, c) for r, c in cells if not _eq(pw[sh].cell(r, c).value, wbv[sh].cell(r, c).value)]
         if not diff:
@@ -190,7 +190,7 @@ def test_v2180_new_records(wbf, wbv):
     for sid in NEW_IDS:
         ws, r = _src(wbf, sid)
         assert ws[f"U{r}"].value == "U-V2180", sid
-        assert ws[f"O{r}"].value == ("Active" if sid == "SRC_PRC_051" else "Superseded" if sid == "SRC_HW_100" else "Alt"), sid      # v21.9：SRC_HW_100 撤銷（test_v2190 看守）
+        assert ws[f"O{r}"].value == ("Active" if sid in ("SRC_PRC_051", "SRC_PRC_066", "SRC_PRC_067", "SRC_PRC_068") else "Superseded" if sid == "SRC_HW_100" else "Alt"), sid      # v21.9：SRC_HW_100 撤銷（test_v2190 看守）
         assert str(ws[f"Q{r}"].value).startswith("E"), sid
     ws, r = _src(wbf, "SRC_PRC_051")
     assert ws[f"C{r}"].value == 0.06 and ws[f"Q{r}"].value == "E428" and ws[f"V{r}"].value == "Cap_In!F58｜直接" and ws[f"R{r}"].value.startswith("免（C1")
@@ -229,15 +229,15 @@ def test_v2180_evidence_decisions_readme(wbf):
     rm = wbf["README"]
     b5 = str(rm["B5"].value)
     assert "以下為 v21.8（次版，底版 v21.7：" in b5 and "以下為 v21.7（次版，底版 v21.6：" in b5      # v21.9：B5 開頭為 v21.9 段（test_v2190 看守）
-    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v21.12")
+    assert "基準與低成本欄不變" in b5 and str(rm["A1"].value).startswith("Tokenomics v22.0")
 
 
 # ---------------------------------------------------------------- 5. GOV
 def test_v2180_gov_counts(lo):
-    v = lo.view({})
-    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 129, 183)
+    v = getattr(lo, "base", lo).view({})
+    assert (v.get_name("GOV_Errors"), v.get_name("GOV_Warnings"), v.get_name("GOV_Info")) == (0, 133, 183)      # v22.0（R10）：W1 +3（SRC_PRC_066–068 Active 缺第二來源）；v22.0 原值另 P1 +1（Cap_In K 節 2026 欄單價基準）
     assert v.get_name("RNG_StaleFlag") == "一致" and v.get_name("RNG_OutCount") == 0
-    assert str(v.get_name("RNG_Version")).endswith("v21.12") and str(v.get_name("RNG_Current")).endswith("v21.12")      # v21.9：版本字串（test_v2190 看守）
+    assert str(v.get_name("RNG_Version")).endswith("v22.0") and str(v.get_name("RNG_Current")).endswith("v22.0")      # v21.9：版本字串（test_v2190 看守）
     errs = [(s, c) for (s, c), x in v.evaluate_all().items() if isinstance(x, str) and x.startswith("#")]
     assert errs == []
 
